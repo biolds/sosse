@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Search{% if form.cleaned_data %} · {{ form.cleaned_data.search }}{% endif %}</title>
+    <style>
+        h3.res-title {
+            margin-bottom: 0px;
+        }
+        a.res-url {
+            text-decoration: none;
+            color: #080;
+            font-size: 13px;
+        }
+        .res-rank {
+            font-size: 10px;
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
+
+        {% for field in form.visible_fields %}
+            {# {{ field.label }} #}{{ field }}
+        {% endfor %}
+        <input type="submit" value="🔎 Search">
+    </form>
+    {% if results %}
+        <hr/>
+        {{ results|length }} page{{ results|pluralize:"s" }} found.
+        {% for r in results %}
+            <a href="{{ r.url }}">
+                <h3 class="res-title">{{ r.title|title }}</h3>
+            </a>
+            <a href="{{ r.url }}" class="res-url">
+                {{ r.url }}
+            </a>
+            <div class="res-rank">/ {{ r.rank }}</div>
+            <br/>
+            {% for entry in r.headline %}{{ entry }}{% endfor %}
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

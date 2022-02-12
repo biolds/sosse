@@ -1,0 +1,24 @@
+echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/at/sources.list.d/bullseye-backports.list
+
+apt update
+apt install python3-django/bullseye-backports python3-requests python3-bs4 python3-html5lib python3-psycopg2 python3-django-uwsgi libjs-jquery postgresql nginx uwsgi
+
+su postgres -c "psql --command \"CREATE USER django WITH SUPERUSER PASSWORD 'password'\""
+su postgres -c "psql --command \"CREATE DATABASE django OWNER django\""
+
+In settings.py:
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'django',
+        'USER': 'django',
+        'PASSWORD': 'password',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
+}
+
+./manage.py createsuperuser
+
+)

@@ -10,34 +10,33 @@ from .models import Document
 def search(request):
     results = None
 
-    if request.method == 'POST':
-        form = SearchForm(request.POST)
-        if form.is_valid():
-            vector = SearchVector('url', 'title', 'content')
-            query = SearchQuery(form.cleaned_data['search'])
+    form = SearchForm(request.GET)
+    if form.is_valid() and form.cleaned_data['q']:
+        vector = SearchVector('url', 'title', 'content')
+        query = SearchQuery(form.cleaned_data['q'])
 
-            START_SEL = '&#"_&'
-            STOP_SEL = '&_"#&'
-            results = Document.objects.annotate(
-                rank=SearchRank(vector, query, cover_density=True),
-                headline=SearchHeadline('content', query, start_sel=START_SEL, stop_sel=STOP_SEL)
-            ).exclude(rank__lte=0.01).order_by('-rank')
+        START_SEL = '&#"_&'
+        STOP_SEL = '&_"#&'
+        results = Document.objects.annotate(
+            rank=SearchRank(vector, query, cover_density=True),
+            headline=SearchHeadline('content', query, start_sel=START_SEL, stop_sel=STOP_SEL)
+        ).exclude(rank__lte=0.01).order_by('-rank')
 
-            for res in results:
-                entries = res.headline.split(START_SEL)
-                h = []
-                for i, entry in enumerate(entries):
-                    if i != 0:
-                        h.append(mark_safe('<b>'))
+        for res in results:
+            entries = res.headline.split(START_SEL)
+            h = []
+            for i, entry in enumerate(entries):
+                if i != 0:
+                    h.append(mark_safe('<b>'))
 
-                    if STOP_SEL in entry:
-                        a, b = entry.split(STOP_SEL, 1)
-                        h.append(a)
-                        h.append(mark_safe('</b>'))
-                        h.append(b)
-                    else:
-                        h.append(entry)
-                res.headline = h
+                if STOP_SEL in entry:
+                    a, b = entry.split(STOP_SEL, 1)
+                    h.append(a)
+                    h.append(mark_safe('</b>'))
+                    h.append(b)
+                else:
+                    h.append(entry)
+            res.headline = h
     else:
         form = SearchForm()
 

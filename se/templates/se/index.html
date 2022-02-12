@@ -2,12 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Search{% if form.cleaned_data %} · {{ form.cleaned_data.search }}{% endif %}</title>
+    <title>Search{% if form.cleaned_data %} · {{ form.cleaned_data.q }}{% endif %}</title>
     <style>
-        h3.res-title {
+        .search-form {
+            text-align: center;
+            padding: 10px;
+        }
+        .links {
+            display: block;
+            text-align: right;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .res-title {
             margin-bottom: 0px;
         }
-        a.res-url {
+        .res-url {
             text-decoration: none;
             color: #080;
             font-size: 13px;
@@ -19,8 +29,7 @@
     </style>
 </head>
 <body>
-    <form method="post">
-        {% csrf_token %}
+    <form method="get" class="search-form">
         {% for field in form.hidden_fields %}
             {{ field }}
         {% endfor %}
@@ -30,6 +39,7 @@
         {% endfor %}
         <input type="submit" value="🔎 Search">
     </form>
+    <a href="/admin/" class="links">Admin</a>
     {% if results %}
         <hr/>
         {{ results|length }} page{{ results|pluralize:"s" }} found.

@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from hashlib import md5
@@ -10,6 +11,22 @@ from bs4 import BeautifulSoup
 from django.db import models
 
 
+def absolutize_url(url, p):
+    if re.match('[a-zA-Z]+:', p):
+        return p
+
+    url = urlparse(url)
+
+    if p.startswith('/'):
+        new_path = p
+    else:
+        new_path = os.path.dirname(url.path)
+        new_path += '/' + p
+
+    url = url._replace(path=new_path)
+    return url.geturl()
+
+
 class Document(models.Model):
     url = models.TextField(unique=True)
     title = models.TextField()
@@ -17,21 +34,6 @@ class Document(models.Model):
 
     def __str__(self):
         return self.url
-
-    def _absolutize_url(self, p):
-        if re.match('[a-zA-Z]+:', p):
-            return p
-
-        url = urlparse(self.url)
-
-        if p.startswith('/'):
-            new_path = p
-        else:
-            new_path = os.path.dirname(url.path)
-            new_path += '/' + p
-
-        url = url._replace(path=new_path)
-        return url.geturl()
 
     def index(self, content):
         content = content.decode('utf-8')
@@ -50,7 +52,7 @@ class Document(models.Model):
 
         # extract links
         for a in parsed.find_all('a'):
-            url = self._absolutize_url(a.get('href'))
+            url = absolutize_url(self.url, a.get('href'))
             UrlQueue.queue(url)
 
         for meta in parsed.find_all('meta'):
@@ -64,9 +66,9 @@ class Document(models.Model):
                 if dest.startswith('url='):
                     dest = dest[4:]
 
-                dest = self._absolutize_url(dest)
+                dest = absolutize_url(self.url, dest)
                 UrlQueue.queue(dest)
-                    
+
 
 class QueueWhitelist(models.Model):
     url = models.TextField(unique=True)
@@ -101,6 +103,23 @@ class UrlQueue(models.Model):
         UrlQueue.objects.get_or_create(url=url)
 
     @staticmethod
+    def url_get(url):
+        cookies = AuthMethod.get_cookies(url)
+        r = requests.get(url, cookies=cookies)
+
+        if len(r.history):
+            # The request was redirected, check if we need auth
+            try:
+                new_req = AuthMethod.try_methods(r)
+                if new_req:
+                    r = new_req
+            except:
+                raise Exception('Authentication failed')
+
+        r.raise_for_status()
+        return r
+
+    @staticmethod
     def crawl():
         url = UrlQueue.objects.filter(error='').first()
         if url is None:
@@ -111,15 +130,94 @@ class UrlQueue(models.Model):
 
             doc, _ = Document.objects.get_or_create(url=url.url)
             if url.url.startswith('http://') or url.url.startswith('https://'):
-                r = requests.get(url.url)
-                r.raise_for_status()
-                doc.index(r.content)
+                req = UrlQueue.url_get(url.url)
+                doc.url = req.url
+                doc.index(req.content)
 
             doc.save()
-                
+
             UrlQueue.objects.filter(id=url.id).delete()
         except Exception as e:
             url.set_error(format_exc())
             url.save()
             print(format_exc())
         return True
+
+
+class AuthMethod(models.Model):
+    url_re = models.TextField()
+    post_url = models.TextField()
+    cookies = models.TextField(blank=True, default='')
+    fqdn = models.CharField(max_length=1024)
+
+    def __str__(self):
+        return self.url_re
+
+    def try_auth(self, req):
+        payload = dict([(f['key'], f['value']) for f in self.authfield_set.values('key', 'value')])
+
+        for field in self.authdynamicfield_set.all():
+            content = req.content.decode('utf-8')
+            parsed = BeautifulSoup(content, 'html5lib')
+            val = parsed.select(field.input_css_selector)
+
+            if len(val) == 0:
+                raise Exception('Could not find element with CSS selector: %s' % field.css_selector)
+
+            if len(val) > 1:
+                raise Exception('Found multiple element with CSS selector: %s' % field.css_selector)
+
+            payload[field.key] = val[0].attrs['value']
+
+        cookies = dict(req.cookies)
+        r = requests.post(self.post_url, data=payload, cookies=cookies, allow_redirects=False)
+        r.raise_for_status()
+
+        self.cookies = json.dumps(dict(r.cookies))
+        self.save()
+
+        if r.status_code != 302:
+            return r
+
+        location = r.headers.get('location')
+        if not location:
+            raise Exception('No location in the redirection')
+
+        location = absolutize_url(req.url, location)
+        r = requests.get(req.url, cookies=r.cookies)
+        r.raise_for_status()
+        return r
+
+    @staticmethod
+    def try_methods(req):
+        for auth_method in AuthMethod.objects.all():
+            if re.search(auth_method.url_re, req.url):
+                return auth_method.try_auth(req)
+
+    @staticmethod
+    def get_cookies(url):
+        url = urlparse(url)
+        try:
+            cookies = AuthMethod.objects.get(fqdn=url.hostname).cookies
+            if cookies:
+                return json.loads(cookies)
+        except AuthMethod.DoesNotExist:
+            pass
+
+
+class AuthField(models.Model):
+    key = models.CharField(max_length=256)
+    value = models.CharField(max_length=256)
+    auth_method = models.ForeignKey(AuthMethod, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.key, self.value)
+
+
+class AuthDynamicField(models.Model):
+    key = models.CharField(max_length=256)
+    input_css_selector = models.CharField(max_length=4096)
+    auth_method = models.ForeignKey(AuthMethod, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.key, self.css_selector)

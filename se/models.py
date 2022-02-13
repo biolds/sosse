@@ -1,6 +1,7 @@
 import json
 import os
 import re
+
 from hashlib import md5
 from time import sleep
 from traceback import format_exc
@@ -23,7 +24,7 @@ def absolutize_url(url, p):
         new_path = os.path.dirname(url.path)
         new_path += '/' + p
 
-    url = url._replace(path=new_path)
+    url = url._replace(path=new_path, query='', fragment='')
     return url.geturl()
 
 
@@ -31,11 +32,12 @@ class Document(models.Model):
     url = models.TextField(unique=True)
     title = models.TextField()
     content = models.TextField()
+    crawl_id = models.UUIDField(editable=False)
 
     def __str__(self):
         return self.url
 
-    def index(self, content):
+    def index(self, content, crawl_id):
         content = content.decode('utf-8')
         parsed = BeautifulSoup(content, 'html5lib')
         self.title = parsed.title.string or self.url
@@ -53,7 +55,7 @@ class Document(models.Model):
         # extract links
         for a in parsed.find_all('a'):
             url = absolutize_url(self.url, a.get('href'))
-            UrlQueue.queue(url)
+            UrlQueue.queue(url, crawl_id)
 
         for meta in parsed.find_all('meta'):
             if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
@@ -67,7 +69,7 @@ class Document(models.Model):
                     dest = dest[4:]
 
                 dest = absolutize_url(self.url, dest)
-                UrlQueue.queue(dest)
+                UrlQueue.queue(dest, crawl_id)
 
 
 class QueueWhitelist(models.Model):
@@ -93,7 +95,14 @@ class UrlQueue(models.Model):
             self.error_hash = md5(err.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def queue(url):
+    def queue(url, crawl_id=None):
+        if crawl_id:
+            try:
+                Document.objects.get(url=url, crawl_id=crawl_id)
+                return
+            except Document.DoesNotExist:
+                pass
+
         for w in QueueWhitelist.objects.all():
             if url.startswith(w.url):
                 break
@@ -120,7 +129,7 @@ class UrlQueue(models.Model):
         return r
 
     @staticmethod
-    def crawl():
+    def crawl(crawl_id):
         url = UrlQueue.objects.filter(error='').first()
         if url is None:
             return False
@@ -128,12 +137,13 @@ class UrlQueue(models.Model):
         try:
             print('(%i) %s ...' % (UrlQueue.objects.count(), url.url))
 
-            doc, _ = Document.objects.get_or_create(url=url.url)
+            doc, _ = Document.objects.get_or_create(url=url.url, defaults={'crawl_id': crawl_id})
             if url.url.startswith('http://') or url.url.startswith('https://'):
                 req = UrlQueue.url_get(url.url)
                 doc.url = req.url
-                doc.index(req.content)
+                doc.index(req.content, crawl_id)
 
+            doc.crawl_id = crawl_id
             doc.save()
 
             UrlQueue.objects.filter(id=url.id).delete()

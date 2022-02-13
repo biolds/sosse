@@ -1,3 +1,4 @@
+import uuid
 from time import sleep
 
 from django.core.management.base import BaseCommand, CommandError
@@ -29,8 +30,10 @@ class Command(BaseCommand):
 
         self.stdout.write('Crawler starting')
         sleep_count = 0
+        crawl_id = uuid.uuid4()
+
         while True:
-            if UrlQueue.crawl():
+            if UrlQueue.crawl(crawl_id):
                 sleep_count = 0
             else:
                 if options['once']:

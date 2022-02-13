@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Search{% if form.cleaned_data %} · {{ form.cleaned_data.q }}{% endif %}</title>
+    <title>Search{% if form.cleaned_data %} · {{ q }}{% endif %}</title>
     <style>
         .search-form {
             text-align: center;
@@ -26,6 +26,9 @@
             font-size: 10px;
             display: inline;
         }
+        .pagination {
+            padding: 20px 0px 20px 0px;
+        }
     </style>
 </head>
 <body>
@@ -42,8 +45,8 @@
     <a href="/admin/" class="links">Admin</a>
     {% if results %}
         <hr/>
-        {{ results|length }} page{{ results|pluralize:"s" }} found.
-        {% for r in results %}
+        {{ results|length }} result{{ results|pluralize:"s" }}
+        {% for r in paginated %}
             <a href="{{ r.url }}">
                 <h3 class="res-title">{{ r.title|title }}</h3>
             </a>
@@ -54,6 +57,24 @@
             <br/>
             {% for entry in r.headline %}{{ entry }}{% endfor %}
         {% endfor %}
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if paginated.has_previous %}
+                    <a href="?q={{ q }}">&laquo; first</a>
+                    <a href="?page={{ paginated.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ paginated.number }} of {{ paginated.paginator.num_pages }}.
+                </span>
+
+                {% if paginated.has_next %}
+                    <a href="?q={{ q }}&page={{ paginated.next_page_number }}">next</a>
+                    <a href="?q={{ q }}&page={{ paginated.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
     {% endif %}
 </body>
 </html>

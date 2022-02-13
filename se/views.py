@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank, SearchVector
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
@@ -9,11 +11,14 @@ from .models import Document
 
 def search(request):
     results = None
+    paginated = None
+    q = None
 
     form = SearchForm(request.GET)
     if form.is_valid() and form.cleaned_data['q']:
+        q = form.cleaned_data['q']
         vector = SearchVector('url', 'title', 'content')
-        query = SearchQuery(form.cleaned_data['q'])
+        query = SearchQuery(q)
 
         START_SEL = '&#"_&'
         STOP_SEL = '&_"#&'
@@ -22,7 +27,11 @@ def search(request):
             headline=SearchHeadline('content', query, start_sel=START_SEL, stop_sel=STOP_SEL)
         ).exclude(rank__lte=0.01).order_by('-rank')
 
-        for res in results:
+        paginator = Paginator(results, settings.MYSE_RESULTS_COUNT)
+        page_number = request.GET.get('page')
+        paginated = paginator.get_page(page_number)
+
+        for res in paginated:
             entries = res.headline.split(START_SEL)
             h = []
             for i, entry in enumerate(entries):
@@ -42,6 +51,8 @@ def search(request):
 
     context = {
         'form': form,
-        'results': results
+        'results': results,
+        'paginated': paginated,
+        'q': q
     }
     return render(request, 'se/index.html', context)

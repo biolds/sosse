@@ -19,6 +19,8 @@ DATABASES = {
     }
 }
 
+Change SECRET_KEY
+
 ./manage.py createsuperuser
 
 )

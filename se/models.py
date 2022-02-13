@@ -51,7 +51,7 @@ class Document(models.Model):
         # extract links
         for a in parsed.find_all('a'):
             url = self._absolutize_url(a.get('href'))
-            UrlQueue.objects.get_or_create(url=url)
+            UrlQueue.queue(url)
 
         for meta in parsed.find_all('meta'):
             if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
@@ -65,8 +65,15 @@ class Document(models.Model):
                     dest = dest[4:]
 
                 dest = self._absolutize_url(dest)
-                UrlQueue.objects.get_or_create(url=dest)
+                UrlQueue.queue(dest)
                     
+
+class QueueWhitelist(models.Model):
+    url = models.TextField(unique=True)
+
+    def __str__(self):
+        return self.url
+
 
 class UrlQueue(models.Model):
     url = models.TextField(unique=True)
@@ -82,6 +89,16 @@ class UrlQueue(models.Model):
             self.error_hash = ''
         else:
             self.error_hash = md5(err.encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def queue(url):
+        for w in QueueWhitelist.objects.all():
+            if url.startswith(w.url):
+                break
+        else:
+            return
+
+        UrlQueue.objects.get_or_create(url=url)
 
     @staticmethod
     def crawl():

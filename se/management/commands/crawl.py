@@ -16,13 +16,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for url in options['urls']:
-            UrlQueue.objects.get_or_create(url=url)
+            UrlQueue.queue(url=url)
         
         if options['requeue']:
             urls = Document.objects.values_list('url', flat=True)
             self.stdout.write('Queuing %i url...' % len(urls))
             for url in urls:
-                UrlQueue.objects.get_or_create(url=url)
+                UrlQueue.queue(url=url)
 
         if options['force']:
             UrlQueue.objects.update(error='', error_hash='')

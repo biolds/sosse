@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import Document, QueueWhitelist, UrlQueue, AuthMethod, AuthField, AuthDynamicField
 
+admin.site.enable_nav_sidebar = False
 admin.site.register(Document)
 admin.site.register(QueueWhitelist)
 admin.site.register(UrlQueue)

@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from django.contrib.postgres.indexes import GistIndex, GinIndex
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import models
 
 
@@ -33,9 +35,11 @@ class Document(models.Model):
     title = models.TextField()
     content = models.TextField()
     crawl_id = models.UUIDField(editable=False)
+    vector = SearchVectorField()
 
-    def __str__(self):
-        return self.url
+    class Meta:
+        #indexes = [GinIndex(fields=(('vector',)))]
+        indexes = [GistIndex(fields=(('vector',)))]
 
     def index(self, content, crawl_id):
         content = content.decode('utf-8')
@@ -51,6 +55,8 @@ class Document(models.Model):
                 text += s
 
         self.content = text
+        #self.vector = SearchVector('url', 'title', 'content')
+        #self.vector = SearchVector('content')
 
         # extract links
         for a in parsed.find_all('a'):

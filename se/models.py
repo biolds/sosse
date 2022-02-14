@@ -141,7 +141,7 @@ class UrlQueue(models.Model):
             return False
 
         try:
-            print('(%i) %s ...' % (UrlQueue.objects.count(), url.url))
+            print('(%i/%i) %s ...' % (UrlQueue.objects.count(), Document.objects.count(), url.url))
 
             doc, _ = Document.objects.get_or_create(url=url.url, defaults={'crawl_id': crawl_id})
             if url.url.startswith('http://') or url.url.startswith('https://'):
@@ -178,10 +178,10 @@ class AuthMethod(models.Model):
             val = parsed.select(field.input_css_selector)
 
             if len(val) == 0:
-                raise Exception('Could not find element with CSS selector: %s' % field.css_selector)
+                raise Exception('Could not find element with CSS selector: %s' % field.input_css_selector)
 
             if len(val) > 1:
-                raise Exception('Found multiple element with CSS selector: %s' % field.css_selector)
+                raise Exception('Found multiple element with CSS selector: %s' % field.input_css_selector)
 
             payload[field.key] = val[0].attrs['value']
 
@@ -236,4 +236,4 @@ class AuthDynamicField(models.Model):
     auth_method = models.ForeignKey(AuthMethod, on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s: %s' % (self.key, self.css_selector)
+        return '%s: %s' % (self.key, self.input_css_selector)

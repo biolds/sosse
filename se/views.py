@@ -23,7 +23,7 @@ def search(request):
         START_SEL = '&#"_&'
         STOP_SEL = '&_"#&'
         results = Document.objects.annotate(
-            rank=SearchRank('vector', query),
+            rank=SearchRank(models.F('vector'), query),
             headline=SearchHeadline('content', query, start_sel=START_SEL, stop_sel=STOP_SEL)
         ).exclude(rank__lte=0.01).order_by('-rank')
 

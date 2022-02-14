@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
-from django.contrib.postgres.indexes import GistIndex, GinIndex
+from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import models
 
@@ -38,8 +38,7 @@ class Document(models.Model):
     vector = SearchVectorField()
 
     class Meta:
-        #indexes = [GinIndex(fields=(('vector',)))]
-        indexes = [GistIndex(fields=(('vector',)))]
+        indexes = [GinIndex(fields=(('vector',)))]
 
     def index(self, content, crawl_id):
         content = content.decode('utf-8')

@@ -9,15 +9,19 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql='''
-              CREATE TRIGGER vector_column_trigger
-              BEFORE INSERT OR UPDATE OF url, title, content, vector
-              ON se_document
-              FOR EACH ROW EXECUTE PROCEDURE
-              tsvector_update_trigger(
-                vector, 'pg_catalog.english', url, title, content
-              );
+              CREATE FUNCTION weight_vector() RETURNS trigger AS $$
+              begin
+                new.vector = setweight(to_tsvector('english', new.title), 'A') ||
+                             setweight(to_tsvector('english', new.url), 'A') ||
+                             setweight(to_tsvector('english', new.content), 'B');
+                return new;
+              end
+              $$ LANGUAGE plpgsql;
 
-              UPDATE se_document SET vector = NULL;
+              CREATE TRIGGER vector_column_trigger
+              BEFORE INSERT OR UPDATE OF url, title, content
+              ON se_document
+              FOR EACH ROW EXECUTE PROCEDURE weight_vector();
             ''',
 
             reverse_sql = '''

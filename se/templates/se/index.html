@@ -48,7 +48,7 @@
         {{ results|length }} result{{ results|pluralize:"s" }}
         {% for r in paginated %}
             <a href="{{ r.url }}">
-                <h3 class="res-title">{{ r.title|title }}</h3>
+                <h3 class="res-title">{{ r.title }}</h3>
             </a>
             <a href="{{ r.url }}" class="res-url">
                 {{ r.url }}

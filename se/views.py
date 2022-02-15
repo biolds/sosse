@@ -25,7 +25,7 @@ def search(request):
         results = Document.objects.annotate(
             rank=SearchRank(models.F('vector'), query),
             headline=SearchHeadline('content', query, start_sel=START_SEL, stop_sel=STOP_SEL)
-        ).exclude(rank__lte=0.01).order_by('-rank')
+        ).exclude(rank__lte=0.01).order_by('-rank', 'title')
 
         paginator = Paginator(results, settings.MYSE_RESULTS_COUNT)
         page_number = request.GET.get('page')

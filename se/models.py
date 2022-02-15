@@ -88,6 +88,7 @@ class UrlQueue(models.Model):
     url = models.TextField(unique=True)
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
+    worker_no = models.PositiveIntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.url
@@ -134,13 +135,13 @@ class UrlQueue(models.Model):
         return r
 
     @staticmethod
-    def crawl(crawl_id):
-        url = UrlQueue.objects.filter(error='').first()
+    def crawl(worker_no, crawl_id):
+        url = UrlQueue.pick_url(worker_no)
         if url is None:
             return False
 
         try:
-            print('(%i/%i) %s ...' % (UrlQueue.objects.count(), Document.objects.count(), url.url))
+            print('(%i/%i) %i %s ...' % (UrlQueue.objects.count(), Document.objects.count(), worker_no, url.url))
 
             doc, _ = Document.objects.get_or_create(url=url.url, defaults={'crawl_id': crawl_id})
             if url.url.startswith('http://') or url.url.startswith('https://'):
@@ -158,6 +159,25 @@ class UrlQueue(models.Model):
             print(format_exc())
         return True
 
+    @staticmethod
+    def pick_url(worker_no):
+        while True:
+            url = UrlQueue.objects.filter(error='', worker_no__isnull=True).first()
+            if url is None:
+                return None
+
+            updated = UrlQueue.objects.filter(id=url.id, worker_no__isnull=True).update(worker_no=worker_no)
+
+            if updated == 0:
+                continue
+
+            try:
+                url.refresh_from_db()
+            except UrlQueue.DoesNotExist:
+                sleep(0.1)
+                continue
+
+            return url
 
 class AuthMethod(models.Model):
     url_re = models.TextField()

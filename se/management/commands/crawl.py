@@ -1,6 +1,8 @@
 import uuid
+from multiprocessing import cpu_count, Process
 from time import sleep
 
+from django.db import connection
 from django.core.management.base import BaseCommand, CommandError
 from ...models import UrlQueue, Document
 
@@ -12,10 +14,34 @@ class Command(BaseCommand):
         parser.add_argument('--once', action='store_true', help='Exit when url queue is empty')
         parser.add_argument('--requeue', action='store_true', help='Exit when url queue is empty')
         parser.add_argument('--force', action='store_true', help='Reindex url in error')
+        parser.add_argument('--worker', nargs=1, type=int, default=[None], help='Worker count (defaults to the available cpu count * 2)')
         parser.add_argument('urls', nargs='*', type=str)
 
 
+    @staticmethod
+    def process(crawl_id, worker_no, options):
+        print('Crawler %s starting' % worker_no)
+
+        connection.close()
+        connection.connect()
+
+        while True:
+            sleep_count = 0
+            if UrlQueue.crawl(worker_no, crawl_id):
+                sleep_count = 0
+            else:
+                if options['once']:
+                    break
+                if sleep_count == 0:
+                    self.stdout.write('Idle...')
+                sleep_count += 1
+                if sleep_count == 60:
+                    sleep_count = 0
+                sleep(1)
+
     def handle(self, *args, **options):
+        UrlQueue.objects.update(worker_no=None)
+
         for url in options['urls']:
             UrlQueue.queue(url=url)
         
@@ -28,20 +54,20 @@ class Command(BaseCommand):
         if options['force']:
             UrlQueue.objects.update(error='', error_hash='')
 
-        self.stdout.write('Crawler starting')
-        sleep_count = 0
+        self.stdout.write('Crawl starting')
         crawl_id = uuid.uuid4()
 
-        while True:
-            if UrlQueue.crawl(crawl_id):
-                sleep_count = 0
-            else:
-                if options['once']:
-                    break
-                if sleep_count == 0:
-                    self.stdout.write('Idle...')
-                sleep_count += 1
-                if sleep_count == 60:
-                    sleep_count = 0
-                sleep(1)
-        self.stdout.write('Crawler exiting')
+        worker_count = options['worker'][0]
+        if worker_count is None:
+            worker_count = cpu_count() * 2
+
+        workers = []
+        for crawler_no in range(worker_count):
+            p = Process(target=self.process, args=(crawl_id, crawler_no, options))
+            p.start()
+            workers.append(p)
+
+        for worker in workers:
+            worker.join()
+
+        self.stdout.write('Crawl finished')

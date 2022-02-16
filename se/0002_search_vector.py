@@ -10,16 +10,16 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql='''
               CREATE FUNCTION weight_vector() RETURNS trigger AS $$
-              begin
-                new.vector = setweight(to_tsvector('english', new.title), 'A') ||
-                             setweight(to_tsvector('english', new.url), 'A') ||
-                             setweight(to_tsvector('english', new.content), 'B');
+              BEGIN
+                new.vector = setweight(to_tsvector(new.vector_lang, new.title), 'A') ||
+                             setweight(to_tsvector(new.vector_lang, new.url), 'A') ||
+                             setweight(to_tsvector(new.vector_lang, new.content), 'B');
                 return new;
-              end
+              END
               $$ LANGUAGE plpgsql;
 
               CREATE TRIGGER vector_column_trigger
-              BEFORE INSERT OR UPDATE OF url, title, content
+              BEFORE INSERT OR UPDATE OF url, title, content, vector_lang
               ON se_document
               FOR EACH ROW EXECUTE PROCEDURE weight_vector();
             ''',

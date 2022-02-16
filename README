@@ -1,7 +1,7 @@
 echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/at/sources.list.d/bullseye-backports.list
 
 apt update
-apt install python3-django/bullseye-backports python3-requests python3-bs4 python3-html5lib python3-psycopg2 python3-django-uwsgi libjs-jquery postgresql nginx uwsgi
+apt install python3-django/bullseye-backports python3-requests python3-bs4 python3-html5lib python3-psycopg2 python3-django-uwsgi python3-langdetect libjs-jquery postgresql nginx uwsgi
 
 su postgres -c "psql --command \"CREATE USER django WITH SUPERUSER PASSWORD 'password'\""
 su postgres -c "psql --command \"CREATE DATABASE django OWNER django\""
@@ -23,4 +23,8 @@ Change SECRET_KEY
 
 ./manage.py createsuperuser
 
-)
+Adding a language:
+- check/add support for the language detection in Langdetect (https://pypi.org/project/langdetect/)
+- check/add support for the language in postgresql (https://www.postgresql.org/docs/current/textsearch-dictionaries.html)
+- add the new entry to the MYSE_LANGDETECT_TO_POSTGRES option, where the key is ISO 639-1 code for this language,
+  and the value, the name of the language as stored in PostgreSQL

@@ -134,3 +134,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 MYSE_RESULTS_COUNT = 20
+MYSE_LANGDETECT_TO_POSTGRES = {
+    'ar': 'arabic',
+    'da': 'danish',
+    'nld': 'dutch',
+    'en': 'english',
+    'fi': 'finnish',
+    'fr': 'french',
+    'de': 'german',
+    'el': 'greek',
+    'hu': 'hungarian',
+    'id': 'indonesian',
+    'ga': 'irish',
+    'it': 'italian',
+    'lt': 'lithuanian',
+    'ne': 'nepali',
+    'no': 'norwegian',
+    'pt': 'portuguese',
+    'ro': 'romanian',
+    'ru': 'russian',
+    'es': 'spanish',
+    'sv': 'swedish',
+    'ta': 'tamil',
+    'tr': 'turkish',
+}
+MYSE_FAIL_OVER_LANG = 'english'

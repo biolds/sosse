@@ -9,9 +9,14 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
-from django.db import models
+from django.db import connection, models
+from langdetect import DetectorFactory, detect
+
+
+DetectorFactory.seed = 0
 
 
 def absolutize_url(url, p):
@@ -30,15 +35,45 @@ def absolutize_url(url, p):
     return url.geturl()
 
 
+class RegConfigField(models.Field):
+    def db_type(self, connection):
+        return 'regconfig'
+
+
 class Document(models.Model):
     url = models.TextField(unique=True)
     title = models.TextField()
     content = models.TextField()
     crawl_id = models.UUIDField(editable=False)
     vector = SearchVectorField()
+    lang_iso_639_1 = models.CharField(max_length=4, null=True, blank=True)
+    vector_lang = RegConfigField(default='simple')
+
+    supported_langs = None
 
     class Meta:
         indexes = [GinIndex(fields=(('vector',)))]
+
+    @classmethod
+    def _get_supported_langs(cls):
+        if cls.supported_langs is not None:
+            return cls.supported_langs
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT cfgname FROM pg_catalog.pg_ts_config WHERE cfgname != 'simple'")
+            row = cursor.fetchall()
+
+        cls.supported_langs = [r[0] for r in row]
+        return cls.supported_langs
+
+    @classmethod
+    def _get_lang(cls, text):
+        lang_iso = detect(text)
+        lang_pg = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso)
+        if lang_pg not in cls._get_supported_langs():
+            lang_pg = settings.MYSE_FAIL_OVER_LANG
+
+        return lang_iso, lang_pg
 
     def index(self, content, crawl_id):
         content = content.decode('utf-8')
@@ -54,8 +89,7 @@ class Document(models.Model):
                 text += s
 
         self.content = text
-        #self.vector = SearchVector('url', 'title', 'content')
-        #self.vector = SearchVector('content')
+        self.lang_iso_639_1, self.vector_lang = self._get_lang(parsed.title.string + '\n' + text)
 
         # extract links
         for a in parsed.find_all('a'):
@@ -140,6 +174,7 @@ class UrlQueue(models.Model):
         if url is None:
             return False
 
+        doc = None
         try:
             print('(%i/%i) %i %s ...' % (UrlQueue.objects.count(), Document.objects.count(), worker_no, url.url))
 
@@ -154,6 +189,8 @@ class UrlQueue(models.Model):
 
             UrlQueue.objects.filter(id=url.id).delete()
         except Exception as e:
+            if doc:
+                doc.delete()
             url.set_error(format_exc())
             url.save()
             print(format_exc())

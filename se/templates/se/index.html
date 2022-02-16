@@ -53,7 +53,8 @@
             <a href="{{ r.url }}" class="res-url">
                 {{ r.url }}
             </a>
-            <div class="res-rank">/ {{ r.rank }}</div>
+            <div class="res-rank">/ {{ r.rank|floatformat:"1" }}</div>
+            <div class="res-rank">{{ r.lang_iso_639_1 }}</div>
             <br/>
             {% for entry in r.headline %}{{ entry }}{% endfor %}
         {% endfor %}

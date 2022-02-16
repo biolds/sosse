@@ -18,6 +18,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">Link 🔗</a>', obj.url)
 
     list_display = ('url', 'link', 'lang_iso_639_1', 'title')
+    list_filter = ('lang_iso_639_1',)
 
 
 class UrlQueueUrlFilter(admin.SimpleListFilter):

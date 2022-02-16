@@ -75,10 +75,20 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
-    def index(self, content, crawl_id):
+    @classmethod
+    def _get_soup(self, content):
         content = content.decode('utf-8')
         parsed = BeautifulSoup(content, 'html5lib')
-        self.title = parsed.title.string or self.url
+
+        # Remove <template> tags as BS extract its text
+        for elem in parsed.find_all('template'):
+            elem.extract()
+        return parsed
+
+    def index(self, content, crawl_id):
+        parsed = self._get_soup(content)
+        title = parsed.title and parsed.title.string
+        self.title = title or self.url
 
         text = ''
         for string in parsed.strings:
@@ -89,7 +99,7 @@ class Document(models.Model):
                 text += s
 
         self.content = text
-        self.lang_iso_639_1, self.vector_lang = self._get_lang(parsed.title.string + '\n' + text)
+        self.lang_iso_639_1, self.vector_lang = self._get_lang((title or '') + '\n' + text)
 
         # extract links
         for a in parsed.find_all('a'):

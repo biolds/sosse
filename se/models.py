@@ -216,6 +216,7 @@ class UrlQueue(models.Model):
             updated = UrlQueue.objects.filter(id=url.id, worker_no__isnull=True).update(worker_no=worker_no)
 
             if updated == 0:
+                sleep(0.1)
                 continue
 
             try:

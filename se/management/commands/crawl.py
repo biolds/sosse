@@ -25,15 +25,15 @@ class Command(BaseCommand):
         connection.close()
         connection.connect()
 
+        sleep_count = 0
         while True:
-            sleep_count = 0
             if UrlQueue.crawl(worker_no, crawl_id):
                 sleep_count = 0
             else:
                 if options['once']:
                     break
                 if sleep_count == 0:
-                    self.stdout.write('Idle...')
+                    print('%s Idle...' % worker_no)
                 sleep_count += 1
                 if sleep_count == 60:
                     sleep_count = 0

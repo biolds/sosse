@@ -1,0 +1,53 @@
+{% extends "se/base.html" %}
+
+{% block js %}
+window.onload = function() {
+    const supportedLangs = {{ supported_langs|safe }};   
+    const langSelect = document.getElementById('language');
+    const userLang = getLang();
+
+    Object.keys(supportedLangs).map(function (langIso) {
+        const lang = supportedLangs[langIso];
+        const langInput = document.createElement('option');
+        langInput.value = langIso;
+
+        const langTitle = lang.name[0].toUpperCase() + lang.name.substr(1);
+        if (lang.flag) {
+            langInput.text = `${lang.flag} ${langTitle}`;
+        } else {
+            langInput.text = langTitle;
+        }
+
+        if (langIso === userLang) {
+            langInput.setAttribute('selected', '');
+        }
+        langSelect.append(langInput);
+    });
+}
+
+function save() {
+    const langSelect = document.getElementById('language');
+    const langValue = langSelect.options[langSelect.selectedIndex].value;
+    localStorage.setItem('myseLanguage', langSelect.value);
+    window.location = '/';
+}
+function cancel() {
+    window.location = '/';
+}
+{% endblock %}
+
+{% block css %}
+.label {
+    padding-bottom: 5px;
+}
+{% endblock %}
+
+{% block body %}
+    <h3>Preferences</h3>
+    <div class="label">Language</div>
+    <select id="language"></select>
+    <br/>
+    <br/>
+    <button onclick="save()">Save</button>
+    <button onclick="cancel()">Cancel</button>
+{% endblock %}

@@ -135,27 +135,231 @@ USE_TZ = True
 
 MYSE_RESULTS_COUNT = 20
 MYSE_LANGDETECT_TO_POSTGRES = {
-    'ar': 'arabic',
-    'da': 'danish',
-    'nld': 'dutch',
-    'en': 'english',
-    'fi': 'finnish',
-    'fr': 'french',
-    'de': 'german',
-    'el': 'greek',
-    'hu': 'hungarian',
-    'id': 'indonesian',
-    'ga': 'irish',
-    'it': 'italian',
-    'lt': 'lithuanian',
-    'ne': 'nepali',
-    'no': 'norwegian',
-    'pt': 'portuguese',
-    'ro': 'romanian',
-    'ru': 'russian',
-    'es': 'spanish',
-    'sv': 'swedish',
-    'ta': 'tamil',
-    'tr': 'turkish',
+    'ar': {
+        'name': 'arabic',
+        'flag': 'العربية'
+    },
+    'da': {
+        'name': 'danish',
+        'flag': '🇩🇰'
+    },
+    'nl': {
+        'name': 'dutch',
+        'flag': '🇳🇱'
+    },
+    'en': {
+        'name': 'english',
+        'flag': '🇬🇧'
+    },
+    'fi': {
+        'name': 'finnish',
+        'flag': '🇫🇮'
+    },
+    'fr': {
+        'name': 'french',
+        'flag': '🇫🇷'
+    },
+    'de': {
+        'name': 'german',
+        'flag': '🇩🇪'
+    },
+    'el': {
+        'name': 'greek',
+        'flag': '🇬🇷'
+    },
+    'hu': {
+        'name': 'hungarian',
+        'flag': '🇭🇺'
+    },
+    'id': {
+        'name': 'indonesian',
+        'flag': '🇮🇩'
+    },
+    'ga': {
+        'name': 'irish',
+        'flag': '🇮🇪'
+    },
+    'it': {
+        'name': 'italian',
+        'flag': '🇮🇹'
+    },
+    'lt': {
+        'name': 'lithuanian',
+        'flag': '🇱🇹'
+    },
+    'ne': {
+        'name': 'nepali',
+        'flag': '🇳🇵'
+    },
+    'no': {
+        'name': 'norwegian',
+        'flag': '🇳🇴'
+    },
+    'pt': {
+        'name': 'portuguese',
+        'flag': '🇵🇹'
+    },
+    'ro': {
+        'name': 'romanian',
+        'flag': '🇷🇴'
+    },
+    'ru': {
+        'name': 'russian',
+        'flag': '🇷🇺'
+    },
+    'es': {
+        'name': 'spanish',
+        'flag': '🇪🇸'
+    },
+    'sv': {
+        'name': 'swedish',
+        'flag': '🇸🇪'
+    },
+    'ta': {
+        'name': 'tamil',
+        'flag': 'தமிழ்'
+    },
+    'tr': {
+        'name': 'turkish',
+        'flag': '🇹🇷'
+    },
+
+    # Not supported by Postgres, but support by langdetect
+    'af': {
+        'name': 'afrikaans',
+    },
+    'bg': {
+        'name': 'bulgarian',
+        'flag': '🇧🇬'
+    },
+    'bn': {
+        'name': 'bengali',
+        'flag': '🇧🇩'
+    },
+    'ca': {
+        'name': 'catalan'
+    },
+    'cs': {
+        'name': 'czech',
+        'flag': '🇨🇿'
+    },
+    'cy': {
+        'name': 'welsh',
+        'flag': '🏴󠁧󠁢󠁷󠁬󠁳󠁿'
+    },
+    'et': {
+        'name': 'estonian',
+        'flag': '🇪🇪'
+    },
+    'fa': {
+        'name': 'persian',
+        'flag': '🇮🇷'
+    },
+    'gu': {
+        'name': 'gujarati',
+        'flag': '🇮🇳'
+    },
+    'he': {
+        'name': 'hebrew',
+        'flag': '🇮🇱'
+    },
+    'hi': {
+        'name': 'hindi',
+        'flag': '🇮🇳'
+    },
+    'hr': {
+        'name': 'croatian',
+        'flag': '🇭🇷'
+    },
+    'ja': {
+        'name': 'japanese',
+        'flag': '🇯🇵'
+    },
+    'kn': {
+        'name': 'kannada',
+        'flag': '🇮🇳'
+    },
+    'ko': {
+        'name': 'korean',
+        'flag': '🇰🇷'
+    },
+    'lt': {
+        'name': 'lithuanian',
+        'flag': '🇱🇹'
+    },
+    'lv': {
+        'name': 'latvian',
+        'flag': '🇱🇻'
+    },
+    'mk': {
+        'name': 'macedonian',
+        'flag': '🇲🇰'
+    },
+    'ml': {
+        'name': 'malayalam',
+        'flag': '🇮🇳'
+    },
+    'mr': {
+        'name': 'marathi',
+        'flag': '🇮🇳'
+    },
+    'pa': {
+        'name': 'punjabi',
+        'flag': '🇵🇰'
+    },
+    'pl': {
+        'name': 'polish',
+        'flag': '🇵🇱'
+    },
+    'sk': {
+        'name': 'slovak',
+        'flag': '🇸🇰   '
+    },
+    'sl': {
+        'name': 'slovenian',
+        'flag': '🇸🇮'
+    },
+    'so': {
+        'name': 'shona',
+        'flag': '🇿🇼'
+    },
+    'sq': {
+        'name': 'albanian',
+        'flag': '🇦🇱'
+    },
+    'sw': {
+        'name': 'swahili'
+    },
+    'te': {
+        'name': 'telugu',
+        'flag': '🇮🇳'
+    },
+    'th': {
+        'name': 'thai',
+        'flag': '🇹🇭'
+    },
+    'tl': {
+        'name': 'tagalog',
+        'flag': '🇵🇭'
+    },
+    'uk': {
+        'name': 'ukrainian',
+        'flag': '🇺🇦'
+    },
+    'ur': {
+        'name': 'urdu'
+    },
+    'vi': {
+        'name': 'vietnamese',
+        'flag': '🇻🇳'
+    },
+    'zh-cn': {
+        'name': 'chinese',
+        'flag': '🇨🇳'
+    },
+    'zh-tw': {
+        'name': 'chinese',
+        'flag': '🇹🇼'
+    }
 }
 MYSE_FAIL_OVER_LANG = 'english'

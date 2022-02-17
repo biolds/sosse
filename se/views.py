@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Paginator
@@ -18,7 +20,9 @@ def search(request):
     form = SearchForm(request.GET)
     if form.is_valid() and form.cleaned_data['q']:
         q = form.cleaned_data['q']
-        query = SearchQuery(q)
+        lang = form.cleaned_data['lang']
+
+        query = SearchQuery(q, config=lang)
 
         START_SEL = '&#"_&'
         STOP_SEL = '&_"#&'
@@ -54,6 +58,21 @@ def search(request):
         'results': results,
         'paginated': paginated,
         'q': q,
+        'settings': settings,
         'title': q
     }
     return render(request, 'se/index.html', context)
+
+
+def prefs(request):
+    supported = Document.get_supported_langs()
+    langs = {}
+    for iso, lang in settings.MYSE_LANGDETECT_TO_POSTGRES.items():
+        if lang['name'] in supported:
+            langs[iso] = lang
+
+    context = {
+        'title': 'Preferences',
+        'supported_langs': json.dumps(langs)
+    }
+    return render(request, 'se/prefs.html', context)

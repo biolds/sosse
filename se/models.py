@@ -46,7 +46,7 @@ class Document(models.Model):
     content = models.TextField()
     crawl_id = models.UUIDField(editable=False)
     vector = SearchVectorField()
-    lang_iso_639_1 = models.CharField(max_length=4, null=True, blank=True)
+    lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
 
     supported_langs = None
@@ -55,7 +55,7 @@ class Document(models.Model):
         indexes = [GinIndex(fields=(('vector',)))]
 
     @classmethod
-    def _get_supported_langs(cls):
+    def get_supported_langs(cls):
         if cls.supported_langs is not None:
             return cls.supported_langs
 
@@ -69,8 +69,8 @@ class Document(models.Model):
     @classmethod
     def _get_lang(cls, text):
         lang_iso = detect(text)
-        lang_pg = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso)
-        if lang_pg not in cls._get_supported_langs():
+        lang_pg = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
+        if lang_pg not in cls.get_supported_langs():
             lang_pg = settings.MYSE_FAIL_OVER_LANG
 
         return lang_iso, lang_pg

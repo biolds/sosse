@@ -29,16 +29,12 @@
 {% endblock %}
 
 {% block js %}
-    window.onload = function() {
-      // Set browser language
-      const lang = (navigator.language || navigator.userLanguage).replace(/-.*/, '');
-      const form = document.getElementById('search_form');
-      const langInput = document.createElement('input');
-      langInput.id = 'lang';
-      langInput.type = 'hidden';
-      langInput.value = lang;
-      form.append(langInput);
-    }
+window.onload = function() {
+    // Set browser language
+    const form = document.getElementById('search_form');
+    const langInput = document.getElementById('id_lang');
+    langInput.value = getLang();
+}
 {% endblock %}
 
 {% block body %}
@@ -52,6 +48,7 @@
         {% endfor %}
         <input type="submit" value="🔎">
     </form>
+    <a href="/prefs/" class="links">Prefs</a>
     <a href="/admin/" class="links">Admin</a>
     {% if results %}
         <hr/>

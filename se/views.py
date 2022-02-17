@@ -53,6 +53,7 @@ def search(request):
         'form': form,
         'results': results,
         'paginated': paginated,
-        'q': q
+        'q': q,
+        'title': q
     }
     return render(request, 'se/index.html', context)

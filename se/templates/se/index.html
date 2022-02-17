@@ -1,38 +1,48 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Search{% if form.cleaned_data %} · {{ q }}{% endif %}</title>
-    <style>
-        .search-form {
-            text-align: center;
-            padding: 10px;
-        }
-        .links {
-            display: block;
-            text-align: right;
-            font-size: 13px;
-            text-decoration: none;
-        }
-        .res-title {
-            margin-bottom: 0px;
-        }
-        .res-url {
-            text-decoration: none;
-            color: #080;
-            font-size: 13px;
-        }
-        .res-rank {
-            font-size: 10px;
-            display: inline;
-        }
-        .pagination {
-            padding: 20px 0px 20px 0px;
-        }
-    </style>
-</head>
-<body>
-    <form method="get" class="search-form">
+{% extends "se/base.html" %}
+
+{% block css %}
+    .search-form {
+        text-align: center;
+        padding: 10px;
+    }
+    .links {
+        display: block;
+        text-align: right;
+        font-size: 13px;
+        text-decoration: none;
+    }
+    .res-title {
+        margin-bottom: 0px;
+    }
+    .res-url {
+        text-decoration: none;
+        color: #080;
+        font-size: 13px;
+    }
+    .res-rank {
+        font-size: 10px;
+        display: inline;
+    }
+    .pagination {
+        padding: 20px 0px 20px 0px;
+    }
+{% endblock %}
+
+{% block js %}
+    window.onload = function() {
+      // Set browser language
+      const lang = (navigator.language || navigator.userLanguage).replace(/-.*/, '');
+      const form = document.getElementById('search_form');
+      const langInput = document.createElement('input');
+      langInput.id = 'lang';
+      langInput.type = 'hidden';
+      langInput.value = lang;
+      form.append(langInput);
+    }
+{% endblock %}
+
+{% block body %}
+    <form method="get" class="search-form" id="search_form">
         {% for field in form.hidden_fields %}
             {{ field }}
         {% endfor %}
@@ -77,5 +87,4 @@
             </span>
         </div>
     {% endif %}
-</body>
-</html>
+{% endblock %}

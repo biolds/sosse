@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Search{% if title %} · {{ title }}{% endif %}</title>
+
+    <style>
+        {% block css %}
+        {% endblock %}
+    </style>
+
+    <script>
+        {% block js %}
+        {% endblock %}
+    </script>
+</head>
+<body>
+    {% block body %}
+    {% endblock %}
+</body>
+</html>

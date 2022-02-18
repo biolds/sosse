@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -17,7 +18,17 @@ class DocumentAdmin(admin.ModelAdmin):
     def link(obj):
         return format_html('<a href="{}">Link 🔗</a>', obj.url)
 
-    list_display = ('url', 'link', 'lang_iso_639_1', 'title')
+    @staticmethod
+    def lang(obj):
+        lang = obj.lang_iso_639_1
+        flag = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('flag')
+
+        if flag:
+            lang = f'{flag} {lang}'
+
+        return lang
+
+    list_display = ('url', 'link', 'lang', 'title')
     list_filter = ('lang_iso_639_1',)
 
 

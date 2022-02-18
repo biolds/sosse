@@ -10,7 +10,7 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
-from .models import Document
+from .models import Document, remove_accent
 
 
 def format_url(request, params):
@@ -48,16 +48,13 @@ def search(request):
 
     form = SearchForm(request.GET)
     if form.is_valid() and form.cleaned_data['q']:
-        q = form.cleaned_data['q']
+        q = remove_accent(form.cleaned_data['q'])
         lang = form.cleaned_data['l']
 
         query = SearchQuery(q, config=lang)
 
-        START_SEL = '&#"_&'
-        STOP_SEL = '&_"#&'
         results = Document.objects.annotate(
             rank=SearchRank(models.F('vector'), query),
-            headline=SearchHeadline('content', query, start_sel=START_SEL, stop_sel=STOP_SEL)
         ).exclude(rank__lte=0.01).order_by('-rank', 'title')
 
         paginator = Paginator(results, form.cleaned_data['ps'])
@@ -65,20 +62,7 @@ def search(request):
         paginated = paginator.get_page(page_number)
 
         for res in paginated:
-            entries = res.headline.split(START_SEL)
-            h = []
-            for i, entry in enumerate(entries):
-                if i != 0:
-                    h.append(mark_safe('<b>'))
-
-                if STOP_SEL in entry:
-                    a, b = entry.split(STOP_SEL, 1)
-                    h.append(a)
-                    h.append(mark_safe('</b>'))
-                    h.append(b)
-                else:
-                    h.append(entry)
-            res.headline = h
+            res.headline = res.content.splitlines()[0]
     else:
         form = SearchForm()
 

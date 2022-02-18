@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import unicodedata
 
 from hashlib import md5
 from time import sleep
@@ -35,16 +36,24 @@ def absolutize_url(url, p):
     return url.geturl()
 
 
+def remove_accent(s):
+    # append an ascii version to match on non-accented letters
+    # https://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-normalize-in-a-python-unicode-string
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+
+
 class RegConfigField(models.Field):
     def db_type(self, connection):
         return 'regconfig'
 
 
 class Document(models.Model):
+    crawl_id = models.UUIDField(editable=False)
     url = models.TextField(unique=True)
     title = models.TextField()
+    normalized_title = models.TextField()
     content = models.TextField()
-    crawl_id = models.UUIDField(editable=False)
+    normalized_content = models.TextField()
     vector = SearchVectorField()
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
@@ -89,6 +98,7 @@ class Document(models.Model):
         parsed = self._get_soup(content)
         title = parsed.title and parsed.title.string
         self.title = title or self.url
+        self.normalized_title = remove_accent(self.title + '\n' + self.url)
 
         text = ''
         for string in parsed.strings:
@@ -97,8 +107,9 @@ class Document(models.Model):
                 if text != '':
                     text += '\n'
                 text += s
-
         self.content = text
+        self.normalized_content = remove_accent(text)
+
         self.lang_iso_639_1, self.vector_lang = self._get_lang((title or '') + '\n' + text)
 
         # extract links

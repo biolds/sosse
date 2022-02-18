@@ -5,6 +5,15 @@
     <title>Search{% if title %} · {{ title }}{% endif %}</title>
 
     <style>
+        #menu {
+            float: right;
+        }
+        .links {
+            display: block;
+            text-align: right;
+            font-size: 13px;
+            text-decoration: none;
+        }
         {% block css %}
         {% endblock %}
     </style>
@@ -30,6 +39,13 @@
     </script>
 </head>
 <body>
+    <div id="menu">
+        <a href="/" class="links">Home</a>
+        <a href="/prefs/" class="links">Prefs</a>
+        <a href="/stats/" class="links">Stats</a>
+        <a href="/admin/" class="links">Admin</a>
+    </div>
+
     {% block body %}
     {% endblock %}
 </body>

@@ -28,7 +28,7 @@ class Command(BaseCommand):
             if UrlQueue.crawl(worker_no, crawl_id):
                 sleep_count = 0
             else:
-                if options['once'] and UrlQueue.objects.count() == 0:
+                if options['once'] and UrlQueue.objects.filter(error='').count() == 0:
                     break
                 if sleep_count == 0:
                     print('%s Idle...' % worker_no)

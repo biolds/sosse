@@ -5,12 +5,6 @@
         text-align: center;
         padding: 10px;
     }
-    .links {
-        display: block;
-        text-align: right;
-        font-size: 13px;
-        text-decoration: none;
-    }
     .res-title {
         margin-bottom: 0px;
     }
@@ -49,8 +43,6 @@ window.onload = function() {
         {% endfor %}
         <input type="submit" value="🔎">
     </form>
-    <a href="/prefs/" class="links">Prefs</a>
-    <a href="/admin/" class="links">Admin</a>
     {% if results %}
         <hr/>
         {{ results|length }} result{{ results|pluralize:"s" }}

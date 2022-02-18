@@ -1,0 +1,24 @@
+{% extends "se/base.html" %}
+
+{% block css %}
+    #lang_chart {
+        float: right;
+        width: 25%;
+    }
+    #hdd_pie {
+        float: right;
+        width: 25%;
+        right: 25%;
+    }
+{% endblock %}
+
+{% block body %}
+    <h3 style="padding-top: 30px">Statistics</h3>
+    <h4>Index</h4>
+    <div id="lang_chart">{{ lang_chart|safe }}</div>
+    <div id="hdd_pie">{{ hdd_pie|safe }}</div>
+    {{ doc_count }} documents are indexed in {{ lang_count }} different languages.<br/>
+    Average document size is {{ doc_size|filesizeformat }} for a total of {{ db_size|filesizeformat }}.<br/>
+    {{ lang_recognizable }} languages can be recognized, {{ lang_parsable|length }} can be parsed:<br/>
+    {{ lang_parsable|join:", " }}.
+{% endblock %}

@@ -133,7 +133,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-MYSE_RESULTS_COUNT = 20
+MYSE_DEFAULT_PAGE_SIZE = 20
+MYSE_MAX_PAGE_SIZE = 200
+
 MYSE_LANGDETECT_TO_POSTGRES = {
     'ar': {
         'name': 'arabic',

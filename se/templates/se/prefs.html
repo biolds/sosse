@@ -23,12 +23,19 @@ window.onload = function() {
         }
         langSelect.append(langInput);
     });
+
+    const pageSize = document.getElementById('page_size');
+    pageSize.value = getPageSize();
 }
 
 function save() {
     const langSelect = document.getElementById('language');
     const langValue = langSelect.options[langSelect.selectedIndex].value;
     localStorage.setItem('myseLanguage', langSelect.value);
+
+    const pageSize = document.getElementById('page_size');
+    localStorage.setItem('mysePageSize', pageSize.value);
+
     window.location = '/';
 }
 function cancel() {
@@ -46,8 +53,10 @@ function cancel() {
     <h3>Preferences</h3>
     <div class="label">Language</div>
     <select id="language"></select>
-    <br/>
-    <br/>
+    <br/><br/>
+    <div class="label">Results by page</div>
+    <input id="page_size" type="number" step="10" min="10" max="{{ settings.MYSE_MAX_PAGE_SIZE }}">
+    <br/><br/>
     <button onclick="save()">Save</button>
     <button onclick="cancel()">Cancel</button>
 {% endblock %}

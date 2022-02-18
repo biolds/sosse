@@ -30,10 +30,11 @@
 
 {% block js %}
 window.onload = function() {
-    // Set browser language
-    const form = document.getElementById('search_form');
-    const langInput = document.getElementById('id_lang');
+    const langInput = document.getElementById('id_l');
     langInput.value = getLang();
+
+    const pageSize = document.getElementById('id_ps');
+    pageSize.value = getPageSize();
 }
 {% endblock %}
 
@@ -69,8 +70,8 @@ window.onload = function() {
         <div class="pagination">
             <span class="step-links">
                 {% if paginated.has_previous %}
-                    <a href="?q={{ q }}">&laquo; first</a>
-                    <a href="?page={{ paginated.previous_page_number }}">previous</a>
+                    <a href="{{ page_first }}">&laquo; first</a>
+                    <a href="{{ page_previous }}">previous</a>
                 {% endif %}
 
                 <span class="current">
@@ -78,8 +79,8 @@ window.onload = function() {
                 </span>
 
                 {% if paginated.has_next %}
-                    <a href="?q={{ q }}&page={{ paginated.next_page_number }}">next</a>
-                    <a href="?q={{ q }}&page={{ paginated.paginator.num_pages }}">last &raquo;</a>
+                    <a href="{{ page_next }}">next</a>
+                    <a href="{{ page_last }}">last &raquo;</a>
                 {% endif %}
             </span>
         </div>

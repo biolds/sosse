@@ -17,6 +17,14 @@
             return (navigator.language || navigator.userLanguage).replace(/-.*/, '');
           }
         }
+
+        function getPageSize() {
+          if (localStorage.getItem('mysePageSize')) {
+            return parseInt(localStorage.getItem('mysePageSize'));
+          } else {
+            return {{ settings.MYSE_DEFAULT_PAGE_SIZE }};
+          }
+        }
         {% block js %}
         {% endblock %}
     </script>

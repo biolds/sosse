@@ -20,8 +20,6 @@ class Command(BaseCommand):
 
     @staticmethod
     def process(crawl_id, worker_no, options):
-        print('Crawler %s starting' % worker_no)
-
         connection.close()
         connection.connect()
 
@@ -30,7 +28,7 @@ class Command(BaseCommand):
             if UrlQueue.crawl(worker_no, crawl_id):
                 sleep_count = 0
             else:
-                if options['once']:
+                if options['once'] and UrlQueue.objects.count() == 0:
                     break
                 if sleep_count == 0:
                     print('%s Idle...' % worker_no)

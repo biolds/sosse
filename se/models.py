@@ -3,6 +3,7 @@ import os
 import re
 import unicodedata
 
+from datetime import date, datetime, timedelta
 from hashlib import md5
 from time import sleep
 from traceback import format_exc
@@ -14,6 +15,7 @@ from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import connection, models
+from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 
 
@@ -315,3 +317,56 @@ class AuthDynamicField(models.Model):
 
     def __str__(self):
         return '%s: %s' % (self.key, self.input_css_selector)
+
+
+class CrawlerStats(models.Model):
+    MINUTELY = 'M'
+    DAILY = 'D'
+    FREQUENCY = (
+        (MINUTELY, MINUTELY),
+        (DAILY, DAILY),
+    )
+
+    t = models.DateTimeField()
+    doc_count = models.PositiveIntegerField()
+    url_queued_count = models.PositiveIntegerField()
+    indexing_speed = models.PositiveIntegerField(blank=True, null=True)
+    freq = models.CharField(max_length=1, choices=FREQUENCY)
+
+    @staticmethod
+    def create_daily():
+        CrawlerStats.objects.filter(t__lt=now() - timedelta(days=365), freq=CrawlerStats.MINUTELY).delete()
+        last = CrawlerStats.objects.filter(freq=CrawlerStats.DAILY).order_by('t').last()
+        today = now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+        if last and last.t == today:
+            return
+
+        doc_count = Document.objects.count()
+
+        indexing_speed = None
+        try:
+            yesterday = today - timedelta(days=1)
+            yesterday_stat = CrawlerStats.objects.get(freq=CrawlerStats.DAILY, t=yesterday)
+            indexing_speed = doc_count - yesterday_stat.doc_count
+        except CrawlerStats.DoesNotExist:
+            pass
+
+        CrawlerStats.objects.create(t=today,
+                                    doc_count=doc_count,
+                                    url_queued_count=UrlQueue.objects.count(),
+                                    indexing_speed=indexing_speed,
+                                    freq=CrawlerStats.DAILY)
+
+    @staticmethod
+    def create(t, prev_stat):
+        CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=CrawlerStats.MINUTELY).delete()
+        doc_count = Document.objects.count()
+        indexing_speed = None
+        if prev_stat:
+            indexing_speed = doc_count - prev_stat.doc_count
+        return CrawlerStats.objects.create(t=t,
+                                           doc_count=doc_count,
+                                           url_queued_count=UrlQueue.objects.count(),
+                                           indexing_speed=indexing_speed,
+                                           freq=CrawlerStats.MINUTELY)

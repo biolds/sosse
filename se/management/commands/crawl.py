@@ -1,10 +1,12 @@
 import uuid
+from datetime import datetime, timedelta
 from multiprocessing import cpu_count, Process
 from time import sleep
 
 from django.db import connection
 from django.core.management.base import BaseCommand, CommandError
-from ...models import UrlQueue, Document
+from django.utils.timezone import now
+from ...models import UrlQueue, Document, CrawlerStats
 
 
 class Command(BaseCommand):
@@ -17,14 +19,33 @@ class Command(BaseCommand):
         parser.add_argument('--worker', nargs=1, type=int, default=[None], help='Worker count (defaults to the available cpu count * 2)')
         parser.add_argument('urls', nargs='*', type=str)
 
-
     @staticmethod
     def process(crawl_id, worker_no, options):
         connection.close()
         connection.connect()
 
+        if worker_no == 0:
+            last = CrawlerStats.objects.filter(freq=CrawlerStats.MINUTELY).order_by('t').last()
+            if last:
+                next_stat = last.t
+            else:
+                next_stat = now()
+            next_stat += timedelta(minutes=1)
+            prev_stat = None
+
+            next_daily = now() + timedelta(hours=24)
+            CrawlerStats.create_daily()
+
         sleep_count = 0
         while True:
+            if worker_no == 0:
+                t = now()
+                if next_stat < t:
+                    prev_stat = CrawlerStats.create(t, prev_stat)
+                    next_stat = t + timedelta(minutes=1)
+                if next_daily < t:
+                    CrawlerStats.create_daily()
+
             if UrlQueue.crawl(worker_no, crawl_id):
                 sleep_count = 0
             else:

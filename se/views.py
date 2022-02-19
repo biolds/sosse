@@ -5,12 +5,12 @@ from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Paginator
 from django.db import models
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
-from .models import Document, remove_accent
+from .models import Document, SearchEngine, remove_accent
 
 
 def format_url(request, params):
@@ -51,8 +51,11 @@ def search(request):
         q = remove_accent(form.cleaned_data['q'])
         lang = form.cleaned_data['l']
 
-        query = SearchQuery(q, config=lang)
+        redirect_url = SearchEngine.should_redirect(q)
+        if redirect_url:
+            return redirect(redirect_url)
 
+        query = SearchQuery(q, config=lang)
         results = Document.objects.annotate(
             rank=SearchRank(models.F('vector'), query),
         ).exclude(rank__lte=0.01).order_by('-rank', 'title')

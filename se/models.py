@@ -1,9 +1,11 @@
 import json
 import os
 import re
+import urllib.parse
 import unicodedata
 
 from datetime import date, datetime, timedelta
+from defusedxml import ElementTree
 from hashlib import md5
 from time import sleep
 from traceback import format_exc
@@ -370,3 +372,88 @@ class CrawlerStats(models.Model):
                                            url_queued_count=UrlQueue.objects.count(),
                                            indexing_speed=indexing_speed,
                                            freq=CrawlerStats.MINUTELY)
+
+
+class SearchEngine(models.Model):
+    short_name = models.CharField(max_length=32, blank=True, default='')
+    long_name = models.CharField(max_length=48, blank=True, default='')
+    description = models.CharField(max_length=1024, blank=True, default='')
+    html_template = models.CharField(max_length=2048)
+    shortcut = models.CharField(max_length=16, blank=True)
+
+    @classmethod
+    def parse_odf(cls, content):
+        root = ElementTree.fromstring(content)
+        ns = root.tag[:-len('OpenSearchDescription')]
+
+        short_name_elem = root.find(ns + 'ShortName')
+        if short_name_elem is None:
+            print('No ShortName defined')
+            return
+
+        short_name = short_name_elem.text
+        se = None
+        try:
+            se = cls.objects.get(short_name=short_name)
+        except SearchEngine.DoesNotExist:
+            se = SearchEngine(short_name=short_name)
+
+        long_name = root.find(ns + 'LongName')
+        if long_name is None:
+            long_name = short_name
+        else:
+            long_name = long_name.text
+        se.long_name = long_name
+        se.description = root.find(ns + 'Description').text
+
+        for elem in root.findall(ns + 'Url'):
+            if elem.get('type') == 'text/html':
+                se.html_template = elem.get('template')
+            elif elem.get('type') == 'application/x-suggestions+json':
+                se.suggestion_template = elem.get('template')
+
+        se.shortcut = short_name.lower().split(' ')[0]
+        se.save()
+
+    @classmethod
+    def parse_xml_file(cls, f):
+        with open(f, 'r') as fd:
+            buf = fd.read()
+
+        cls.parse_odf(buf)
+
+    def get_search_url(self, query):
+        se_url = urllib.parse.urlsplit(self.html_template)
+
+        if '{searchTerms}' in se_url.path:
+            query = urllib.parse.quote_plus(query)
+            se_url_path = se_url.path.replace('{searchTerms}', query)
+            se_url = se_url._replace(path=se_url_path)
+            return urllib.parse.urlunsplit(se_url)
+
+        se_params = urllib.parse.parse_qs(se_url.query)
+        for key, val in se_params.items():
+            val = val[0]
+            if '{searchTerms}' in val:
+                se_params[key] = [val.replace('{searchTerms}', query)]
+                break
+        else:
+            raise Exception('could not find {searchTerms} parameter')
+
+        se_url_query = urllib.parse.urlencode(se_params, doseq=True)
+        se_url = se_url._replace(query=se_url_query)
+        return urllib.parse.urlunsplit(se_url)
+
+    @classmethod
+    def should_redirect(cls, query):
+        for i, w in enumerate(query.split()):
+            if not w.startswith('!'):
+                continue
+            try:
+                se = SearchEngine.objects.get(shortcut=w[1:])
+
+                q = query.split()
+                del q[i]
+                return se.get_search_url(' '.join(q))
+            except SearchEngine.DoesNotExist:
+                pass

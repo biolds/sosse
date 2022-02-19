@@ -39,7 +39,7 @@ def datetime_graph(pygal_style, data, col):
 
     g = pygal.DateTimeLine(style=pygal_style, disable_xml_declaration=True,
                                      truncate_label=-1, show_legend=False, fill=True,
-                                     x_value_formatter=lambda dt: dt.strftime('%I:%M'),
+                                     x_value_formatter=lambda dt: dt.strftime('%H:%M'),
                                      x_title='UTC time')
     g.x_labels = x_labels
     stats_max = data.aggregate(m=models.Max(col)).get('m', 0) or 0
@@ -125,7 +125,10 @@ def stats(request):
 
     for lang in indexed_langs[:8]:
         lang_iso = lang['lang_iso_639_1']
-        title = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name', 'unknown').title()
+        lang_desc = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
+        title = lang_iso.title()
+        if lang_desc.get('flag'):
+            title = title + ' ' + lang_desc['flag']
         percent = lang['count'] / factor
         lang_chart.add(title, percent)
 

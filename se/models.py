@@ -219,6 +219,10 @@ class UrlQueue(models.Model):
             url.set_error(format_exc())
             url.save()
             print(format_exc())
+
+        worker_stats, created = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
+        worker_stats.doc_processed += 1
+        worker_stats.save()
         return True
 
     @staticmethod
@@ -321,6 +325,11 @@ class AuthDynamicField(models.Model):
         return '%s: %s' % (self.key, self.input_css_selector)
 
 
+class WorkerStats(models.Model):
+    doc_processed = models.PositiveIntegerField()
+    worker_no = models.IntegerField()
+
+
 class CrawlerStats(models.Model):
     MINUTELY = 'M'
     DAILY = 'D'
@@ -344,7 +353,7 @@ class CrawlerStats(models.Model):
         if last and last.t == today:
             return
 
-        doc_count = Document.objects.count()
+        doc_count = WorkerStats.objects.all().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
 
         indexing_speed = None
         try:
@@ -363,7 +372,7 @@ class CrawlerStats(models.Model):
     @staticmethod
     def create(t, prev_stat):
         CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=CrawlerStats.MINUTELY).delete()
-        doc_count = Document.objects.count()
+        doc_count = WorkerStats.objects.all().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
         indexing_speed = None
         if prev_stat:
             indexing_speed = doc_count - prev_stat.doc_count

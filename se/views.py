@@ -55,8 +55,8 @@ def search(request):
         if redirect_url:
             return redirect(redirect_url)
 
-        query = SearchQuery(q, config=lang)
-        results = Document.objects.annotate(
+        query = SearchQuery(q, config=lang, search_type='websearch')
+        results = Document.objects.filter(vector=query).annotate(
             rank=SearchRank(models.F('vector'), query),
         ).exclude(rank__lte=0.01).order_by('-rank', 'title')
 

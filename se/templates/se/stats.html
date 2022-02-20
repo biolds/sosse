@@ -26,13 +26,25 @@
          {{ lang_parsable|join:", " }}.
     </span>
     <span class="chart">{{ hdd_pie|safe }}</span>
-    <span class="chart">{{ lang_chart|safe }}</span>
+    {% if lang_chart %}
+        <span class="chart">{{ lang_chart|safe }}</span>
+    {% endif %}
     <h4>Crawlers</h4>
-    <span class="crawler_chart">{{ m_doc_count|safe }}</span>
-    <span class="crawler_chart">{{ m_idx_speed|safe }}</span>
-    <span class="crawler_chart">{{ m_url_queue|safe }}</span>
+    <h5>Last 24h</h5>
+    {% if m_doc_count %}
+        <span class="crawler_chart">{{ m_doc_count|safe }}</span>
+        <span class="crawler_chart">{{ m_idx_speed|safe }}</span>
+        <span class="crawler_chart">{{ m_url_queue|safe }}</span>
+    {% else %}
+        No data
+    {% endif %}
     <br/>
-    <span class="crawler_chart">{{ d_doc_count|safe }}</span>
-    <span class="crawler_chart">{{ d_idx_speed|safe }}</span>
-    <span class="crawler_chart">{{ d_url_queue|safe }}</span>
+    <h5>Last year</h5>
+    {% if d_doc_count %}
+        <span class="crawler_chart">{{ d_doc_count|safe }}</span>
+        <span class="crawler_chart">{{ d_idx_speed|safe }}</span>
+        <span class="crawler_chart">{{ d_url_queue|safe }}</span>
+    {% else %}
+        No data
+    {% endif %}
 {% endblock %}

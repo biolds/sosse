@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 import os
 
 from django.conf import settings
@@ -26,21 +26,42 @@ def filesizeformat(n):
     return '%0.1f%sB' % (n / factor, unit)
 
 
-def datetime_graph(pygal_style, data, col):
-    t = now() - timedelta(hours=23)
-    t = t.replace(minute=0, second=0, microsecond=0)
-    x_labels = [t]
-    dt = timedelta(hours=24)
-    while dt.total_seconds() > 0:
-        t += timedelta(hours=6)
-        dt -= timedelta(hours=6)
-        x_labels.append(t)
+def datetime_graph(pygal_style, freq, data, col):
+    if freq == CrawlerStats.MINUTELY:
+        t = now() - timedelta(hours=23)
+        t = t.replace(minute=0, second=0, microsecond=0)
+        timespan = timedelta(hours=24)
+        dt = timedelta(hours=6)
+        format_str = '%H:%M'
+        x_title = 'UTC time'
 
+        x_labels = [t]
+        while timespan.total_seconds() > 0:
+            t += dt
+            timespan -= dt
+            if freq == CrawlerStats.DAILY:
+                t = t.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            x_labels.append(t)
+        cls = pygal.DateTimeLine
+    else:
+        t = now() - timedelta(days=364)
+        t = t.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        x_labels = [t]
+        for i in range(1, 7):
+            month = t.month + (i * 2)
+            year = int((month - 1) / 12)
+            month = ((month - 1) % 12) + 1
+            d = date(year=t.year + year, month=month, day=1)
+            x_labels.append(d)
 
-    g = pygal.DateTimeLine(style=pygal_style, disable_xml_declaration=True,
+        format_str = '%b'
+        x_title = None
+        cls = pygal.DateLine
+
+    g = cls(style=pygal_style, disable_xml_declaration=True,
                                      truncate_label=-1, show_legend=False, fill=True,
-                                     x_value_formatter=lambda dt: dt.strftime('%H:%M'),
-                                     x_title='UTC time')
+                                     x_value_formatter=lambda dt: dt.strftime(format_str),
+                                     x_title=x_title)
     g.x_labels = x_labels
     stats_max = data.aggregate(m=models.Max(col)).get('m', 0) or 0
     factor, unit = get_unit(stats_max)
@@ -61,32 +82,27 @@ def crawler_stats(pygal_style, freq):
     if data.count() < 2:
         return {}
 
-    if freq == CrawlerStats.MINUTELY:
-        period = '24h'
-    else:
-        period = 'year'
-
     # Doc count minutely
-    doc_count = datetime_graph(pygal_style, data, 'doc_count')
+    doc_count = datetime_graph(pygal_style, freq, data, 'doc_count')
     factor, unit = get_unit(data.aggregate(m=models.Max('doc_count')).get('m', 0) or 0)
-    doc_count.title = 'Doc count last %s' % period
+    doc_count.title = 'Doc count'
     if unit:
         doc_count.title += ' (%s)' % unit
     doc_count = doc_count.render()
 
     # Indexing speed minutely
     idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60)
-    idx_speed = datetime_graph(pygal_style, idx_speed_data, 'speed')
+    idx_speed = datetime_graph(pygal_style, freq, idx_speed_data, 'speed')
     factor, unit = get_unit(data.aggregate(m=models.Max('indexing_speed')).get('m', 0) or 0 / 60.0)
     if not unit:
         unit = 'doc'
-    idx_speed.title = 'Indexing speed last %s (%s/s)' % (period, unit)
+    idx_speed.title = 'Indexing speed (%s/s)' % unit
     idx_speed = idx_speed.render()
 
     # Url queued minutely
-    url_queue = datetime_graph(pygal_style, data, 'url_queued_count')
+    url_queue = datetime_graph(pygal_style, freq, data, 'url_queued_count')
     factor, unit = get_unit(data.aggregate(m=models.Max('url_queued_count')).get('m', 1))
-    url_queue.title = 'URL queue size last %s' % period
+    url_queue.title = 'URL queue size'
     if unit:
         url_queue.title += ' (%s)' % unit
     url_queue = url_queue.render()
@@ -99,38 +115,41 @@ def crawler_stats(pygal_style, freq):
 
 
 def stats(request):
-    with connection.cursor() as cursor:
-        cursor.execute('SELECT pg_database_size(%s)', [settings.DATABASES['default']['NAME']])
-        db_size = cursor.fetchall()[0][0]
-
-    doc_count = Document.objects.count()
-
-    indexed_langs = Document.objects.exclude(lang_iso_639_1__isnull=True).values('lang_iso_639_1').annotate(count=models.Count('lang_iso_639_1')).order_by('-count')
-
-    # Language chart
     pygal_style = pygal.style.Style(
         background='transparent',
         plot_background='transparent',
         title_font_size=40,
         legend_font_size=40,
-        label_font_size=40,
-        major_label_font_size=40,
+        label_font_size=35,
+        major_label_font_size=35,
     )
-    lang_chart = pygal.Bar(style=pygal_style, disable_xml_declaration=True)
-    lang_chart.title = 'Language repartition'
 
-    factor, unit = get_unit(indexed_langs[0]['count'])
-    if unit:
-        lang_chart.title += ' (%s)' % unit
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT pg_database_size(%s)', [settings.DATABASES['default']['NAME']])
+        db_size = cursor.fetchall()[0][0]
 
-    for lang in indexed_langs[:8]:
-        lang_iso = lang['lang_iso_639_1']
-        lang_desc = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
-        title = lang_iso.title()
-        if lang_desc.get('flag'):
-            title = title + ' ' + lang_desc['flag']
-        percent = lang['count'] / factor
-        lang_chart.add(title, percent)
+    doc_count = Document.objects.count()
+    indexed_langs = Document.objects.exclude(lang_iso_639_1__isnull=True).values('lang_iso_639_1').annotate(count=models.Count('lang_iso_639_1')).order_by('-count')
+
+    # Language chart
+    lang_chart = None
+    if indexed_langs:
+        lang_chart = pygal.Bar(style=pygal_style, disable_xml_declaration=True)
+        lang_chart.title = "Document's language"
+
+        factor, unit = get_unit(indexed_langs[0]['count'])
+        if unit:
+            lang_chart.title += ' (%s)' % unit
+
+        for lang in indexed_langs[:8]:
+            lang_iso = lang['lang_iso_639_1']
+            lang_desc = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
+            title = lang_iso.title()
+            if lang_desc.get('flag'):
+                title = title + ' ' + lang_desc['flag']
+            percent = lang['count'] / factor
+            lang_chart.add(title, percent)
+        lang_chart = lang_chart.render()
 
     # HDD chart
     statvfs = os.statvfs('/var/lib')
@@ -153,10 +172,10 @@ def stats(request):
         'doc_count': doc_count,
         'lang_count': len(indexed_langs),
         'db_size': filesizeformat(db_size),
-        'doc_size': filesizeformat(db_size / doc_count),
+        'doc_size': 0 if doc_count == 0 else filesizeformat(db_size / doc_count),
         'lang_recognizable': len(os.listdir(PROFILES_DIRECTORY)),
         'lang_parsable': [l.title() for l in sorted(Document.get_supported_langs())],
-        'lang_chart': lang_chart.render(),
+        'lang_chart': lang_chart,
         'hdd_pie': hdd_pie.render(),
     })
 

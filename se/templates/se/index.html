@@ -20,16 +20,23 @@
     .pagination {
         padding: 20px 0px 20px 0px;
     }
+
+    #more {
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    #adv_search {
+        padding-top: 20px;
+    }
+
+    .adv_search {
+        padding-bottom: 5px;
+    }
 {% endblock %}
 
 {% block js %}
-window.onload = function() {
-    const langInput = document.getElementById('id_l');
-    langInput.value = getLang();
-
-    const pageSize = document.getElementById('id_ps');
-    pageSize.value = getPageSize();
-}
+    {% include "se/index.js" %}
 {% endblock %}
 
 {% block body %}
@@ -42,7 +49,37 @@ window.onload = function() {
             {# {{ field.label }} #}{{ field }}
         {% endfor %}
         <input type="submit" value="🔎">
+        <div id="more_div">
+            <a id="more" href="#" onclick="search_more()">+ more</a>
+        </div>
+    
+        <template id="adv_search_tmpl">
+            <input class="dyn_button" type="button" value="+">
+            <input class="dyn_button" type="button" value="-">
+            <select name="ft">
+                <option value="inc">Keep</option>
+                <option value="exc">Exclude</option>
+            </select>
+            <select name="ff">
+                <option value="doc">Document</option>
+                <option value="content">Content</option>
+                <option value="title">Title</option>
+                <option value="url">Url</option>
+            </select>
+            <select name="fo">
+                <option value="contain">Containing</option>
+                <option value="equal">Equal to</option>
+                <option value="regexp">Matching Regexp</option>
+            </select>
+            <input name="fv" type="text">
+            <input name="fc" type="checkbox">
+            <label for="case">Case sensitive</label>
+        </template>
+        
+        <div id="adv_search" style="display: none">
+        </div>
     </form>
+
     {% if results %}
         <hr/>
         {{ results|length }} result{{ results|pluralize:"s" }}

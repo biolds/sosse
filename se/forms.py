@@ -6,6 +6,7 @@ from .models import Document
 
 class SearchForm(forms.Form):
     q = forms.CharField(label='Search',
+                        required=False,
                         widget=forms.TextInput(attrs={'autofocus': True}))
     l = forms.CharField(widget=forms.HiddenInput, initial='en', required=False)
     ps = forms.IntegerField(widget=forms.HiddenInput, initial=settings.MYSE_DEFAULT_PAGE_SIZE, required=False)

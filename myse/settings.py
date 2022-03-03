@@ -25,7 +25,7 @@ SECRET_KEY = '@yvo5va0sb6-i@t+vw3tr3b=)^^uh-9#0$*qs%8kxtwe7544-m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.113.99']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -365,3 +365,6 @@ MYSE_LANGDETECT_TO_POSTGRES = {
     }
 }
 MYSE_FAIL_OVER_LANG = 'english'
+
+#DARK_MODE = True
+DARK_MODE = False

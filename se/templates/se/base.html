@@ -5,6 +5,12 @@
     <title>Search{% if title %} · {{ title }}{% endif %}</title>
 
     <style>
+        {% if settings.DARK_MODE %}
+        body {
+            background: #111;
+        }
+        {% endif %}
+
         #menu {
             float: right;
         }

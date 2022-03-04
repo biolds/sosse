@@ -105,12 +105,16 @@ class Document(models.Model):
         self.normalized_title = remove_accent(self.title + '\n' + self.url)
 
         text = ''
-        for string in parsed.strings:
+        no = 0
+        for i, string in enumerate(parsed.strings):
             s = string.strip(' \t\n\r')
             if s != '':
+                if string == title and no == 0:
+                    continue
                 if text != '':
                     text += '\n'
                 text += s
+                no += 1
         self.content = text
         self.normalized_content = remove_accent(text)
 

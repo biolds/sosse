@@ -26,16 +26,17 @@ def filesizeformat(n):
     return '%0.1f%sB' % (n / factor, unit)
 
 
-def datetime_graph(pygal_style, freq, data, col):
+def datetime_graph(pygal_style, freq, data, col, _now):
     if freq == CrawlerStats.MINUTELY:
-        t = now() - timedelta(hours=23)
-        t = t.replace(minute=0, second=0, microsecond=0)
+        start = _now - timedelta(hours=23)
+        start = start.replace(minute=0, second=0, microsecond=0)
         timespan = timedelta(hours=24)
         dt = timedelta(hours=6)
         format_str = '%H:%M'
         x_title = 'UTC time'
 
-        x_labels = [t]
+        x_labels = [start]
+        t = start
         while timespan.total_seconds() > 0:
             t += dt
             timespan -= dt
@@ -44,9 +45,10 @@ def datetime_graph(pygal_style, freq, data, col):
             x_labels.append(t)
         cls = pygal.DateTimeLine
     else:
-        t = now() - timedelta(days=364)
-        t = t.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        x_labels = [t]
+        start = _now - timedelta(days=364)
+        start = start.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        x_labels = [start]
+        t = start
         for i in range(1, 7):
             month = t.month + (i * 2)
             year = int((month - 1) / 12)
@@ -70,20 +72,28 @@ def datetime_graph(pygal_style, freq, data, col):
     for entry in data:
         val = getattr(entry, col)
         if val is not None:
-            entries.append((entry.t, val / factor))
+            entries.append((entry.t.timestamp(), val / factor))
+
+    if entries == []:
+        entries = [(start, 0), (_now, 0)]
 
     g.add('', entries)
     return g
 
 
 def crawler_stats(pygal_style, freq):
-    data = CrawlerStats.objects.filter(freq=freq).order_by('t')
+    _now = now()
+    if freq == CrawlerStats.MINUTELY:
+        dt = _now - timedelta(days=1)
+    else:
+        dt = _now - timedelta(days=365)
+    data = CrawlerStats.objects.filter(t__gte=dt, freq=freq).order_by('t')
 
     if data.count() < 2:
         return {}
 
     # Doc count minutely
-    doc_count = datetime_graph(pygal_style, freq, data, 'doc_count')
+    doc_count = datetime_graph(pygal_style, freq, data, 'doc_count', _now)
     factor, unit = get_unit(data.aggregate(m=models.Max('doc_count')).get('m', 0) or 0)
     doc_count.title = 'Doc count'
     if unit:
@@ -92,7 +102,7 @@ def crawler_stats(pygal_style, freq):
 
     # Indexing speed minutely
     idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60)
-    idx_speed = datetime_graph(pygal_style, freq, idx_speed_data, 'speed')
+    idx_speed = datetime_graph(pygal_style, freq, idx_speed_data, 'speed', _now)
     factor, unit = get_unit(data.aggregate(m=models.Max('indexing_speed')).get('m', 0) or 0 / 60.0)
     if not unit:
         unit = 'doc'
@@ -100,7 +110,7 @@ def crawler_stats(pygal_style, freq):
     idx_speed = idx_speed.render()
 
     # Url queued minutely
-    url_queue = datetime_graph(pygal_style, freq, data, 'url_queued_count')
+    url_queue = datetime_graph(pygal_style, freq, data, 'url_queued_count', _now)
     factor, unit = get_unit(data.aggregate(m=models.Max('url_queued_count')).get('m', 1))
     url_queue.title = 'URL queue size'
     if unit:
@@ -182,4 +192,3 @@ def stats(request):
     context.update(crawler_stats(pygal_style, CrawlerStats.MINUTELY))
     context.update(crawler_stats(pygal_style, CrawlerStats.DAILY))
     return render(request, 'se/stats.html', context)
-

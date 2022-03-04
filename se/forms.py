@@ -25,4 +25,8 @@ class SearchForm(forms.Form):
         page_size = cleaned_data.get('ps', settings.MYSE_DEFAULT_PAGE_SIZE) or settings.MYSE_DEFAULT_PAGE_SIZE
         page_size = min(page_size, settings.MYSE_MAX_PAGE_SIZE)
         cleaned_data['ps'] = page_size
+
+        doc_lang = self.data.get('doc_lang')
+        if doc_lang in settings.MYSE_LANGDETECT_TO_POSTGRES:
+            cleaned_data['doc_lang'] = doc_lang
         return cleaned_data

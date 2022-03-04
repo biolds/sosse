@@ -80,6 +80,15 @@ class Document(models.Model):
         return cls.supported_langs
 
     @classmethod
+    def get_supported_lang_dict(cls):
+        supported = cls.get_supported_langs()
+        langs = {}
+        for iso, lang in settings.MYSE_LANGDETECT_TO_POSTGRES.items():
+            if lang['name'] in supported:
+                langs[iso] = lang
+        return langs
+
+    @classmethod
     def _get_lang(cls, text):
         lang_iso = detect(text)
         lang_pg = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')

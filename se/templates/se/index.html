@@ -77,6 +77,12 @@
         </template>
         
         <div id="adv_search" style="display: none">
+            <select id="doc_lang" name="doc_lang">
+                <option value="">Any</option>
+                {% for key, val in settings.MYSE_LANGDETECT_TO_POSTGRES.items %}
+                    <option value="{{ key }}">{{ val.flag }} {{ val.name|title }}</option>
+                {% endfor %}
+            </select>
         </div>
     </form>
 

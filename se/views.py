@@ -115,6 +115,9 @@ def get_documents(request, form):
 
         results = results.filter(qf)
 
+    doc_lang = form.cleaned_data.get('doc_lang')
+    if doc_lang:
+        results = results.filter(lang_iso_639_1=doc_lang)
     if results == all_results:
         return []
     return results
@@ -164,14 +167,9 @@ def search(request):
 
 
 def prefs(request):
-    supported = Document.get_supported_langs()
-    langs = {}
-    for iso, lang in settings.MYSE_LANGDETECT_TO_POSTGRES.items():
-        if lang['name'] in supported:
-            langs[iso] = lang
-
+    supported_langs = json.dumps(Document.get_supported_lang_dict())
     context = get_context({
         'title': 'Preferences',
-        'supported_langs': json.dumps(langs)
+        'supported_langs': supported_langs
     })
     return render(request, 'se/prefs.html', context)

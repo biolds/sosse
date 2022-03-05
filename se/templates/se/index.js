@@ -6,6 +6,9 @@ window.onload = function() {
     pageSize.value = getPageSize();
 
     load_adv_search();
+
+    const form = document.getElementById('search_form');
+    form.addEventListener('submit', on_submit, false);
 }
 
 let adv_search_lines = 0;
@@ -22,7 +25,7 @@ function search_more() {
     }
     const adv_search = document.getElementById('adv_search');
     adv_search.removeAttribute('style');
-    
+
     return false;
 }
 
@@ -35,17 +38,17 @@ function search_less() {
 
     const adv_search = document.getElementById('adv_search');
     adv_search.style.display = 'none';
-    
+
     return false;
 
 }
 
 function add_new_adv_search() {
     adv_search_lines++;
-    
+
     const adv_search = document.getElementById('adv_search');
     const template = document.getElementById('adv_search_tmpl');
-    
+
     new_adv_search = document.createElement('div');
     new_adv_search.setAttribute('id', 'adv_search' + adv_search_lines);
     new_adv_search.innerHTML = template.innerHTML;
@@ -177,4 +180,15 @@ function load_adv_search() {
     });
 
     search_more();
+}
+
+function on_submit() {
+    const adv_search = document.getElementById('adv_search');
+    if (adv_search.style.display === 'none') {
+        adv_search.remove();
+    }
+
+    const form = document.getElementById('search_form');
+    form.submit();
+    return false;
 }

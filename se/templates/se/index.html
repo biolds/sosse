@@ -33,6 +33,16 @@
     .adv_search {
         padding-bottom: 5px;
     }
+
+    #word_stats {
+        float: right;
+        text-align: left;
+        overflow-y: scroll;
+        height: 300px;
+        border-left-width: 1px;
+        border-left-style: solid;
+        border-color: black;
+    }
 {% endblock %}
 
 {% block js %}
@@ -89,6 +99,16 @@
     {% if results %}
         <hr/>
         {{ results|length }} result{{ results|pluralize:"s" }}
+        <button style="float: right" onclick="return show_word_stats()">📊</button>
+        <div id="word_stats" style="display: none">
+            <div style="text-align: center">Word stats</div>
+            <table id="word_stats_table">
+                <tr>
+                    <th>Word</th>
+                    <th>Docs</th>
+                </tr>
+            </table>
+        </div>
         {% for r in paginated %}
             <a href="{{ r.url }}">
                 <h3 class="res-title">{{ r.title }}</h3>

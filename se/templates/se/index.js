@@ -192,3 +192,53 @@ function on_submit() {
     form.submit();
     return false;
 }
+
+let word_stats_displayed = false;
+let word_stats_loaded = false;
+
+function show_word_stats() {
+    const word_stats = document.getElementById('word_stats');
+    if (!word_stats_displayed) {
+        word_stats.removeAttribute('style');
+
+        if (!word_stats_loaded) {
+            // https://stackoverflow.com/questions/247483/http-get-request-in-javascript
+            const xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    const data = JSON.parse(xmlHttp.responseText);
+                    do_show_word_stats(data);
+                    word_stats_loaded = true;
+                }
+            }
+            const url = '/word_stats/' + document.location.search;
+            xmlHttp.open("GET", url, true); // true for asynchronous
+            xmlHttp.send(null);
+        }
+    } else {
+        word_stats.style = 'display: none';
+    }
+    word_stats_displayed = !word_stats_displayed;
+}
+
+function do_show_word_stats(data) {
+    const table = document.getElementById('word_stats_table');
+    data.forEach(function (e) {
+        const line = document.createElement('tr');
+        table.appendChild(line);
+
+        const word = document.createElement('td');
+        line.appendChild(word)
+        const word_a = document.createElement('a');
+        word.appendChild(word_a)
+        word_a.innerText = e[0];
+        word_a.setAttribute('href', e[2]);
+
+        const count = document.createElement('td');
+        line.appendChild(count)
+        const count_a = document.createElement('a');
+        count.appendChild(count_a)
+        count_a.innerText = e[1];
+        count_a.setAttribute('href', e[2]);
+    });
+}

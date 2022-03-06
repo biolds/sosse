@@ -5,7 +5,8 @@ from urllib.parse import urlparse, parse_qs
 from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Paginator
-from django.db import models
+from django.db import connection, models
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
@@ -131,7 +132,6 @@ def search(request):
     form = SearchForm(request.GET)
     if form.is_valid():
         q = form.cleaned_data['q']
-        q = remove_accent(q)
         redirect_url = SearchEngine.should_redirect(q)
         if redirect_url:
             return redirect(redirect_url)
@@ -164,6 +164,29 @@ def search(request):
             'page_last': format_url(request, 'p=%i' % paginated.paginator.num_pages)
         })
     return render(request, 'se/index.html', context)
+
+
+def word_stats(request):
+    results = None
+    form = SearchForm(request.GET)
+    if form.is_valid():
+        q = form.cleaned_data['q']
+        q = remove_accent(q)
+        doc_query = get_documents(request, form).values('vector')
+
+        # Hack to obtain final SQL query, as described there:
+        # https://code.djangoproject.com/ticket/17741#comment:4
+        sql, params = doc_query.query.sql_with_params()
+        cursor = connection.cursor()
+        cursor.execute('EXPLAIN ' + sql, params)
+        raw_query = cursor.db.ops.last_executed_query(cursor, sql, params)
+        raw_query = raw_query[len('EXPLAIN '):]
+
+        results = Document.objects.raw('SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100', (raw_query,))
+        results = [(e.word, e.ndoc, format_url(request, 'q=%s %s' % (q, e.word))[len('/word_stats'):]) for e in list(results)]
+        results = json.dumps(results)
+
+    return HttpResponse(results, content_type='application/json')
 
 
 def prefs(request):

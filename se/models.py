@@ -19,6 +19,7 @@ from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import connection, models
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
+from magic import from_buffer as magic_from_buffer
 
 
 DetectorFactory.seed = 0
@@ -61,6 +62,7 @@ class Document(models.Model):
     vector = SearchVectorField()
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
+    favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
 
     supported_langs = None
 
@@ -147,6 +149,8 @@ class Document(models.Model):
 
                 dest = absolutize_url(self.url, dest)
                 UrlQueue.queue(dest, crawl_id)
+
+        FavIcon.extract(self, parsed)
 
 
 class QueueWhitelist(models.Model):
@@ -258,6 +262,7 @@ class UrlQueue(models.Model):
                 continue
 
             return url
+
 
 class AuthMethod(models.Model):
     url_re = models.TextField()
@@ -479,3 +484,57 @@ class SearchEngine(models.Model):
                 return se.get_search_url(' '.join(q))
             except SearchEngine.DoesNotExist:
                 pass
+
+
+class FavIcon(models.Model):
+    url = models.TextField(unique=True)
+    content = models.BinaryField(null=True, blank=True)
+    mimetype = models.CharField(max_length=64, null=True, blank=True)
+    missing = models.BooleanField(default=False)
+
+    @classmethod
+    def extract(cls, doc, parsed):
+        url = cls._get_url(parsed)
+
+        if url is None:
+            url = '/favicon.ico'
+
+        url = absolutize_url(doc.url, url)
+
+        favicon, created = FavIcon.objects.get_or_create(url=url)
+        doc.favicon = favicon
+
+        if not created:
+            return
+
+        favicon.url = url
+        favicon.missing = True
+
+        try:
+            cookies = AuthMethod.get_cookies(url)
+            r = requests.get(url, cookies=cookies)
+            favicon.mimetype = magic_from_buffer(r.content, mime=True)
+            favicon.content = r.content
+            favicon.missing = False
+        except Exception:
+            pass
+
+        favicon.save()
+
+    @classmethod
+    def _get_url(cls, parsed):
+        links = parsed.find_all('link', rel="shortcut icon")
+        if links == []:
+            links = parsed.find_all('link', rel="icon")
+
+        if len(links) == 0:
+            return None
+        if len(links) == 1:
+            return links[0].get('href')
+
+        for prefered_size in ('32x32', '16x16'):
+            for link in links:
+                if link.get('sizes') == prefered_size:
+                    return link.get('href')
+
+        return links[0].get('href')

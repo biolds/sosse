@@ -15,13 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path
-from se.views import prefs, search, word_stats
+from se.views import favicon, prefs, search, word_stats
 from se.stats import stats
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    re_path('$', search),
+    path('', search),
     path('prefs/', prefs),
     path('stats/', stats),
     path('word_stats/', word_stats),
+    re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
 ]

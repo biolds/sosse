@@ -10,8 +10,17 @@
         text-align: center;
         padding: 10px;
     }
+    .res-head {
+        padding-top: 10px;
+    }
+    .res-img {
+        height: 16px;
+        width: 16px;
+        display: inline;
+    }
     .res-title {
         margin-bottom: 0px;
+        display: inline;
     }
     .res-url {
         text-decoration: none;
@@ -101,6 +110,7 @@
         <hr/>
         {{ results|length }} result{{ results|pluralize:"s" }}
         <button style="float: right" onclick="return show_word_stats()">📊</button>
+        <br/>
         <div id="word_stats" style="display: none">
             <div style="text-align: center">Word stats</div>
             <table id="word_stats_table">
@@ -111,9 +121,14 @@
             </table>
         </div>
         {% for r in paginated %}
-            <a href="{{ r.url }}">
-                <h3 class="res-title">{{ r.title }}</h3>
-            </a>
+            <div class="res-head">
+                {% if r.favicon and not r.favicon.missing %}
+                    <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
+                {% endif %}
+                <a href="{{ r.url }}">
+                    <h3 class="res-title">{{ r.title }}</h3>
+                </a>
+            </div>
             <a href="{{ r.url }}" class="res-url">
                 {{ r.url }}
             </a>

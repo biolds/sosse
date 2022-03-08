@@ -7,12 +7,12 @@ from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRa
 from django.core.paginator import Paginator
 from django.db import connection, models
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
-from .models import Document, SearchEngine, remove_accent
+from .models import Document, FavIcon, SearchEngine, remove_accent
 
 
 def format_url(request, params):
@@ -196,3 +196,8 @@ def prefs(request):
         'supported_langs': supported_langs
     })
     return render(request, 'se/prefs.html', context)
+
+
+def favicon(request, favicon_id):
+    fav = get_object_or_404(FavIcon, id=favicon_id)
+    return HttpResponse(fav.content, content_type=fav.mimetype)

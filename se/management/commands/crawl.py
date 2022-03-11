@@ -6,11 +6,16 @@ from time import sleep
 from django.db import connection
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
+
+from ...browser import Browser
 from ...models import UrlQueue, Document, CrawlerStats
 
 
 class Command(BaseCommand):
     help = 'Crawl web pages'
+
+    def __del__(self):
+        Browser.destroy()
 
     def add_arguments(self, parser):
         parser.add_argument('--once', action='store_true', help='Exit when url queue is empty')
@@ -73,6 +78,8 @@ class Command(BaseCommand):
         if options['force']:
             UrlQueue.objects.update(error='', error_hash='')
 
+        self.stdout.write('Crawl initializing')
+        Browser.init()
         self.stdout.write('Crawl starting')
         crawl_id = uuid.uuid4()
 

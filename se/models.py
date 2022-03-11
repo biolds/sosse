@@ -11,8 +11,6 @@ from time import sleep
 from traceback import format_exc
 from urllib.parse import urlparse
 
-import requests
-from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
@@ -21,6 +19,7 @@ from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from magic import from_buffer as magic_from_buffer
 
+from .browser import RequestBrowser, SeleniumBrowser
 
 DetectorFactory.seed = 0
 
@@ -69,6 +68,11 @@ class Document(models.Model):
     class Meta:
         indexes = [GinIndex(fields=(('vector',)))]
 
+    def get_policy(self):
+        url = absolutize_url(self.url, '/')
+        policy, _ = DomainPolicy.objects.get_or_create(url=url)
+        return policy
+
     @classmethod
     def get_supported_langs(cls):
         if cls.supported_langs is not None:
@@ -99,20 +103,9 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
-    @classmethod
-    def _get_soup(self, content):
-        content = content.decode('utf-8')
-        parsed = BeautifulSoup(content, 'html5lib')
-
-        # Remove <template> tags as BS extract its text
-        for elem in parsed.find_all('template'):
-            elem.extract()
-        return parsed
-
-    def index(self, content, crawl_id):
-        parsed = self._get_soup(content)
-        title = parsed.title and parsed.title.string
-        self.title = title or self.url
+    def index(self, page, crawl_id):
+        parsed = page.get_soup()
+        self.title = page.title or self.url
         self.normalized_title = remove_accent(self.title + '\n' + self.url)
 
         text = ''
@@ -120,7 +113,7 @@ class Document(models.Model):
         for i, string in enumerate(parsed.strings):
             s = string.strip(' \t\n\r')
             if s != '':
-                if string == title and no == 0:
+                if string == page.title and no == 0:
                     continue
                 if text != '':
                     text += '\n'
@@ -128,27 +121,10 @@ class Document(models.Model):
                 no += 1
         self.content = text
         self.normalized_content = remove_accent(text)
+        self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
 
-        self.lang_iso_639_1, self.vector_lang = self._get_lang((title or '') + '\n' + text)
-
-        # extract links
-        for a in parsed.find_all('a'):
-            url = absolutize_url(self.url, a.get('href'))
-            UrlQueue.queue(url, crawl_id)
-
-        for meta in parsed.find_all('meta'):
-            if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
-                # handle redirect
-                dest = meta.get('content')
-
-                if ';' in dest:
-                    dest = dest.split(';', 1)[1]
-
-                if dest.startswith('url='):
-                    dest = dest[4:]
-
-                dest = absolutize_url(self.url, dest)
-                UrlQueue.queue(dest, crawl_id)
+        for link in page.get_links():
+            UrlQueue.queue(link, crawl_id)
 
         FavIcon.extract(self, parsed)
 
@@ -194,23 +170,6 @@ class UrlQueue(models.Model):
         UrlQueue.objects.get_or_create(url=url)
 
     @staticmethod
-    def url_get(url):
-        cookies = AuthMethod.get_cookies(url)
-        r = requests.get(url, cookies=cookies)
-
-        if len(r.history):
-            # The request was redirected, check if we need auth
-            try:
-                new_req = AuthMethod.try_methods(r)
-                if new_req:
-                    r = new_req
-            except:
-                raise Exception('Authentication failed')
-
-        r.raise_for_status()
-        return r
-
-    @staticmethod
     def crawl(worker_no, crawl_id):
         url = UrlQueue.pick_url(worker_no)
         if url is None:
@@ -222,9 +181,10 @@ class UrlQueue(models.Model):
 
             doc, _ = Document.objects.get_or_create(url=url.url, defaults={'crawl_id': crawl_id})
             if url.url.startswith('http://') or url.url.startswith('https://'):
-                req = UrlQueue.url_get(url.url)
-                doc.url = req.url
-                doc.index(req.content, crawl_id)
+                domain_policy = doc.get_policy()
+                page = domain_policy.url_get(url.url)
+                doc.url = page.url
+                doc.index(page, crawl_id)
 
             doc.crawl_id = crawl_id
             doc.save()
@@ -266,53 +226,18 @@ class UrlQueue(models.Model):
 
 class AuthMethod(models.Model):
     url_re = models.TextField()
-    post_url = models.TextField()
+    form_selector = models.TextField()
     cookies = models.TextField(blank=True, default='')
     fqdn = models.CharField(max_length=1024)
 
     def __str__(self):
         return self.url_re
 
-    def try_auth(self, req):
-        payload = dict([(f['key'], f['value']) for f in self.authfield_set.values('key', 'value')])
-
-        for field in self.authdynamicfield_set.all():
-            content = req.content.decode('utf-8')
-            parsed = BeautifulSoup(content, 'html5lib')
-            val = parsed.select(field.input_css_selector)
-
-            if len(val) == 0:
-                raise Exception('Could not find element with CSS selector: %s' % field.input_css_selector)
-
-            if len(val) > 1:
-                raise Exception('Found multiple element with CSS selector: %s' % field.input_css_selector)
-
-            payload[field.key] = val[0].attrs['value']
-
-        cookies = dict(req.cookies)
-        r = requests.post(self.post_url, data=payload, cookies=cookies, allow_redirects=False)
-        r.raise_for_status()
-
-        self.cookies = json.dumps(dict(r.cookies))
-        self.save()
-
-        if r.status_code != 302:
-            return r
-
-        location = r.headers.get('location')
-        if not location:
-            raise Exception('No location in the redirection')
-
-        location = absolutize_url(req.url, location)
-        r = requests.get(req.url, cookies=r.cookies)
-        r.raise_for_status()
-        return r
-
     @staticmethod
-    def try_methods(req):
+    def try_methods(page):
         for auth_method in AuthMethod.objects.all():
-            if re.search(auth_method.url_re, req.url):
-                return auth_method.try_auth(req)
+            if re.search(auth_method.url_re, page.url):
+                return page.browser.try_auth(page, auth_method)
 
     @staticmethod
     def get_cookies(url):
@@ -332,15 +257,6 @@ class AuthField(models.Model):
 
     def __str__(self):
         return '%s: %s' % (self.key, self.value)
-
-
-class AuthDynamicField(models.Model):
-    key = models.CharField(max_length=256)
-    input_css_selector = models.CharField(max_length=4096)
-    auth_method = models.ForeignKey(AuthMethod, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return '%s: %s' % (self.key, self.input_css_selector)
 
 
 class WorkerStats(models.Model):
@@ -538,3 +454,44 @@ class FavIcon(models.Model):
                     return link.get('href')
 
         return links[0].get('href')
+
+
+def browse_mode_default():
+    return settings.BROWSING_METHOD
+
+
+class DomainPolicy(models.Model):
+    SELENIUM = 'selenium'
+    REQUESTS = 'requests'
+    DETECT = 'detect'
+
+    MODE = [
+        (SELENIUM, SELENIUM),
+        (REQUESTS, REQUESTS),
+        (DETECT, DETECT)
+    ]
+
+    url = models.TextField(unique=True)
+    browse_mode = models.CharField(max_length=10, choices=MODE, default=browse_mode_default)
+
+    def _get_browser(self):
+        if self.browse_mode in ('selenium', 'detect'):
+            return SeleniumBrowser
+        return RequestBrowser
+
+    def url_get(self, url):
+        cookies = AuthMethod.get_cookies(url)
+
+        browser = self._get_browser()
+        page = browser.get(url, cookies=cookies)
+
+        if page.got_redirect:
+            # The request was redirected, check if we need auth
+            try:
+                new_page = AuthMethod.try_methods(page)
+                if new_page:
+                    page = new_page
+            except:
+                raise Exception('Authentication failed')
+
+        return page

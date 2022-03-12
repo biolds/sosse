@@ -113,6 +113,9 @@ class Document(models.Model):
         return lang_iso, lang_pg
 
     def index(self, page, crawl_id):
+        for link in page.get_links():
+            UrlQueue.queue(link, crawl_id)
+
         parsed = page.get_soup()
         self.title = page.title or self.url
         self.normalized_title = remove_accent(self.title + '\n' + self.url)
@@ -131,9 +134,6 @@ class Document(models.Model):
         self.content = text
         self.normalized_content = remove_accent(text)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
-
-        for link in page.get_links():
-            UrlQueue.queue(link, crawl_id)
 
         FavIcon.extract(self, page)
 

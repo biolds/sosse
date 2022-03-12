@@ -207,7 +207,10 @@ class UrlQueue(models.Model):
             url.save()
             print(format_exc())
 
-        worker_stats, created = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
+        worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no, freq=MINUTELY)
+        worker_stats.doc_processed += 1
+        worker_stats.save()
+        worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no, freq=DAILY)
         worker_stats.doc_processed += 1
         worker_stats.save()
         return True
@@ -269,19 +272,21 @@ class AuthField(models.Model):
         return '%s: %s' % (self.key, self.value)
 
 
+MINUTELY = 'M'
+DAILY = 'D'
+FREQUENCY = (
+    (MINUTELY, MINUTELY),
+    (DAILY, DAILY),
+)
+
+
 class WorkerStats(models.Model):
     doc_processed = models.PositiveIntegerField()
     worker_no = models.IntegerField()
+    freq = models.CharField(max_length=1, choices=FREQUENCY)
 
 
 class CrawlerStats(models.Model):
-    MINUTELY = 'M'
-    DAILY = 'D'
-    FREQUENCY = (
-        (MINUTELY, MINUTELY),
-        (DAILY, DAILY),
-    )
-
     t = models.DateTimeField()
     doc_count = models.PositiveIntegerField()
     url_queued_count = models.PositiveIntegerField()
@@ -290,20 +295,22 @@ class CrawlerStats(models.Model):
 
     @staticmethod
     def create_daily():
-        CrawlerStats.objects.filter(t__lt=now() - timedelta(days=365), freq=CrawlerStats.MINUTELY).delete()
-        last = CrawlerStats.objects.filter(freq=CrawlerStats.DAILY).order_by('t').last()
+        CrawlerStats.objects.filter(t__lt=now() - timedelta(days=365), freq=MINUTELY).delete()
+        last = CrawlerStats.objects.filter(freq=DAILY).order_by('t').last()
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)
 
         if last and last.t == today:
             return
 
-        doc_count = WorkerStats.objects.all().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
+        doc_count = WorkerStats.objects.filter(freq=DAILY).aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
+        WorkerStats.objects.filter(freq=DAILY).update(doc_processed=0)
 
-        indexing_speed = None
+        indexing_speed = 0
         try:
             yesterday = today - timedelta(days=1)
-            yesterday_stat = CrawlerStats.objects.get(freq=CrawlerStats.DAILY, t=yesterday)
+            yesterday_stat = CrawlerStats.objects.get(freq=DAILY, t=yesterday)
             indexing_speed = doc_count - yesterday_stat.doc_count
+            indexing_speed = max(0, indexing_speed)
         except CrawlerStats.DoesNotExist:
             pass
 
@@ -311,20 +318,22 @@ class CrawlerStats(models.Model):
                                     doc_count=doc_count,
                                     url_queued_count=UrlQueue.objects.count(),
                                     indexing_speed=indexing_speed,
-                                    freq=CrawlerStats.DAILY)
+                                    freq=DAILY)
 
     @staticmethod
     def create(t, prev_stat):
-        CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=CrawlerStats.MINUTELY).delete()
-        doc_count = WorkerStats.objects.all().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
-        indexing_speed = None
+        CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=MINUTELY).delete()
+        doc_count = WorkerStats.objects.filter(freq=MINUTELY).aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
+        WorkerStats.objects.filter(freq=MINUTELY).update(doc_processed=0)
+        indexing_speed = 0
         if prev_stat:
             indexing_speed = doc_count - prev_stat.doc_count
+            indexing_speed = max(0, indexing_speed)
         return CrawlerStats.objects.create(t=t,
                                            doc_count=doc_count,
                                            url_queued_count=UrlQueue.objects.count(),
                                            indexing_speed=indexing_speed,
-                                           freq=CrawlerStats.MINUTELY)
+                                           freq=MINUTELY)
 
 
 class SearchEngine(models.Model):
@@ -517,7 +526,7 @@ class DomainPolicy(models.Model):
                 auth_method = AuthMethod.get_method(url)
 
                 if auth_method:
-                    new_page = page.browser.try_auth(page, auth_method)
+                    new_page = page.browser.try_auth(page, url, auth_method)
 
                     if new_page:
                         page = new_page

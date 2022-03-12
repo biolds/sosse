@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
 
 from ...browser import Browser
-from ...models import CrawlerStats, Document, DomainPolicy, UrlQueue
+from ...models import CrawlerStats, Document, DomainPolicy, UrlQueue, WorkerStats, MINUTELY
 
 
 class Command(BaseCommand):
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         print('Worker %i starting' % worker_no)
 
         if worker_no == 0:
-            last = CrawlerStats.objects.filter(freq=CrawlerStats.MINUTELY).order_by('t').last()
+            last = CrawlerStats.objects.filter(freq=MINUTELY).order_by('t').last()
             if last:
                 next_stat = last.t
             else:
@@ -70,6 +70,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         UrlQueue.objects.update(worker_no=None)
+        WorkerStats.objects.all().update(doc_processed=0)
 
         for url in options['urls']:
             UrlQueue.queue(url=url)

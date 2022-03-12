@@ -27,7 +27,7 @@ def filesizeformat(n):
 
 
 def datetime_graph(pygal_style, freq, data, col, _now):
-    if freq == CrawlerStats.MINUTELY:
+    if freq == MINUTELY:
         start = _now - timedelta(hours=23)
         start = start.replace(minute=0, second=0, microsecond=0)
         timespan = timedelta(hours=24)
@@ -40,7 +40,7 @@ def datetime_graph(pygal_style, freq, data, col, _now):
         while timespan.total_seconds() > 0:
             t += dt
             timespan -= dt
-            if freq == CrawlerStats.DAILY:
+            if freq == DAILY:
                 t = t.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             x_labels.append(t)
         cls = pygal.DateTimeLine
@@ -83,7 +83,7 @@ def datetime_graph(pygal_style, freq, data, col, _now):
 
 def crawler_stats(pygal_style, freq):
     _now = now()
-    if freq == CrawlerStats.MINUTELY:
+    if freq == MINUTELY:
         dt = _now - timedelta(days=1)
     else:
         dt = _now - timedelta(days=365)
@@ -101,7 +101,7 @@ def crawler_stats(pygal_style, freq):
     doc_count = doc_count.render()
 
     # Indexing speed minutely
-    if freq == CrawlerStats.MINUTELY:
+    if freq == MINUTELY:
         idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60.0)
     else:
         idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60.0 / 60.0 / 24.0)
@@ -192,6 +192,6 @@ def stats(request):
         'hdd_pie': hdd_pie.render(),
     })
 
-    context.update(crawler_stats(pygal_style, CrawlerStats.MINUTELY))
-    context.update(crawler_stats(pygal_style, CrawlerStats.DAILY))
+    context.update(crawler_stats(pygal_style, MINUTELY))
+    context.update(crawler_stats(pygal_style, DAILY))
     return render(request, 'se/stats.html', context)

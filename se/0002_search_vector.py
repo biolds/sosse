@@ -12,6 +12,7 @@ class Migration(migrations.Migration):
               CREATE FUNCTION weight_vector() RETURNS trigger AS $$
               BEGIN
                 new.vector = setweight(to_tsvector(new.vector_lang, new.normalized_title), 'A') ||
+                             setweight(to_tsvector(new.vector_lang, new.normalized_url), 'A') ||
                              setweight(to_tsvector(new.vector_lang, new.normalized_content), 'B');
                 return new;
               END

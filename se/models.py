@@ -25,6 +25,13 @@ DetectorFactory.seed = 0
 
 
 def absolutize_url(url, p):
+    for to_del in ('?', '#'):
+        if to_del in p:
+            p = p.split(to_del, 1)[0]
+
+    if p == '':
+        return url
+
     if re.match('[a-zA-Z]+:', p):
         return p
 
@@ -36,7 +43,7 @@ def absolutize_url(url, p):
         new_path = os.path.dirname(url.path)
         new_path += '/' + p
 
-    url = url._replace(path=new_path, query='', fragment='')
+    url = url._replace(path=new_path)
     return url.geturl()
 
 

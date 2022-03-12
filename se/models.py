@@ -4,6 +4,7 @@ import re
 import urllib.parse
 import unicodedata
 
+from base64 import b64decode
 from datetime import date, datetime, timedelta
 from defusedxml import ElementTree
 from hashlib import md5
@@ -133,7 +134,7 @@ class Document(models.Model):
         for link in page.get_links():
             UrlQueue.queue(link, crawl_id)
 
-        FavIcon.extract(self, parsed)
+        FavIcon.extract(self, page)
 
 
 class QueueWhitelist(models.Model):
@@ -190,7 +191,7 @@ class UrlQueue(models.Model):
             if url.url.startswith('http://') or url.url.startswith('https://'):
                 domain_policy = doc.get_policy()
                 page = domain_policy.url_get(url.url)
-                doc.url = page.url
+                doc, _ = Document.objects.get_or_create(url=page.url, defaults={'crawl_id': crawl_id})
                 doc.index(page, crawl_id)
 
             doc.crawl_id = crawl_id
@@ -241,10 +242,10 @@ class AuthMethod(models.Model):
         return self.url_re
 
     @staticmethod
-    def try_methods(page):
+    def get_method(url):
         for auth_method in AuthMethod.objects.all():
-            if re.search(auth_method.url_re, page.url):
-                return page.browser.try_auth(page, auth_method)
+            if re.search(auth_method.url_re, url):
+                return auth_method
 
     @staticmethod
     def get_cookies(url):
@@ -416,8 +417,8 @@ class FavIcon(models.Model):
     missing = models.BooleanField(default=False)
 
     @classmethod
-    def extract(cls, doc, parsed):
-        url = cls._get_url(parsed)
+    def extract(cls, doc, page):
+        url = cls._get_url(page)
 
         if url is None:
             url = '/favicon.ico'
@@ -430,14 +431,24 @@ class FavIcon(models.Model):
         if not created:
             return
 
-        favicon.url = url
         favicon.missing = True
 
         try:
-            cookies = AuthMethod.get_cookies(url)
-            r = requests.get(url, cookies=cookies)
-            favicon.mimetype = magic_from_buffer(r.content, mime=True)
-            favicon.content = r.content
+            if url.startswith('data:'):
+                data = url.split(':', 1)[1]
+                mimetype, data = data.split(';', 1)
+                encoding, data = data.split(',', 1)
+                if encoding != 'base64':
+                    raise Exception('encoding %s not supported' % encoding)
+                data = b64decode(data)
+                favicon.mimetype = mimetype
+                favicon.content = data
+                favicon.save()
+            else:
+                page = RequestBrowser.get(url, raw=True)
+                favicon.mimetype = magic_from_buffer(page.content, mime=True)
+                favicon.content = page.content
+                favicon.save()
             favicon.missing = False
         except Exception:
             pass
@@ -445,7 +456,8 @@ class FavIcon(models.Model):
         favicon.save()
 
     @classmethod
-    def _get_url(cls, parsed):
+    def _get_url(cls, page):
+        parsed = page.get_soup()
         links = parsed.find_all('link', rel="shortcut icon")
         if links == []:
             links = parsed.find_all('link', rel="icon")
@@ -481,24 +493,43 @@ class DomainPolicy(models.Model):
     url = models.TextField(unique=True)
     browse_mode = models.CharField(max_length=10, choices=MODE, default=browse_mode_default)
 
+    def __str__(self):
+        return '%s %s' % (self.url, self.browse_mode)
+
     def _get_browser(self):
-        if self.browse_mode in ('selenium', 'detect'):
+        if settings.BROWSING_METHOD == DomainPolicy.SELENIUM:
+            return SeleniumBrowser
+        if settings.BROWSING_METHOD == DomainPolicy.REQUESTS:
+            return RequestBrowser
+        if self.browse_mode in (DomainPolicy.SELENIUM, DomainPolicy.DETECT):
             return SeleniumBrowser
         return RequestBrowser
 
     def url_get(self, url):
-        cookies = AuthMethod.get_cookies(url)
-
         browser = self._get_browser()
-        page = browser.get(url, cookies=cookies)
+        page = browser.get(url)
 
         if page.got_redirect:
             # The request was redirected, check if we need auth
             try:
-                new_page = AuthMethod.try_methods(page)
-                if new_page:
-                    page = new_page
+                auth_method = AuthMethod.get_method(url)
+
+                if auth_method:
+                    new_page = page.browser.try_auth(page, auth_method)
+
+                    if new_page:
+                        page = new_page
             except:
                 raise Exception('Authentication failed')
+
+        if self.browse_mode == DomainPolicy.DETECT:
+            requests_page = RequestBrowser.get(url)
+
+            if len(list(requests_page.get_links())) != len(list(page.get_links())):
+                self.browse_mode = DomainPolicy.SELENIUM
+            else:
+                self.browse_mode = DomainPolicy.REQUESTS
+                page = requests_page
+            self.save()
 
         return page

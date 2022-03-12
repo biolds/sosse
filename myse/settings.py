@@ -370,4 +370,6 @@ MYSE_FAIL_OVER_LANG = 'english'
 DARK_MODE = False
 
 # 'requests', 'selenium', or 'detect'
-BROWSING_METHOD = 'selenium'
+#BROWSING_METHOD = 'selenium'
+#BROWSING_METHOD = 'requests'
+BROWSING_METHOD = 'detect'

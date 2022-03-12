@@ -2,10 +2,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Document, QueueWhitelist, UrlQueue, AuthMethod, AuthField, SearchEngine
+from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthMethod, AuthField, SearchEngine
 
 admin.site.enable_nav_sidebar = False
 admin.site.register(QueueWhitelist)
+admin.site.register(DomainPolicy)
 
 admin.site.register(AuthMethod)
 admin.site.register(AuthField)

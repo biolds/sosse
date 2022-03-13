@@ -3,10 +3,11 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthField, SearchEngine
+from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthField, SearchEngine, FavIcon
 
 admin.site.enable_nav_sidebar = False
 admin.site.register(QueueWhitelist)
+admin.site.register(FavIcon)
 
 
 @admin.register(SearchEngine)

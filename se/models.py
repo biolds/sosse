@@ -26,19 +26,32 @@ from .browser import RequestBrowser, SeleniumBrowser
 DetectorFactory.seed = 0
 
 
-def absolutize_url(url, p):
+def sanitize_url(url):
     for to_del in ('?', '#'):
-        if to_del in p:
-            p = p.split(to_del, 1)[0]
-
-    if p == '':
-        return url
-
-    if re.match('[a-zA-Z]+:', p):
-        return p
+        if to_del in url:
+            url = url.split(to_del, 1)[0]
 
     url = urlparse(url)
 
+    if url.path == '':
+        url = url._replace(path='/')
+    else:
+        new_path = os.path.abspath(url.path)
+        new_path = new_path.replace('//', '/')
+        url = url._replace(path=new_path)
+
+    url = url.geturl()
+    return url
+
+
+def absolutize_url(url, p):
+    if p == '':
+        return sanitize_url(url)
+
+    if re.match('[a-zA-Z]+:', p):
+        return sanitize_url(p)
+
+    url = urlparse(url)
     if p.startswith('/'):
         new_path = p
     else:
@@ -46,7 +59,7 @@ def absolutize_url(url, p):
         new_path += '/' + p
 
     url = url._replace(path=new_path)
-    return url.geturl()
+    return sanitize_url(url.geturl())
 
 
 def remove_accent(s):
@@ -77,11 +90,6 @@ class Document(models.Model):
 
     class Meta:
         indexes = [GinIndex(fields=(('vector',)))]
-
-    def get_policy(self):
-        url = absolutize_url(self.url, '/')
-        policy, _ = DomainPolicy.objects.get_or_create(url=url)
-        return policy
 
     @classmethod
     def get_supported_langs(cls):
@@ -195,7 +203,7 @@ class UrlQueue(models.Model):
 
             doc, _ = Document.objects.get_or_create(url=url.url, defaults={'crawl_id': crawl_id})
             if url.url.startswith('http://') or url.url.startswith('https://'):
-                domain_policy = doc.get_policy()
+                domain_policy = DomainPolicy.get_from_url(url.url)
                 page = domain_policy.url_get(url.url)
                 doc, _ = Document.objects.get_or_create(url=page.url, defaults={'crawl_id': crawl_id})
                 doc.normalized_url = page.url.split('://', 1)[0].replace('/', ' ')
@@ -242,36 +250,10 @@ class UrlQueue(models.Model):
             return url
 
 
-class AuthMethod(models.Model):
-    url_re = models.TextField()
-    form_selector = models.TextField()
-    cookies = models.TextField(blank=True, default='')
-    fqdn = models.CharField(max_length=1024)
-
-    def __str__(self):
-        return self.url_re
-
-    @staticmethod
-    def get_method(url):
-        for auth_method in AuthMethod.objects.all():
-            if re.search(auth_method.url_re, url):
-                return auth_method
-
-    @staticmethod
-    def get_cookies(url):
-        url = urlparse(url)
-        try:
-            cookies = AuthMethod.objects.get(fqdn=url.hostname).cookies
-            if cookies:
-                return json.loads(cookies)
-        except AuthMethod.DoesNotExist:
-            pass
-
-
 class AuthField(models.Model):
     key = models.CharField(max_length=256)
     value = models.CharField(max_length=256)
-    auth_method = models.ForeignKey(AuthMethod, on_delete=models.CASCADE)
+    domain_policy = models.ForeignKey('DomainPolicy', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s form field' % self.key
@@ -501,16 +483,20 @@ class DomainPolicy(models.Model):
     DETECT = 'detect'
 
     MODE = [
-        (SELENIUM, SELENIUM),
-        (REQUESTS, REQUESTS),
-        (DETECT, DETECT)
+        (SELENIUM, 'Selenium'),
+        (REQUESTS, 'Requests'),
+        (DETECT, 'Detect')
     ]
 
-    url = models.TextField(unique=True)
+    domain = models.TextField(unique=True)
     browse_mode = models.CharField(max_length=10, choices=MODE, default=browse_mode_default)
 
+    auth_login_url_re = models.TextField(null=True, blank=True)
+    auth_form_selector = models.TextField()
+    auth_cookies = models.TextField(blank=True, default='')
+
     def __str__(self):
-        return '%s %s' % (self.url, self.browse_mode)
+        return '%s %s' % (self.domain, self.browse_mode)
 
     def _get_browser(self):
         if settings.BROWSING_METHOD == DomainPolicy.SELENIUM:
@@ -521,6 +507,12 @@ class DomainPolicy(models.Model):
             return SeleniumBrowser
         return RequestBrowser
 
+    @staticmethod
+    def get_from_url(url):
+        url = urlparse(url)
+        policy, _ = DomainPolicy.objects.get_or_create(domain=url.hostname)
+        return policy
+
     def url_get(self, url):
         browser = self._get_browser()
         page = browser.get(url)
@@ -528,10 +520,11 @@ class DomainPolicy(models.Model):
         if page.got_redirect:
             # The request was redirected, check if we need auth
             try:
-                auth_method = AuthMethod.get_method(url)
-
-                if auth_method:
-                    new_page = page.browser.try_auth(page, url, auth_method)
+                #raise Exception('%s\n%s\n%s' % (self.auth_login_url_re, page.url, self.auth_form_selector))
+                if self.auth_login_url_re and \
+                        self.auth_form_selector and \
+                        re.search(self.auth_login_url_re, page.url) :
+                    new_page = page.browser.try_auth(page, url, self)
 
                     if new_page:
                         page = new_page
@@ -549,3 +542,13 @@ class DomainPolicy(models.Model):
             self.save()
 
         return page
+
+    @staticmethod
+    def get_cookies(url):
+        url = urlparse(url)
+        try:
+            cookies = DomainPolicy.objects.get(domain=url.hostname).auth_cookies
+            if cookies:
+                return json.loads(cookies)
+        except DomainPolicy.DoesNotExist:
+            pass

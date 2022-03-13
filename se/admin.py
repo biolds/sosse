@@ -3,11 +3,10 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthMethod, AuthField, SearchEngine
+from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthField, SearchEngine
 
 admin.site.enable_nav_sidebar = False
 admin.site.register(QueueWhitelist)
-admin.site.register(DomainPolicy)
 
 
 @admin.register(SearchEngine)
@@ -79,6 +78,6 @@ class InlineAuthField(admin.TabularInline):
     model = AuthField
 
 
-@admin.register(AuthMethod)
-class AuthMethodAdmin(admin.ModelAdmin):
+@admin.register(DomainPolicy)
+class DomainPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]

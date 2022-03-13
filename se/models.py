@@ -18,6 +18,7 @@ from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import connection, models
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
+from langdetect.lang_detect_exception import LangDetectException
 from magic import from_buffer as magic_from_buffer
 
 from .browser import RequestBrowser, SeleniumBrowser
@@ -105,7 +106,11 @@ class Document(models.Model):
 
     @classmethod
     def _get_lang(cls, text):
-        lang_iso = detect(text)
+        try:
+            lang_iso = detect(text)
+        except LangDetectException:
+            lang_iso = None
+
         lang_pg = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
         if lang_pg not in cls.get_supported_langs():
             lang_pg = settings.MYSE_FAIL_OVER_LANG

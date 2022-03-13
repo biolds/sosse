@@ -274,7 +274,7 @@ class AuthField(models.Model):
     auth_method = models.ForeignKey(AuthMethod, on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s: %s' % (self.key, self.value)
+        return '%s form field' % self.key
 
 
 MINUTELY = 'M'

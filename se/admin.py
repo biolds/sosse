@@ -8,9 +8,6 @@ admin.site.enable_nav_sidebar = False
 admin.site.register(QueueWhitelist)
 admin.site.register(DomainPolicy)
 
-admin.site.register(AuthMethod)
-admin.site.register(AuthField)
-
 
 @admin.register(SearchEngine)
 class DocumentAdmin(admin.ModelAdmin):
@@ -70,3 +67,12 @@ class UrlQueueAdmin(admin.ModelAdmin):
 
     list_display = ('url', 'status', 'err')
     list_filter = (UrlQueueUrlFilter,)
+
+
+class InlineAuthField(admin.TabularInline):
+    model = AuthField
+
+
+@admin.register(AuthMethod)
+class AuthMethodAdmin(admin.ModelAdmin):
+    inlines = [InlineAuthField]

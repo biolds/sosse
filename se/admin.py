@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
+from django.urls import reverse
 from django.utils.html import format_html
 
 from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthMethod, AuthField, SearchEngine
@@ -17,6 +18,11 @@ class DocumentAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     @staticmethod
+    def fav(obj):
+        if obj.favicon and not obj.favicon.missing:
+            return format_html('<img src="{}" style="widgth: 16px; height: 16px">', reverse('favicon', args=(obj.favicon.id,)))
+
+    @staticmethod
     def link(obj):
         return format_html('<a href="{}">Link 🔗</a>', obj.url)
 
@@ -30,7 +36,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
         return lang
 
-    list_display = ('url', 'link', 'lang', 'title')
+    list_display = ('url', 'fav', 'link', 'title', 'lang')
     list_filter = ('lang_iso_639_1',)
 
 

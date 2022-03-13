@@ -8,7 +8,7 @@ from django.utils.timezone import now
 from langdetect.detector_factory import PROFILES_DIRECTORY
 import pygal
 
-from .models import CrawlerStats, Document
+from .models import CrawlerStats, Document, DAILY, MINUTELY
 from .views import get_context
 
 

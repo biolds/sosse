@@ -45,6 +45,9 @@ def sanitize_url(url):
 
 
 def absolutize_url(url, p):
+    if p.startswith('data:'):
+        return p
+
     if p == '':
         return sanitize_url(url)
 
@@ -206,7 +209,7 @@ class UrlQueue(models.Model):
                 domain_policy = DomainPolicy.get_from_url(url.url)
                 page = domain_policy.url_get(url.url)
                 doc, _ = Document.objects.get_or_create(url=page.url, defaults={'crawl_id': crawl_id})
-                doc.normalized_url = page.url.split('://', 1)[0].replace('/', ' ')
+                doc.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
                 doc.index(page, crawl_id)
 
             doc.crawl_id = crawl_id

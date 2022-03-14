@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 import re
 from urllib.parse import urlparse, parse_qs
@@ -146,12 +147,17 @@ def search(request):
     else:
         form = SearchForm()
 
+    myse_langdetect_to_postgres = OrderedDict()
+    for key, val in sorted(settings.MYSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
+        myse_langdetect_to_postgres[key] = val
+
     context = get_context({
         'form': form,
         'results': results,
         'paginated': paginated,
         'q': q,
         'title': q,
+        'myse_langdetect_to_postgres': myse_langdetect_to_postgres
     })
     if paginated and paginated.has_previous():
         context.update({

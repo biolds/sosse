@@ -305,7 +305,7 @@ class CrawlerStats(models.Model):
             pass
 
         CrawlerStats.objects.create(t=today,
-                                    doc_count=doc_count,
+                                    doc_count=Document.objects.count(),
                                     url_queued_count=UrlQueue.objects.count(),
                                     indexing_speed=indexing_speed,
                                     freq=DAILY)
@@ -320,7 +320,7 @@ class CrawlerStats(models.Model):
             indexing_speed = doc_count - prev_stat.doc_count
             indexing_speed = max(0, indexing_speed)
         return CrawlerStats.objects.create(t=t,
-                                           doc_count=doc_count,
+                                           doc_count=Document.objects.count(),
                                            url_queued_count=UrlQueue.objects.count(),
                                            indexing_speed=indexing_speed,
                                            freq=MINUTELY)

@@ -63,7 +63,7 @@ def datetime_graph(pygal_style, freq, data, col, _now):
     g = cls(style=pygal_style, disable_xml_declaration=True,
                                      truncate_label=-1, show_legend=False, fill=True,
                                      x_value_formatter=lambda dt: dt.strftime(format_str),
-                                     x_title=x_title)
+                                     x_title=x_title, range=(0, None))
     g.x_labels = x_labels
     stats_max = data.aggregate(m=models.Max(col)).get('m', 0) or 0
     factor, unit = get_unit(stats_max)
@@ -147,7 +147,7 @@ def stats(request):
     # Language chart
     lang_chart = None
     if indexed_langs:
-        lang_chart = pygal.Bar(style=pygal_style, disable_xml_declaration=True)
+        lang_chart = pygal.Bar(style=pygal_style, disable_xml_declaration=True, range=(0, None))
         lang_chart.title = "Document's language"
 
         factor, unit = get_unit(indexed_langs[0]['count'])

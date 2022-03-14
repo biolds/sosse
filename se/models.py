@@ -474,7 +474,7 @@ class DomainPolicy(models.Model):
     browse_mode = models.CharField(max_length=10, choices=MODE, default=browse_mode_default)
 
     auth_login_url_re = models.TextField(null=True, blank=True)
-    auth_form_selector = models.TextField()
+    auth_form_selector = models.TextField(null=True, blank=True)
     auth_cookies = models.TextField(blank=True, default='')
 
     def __str__(self):

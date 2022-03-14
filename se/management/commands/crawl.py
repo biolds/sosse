@@ -41,20 +41,14 @@ class Command(BaseCommand):
             else:
                 next_stat = now()
             next_stat += timedelta(minutes=1)
-            prev_stat = None
-
-            next_daily = now() + timedelta(hours=24)
-            CrawlerStats.create_daily()
 
         sleep_count = 0
         while True:
             if worker_no == 0:
                 t = now()
                 if next_stat < t:
-                    prev_stat = CrawlerStats.create(t, prev_stat)
+                    CrawlerStats.create(t)
                     next_stat = t + timedelta(minutes=1)
-                if next_daily < t:
-                    CrawlerStats.create_daily()
 
             if UrlQueue.crawl(worker_no, crawl_id):
                 sleep_count = 0

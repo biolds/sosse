@@ -89,7 +89,7 @@ def crawler_stats(pygal_style, freq):
         dt = _now - timedelta(days=365)
     data = CrawlerStats.objects.filter(t__gte=dt, freq=freq).order_by('t')
 
-    if data.count() < 2:
+    if data.count() < 1:
         return {}
 
     # Doc count minutely
@@ -103,10 +103,11 @@ def crawler_stats(pygal_style, freq):
     # Indexing speed minutely
     if freq == MINUTELY:
         idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60.0)
+        factor, unit = get_unit(data.aggregate(m=models.Max('indexing_speed')).get('m', 0) or 0.0)
     else:
         idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60.0 / 60.0 / 24.0)
+        factor, unit = get_unit(idx_speed_data.aggregate(m=models.Max('speed')).get('m', 0) or 0.0)
     idx_speed = datetime_graph(pygal_style, freq, idx_speed_data, 'speed', _now)
-    factor, unit = get_unit(data.aggregate(m=models.Max('indexing_speed')).get('m', 0) or 0.0)
     if not unit:
         unit = 'doc'
     idx_speed.title = 'Indexing speed (%s/s)' % unit

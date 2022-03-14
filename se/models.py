@@ -223,10 +223,7 @@ class UrlQueue(models.Model):
             url.save()
             print(format_exc())
 
-        worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no, freq=MINUTELY)
-        worker_stats.doc_processed += 1
-        worker_stats.save()
-        worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no, freq=DAILY)
+        worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
         worker_stats.doc_processed += 1
         worker_stats.save()
         return True
@@ -273,7 +270,6 @@ FREQUENCY = (
 class WorkerStats(models.Model):
     doc_processed = models.PositiveIntegerField()
     worker_no = models.IntegerField()
-    freq = models.CharField(max_length=1, choices=FREQUENCY)
 
 
 class CrawlerStats(models.Model):
@@ -284,46 +280,29 @@ class CrawlerStats(models.Model):
     freq = models.CharField(max_length=1, choices=FREQUENCY)
 
     @staticmethod
-    def create_daily():
-        CrawlerStats.objects.filter(t__lt=now() - timedelta(days=365), freq=MINUTELY).delete()
-        last = CrawlerStats.objects.filter(freq=DAILY).order_by('t').last()
-        today = now().replace(hour=0, minute=0, second=0, microsecond=0)
-
-        if last and last.t == today:
-            return
-
-        doc_count = WorkerStats.objects.filter(freq=DAILY).aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
-        WorkerStats.objects.filter(freq=DAILY).update(doc_processed=0)
-
-        indexing_speed = 0
-        try:
-            yesterday = today - timedelta(days=1)
-            yesterday_stat = CrawlerStats.objects.get(freq=DAILY, t=yesterday)
-            indexing_speed = doc_count - yesterday_stat.doc_count
-            indexing_speed = max(0, indexing_speed)
-        except CrawlerStats.DoesNotExist:
-            pass
-
-        CrawlerStats.objects.create(t=today,
-                                    doc_count=Document.objects.count(),
-                                    url_queued_count=UrlQueue.objects.count(),
-                                    indexing_speed=indexing_speed,
-                                    freq=DAILY)
-
-    @staticmethod
-    def create(t, prev_stat):
+    def create(t):
         CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=MINUTELY).delete()
-        doc_count = WorkerStats.objects.filter(freq=MINUTELY).aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
-        WorkerStats.objects.filter(freq=MINUTELY).update(doc_processed=0)
-        indexing_speed = 0
-        if prev_stat:
-            indexing_speed = doc_count - prev_stat.doc_count
-            indexing_speed = max(0, indexing_speed)
-        return CrawlerStats.objects.create(t=t,
-                                           doc_count=Document.objects.count(),
-                                           url_queued_count=UrlQueue.objects.count(),
-                                           indexing_speed=indexing_speed,
-                                           freq=MINUTELY)
+        CrawlerStats.objects.filter(t__lt=t - timedelta(days=365), freq=DAILY).delete()
+
+        doc_processed = WorkerStats.objects.filter().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
+        WorkerStats.objects.filter().update(doc_processed=0)
+
+        doc_count = Document.objects.count()
+        url_queued_count = UrlQueue.objects.count()
+
+        today = now().replace(hour=0, minute=0, second=0, microsecond=0)
+        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'url_queued_count': 0, 'indexing_speed': 0})
+        entry.indexing_speed += doc_processed
+        entry.doc_count = doc_count
+        url_queued_count = UrlQueue.objects.count()
+        entry.url_queued_count = max(url_queued_count, entry.url_queued_count)
+        entry.save()
+
+        CrawlerStats.objects.create(t=t,
+                                    doc_count=doc_count,
+                                    url_queued_count=url_queued_count,
+                                    indexing_speed=doc_processed,
+                                    freq=MINUTELY)
 
 
 class SearchEngine(models.Model):

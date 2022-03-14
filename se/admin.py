@@ -11,12 +11,16 @@ admin.site.register(FavIcon)
 
 
 @admin.register(SearchEngine)
-class DocumentAdmin(admin.ModelAdmin):
+class SearchEngineAdmin(admin.ModelAdmin):
     list_display = ('short_name', 'shortcut')
 
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
+    list_display = ('url', 'fav', 'link', 'title', 'lang')
+    list_filter = ('lang_iso_639_1',)
+    search_fields = ['url', 'title']
+
     @staticmethod
     def fav(obj):
         if obj.favicon and not obj.favicon.missing:
@@ -35,9 +39,6 @@ class DocumentAdmin(admin.ModelAdmin):
             lang = f'{flag} {lang}'
 
         return lang
-
-    list_display = ('url', 'fav', 'link', 'title', 'lang')
-    list_filter = ('lang_iso_639_1',)
 
 
 class UrlQueueUrlFilter(admin.SimpleListFilter):

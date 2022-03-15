@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime, timedelta
 from multiprocessing import cpu_count, Process
 from time import sleep
@@ -9,7 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
 
 from ...browser import Browser
-from ...models import CrawlerStats, Document, DomainPolicy, UrlQueue, WorkerStats, MINUTELY
+from ...models import CrawlerStats, Document, DomainPolicy, WorkerStats, MINUTELY
 
 
 class Command(BaseCommand):
@@ -20,13 +19,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--once', action='store_true', help='Exit when url queue is empty')
-        parser.add_argument('--requeue', action='store_true', help='Exit when url queue is empty')
         parser.add_argument('--force', action='store_true', help='Reindex url in error')
         parser.add_argument('--worker', nargs=1, type=int, default=[None], help='Worker count (defaults to the available cpu count)')
         parser.add_argument('urls', nargs='*', type=str)
 
     @staticmethod
-    def process(crawl_id, worker_no, options):
+    def process(worker_no, options):
         connection.close()
         connection.connect()
 
@@ -50,10 +48,10 @@ class Command(BaseCommand):
                     CrawlerStats.create(t)
                     next_stat = t + timedelta(minutes=1)
 
-            if UrlQueue.crawl(worker_no, crawl_id):
+            if Document.crawl(worker_no):
                 sleep_count = 0
             else:
-                if options['once'] and UrlQueue.objects.filter(error='').count() == 0:
+                if options['once'] and Document.objects.filter(crawl_next__lte=now()).count() == 0:
                     break
                 if sleep_count == 0:
                     print('%s Idle...' % worker_no)
@@ -63,23 +61,12 @@ class Command(BaseCommand):
                 sleep(1)
 
     def handle(self, *args, **options):
-        UrlQueue.objects.update(worker_no=None)
-        WorkerStats.objects.all().update(doc_processed=0)
+        Document.objects.update(worker_no=None)
 
         for url in options['urls']:
-            UrlQueue.queue(url=url)
+            Document.queue(url=url)
         
-        if options['requeue']:
-            urls = Document.objects.values_list('url', flat=True)
-            self.stdout.write('Queuing %i url...' % len(urls))
-            for url in urls:
-                UrlQueue.queue(url=url)
-
-        if options['force']:
-            UrlQueue.objects.update(error='', error_hash='')
-
         self.stdout.write('Crawl initializing')
-        crawl_id = uuid.uuid4()
 
         worker_count = options['worker'][0]
         if worker_count is None:
@@ -87,7 +74,7 @@ class Command(BaseCommand):
 
         workers = []
         for crawler_no in range(worker_count):
-            p = Process(target=self.process, args=(crawl_id, crawler_no, options))
+            p = Process(target=self.process, args=(crawler_no, options))
             p.start()
 
             if settings.BROWSING_METHOD != DomainPolicy.REQUESTS:

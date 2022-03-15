@@ -77,7 +77,7 @@ class RegConfigField(models.Field):
 
 
 class Document(models.Model):
-    crawl_id = models.UUIDField(editable=False)
+    # Document info
     url = models.TextField(unique=True)
     normalized_url = models.TextField()
     title = models.TextField()
@@ -88,6 +88,16 @@ class Document(models.Model):
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
+
+    # HTTP status
+    redirect_url = models.TextField(null=True, blank=True)
+
+    # Crawling info
+    crawl_last = models.DateTimeField(blank=True, null=True)
+    crawl_next = models.DateTimeField(blank=True, null=True)
+    error = models.TextField(blank=True, default='')
+    error_hash = models.TextField(blank=True, default='')
+    worker_no = models.PositiveIntegerField(blank=True, null=True)
 
     supported_langs = None
 
@@ -128,9 +138,12 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
-    def index(self, page, crawl_id):
+    def index(self, page):
         for link in page.get_links():
-            UrlQueue.queue(link, crawl_id)
+            Document.queue(link)
+
+        print('indexing %s' % page.url)
+        self.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
 
         parsed = page.get_soup()
         self.title = page.title or self.url
@@ -153,23 +166,6 @@ class Document(models.Model):
 
         FavIcon.extract(self, page)
 
-
-class QueueWhitelist(models.Model):
-    url = models.TextField(unique=True)
-
-    def __str__(self):
-        return self.url
-
-
-class UrlQueue(models.Model):
-    url = models.TextField(unique=True)
-    error = models.TextField(blank=True, default='')
-    error_hash = models.TextField(blank=True, default='')
-    worker_no = models.PositiveIntegerField(blank=True, null=True)
-
-    def __str__(self):
-        return self.url
-
     def set_error(self, err):
         self.error = err
         if err == '':
@@ -178,13 +174,12 @@ class UrlQueue(models.Model):
             self.error_hash = md5(err.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def queue(url, crawl_id=None):
-        if crawl_id:
-            try:
-                Document.objects.get(url=url, crawl_id=crawl_id)
-                return
-            except Document.DoesNotExist:
-                pass
+    def queue(url):
+        try:
+            doc = Document.objects.get(url=url)
+            return
+        except Document.DoesNotExist:
+            pass
 
         for w in QueueWhitelist.objects.all():
             if url.startswith(w.url):
@@ -192,62 +187,117 @@ class UrlQueue(models.Model):
         else:
             return
 
-        UrlQueue.objects.get_or_create(url=url)
+        doc, _ = Document.objects.get_or_create(url=url)
+        doc.crawl_next = now()
+        doc.save()
 
     @staticmethod
-    def crawl(worker_no, crawl_id):
-        url = UrlQueue.pick_url(worker_no)
-        if url is None:
+    def crawl(worker_no):
+        doc = Document.pick_queued(worker_no)
+        if doc is None:
             return False
 
-        doc = None
-        try:
-            print('(%i/%i) %i %s ...' % (UrlQueue.objects.count(), Document.objects.count(), worker_no, url.url))
-
-            doc, _ = Document.objects.get_or_create(url=url.url, defaults={'crawl_id': crawl_id})
-            if url.url.startswith('http://') or url.url.startswith('https://'):
-                domain_policy = DomainPolicy.get_from_url(url.url)
-                page = domain_policy.url_get(url.url)
-                doc, _ = Document.objects.get_or_create(url=page.url, defaults={'crawl_id': crawl_id})
-                doc.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
-                doc.index(page, crawl_id)
-
-            doc.crawl_id = crawl_id
-            doc.save()
-
-            UrlQueue.objects.filter(id=url.id).delete()
-        except Exception as e:
-            if doc:
-                doc.delete()
-            url.set_error(format_exc())
-            url.save()
-            print(format_exc())
-
         worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
-        worker_stats.doc_processed += 1
+
+        print('%i (%i/%i) %s ...' % (worker_no,
+                                        Document.objects.filter(crawl_last__isnull=True).count(),
+                                        Document.objects.filter(crawl_last__isnull=False).count(),
+                                        doc.url))
+
+        while True:
+            try:
+                worker_stats.doc_processed += 1
+                doc.crawl_next = None
+                doc.crawl_last = now()
+                doc.worker_no = None
+                doc.error = ''
+                doc.error_hash = ''
+
+                if doc.url.startswith('http://') or doc.url.startswith('https://'):
+                    domain_policy = DomainPolicy.get_from_url(doc.url)
+                    page = domain_policy.url_get(doc.url)
+
+                    if page.url == doc.url:
+                        doc.index(page)
+                        break
+                    else:
+                        if not page.got_redirect:
+                            raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
+                        print('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
+                        doc.redirect_url = page.url
+                        doc.save()
+                        doc = Document.pick_or_create(page.url, worker_no)
+                        if doc is None:
+                            break
+
+            except Exception as e:
+                doc.set_error(format_exc())
+                doc.save()
+                print(format_exc())
+                break
+
+        doc.save()
+
         worker_stats.save()
         return True
 
     @staticmethod
-    def pick_url(worker_no):
+    def pick_queued(worker_no):
         while True:
-            url = UrlQueue.objects.filter(error='', worker_no__isnull=True).first()
-            if url is None:
+            doc = Document.objects.filter(error='',
+                                          worker_no__isnull=True,
+                                          crawl_next__lte=now()).first()
+            if doc is None:
                 return None
 
-            updated = UrlQueue.objects.filter(id=url.id, worker_no__isnull=True).update(worker_no=worker_no)
+            updated = Document.objects.filter(id=doc.id,
+                                              worker_no__isnull=True).update(worker_no=worker_no,
+                                                                             crawl_last=now(),
+                                                                             crawl_next=None,
+                                                                             error='',
+                                                                             error_hash='')
 
             if updated == 0:
                 sleep(0.1)
                 continue
 
             try:
-                url.refresh_from_db()
-            except UrlQueue.DoesNotExist:
+                doc.refresh_from_db()
+            except Document.DoesNotExist:
                 sleep(0.1)
                 continue
 
-            return url
+            return doc
+
+    @staticmethod
+    def pick_or_create(url, worker_no):
+        doc, created = Document.objects.get_or_create(url=url, defaults={'worker_no': worker_no, 'crawl_last': now()})
+        if created:
+            return doc
+
+        updated = Document.objects.filter(id=doc.id,
+                                          worker_no__isnull=True).update(worker_no=worker_no,
+                                                                         crawl_last=now(),
+                                                                         crawl_next=None,
+                                                                         error='',
+                                                                         error_hash='')
+
+        if updated == 0:
+            return None
+
+        try:
+            doc.refresh_from_db()
+        except Document.DoesNotExist:
+            pass
+
+        return doc
+
+
+class QueueWhitelist(models.Model):
+    url = models.TextField(unique=True)
+
+    def __str__(self):
+        return self.url
 
 
 class AuthField(models.Model):
@@ -288,13 +338,12 @@ class CrawlerStats(models.Model):
         WorkerStats.objects.filter().update(doc_processed=0)
 
         doc_count = Document.objects.count()
-        url_queued_count = UrlQueue.objects.count()
+        url_queued_count = Document.objects.filter(crawl_next__isnull=False).count()
 
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)
         entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'url_queued_count': 0, 'indexing_speed': 0})
         entry.indexing_speed += doc_processed
         entry.doc_count = doc_count
-        url_queued_count = UrlQueue.objects.count()
         entry.url_queued_count = max(url_queued_count, entry.url_queued_count)
         entry.save()
 
@@ -506,6 +555,7 @@ class DomainPolicy(models.Model):
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
                         re.search(self.auth_login_url_re, page.url) :
+                    print('doing auth on %s' % url)
                     new_page = page.browser.try_auth(page, url, self)
 
                     if new_page:
@@ -514,6 +564,7 @@ class DomainPolicy(models.Model):
                 raise Exception('Authentication failed')
 
         if self.browse_mode == DomainPolicy.DETECT:
+            print('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links())) != len(list(page.get_links())):
@@ -521,6 +572,7 @@ class DomainPolicy(models.Model):
             else:
                 self.browse_mode = DomainPolicy.REQUESTS
                 page = requests_page
+            print('browser detected %s on %s' % (self.browse_mode, url))
             self.save()
 
         return page

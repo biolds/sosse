@@ -2,12 +2,28 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
+from django.template import defaultfilters
 
-from .models import Document, DomainPolicy, QueueWhitelist, UrlQueue, AuthField, SearchEngine, FavIcon
+from .models import Document, DomainPolicy, QueueWhitelist, AuthField, SearchEngine, FavIcon
 
 admin.site.enable_nav_sidebar = False
 admin.site.register(QueueWhitelist)
-admin.site.register(FavIcon)
+
+
+@admin.register(FavIcon)
+class FavIconAdmin(admin.ModelAdmin):
+    list_display = ('_url', 'fav')
+
+    @staticmethod
+    def _url(obj):
+        if len(obj.url) > 128:
+            return obj.url[:128] + '...'
+        return obj.url
+
+    @staticmethod
+    def fav(obj):
+        if not obj.missing:
+            return format_html('<img src="{}" style="widgth: 16px; height: 16px">', reverse('favicon', args=(obj.id,)))
 
 
 @admin.register(SearchEngine)
@@ -15,11 +31,59 @@ class SearchEngineAdmin(admin.ModelAdmin):
     list_display = ('short_name', 'shortcut')
 
 
+class DocumentErrorFilter(admin.SimpleListFilter):
+    title = 'error'
+    parameter_name = 'has_error'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.exclude(error='')
+
+        if self.value() == 'no':
+            return queryset.filter(error='')
+
+
+class DocumentQueueFilter(admin.SimpleListFilter):
+    title = 'queued'
+    parameter_name = 'is_queued'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(crawl_next__isnull=False)
+
+        if self.value() == 'no':
+            return queryset.filter(crawl_next__isnull=True)
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('url', 'fav', 'link', 'title', 'lang')
-    list_filter = ('lang_iso_639_1',)
+    list_display = ('url', 'fav', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next')
+    list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url', 'title']
+
+    @staticmethod
+    @admin.display(ordering='crawl_next')
+    def _crawl_next(obj):
+        if obj:
+            return defaultfilters.date(obj.crawl_next, 'DATETIME_FORMAT')
+
+    @staticmethod
+    @admin.display(ordering='crawl_last')
+    def _crawl_last(obj):
+        if obj:
+            return defaultfilters.date(obj.crawl_last, 'DATETIME_FORMAT')
 
     @staticmethod
     def fav(obj):
@@ -40,27 +104,6 @@ class DocumentAdmin(admin.ModelAdmin):
 
         return lang
 
-
-class UrlQueueUrlFilter(admin.SimpleListFilter):
-    title = 'error'
-    parameter_name = 'has_error'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', 'Yes'),
-            ('no', 'No'),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return queryset.exclude(error='')
-
-        if self.value() == 'no':
-            return queryset.filter(error='')
-
-
-@admin.register(UrlQueue)
-class UrlQueueAdmin(admin.ModelAdmin):
     @staticmethod
     @admin.display(boolean=True)
     def status(obj):
@@ -71,9 +114,6 @@ class UrlQueueAdmin(admin.ModelAdmin):
         err_lines = obj.error.splitlines()
         if err_lines:
             return err_lines[-1]
-
-    list_display = ('url', 'status', 'err')
-    list_filter = (UrlQueueUrlFilter,)
 
 
 class InlineAuthField(admin.TabularInline):

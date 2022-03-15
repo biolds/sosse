@@ -129,6 +129,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+LANGUAGE_CODE = 'fr-FR'
+USE_L10N = False
+DATETIME_FORMAT = 'd/m/y H:i'
+TIME_ZONE = 'Europe/Paris'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

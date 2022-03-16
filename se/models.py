@@ -147,7 +147,7 @@ class Document(models.Model):
 
         parsed = page.get_soup()
         self.title = page.title or self.url
-        self.normalized_title = remove_accent(self.title + '\n' + self.url)
+        self.normalized_title = remove_accent(self.title)
 
         text = ''
         no = 0

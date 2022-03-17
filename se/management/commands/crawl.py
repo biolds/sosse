@@ -77,7 +77,7 @@ class Command(BaseCommand):
             p = Process(target=self.process, args=(crawler_no, options))
             p.start()
 
-            if settings.BROWSING_METHOD != DomainPolicy.REQUESTS:
+            if settings.BROWSING_MODE != DomainPolicy.REQUESTS:
                 sleep(5)
             workers.append(p)
 

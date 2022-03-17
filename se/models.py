@@ -20,6 +20,7 @@ from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
 from magic import from_buffer as magic_from_buffer
+import requests
 
 from .browser import RequestBrowser, SeleniumBrowser
 
@@ -84,17 +85,21 @@ class Document(models.Model):
     normalized_title = models.TextField()
     content = models.TextField()
     normalized_content = models.TextField()
+    content_hash = models.CharField(max_length=128, null=True, blank=True)
     vector = SearchVectorField()
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
+    domain_policy = models.ForeignKey('DomainPolicy', on_delete=models.CASCADE)
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
 
     # Crawling info
+    crawl_first = models.DateTimeField(blank=True, null=True)
     crawl_last = models.DateTimeField(blank=True, null=True)
     crawl_next = models.DateTimeField(blank=True, null=True)
+    crawl_dt = models.DurationField(blank=True, null=True)
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
     worker_no = models.PositiveIntegerField(blank=True, null=True)
@@ -138,7 +143,29 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
+    def _hash_content(self, content):
+        if settings.HASH_MODE == 'raw':
+            pass
+        elif settings.HASH_MODE == 'clear_numbers':
+            content = re.sub('[0-9]+', '0', content)
+        else:
+            raise Exception('HASH_MODE not supported')
+
+        return settings.HASHING_ALGO(content.encode('utf-8')).hexdigest()
+
+
     def index(self, page):
+        content_hash = self._hash_content(page.content)
+        n = now()
+        self.crawl_last = n
+        if not self.crawl_first:
+            self.crawl_first = n
+        self._schedule_next(self.content_hash != content_hash)
+        if self.content_hash == content_hash:
+            return
+
+        self.content_hash = content_hash
+
         for link in page.get_links():
             Document.queue(link)
 
@@ -187,9 +214,25 @@ class Document(models.Model):
         else:
             return
 
-        doc, _ = Document.objects.get_or_create(url=url)
-        doc.crawl_next = now()
+        doc, _ = Document.objects.get_or_create(url=url,
+                                                domain_policy=DomainPolicy.get_from_url(url))
         doc.save()
+
+    def _schedule_next(self, changed):
+        if self.domain_policy.recrawl_mode == DomainPolicy.RECRAWL_NONE:
+            self.crawl_next = None
+            self.crawl_dt = None
+        elif self.domain_policy.recrawl_mode == DomainPolicy.RECRAWL_CONSTANT:
+            self.crawl_next = self.crawl_last + timedelta(minutes=self.domain_policy.recrawl_dt_min)
+            self.crawl_dt = None
+        elif self.domain_policy.recrawl_mode == DomainPolicy.RECRAWL_ADAPTIVE:
+            if self.crawl_dt is None:
+                self.crawl_dt = timedelta(minutes=self.domain_policy.recrawl_dt_min)
+            elif not changed:
+                self.crawl_dt = min(timedelta(minutes=self.domain_policy.recrawl_dt_max), self.crawl_dt * 2)
+            else:
+                self.crawl_dt = max(timedelta(minutes=self.domain_policy.recrawl_dt_min), self.crawl_dt / 2)
+            self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
     def crawl(worker_no):
@@ -199,23 +242,18 @@ class Document(models.Model):
 
         worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
 
-        print('%i (%i/%i) %s ...' % (worker_no,
+        print('%i (%i/%i) %i %s ...' % (worker_no,
                                         Document.objects.filter(crawl_last__isnull=True).count(),
                                         Document.objects.filter(crawl_last__isnull=False).count(),
-                                        doc.url))
+                                        doc.id, doc.url))
 
         while True:
             try:
                 worker_stats.doc_processed += 1
-                doc.crawl_next = None
-                doc.crawl_last = now()
                 doc.worker_no = None
-                doc.error = ''
-                doc.error_hash = ''
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
-                    domain_policy = DomainPolicy.get_from_url(doc.url)
-                    page = domain_policy.url_get(doc.url)
+                    page = doc.domain_policy.url_get(doc.url)
 
                     if page.url == doc.url:
                         doc.index(page)
@@ -244,18 +282,17 @@ class Document(models.Model):
     @staticmethod
     def pick_queued(worker_no):
         while True:
-            doc = Document.objects.filter(error='',
-                                          worker_no__isnull=True,
-                                          crawl_next__lte=now()).first()
+            doc = Document.objects.filter(worker_no__isnull=True,
+                                          crawl_last__isnull=True).first()
             if doc is None:
-                return None
+                doc = Document.objects.filter(worker_no__isnull=True,
+                                              crawl_last__isnull=False,
+                                              crawl_next__lte=now()).order_by('crawl_next').first()
+                if doc is None:
+                    return None
 
             updated = Document.objects.filter(id=doc.id,
-                                              worker_no__isnull=True).update(worker_no=worker_no,
-                                                                             crawl_last=now(),
-                                                                             crawl_next=None,
-                                                                             error='',
-                                                                             error_hash='')
+                                              worker_no__isnull=True).update(worker_no=worker_no)
 
             if updated == 0:
                 sleep(0.1)
@@ -271,16 +308,14 @@ class Document(models.Model):
 
     @staticmethod
     def pick_or_create(url, worker_no):
-        doc, created = Document.objects.get_or_create(url=url, defaults={'worker_no': worker_no, 'crawl_last': now()})
+        doc, created = Document.objects.get_or_create(url=url,
+                                                      domain_policy=DomainPolicy.get_from_url(url),
+                                                      defaults={'worker_no': worker_no})
         if created:
             return doc
 
         updated = Document.objects.filter(id=doc.id,
-                                          worker_no__isnull=True).update(worker_no=worker_no,
-                                                                         crawl_last=now(),
-                                                                         crawl_next=None,
-                                                                         error='',
-                                                                         error_hash='')
+                                          worker_no__isnull=True).update(worker_no=worker_no)
 
         if updated == 0:
             return None
@@ -325,7 +360,7 @@ class WorkerStats(models.Model):
 class CrawlerStats(models.Model):
     t = models.DateTimeField()
     doc_count = models.PositiveIntegerField()
-    url_queued_count = models.PositiveIntegerField()
+    discovered_url_count = models.PositiveIntegerField()
     indexing_speed = models.PositiveIntegerField(blank=True, null=True)
     freq = models.CharField(max_length=1, choices=FREQUENCY)
 
@@ -338,18 +373,18 @@ class CrawlerStats(models.Model):
         WorkerStats.objects.filter().update(doc_processed=0)
 
         doc_count = Document.objects.count()
-        url_queued_count = Document.objects.filter(crawl_next__isnull=False).count()
+        discovered_url_count = Document.objects.filter(crawl_last__isnull=False).count()
 
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)
-        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'url_queued_count': 0, 'indexing_speed': 0})
+        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'discovered_url_count': 0, 'indexing_speed': 0})
         entry.indexing_speed += doc_processed
         entry.doc_count = doc_count
-        entry.url_queued_count = max(url_queued_count, entry.url_queued_count)
+        entry.discovered_url_count = max(discovered_url_count, entry.discovered_url_count)
         entry.save()
 
         CrawlerStats.objects.create(t=t,
                                     doc_count=doc_count,
-                                    url_queued_count=url_queued_count,
+                                    discovered_url_count=discovered_url_count,
                                     indexing_speed=doc_processed,
                                     freq=MINUTELY)
 
@@ -505,7 +540,23 @@ class FavIcon(models.Model):
 
 
 def browse_mode_default():
-    return settings.BROWSING_METHOD
+    return settings.BROWSING_MODE
+
+
+def recrawl_mode_default():
+    return settings.DEFAULT_RECRAWL_MODE
+
+
+def dt_min_recrawl_default():
+    if settings.DEFAULT_RECRAWL_MODE == DomainPolicy.RECRAWL_NONE:
+        return None
+    return settings.DEFAULT_RECRAWL_DT_MIN
+
+
+def dt_max_recrawl_default():
+    if settings.DEFAULT_RECRAWL_MODE == DomainPolicy.RECRAWL_ADAPTIVE:
+        return settings.DEFAULT_RECRAWL_DT_MAX
+    return None
 
 
 class DomainPolicy(models.Model):
@@ -519,8 +570,21 @@ class DomainPolicy(models.Model):
         (DETECT, 'Detect')
     ]
 
+    RECRAWL_NONE = 'none'
+    RECRAWL_CONSTANT = 'constant'
+    RECRAWL_ADAPTIVE = 'adaptive'
+
+    RECRAWL_MODE = [
+        (RECRAWL_NONE, 'No recrawl'),
+        (RECRAWL_CONSTANT, 'Constant time'),
+        (RECRAWL_ADAPTIVE, 'Adaptive')
+    ]
+
     domain = models.TextField(unique=True)
     browse_mode = models.CharField(max_length=10, choices=MODE, default=browse_mode_default)
+    recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=recrawl_mode_default)
+    recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page', default=dt_min_recrawl_default)
+    recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page', default=dt_max_recrawl_default)
 
     auth_login_url_re = models.TextField(null=True, blank=True)
     auth_form_selector = models.TextField(null=True, blank=True)
@@ -530,9 +594,9 @@ class DomainPolicy(models.Model):
         return '%s %s' % (self.domain, self.browse_mode)
 
     def _get_browser(self):
-        if settings.BROWSING_METHOD == DomainPolicy.SELENIUM:
+        if settings.BROWSING_MODE == DomainPolicy.SELENIUM:
             return SeleniumBrowser
-        if settings.BROWSING_METHOD == DomainPolicy.REQUESTS:
+        if settings.BROWSING_MODE == DomainPolicy.REQUESTS:
             return RequestBrowser
         if self.browse_mode in (DomainPolicy.SELENIUM, DomainPolicy.DETECT):
             return SeleniumBrowser

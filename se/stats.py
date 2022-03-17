@@ -114,9 +114,9 @@ def crawler_stats(pygal_style, freq):
     idx_speed = idx_speed.render()
 
     # Url queued minutely
-    url_queue = datetime_graph(pygal_style, freq, data, 'url_queued_count', _now)
-    factor, unit = get_unit(data.aggregate(m=models.Max('url_queued_count')).get('m', 1))
-    url_queue.title = 'URL queue size'
+    url_queue = datetime_graph(pygal_style, freq, data, 'discovered_url_count', _now)
+    factor, unit = get_unit(data.aggregate(m=models.Max('discovered_url_count')).get('m', 1))
+    url_queue.title = 'URL discovered'
     if unit:
         url_queue.title += ' (%s)' % unit
     url_queue = url_queue.render()

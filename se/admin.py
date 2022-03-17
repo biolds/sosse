@@ -1,3 +1,4 @@
+from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
@@ -69,9 +70,11 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('url', 'fav', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next')
+    list_display = ('url', 'fav', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url', 'title']
+    exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
+    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'domain_policy', 'crawl_first', 'crawl_last')
 
     @staticmethod
     @admin.display(ordering='crawl_next')
@@ -120,6 +123,32 @@ class InlineAuthField(admin.TabularInline):
     model = AuthField
 
 
+class DomainPolicyForm(forms.ModelForm):
+    class Meta:
+        model = DomainPolicy
+        exclude = tuple()
+
+    def clean(self):
+        errors = {}
+        cleaned_data = super().clean()
+
+        keys_required = {
+            'recrawl_dt_min': cleaned_data['recrawl_mode'] in (DomainPolicy.RECRAWL_ADAPTIVE, DomainPolicy.RECRAWL_CONSTANT),
+            'recrawl_dt_max': cleaned_data['recrawl_mode'] in (DomainPolicy.RECRAWL_ADAPTIVE,),
+        }
+
+        for key, required in keys_required.items():
+            if required and cleaned_data.get(key) is None:
+                self.add_error(key, 'This field is required when using this recrawl mode')
+
+            if not required and cleaned_data.get(key) is not None:
+                self.add_error(key, 'This field must be null when using this recrawl mode')
+
+        return cleaned_data
+
+
+
 @admin.register(DomainPolicy)
 class DomainPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
+    form = DomainPolicyForm

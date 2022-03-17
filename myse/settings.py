@@ -374,6 +374,17 @@ MYSE_FAIL_OVER_LANG = 'english'
 DARK_MODE = False
 
 # 'requests', 'selenium', or 'detect'
-#BROWSING_METHOD = 'selenium'
-#BROWSING_METHOD = 'requests'
-BROWSING_METHOD = 'detect'
+#BROWSING_MODE = 'selenium'
+#BROWSING_MODE = 'requests'
+BROWSING_MODE = 'detect'
+
+from hashlib import md5
+HASHING_ALGO = md5
+
+# 'raw', 'clear_numbers'
+HASH_MODE = 'clear_numbers'
+
+# 'none', 'constant', or 'adaptive'
+DEFAULT_RECRAWL_MODE = 'adaptive'
+DEFAULT_RECRAWL_DT_MIN = 60 # in minutes
+DEFAULT_RECRAWL_DT_MAX = 60 * 24 * 31 # in minutes

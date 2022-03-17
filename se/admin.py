@@ -118,6 +118,11 @@ class DocumentAdmin(admin.ModelAdmin):
         if err_lines:
             return err_lines[-1]
 
+    @staticmethod
+    def domain_policy(obj):
+        policy = DomainPolicy.get_from_url(obj.url)
+        return format_html('<a href="/admin/se/domainpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
+
 
 class InlineAuthField(admin.TabularInline):
     model = AuthField

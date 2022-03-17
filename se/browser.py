@@ -161,9 +161,6 @@ class SeleniumBrowser(Browser):
     @classmethod
     def init(cls):
         from .models import DomainPolicy
-        if settings.BROWSING_MODE == DomainPolicy.REQUESTS:
-            return
-
         options = Options()
         options.binary_location = "/usr/bin/chromium"
         options.add_argument("start-maximized")
@@ -179,10 +176,6 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def destroy(cls):
-        from .models import DomainPolicy
-        if settings.BROWSING_MODE == DomainPolicy.REQUESTS:
-            return
-
         if cls.driver:
             cls.driver.close()
             cls.driver.quit()

@@ -90,7 +90,6 @@ class Document(models.Model):
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
-    domain_policy = models.ForeignKey('DomainPolicy', on_delete=models.CASCADE)
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
@@ -143,10 +142,10 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
-    def _hash_content(self, content):
-        if settings.HASH_MODE == 'raw':
+    def _hash_content(self, content, domain_policy):
+        if domain_policy.hash_mode == DomainPolicy.HASH_RAW:
             pass
-        elif settings.HASH_MODE == 'clear_numbers':
+        elif domain_policy.hash_mode == DomainPolicy.HASH_NO_NUMBERS:
             content = re.sub('[0-9]+', '0', content)
         else:
             raise Exception('HASH_MODE not supported')
@@ -154,8 +153,8 @@ class Document(models.Model):
         return settings.HASHING_ALGO(content.encode('utf-8')).hexdigest()
 
 
-    def index(self, page):
-        content_hash = self._hash_content(page.content)
+    def index(self, page, domain_policy):
+        content_hash = self._hash_content(page.content, domain_policy)
         n = now()
         self.crawl_last = n
         if not self.crawl_first:
@@ -213,24 +212,24 @@ class Document(models.Model):
         else:
             return
 
-        doc, _ = Document.objects.get_or_create(url=url,
-                                                domain_policy=DomainPolicy.get_from_url(url))
+        doc, _ = Document.objects.get_or_create(url=url)
         doc.save()
 
     def _schedule_next(self, changed):
-        if self.domain_policy.recrawl_mode == DomainPolicy.RECRAWL_NONE:
+        domain_policy = DomainPolicy.get_from_url(self.url)
+        if domain_policy.recrawl_mode == DomainPolicy.RECRAWL_NONE:
             self.crawl_next = None
             self.crawl_dt = None
-        elif self.domain_policy.recrawl_mode == DomainPolicy.RECRAWL_CONSTANT:
-            self.crawl_next = self.crawl_last + timedelta(minutes=self.domain_policy.recrawl_dt_min)
+        elif domain_policy.recrawl_mode == DomainPolicy.RECRAWL_CONSTANT:
+            self.crawl_next = self.crawl_last + timedelta(minutes=domain_policy.recrawl_dt_min)
             self.crawl_dt = None
-        elif self.domain_policy.recrawl_mode == DomainPolicy.RECRAWL_ADAPTIVE:
+        elif domain_policy.recrawl_mode == DomainPolicy.RECRAWL_ADAPTIVE:
             if self.crawl_dt is None:
-                self.crawl_dt = timedelta(minutes=self.domain_policy.recrawl_dt_min)
+                self.crawl_dt = timedelta(minutes=domain_policy.recrawl_dt_min)
             elif not changed:
-                self.crawl_dt = min(timedelta(minutes=self.domain_policy.recrawl_dt_max), self.crawl_dt * 2)
+                self.crawl_dt = min(timedelta(minutes=domain_policy.recrawl_dt_max), self.crawl_dt * 2)
             else:
-                self.crawl_dt = max(timedelta(minutes=self.domain_policy.recrawl_dt_min), self.crawl_dt / 2)
+                self.crawl_dt = max(timedelta(minutes=domain_policy.recrawl_dt_min), self.crawl_dt / 2)
             self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
@@ -252,10 +251,11 @@ class Document(models.Model):
                 doc.worker_no = None
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
-                    page = doc.domain_policy.url_get(doc.url)
+                    domain_policy = DomainPolicy.get_from_url(doc.url)
+                    page = domain_policy.url_get(doc.url)
 
                     if page.url == doc.url:
-                        doc.index(page)
+                        doc.index(page, domain_policy)
                         break
                     else:
                         if not page.got_redirect:
@@ -309,7 +309,6 @@ class Document(models.Model):
     @staticmethod
     def pick_or_create(url, worker_no):
         doc, created = Document.objects.get_or_create(url=url,
-                                                      domain_policy=DomainPolicy.get_from_url(url),
                                                       defaults={'worker_no': worker_no})
         if created:
             return doc
@@ -539,31 +538,10 @@ class FavIcon(models.Model):
         return links[0].get('href')
 
 
-def browse_mode_default():
-    return settings.BROWSING_MODE
-
-
-def recrawl_mode_default():
-    return settings.DEFAULT_RECRAWL_MODE
-
-
-def dt_min_recrawl_default():
-    if settings.DEFAULT_RECRAWL_MODE == DomainPolicy.RECRAWL_NONE:
-        return None
-    return settings.DEFAULT_RECRAWL_DT_MIN
-
-
-def dt_max_recrawl_default():
-    if settings.DEFAULT_RECRAWL_MODE == DomainPolicy.RECRAWL_ADAPTIVE:
-        return settings.DEFAULT_RECRAWL_DT_MAX
-    return None
-
-
 class DomainPolicy(models.Model):
     SELENIUM = 'selenium'
     REQUESTS = 'requests'
     DETECT = 'detect'
-
     MODE = [
         (SELENIUM, 'Selenium'),
         (REQUESTS, 'Requests'),
@@ -573,30 +551,39 @@ class DomainPolicy(models.Model):
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
     RECRAWL_ADAPTIVE = 'adaptive'
-
     RECRAWL_MODE = [
         (RECRAWL_NONE, 'No recrawl'),
         (RECRAWL_CONSTANT, 'Constant time'),
         (RECRAWL_ADAPTIVE, 'Adaptive')
     ]
 
-    domain = models.TextField(unique=True)
-    browse_mode = models.CharField(max_length=10, choices=MODE, default=browse_mode_default)
-    recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=recrawl_mode_default)
-    recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page', default=dt_min_recrawl_default)
-    recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page', default=dt_max_recrawl_default)
+    HASH_RAW = 'raw'
+    HASH_NO_NUMBERS = 'no_numbers'
+    HASH_MODE = [
+        (HASH_RAW, 'Hash raw content'),
+        (HASH_NO_NUMBERS, 'Normalize numbers before'),
+    ]
+
+    url_prefix = models.TextField(unique=True)
+    browse_mode = models.CharField(max_length=10, choices=MODE, default=DETECT)
+    recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
+    recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
+    recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=50 * 24 * 365)
+
+    store_links = models.BooleanField(default=True)
+    hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS)
 
     auth_login_url_re = models.TextField(null=True, blank=True)
     auth_form_selector = models.TextField(null=True, blank=True)
     auth_cookies = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return '%s %s' % (self.domain, self.browse_mode)
+        return '%s %s' % (self.url_prefix, self.browse_mode)
 
     def _get_browser(self):
-        if settings.BROWSING_MODE == DomainPolicy.SELENIUM:
+        if self.browse_mode == DomainPolicy.SELENIUM:
             return SeleniumBrowser
-        if settings.BROWSING_MODE == DomainPolicy.REQUESTS:
+        if self.browse_mode == DomainPolicy.REQUESTS:
             return RequestBrowser
         if self.browse_mode in (DomainPolicy.SELENIUM, DomainPolicy.DETECT):
             return SeleniumBrowser
@@ -604,9 +591,13 @@ class DomainPolicy(models.Model):
 
     @staticmethod
     def get_from_url(url):
-        url = urlparse(url)
-        policy, _ = DomainPolicy.objects.get_or_create(domain=url.hostname)
-        return policy
+        return DomainPolicy.objects.filter(
+            url_prefix=models.functions.Substr(
+                models.Value(url), 1, models.functions.Length('url_prefix')
+            )
+        ).annotate(
+            url_prefix_len=models.functions.Length('url_prefix')
+        ).order_by('-url_prefix_len').first()
 
     def url_get(self, url):
         browser = self._get_browser()
@@ -643,9 +634,8 @@ class DomainPolicy(models.Model):
 
     @staticmethod
     def get_cookies(url):
-        url = urlparse(url)
         try:
-            cookies = DomainPolicy.objects.get(domain=url.hostname).auth_cookies
+            cookies = DomainPolicy.get_from_url(url).auth_cookies
             if cookies:
                 return json.loads(cookies)
         except DomainPolicy.DoesNotExist:

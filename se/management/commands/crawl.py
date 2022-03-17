@@ -59,6 +59,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.update(worker_no=None)
+        DomainPolicy.objects.get_or_create(url_prefix='') # mandatory default policy
 
         for url in options['urls']:
             Document.queue(url=url)
@@ -73,10 +74,8 @@ class Command(BaseCommand):
         for crawler_no in range(worker_count):
             p = Process(target=self.process, args=(crawler_no, options))
             p.start()
-
-            if settings.BROWSING_MODE != DomainPolicy.REQUESTS:
-                sleep(5)
             workers.append(p)
+            sleep(5)
 
         for worker in workers:
             worker.join()

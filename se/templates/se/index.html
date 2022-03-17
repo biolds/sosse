@@ -135,6 +135,7 @@
             <div class="res-rank">/ {{ r.rank|floatformat:"1" }}</div>
             <div class="res-rank">{{ r.lang_iso_639_1 }}</div>
             <div class="res-rank">{{ r.id }}</div>
+            <div class="res-rank"><a href="{% url 'www' r.url %}">cached</a></div>
             <br/>
             <div class="headline">{{ r.headline }}</div>
         {% endfor %}

@@ -1,0 +1,14 @@
+{% extends "se/base.html" %}
+
+{% block body %}
+    <h3 style="padding-top: 30px">
+        {% if favicon %}
+            <img src="{{ favicon }}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon">
+        {% endif %}
+        {{ title }}
+    </h3>
+    <h4>
+        <a href="{{ doc.url }}">🌍 Original page</a>
+    </h4>
+    {{ content }}
+{% endblock %}

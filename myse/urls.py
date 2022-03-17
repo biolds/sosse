@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, re_path
 from se.views import favicon, prefs, search, word_stats
 from se.stats import stats
+from se.www import www
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('stats/', stats),
     path('word_stats/', word_stats),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
+    re_path(r'www/(?P<url>.*)', www, name='www')
 ]

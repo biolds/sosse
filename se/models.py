@@ -169,7 +169,6 @@ class Document(models.Model):
         for link in page.get_links():
             Document.queue(link)
 
-        print('indexing %s' % page.url)
         self.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
 
         parsed = page.get_soup()
@@ -274,7 +273,8 @@ class Document(models.Model):
                 print(format_exc())
                 break
 
-        doc.save()
+        if doc:
+            doc.save()
 
         worker_stats.save()
         return True
@@ -360,7 +360,7 @@ class WorkerStats(models.Model):
 class CrawlerStats(models.Model):
     t = models.DateTimeField()
     doc_count = models.PositiveIntegerField()
-    discovered_url_count = models.PositiveIntegerField()
+    queued_url = models.PositiveIntegerField()
     indexing_speed = models.PositiveIntegerField(blank=True, null=True)
     freq = models.CharField(max_length=1, choices=FREQUENCY)
 
@@ -373,18 +373,18 @@ class CrawlerStats(models.Model):
         WorkerStats.objects.filter().update(doc_processed=0)
 
         doc_count = Document.objects.count()
-        discovered_url_count = Document.objects.filter(crawl_last__isnull=False).count()
+        queued_url = Document.objects.filter(crawl_last__isnull=True).count() + Document.objects.filter(crawl_next__lte=now()).count()
 
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)
-        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'discovered_url_count': 0, 'indexing_speed': 0})
+        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'queued_url': 0, 'indexing_speed': 0})
         entry.indexing_speed += doc_processed
         entry.doc_count = doc_count
-        entry.discovered_url_count = max(discovered_url_count, entry.discovered_url_count)
+        entry.queued_url = max(queued_url, entry.queued_url)
         entry.save()
 
         CrawlerStats.objects.create(t=t,
                                     doc_count=doc_count,
-                                    discovered_url_count=discovered_url_count,
+                                    queued_url=queued_url,
                                     indexing_speed=doc_processed,
                                     freq=MINUTELY)
 

@@ -18,7 +18,6 @@ class Command(BaseCommand):
         Browser.destroy()
 
     def add_arguments(self, parser):
-        parser.add_argument('--once', action='store_true', help='Exit when url queue is empty')
         parser.add_argument('--force', action='store_true', help='Reindex url in error')
         parser.add_argument('--worker', nargs=1, type=int, default=[None], help='Worker count (defaults to the available cpu count)')
         parser.add_argument('urls', nargs='*', type=str)
@@ -51,8 +50,6 @@ class Command(BaseCommand):
             if Document.crawl(worker_no):
                 sleep_count = 0
             else:
-                if options['once'] and Document.objects.filter(crawl_next__lte=now()).count() == 0:
-                    break
                 if sleep_count == 0:
                     print('%s Idle...' % worker_no)
                 sleep_count += 1

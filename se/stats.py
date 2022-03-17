@@ -100,7 +100,7 @@ def crawler_stats(pygal_style, freq):
         doc_count.title += ' (%s)' % unit
     doc_count = doc_count.render()
 
-    # Indexing speed minutely
+    # Processing speed minutely
     if freq == MINUTELY:
         idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60.0)
         factor, unit = get_unit(data.aggregate(m=models.Max('indexing_speed')).get('m', 0) or 0.0)
@@ -110,13 +110,13 @@ def crawler_stats(pygal_style, freq):
     idx_speed = datetime_graph(pygal_style, freq, idx_speed_data, 'speed', _now)
     if not unit:
         unit = 'doc'
-    idx_speed.title = 'Indexing speed (%s/s)' % unit
+    idx_speed.title = 'Processing speed (%s/s)' % unit
     idx_speed = idx_speed.render()
 
     # Url queued minutely
-    url_queue = datetime_graph(pygal_style, freq, data, 'discovered_url_count', _now)
-    factor, unit = get_unit(data.aggregate(m=models.Max('discovered_url_count')).get('m', 1))
-    url_queue.title = 'URL discovered'
+    url_queue = datetime_graph(pygal_style, freq, data, 'queued_url', _now)
+    factor, unit = get_unit(data.aggregate(m=models.Max('queued_url')).get('m', 1))
+    url_queue.title = 'URL queued'
     if unit:
         url_queue.title += ' (%s)' % unit
     url_queue = url_queue.render()

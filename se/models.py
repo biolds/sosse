@@ -175,16 +175,63 @@ class Document(models.Model):
         self.normalized_title = remove_accent(self.title)
 
         text = ''
-        no = 0
-        for i, string in enumerate(parsed.strings):
-            s = string.strip(' \t\n\r')
-            if s != '':
-                if string == page.title and no == 0:
-                    continue
+
+        link_no = 0
+        for elem in parsed.descendants:
+            if not elem.string:
+                continue
+
+            s = str(elem.string).strip(' \t\n\r')
+            if not s:
+                continue
+
+            if elem.name == 'a' and domain_policy.store_links:
                 if text != '':
                     text += '\n'
                 text += s
-                no += 1
+
+                href = elem.get('href')
+                if not href:
+                    continue
+
+                href = absolutize_url(self.url, href)
+                try:
+                    target = Document.objects.get(url=href)
+                except Document.DoesNotExist:
+                    continue
+
+                link, _ = Link.objects.get_or_create(doc_from=self,
+                                                     link_no=link_no,
+                                                     defaults={
+                                                        'doc_to': target,
+                                                        'text': s,
+                                                        'pos': len(text) - len(s)
+                                                     })
+                link.doc_to = target
+                link.text = s
+                link.pos = len(text) - len(s)
+                link.save()
+                link_no += 1
+
+            if elem.parent and elem.parent.name == 'a' and domain_policy.store_links:
+                continue
+
+            if elem.parent and elem.parent.name in ('[document]', 'title'):
+                # this element [document] contains a "html" string, not sure why
+                continue
+            if elem.name is not None:
+                continue
+
+            if text != '':
+                text += '\n'
+
+            if s == 'html':
+                raise Exception('%s %s' % (elem.parent.name, elem.name))
+            text += s
+
+        if domain_policy.store_links:
+            Link.objects.filter(doc_from=self, link_no__gte=link_no).delete()
+
         self.content = text
         self.normalized_content = remove_accent(text)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
@@ -202,7 +249,7 @@ class Document(models.Model):
     def queue(url):
         try:
             doc = Document.objects.get(url=url)
-            return
+            return doc
         except Document.DoesNotExist:
             pass
 
@@ -214,6 +261,7 @@ class Document(models.Model):
 
         doc, _ = Document.objects.get_or_create(url=url)
         doc.save()
+        return doc
 
     def _schedule_next(self, changed):
         domain_policy = DomainPolicy.get_from_url(self.url)
@@ -326,6 +374,16 @@ class Document(models.Model):
 
         return doc
 
+
+class Link(models.Model):
+    doc_from = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='links_to')
+    doc_to = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='linked_from')
+    text = models.TextField()
+    pos = models.PositiveIntegerField()
+    link_no = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('doc_from', 'doc_to', 'link_no')
 
 class QueueWhitelist(models.Model):
     url = models.TextField(unique=True)

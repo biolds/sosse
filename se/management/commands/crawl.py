@@ -62,7 +62,10 @@ class Command(BaseCommand):
         DomainPolicy.objects.get_or_create(url_prefix='') # mandatory default policy
 
         for url in options['urls']:
-            Document.queue(url=url)
+            doc = Document.queue(url=url)
+            if options.get('force') and doc.crawl_last:
+                doc.crawl_next = now()
+                doc.save()
         
         self.stdout.write('Crawl initializing')
 

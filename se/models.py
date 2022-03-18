@@ -86,7 +86,7 @@ class Document(models.Model):
     content = models.TextField()
     normalized_content = models.TextField()
     content_hash = models.CharField(max_length=128, null=True, blank=True)
-    vector = SearchVectorField()
+    vector = SearchVectorField(null=True, blank=True)
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)

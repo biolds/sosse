@@ -23,6 +23,7 @@ DATABASES = {
 
 Change SECRET_KEY and ALLOWED_HOSTS
 
+./manage.py collectstatic
 ./manage.py createsuperuser
 ./manage.py loaddata se.json
 

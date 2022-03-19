@@ -143,7 +143,10 @@ def search(request):
         paginated = paginator.get_page(page_number)
 
         for res in paginated:
-            res.headline = res.content.splitlines()[0]
+            res.headline = ''
+            lines = res.content.splitlines()
+            if lines:
+                res.headline = lines[0]
     else:
         form = SearchForm()
 

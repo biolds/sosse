@@ -370,8 +370,8 @@ MYSE_LANGDETECT_TO_POSTGRES = {
 }
 MYSE_FAIL_OVER_LANG = 'english'
 
-#DARK_MODE = True
-DARK_MODE = False
+DARK_MODE = True
+#DARK_MODE = False
 
 from hashlib import md5
 HASHING_ALGO = md5

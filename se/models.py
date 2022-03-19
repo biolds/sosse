@@ -152,94 +152,93 @@ class Document(models.Model):
 
         return settings.HASHING_ALGO(content.encode('utf-8')).hexdigest()
 
-
-    def index(self, page, domain_policy):
-        content_hash = self._hash_content(page.content, domain_policy)
+    def _index_log(self, s, stats, verbose):
+        if not verbose:
+            return
         n = now()
+        print('%s %s' % (n - stats['prev'], s))
+        stats['prev'] = n
+
+    def _dom_walk(self, elem, domain_policy, links):
+        #print('%s %s' % (elem.name, elem.string))
+        if elem.name in ('[document]', 'title', 'script', 'style'):
+            return
+
+        s = str(getattr(elem, 'string', '')).strip(' \t\n\r')
+        if not s:
+            return
+
+        if elem.name in (None, 'a') and getattr(elem, 'string', None):
+            if s:
+                if elem.name == 'a' and domain_policy.store_links:
+                    href = elem.get('href').strip()
+                    if href:
+                        href = absolutize_url(self.url, href)
+                        target = Document.queue(href)
+                        if target:
+                            links['links'].append(Link(doc_from=self,
+                                              link_no=len(links['links']),
+                                              doc_to=target,
+                                              text=s,
+                                              pos=len(links['text'])))
+
+                if links['text']:
+                    links['text'] += '\n'
+                links['text'] += s
+
+        if hasattr(elem, 'children'):
+            for child in elem.children:
+                self._dom_walk(child, domain_policy, links)
+
+    def index(self, page, domain_policy, verbose=False, force=False):
+        n = now()
+        stats = {'prev': n}
+        content_hash = self._hash_content(page.content, domain_policy)
+        self._index_log('hash', stats, verbose)
+
         self.crawl_last = n
         if not self.crawl_first:
             self.crawl_first = n
         self._schedule_next(self.content_hash != content_hash)
-        if self.content_hash == content_hash:
+        if self.content_hash == content_hash and not force:
             return
 
         self.content_hash = content_hash
 
-        for link in page.get_links():
-            Document.queue(link)
+        self._index_log('queuing links', stats, verbose)
 
         self.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
 
         parsed = page.get_soup()
         self.title = page.title or self.url
         self.normalized_title = remove_accent(self.title)
+        self._index_log('get soup', stats, verbose)
 
         text = ''
 
-        link_no = 0
-        for elem in parsed.descendants:
-            if not elem.string:
-                continue
+        links = {
+            'links': [],
+            'pos': 0,
+            'text': ''
+        }
+        for elem in parsed.children:
+            self._dom_walk(elem, domain_policy, links)
 
-            s = str(elem.string).strip(' \t\n\r')
-            if not s:
-                continue
-
-            if elem.name == 'a' and domain_policy.store_links:
-                if text != '':
-                    text += '\n'
-                text += s
-
-                href = elem.get('href')
-                if not href:
-                    continue
-
-                href = absolutize_url(self.url, href)
-                try:
-                    target = Document.objects.get(url=href)
-                except Document.DoesNotExist:
-                    continue
-
-                link, _ = Link.objects.get_or_create(doc_from=self,
-                                                     link_no=link_no,
-                                                     defaults={
-                                                        'doc_to': target,
-                                                        'text': s,
-                                                        'pos': len(text) - len(s)
-                                                     })
-                link.doc_to = target
-                link.text = s
-                link.pos = len(text) - len(s)
-                link.save()
-                link_no += 1
-
-            if elem.name is not None:
-                continue
-
-            parent = elem.parent
-            drop_text = False
-            while parent:
-                if parent.name in ('[document]', 'title', 'script', 'style') or (parent.name == 'a' and domain_policy.store_links):
-                    drop_text = True
-                    break
-                parent = parent.parent
-
-            if drop_text:
-                continue
-
-            if text != '':
-                text += '\n'
-
-            text += s
+        self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
 
         if domain_policy.store_links:
-            Link.objects.filter(doc_from=self, link_no__gte=link_no).delete()
+            Link.objects.filter(doc_from=self).delete()
+            self._index_log('delete', stats, verbose)
+            Link.objects.bulk_create(links['links'])
+            self._index_log('bulk', stats, verbose)
 
-        self.content = text
+        self.content = links['text']
         self.normalized_content = remove_accent(text)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
+        self._index_log('remove accent', stats, verbose)
 
         FavIcon.extract(self, page)
+        self._index_log('favicon', stats, verbose)
 
     def set_error(self, err):
         self.error = err

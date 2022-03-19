@@ -34,7 +34,7 @@ class Page:
 
         for a in self.get_soup().find_all('a'):
             if a.get('href'):
-                u = absolutize_url(self.url, a.get('href'))
+                u = absolutize_url(self.url, a.get('href').strip())
                 if '#' in u:
                     raise Exception('aaa %s %s %s' % (u, self.url, a.get('href')))
                 yield u

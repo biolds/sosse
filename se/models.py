@@ -225,8 +225,6 @@ class Document(models.Model):
             if text != '':
                 text += '\n'
 
-            if s == 'html':
-                raise Exception('%s %s' % (elem.parent.name, elem.name))
             text += s
 
         if domain_policy.store_links:
@@ -309,6 +307,8 @@ class Document(models.Model):
                         if not page.got_redirect:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         print('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
+                        doc.crawl_last = now()
+                        doc._schedule_next(doc.redirect_url != page.url)
                         doc.redirect_url = page.url
                         doc.save()
                         doc = Document.pick_or_create(page.url, worker_no)

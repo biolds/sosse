@@ -213,13 +213,18 @@ class Document(models.Model):
                 link.save()
                 link_no += 1
 
-            if elem.parent and elem.parent.name == 'a' and domain_policy.store_links:
+            if elem.name is not None:
                 continue
 
-            if elem.parent and elem.parent.name in ('[document]', 'title'):
-                # this element [document] contains a "html" string, not sure why
-                continue
-            if elem.name is not None:
+            parent = elem.parent
+            drop_text = False
+            while parent:
+                if parent.name in ('[document]', 'title', 'script', 'style') or (parent.name == 'a' and domain_policy.store_links):
+                    drop_text = True
+                    break
+                parent = parent.parent
+
+            if drop_text:
                 continue
 
             if text != '':

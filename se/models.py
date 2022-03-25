@@ -592,15 +592,24 @@ class FavIcon(models.Model):
         return links[0].get('href')
 
 
-class UrlPolicy(models.Model):
+class DomainBrowseMode(models.Model):
     SELENIUM = 'selenium'
     REQUESTS = 'requests'
-    DETECT = 'detect'
     MODE = [
         (SELENIUM, 'Selenium'),
         (REQUESTS, 'Requests'),
-        (DETECT, 'Detect')
     ]
+
+    url_policy = models.ForeignKey('UrlPolicy', on_delete=models.CASCADE)
+    browse_mode = models.CharField(max_length=10, choices=MODE)
+    domain = models.TextField()
+
+    def __str__(self):
+        return '%s %s' % (self.domain, self.browse_mode)
+
+class UrlPolicy(models.Model):
+    DETECT = 'detect'
+    MODE = [(DETECT, 'Detect')] + DomainBrowseMode.MODE
 
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
@@ -621,7 +630,7 @@ class UrlPolicy(models.Model):
     url_prefix = models.TextField(unique=True)
     no_crawl = models.BooleanField(default=False)
 
-    browse_mode = models.CharField(max_length=10, choices=MODE, default=DETECT)
+    default_browse_mode = models.CharField(max_length=10, choices=MODE, default=DETECT)
     recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
     recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
     recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=50 * 24 * 365)
@@ -632,18 +641,6 @@ class UrlPolicy(models.Model):
     auth_login_url_re = models.TextField(null=True, blank=True)
     auth_form_selector = models.TextField(null=True, blank=True)
     auth_cookies = models.TextField(blank=True, default='')
-
-    def __str__(self):
-        return '%s %s' % (self.url_prefix, self.browse_mode)
-
-    def _get_browser(self):
-        if self.browse_mode == UrlPolicy.SELENIUM:
-            return SeleniumBrowser
-        if self.browse_mode == UrlPolicy.REQUESTS:
-            return RequestBrowser
-        if self.browse_mode in (UrlPolicy.SELENIUM, UrlPolicy.DETECT):
-            return SeleniumBrowser
-        return RequestBrowser
 
     @staticmethod
     def get_from_url(url):
@@ -656,7 +653,24 @@ class UrlPolicy(models.Model):
         ).order_by('-url_prefix_len').first()
 
     def url_get(self, url):
-        browser = self._get_browser()
+        domain = urlparse(url).netloc
+        dom_browse_mode = None
+        try:
+            dom_browse_mode = DomainBrowseMode.objects.get(domain=domain)
+            if dom_browse_mode.browse_mode == DomainBrowseMode.SELENIUM:
+                browser = SeleniumBrowser
+            elif dom_browse_mode.browse_mode == DomainBrowseMode.REQUESTS:
+                browser = RequestBrowser
+            else:
+                raise Exception('Unsupported browse_mode')
+        except DomainBrowseMode.DoesNotExist:
+            if self.default_browse_mode == DomainBrowseMode.REQUESTS:
+                browser = RequestBrowser
+            elif self.default_browse_mode in (DomainBrowseMode.SELENIUM, UrlPolicy.DETECT):
+                browser = SeleniumBrowser
+            else:
+                raise Exception('Unsupported default_browse_mode')
+
         page = browser.get(url)
 
         if page.got_redirect:
@@ -674,17 +688,19 @@ class UrlPolicy(models.Model):
             except:
                 raise Exception('Authentication failed')
 
-        if self.browse_mode == UrlPolicy.DETECT:
+        if dom_browse_mode is None and self.default_browse_mode == UrlPolicy.DETECT:
             print('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links())) != len(list(page.get_links())):
-                self.browse_mode = UrlPolicy.SELENIUM
+                new_mode = DomainBrowseMode.SELENIUM
             else:
-                self.browse_mode = UrlPolicy.REQUESTS
+                new_mode = DomainBrowseMode.REQUESTS
                 page = requests_page
-            print('browser detected %s on %s' % (self.browse_mode, url))
-            self.save()
+            print('browser detected %s on %s' % (new_mode, url))
+            DomainBrowseMode.objects.get_or_create(url_policy=self,
+                                                   browse_mode=new_mode,
+                                                   domain=domain)
 
         return page
 

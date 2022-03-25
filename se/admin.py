@@ -6,10 +6,10 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.template import defaultfilters
 
-from .models import Document, UrlPolicy, AuthField, SearchEngine, FavIcon
+from .models import AuthField, Document, DomainBrowseMode, FavIcon, UrlPolicy, SearchEngine
 
 admin.site.enable_nav_sidebar = False
-
+admin.site.register(DomainBrowseMode)
 
 @admin.register(FavIcon)
 class FavIconAdmin(admin.ModelAdmin):
@@ -152,12 +152,11 @@ class UrlPolicyForm(forms.ModelForm):
         return cleaned_data
 
 
-
 @admin.register(UrlPolicy)
 class UrlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = UrlPolicyForm
-    list_display = ('url_prefix', 'url_size', 'browse_mode', 'recrawl_mode')
+    list_display = ('url_prefix', 'url_size', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_prefix',)
 
     @staticmethod

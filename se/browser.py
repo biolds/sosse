@@ -76,7 +76,7 @@ class RequestBrowser(Browser):
 
     @classmethod
     def get(cls, url, raw=False):
-        from .models import absolutize_url, DomainPolicy
+        from .models import absolutize_url, UrlPolicy
         got_redirect = False
         page = None
         did_redirect = False
@@ -84,7 +84,7 @@ class RequestBrowser(Browser):
         while redirects > 0:
             redirects -= 1
 
-            cookies = DomainPolicy.get_cookies(url)
+            cookies = UrlPolicy.get_cookies(url)
             r = requests.get(url, cookies=cookies)
 
             if len(r.history):
@@ -112,17 +112,17 @@ class RequestBrowser(Browser):
         return page
 
     @classmethod
-    def try_auth(cls, page, url, domain_policy):
+    def try_auth(cls, page, url, url_policy):
         from .models import absolutize_url
 
         parsed = page.get_soup()
-        form = parsed.select(domain_policy.auth_form_selector)
+        form = parsed.select(url_policy.auth_form_selector)
 
         if len(form) == 0:
-            raise Exception('Could not find element with CSS selector: %s' % domain_policy.auth_form_selector)
+            raise Exception('Could not find element with CSS selector: %s' % url_policy.auth_form_selector)
 
         if len(form) > 1:
-            raise Exception('Found multiple element with CSS selector: %s' % domain_policy.auth_form_selector)
+            raise Exception('Found multiple element with CSS selector: %s' % url_policy.auth_form_selector)
 
         form = form[0]
         payload = {}
@@ -130,15 +130,15 @@ class RequestBrowser(Browser):
             if elem.get('name'):
                 payload[elem.get('name')] = elem.get('value')
 
-        for f in domain_policy.authfield_set.values('key', 'value'):
+        for f in url_policy.authfield_set.values('key', 'value'):
             payload[f['key']] = f['value']
 
         post_url = form.get('action')
         post_url = absolutize_url(page.url, post_url)
         r = requests.post(post_url, data=payload, cookies=page.cookies, allow_redirects=False)
 
-        domain_policy.auth_cookies = json.dumps(dict(r.cookies))
-        domain_policy.save()
+        url_policy.auth_cookies = json.dumps(dict(r.cookies))
+        url_policy.save()
 
         if r.status_code != 302:
             return cls._page_from_request(r)
@@ -160,7 +160,7 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def init(cls):
-        from .models import DomainPolicy
+        from .models import UrlPolicy
         options = Options()
         options.binary_location = "/usr/bin/chromium"
         options.add_argument("start-maximized")
@@ -206,26 +206,26 @@ class SeleniumBrowser(Browser):
         return page
 
     @classmethod
-    def _cache_cookie(cls, domain_policy):
-        cls.cookie_loaded.append(domain_policy.id)
+    def _cache_cookie(cls, url_policy):
+        cls.cookie_loaded.append(url_policy.id)
 
         if len(cls.cookie_loaded) > cls.COOKIE_LOADED_SIZE:
             cls.cookie_loaded = cls.cookie_loaded[1:]
 
     @classmethod
     def _load_cookie(cls, url):
-        from .models import DomainPolicy
-        domain_policy = DomainPolicy.get_from_url(url)
-        if domain_policy is None:
+        from .models import UrlPolicy
+        url_policy = UrlPolicy.get_from_url(url)
+        if url_policy is None:
             return
 
-        if domain_policy.id in cls.cookie_loaded:
+        if url_policy.id in cls.cookie_loaded:
             return False
 
-        cls._cache_cookie(domain_policy)
+        cls._cache_cookie(url_policy)
 
-        if domain_policy.auth_cookies:
-            cookies = json.loads(domain_policy.auth_cookies)
+        if url_policy.auth_cookies:
+            cookies = json.loads(url_policy.auth_cookies)
             for name, value in cookies.items():
                 cls.driver.add_cookie({'name': name, 'value': value})
         return True
@@ -247,25 +247,25 @@ class SeleniumBrowser(Browser):
 
 
     @classmethod
-    def try_auth(cls, page, url, domain_policy):
-        form = cls.driver.find_elements_by_css_selector(domain_policy.auth_form_selector)
+    def try_auth(cls, page, url, url_policy):
+        form = cls.driver.find_elements_by_css_selector(url_policy.auth_form_selector)
 
         if len(form) == 0:
-            raise Exception('Could not find element with CSS selector: %s' % domain_policy.auth_form_selector)
+            raise Exception('Could not find element with CSS selector: %s' % url_policy.auth_form_selector)
 
         if len(form) > 1:
-            raise Exception('Found multiple element with CSS selector: %s' % domain_policy.auth_form_selector)
+            raise Exception('Found multiple element with CSS selector: %s' % url_policy.auth_form_selector)
 
         form = form[0]
-        for f in domain_policy.authfield_set.values('key', 'value'):
+        for f in url_policy.authfield_set.values('key', 'value'):
             elem = form.find_element_by_css_selector('input[name="%s"]' % f['key'])
             elem.send_keys(f['value'])
 
         form.submit()
         cookies = dict([(cookie['name'], cookie['value']) for cookie in cls.driver.get_cookies()])
-        domain_policy.auth_cookies = json.dumps(cookies)
-        domain_policy.save()
-        cls._cache_cookie(domain_policy)
+        url_policy.auth_cookies = json.dumps(cookies)
+        url_policy.save()
+        cls._cache_cookie(url_policy)
 
         if cls.driver.current_url != url:
             return cls.get(url)

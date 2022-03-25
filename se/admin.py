@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.template import defaultfilters
 
-from .models import Document, DomainPolicy, AuthField, SearchEngine, FavIcon
+from .models import Document, UrlPolicy, AuthField, SearchEngine, FavIcon
 
 admin.site.enable_nav_sidebar = False
 
@@ -74,7 +74,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url', 'title']
     exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
-    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'domain_policy', 'crawl_first', 'crawl_last')
+    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'url_policy', 'crawl_first', 'crawl_last')
 
     @staticmethod
     @admin.display(ordering='crawl_next')
@@ -119,18 +119,18 @@ class DocumentAdmin(admin.ModelAdmin):
             return err_lines[-1]
 
     @staticmethod
-    def domain_policy(obj):
-        policy = DomainPolicy.get_from_url(obj.url)
-        return format_html('<a href="/admin/se/domainpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
+    def url_policy(obj):
+        policy = UrlPolicy.get_from_url(obj.url)
+        return format_html('<a href="/admin/se/urlpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
 
 
 class InlineAuthField(admin.TabularInline):
     model = AuthField
 
 
-class DomainPolicyForm(forms.ModelForm):
+class UrlPolicyForm(forms.ModelForm):
     class Meta:
-        model = DomainPolicy
+        model = UrlPolicy
         exclude = tuple()
 
     def clean(self):
@@ -138,8 +138,8 @@ class DomainPolicyForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         keys_required = {
-            'recrawl_dt_min': cleaned_data['recrawl_mode'] in (DomainPolicy.RECRAWL_ADAPTIVE, DomainPolicy.RECRAWL_CONSTANT),
-            'recrawl_dt_max': cleaned_data['recrawl_mode'] in (DomainPolicy.RECRAWL_ADAPTIVE,),
+            'recrawl_dt_min': cleaned_data['recrawl_mode'] in (UrlPolicy.RECRAWL_ADAPTIVE, UrlPolicy.RECRAWL_CONSTANT),
+            'recrawl_dt_max': cleaned_data['recrawl_mode'] in (UrlPolicy.RECRAWL_ADAPTIVE,),
         }
 
         for key, required in keys_required.items():
@@ -153,10 +153,10 @@ class DomainPolicyForm(forms.ModelForm):
 
 
 
-@admin.register(DomainPolicy)
-class DomainPolicyAdmin(admin.ModelAdmin):
+@admin.register(UrlPolicy)
+class UrlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
-    form = DomainPolicyForm
+    form = UrlPolicyForm
     list_display = ('url_prefix', 'url_size', 'browse_mode', 'recrawl_mode')
     search_fields = ('url_prefix',)
 

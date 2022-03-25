@@ -142,10 +142,10 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
-    def _hash_content(self, content, domain_policy):
-        if domain_policy.hash_mode == DomainPolicy.HASH_RAW:
+    def _hash_content(self, content, url_policy):
+        if url_policy.hash_mode == UrlPolicy.HASH_RAW:
             pass
-        elif domain_policy.hash_mode == DomainPolicy.HASH_NO_NUMBERS:
+        elif url_policy.hash_mode == UrlPolicy.HASH_NO_NUMBERS:
             content = re.sub('[0-9]+', '0', content)
         else:
             raise Exception('HASH_MODE not supported')
@@ -159,7 +159,7 @@ class Document(models.Model):
         print('%s %s' % (n - stats['prev'], s))
         stats['prev'] = n
 
-    def _dom_walk(self, elem, domain_policy, links):
+    def _dom_walk(self, elem, url_policy, links):
         #print('%s %s' % (elem.name, elem.string))
         if elem.name in ('[document]', 'title', 'script', 'style'):
             return
@@ -170,7 +170,7 @@ class Document(models.Model):
 
         if elem.name in (None, 'a') and getattr(elem, 'string', None):
             if s:
-                if elem.name == 'a' and domain_policy.store_links:
+                if elem.name == 'a' and url_policy.store_links:
                     href = elem.get('href').strip()
                     if href:
                         href = absolutize_url(self.url, href)
@@ -188,12 +188,12 @@ class Document(models.Model):
 
         if hasattr(elem, 'children'):
             for child in elem.children:
-                self._dom_walk(child, domain_policy, links)
+                self._dom_walk(child, url_policy, links)
 
-    def index(self, page, domain_policy, verbose=False, force=False):
+    def index(self, page, url_policy, verbose=False, force=False):
         n = now()
         stats = {'prev': n}
-        content_hash = self._hash_content(page.content, domain_policy)
+        content_hash = self._hash_content(page.content, url_policy)
         self._index_log('hash', stats, verbose)
 
         self.crawl_last = n
@@ -222,11 +222,11 @@ class Document(models.Model):
             'text': ''
         }
         for elem in parsed.children:
-            self._dom_walk(elem, domain_policy, links)
+            self._dom_walk(elem, url_policy, links)
 
         self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
 
-        if domain_policy.store_links:
+        if url_policy.store_links:
             Link.objects.filter(doc_from=self).delete()
             self._index_log('delete', stats, verbose)
             Link.objects.bulk_create(links['links'])
@@ -255,8 +255,8 @@ class Document(models.Model):
         except Document.DoesNotExist:
             pass
 
-        domain_policy = DomainPolicy.get_from_url(url)
-        if domain_policy.no_crawl:
+        url_policy = UrlPolicy.get_from_url(url)
+        if url_policy.no_crawl:
             return None
 
         doc, _ = Document.objects.get_or_create(url=url)
@@ -264,20 +264,20 @@ class Document(models.Model):
         return doc
 
     def _schedule_next(self, changed):
-        domain_policy = DomainPolicy.get_from_url(self.url)
-        if domain_policy.recrawl_mode == DomainPolicy.RECRAWL_NONE:
+        url_policy = UrlPolicy.get_from_url(self.url)
+        if url_policy.recrawl_mode == UrlPolicy.RECRAWL_NONE:
             self.crawl_next = None
             self.crawl_dt = None
-        elif domain_policy.recrawl_mode == DomainPolicy.RECRAWL_CONSTANT:
-            self.crawl_next = self.crawl_last + timedelta(minutes=domain_policy.recrawl_dt_min)
+        elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_CONSTANT:
+            self.crawl_next = self.crawl_last + timedelta(minutes=url_policy.recrawl_dt_min)
             self.crawl_dt = None
-        elif domain_policy.recrawl_mode == DomainPolicy.RECRAWL_ADAPTIVE:
+        elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_ADAPTIVE:
             if self.crawl_dt is None:
-                self.crawl_dt = timedelta(minutes=domain_policy.recrawl_dt_min)
+                self.crawl_dt = timedelta(minutes=url_policy.recrawl_dt_min)
             elif not changed:
-                self.crawl_dt = min(timedelta(minutes=domain_policy.recrawl_dt_max), self.crawl_dt * 2)
+                self.crawl_dt = min(timedelta(minutes=url_policy.recrawl_dt_max), self.crawl_dt * 2)
             else:
-                self.crawl_dt = max(timedelta(minutes=domain_policy.recrawl_dt_min), self.crawl_dt / 2)
+                self.crawl_dt = max(timedelta(minutes=url_policy.recrawl_dt_min), self.crawl_dt / 2)
             self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
@@ -299,11 +299,11 @@ class Document(models.Model):
                 doc.worker_no = None
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
-                    domain_policy = DomainPolicy.get_from_url(doc.url)
-                    page = domain_policy.url_get(doc.url)
+                    url_policy = UrlPolicy.get_from_url(doc.url)
+                    page = url_policy.url_get(doc.url)
 
                     if page.url == doc.url:
-                        doc.index(page, domain_policy)
+                        doc.index(page, url_policy)
                         break
                     else:
                         if not page.got_redirect:
@@ -391,7 +391,7 @@ class Link(models.Model):
 class AuthField(models.Model):
     key = models.CharField(max_length=256)
     value = models.CharField(max_length=256)
-    domain_policy = models.ForeignKey('DomainPolicy', on_delete=models.CASCADE)
+    url_policy = models.ForeignKey('UrlPolicy', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s form field' % self.key
@@ -592,7 +592,7 @@ class FavIcon(models.Model):
         return links[0].get('href')
 
 
-class DomainPolicy(models.Model):
+class UrlPolicy(models.Model):
     SELENIUM = 'selenium'
     REQUESTS = 'requests'
     DETECT = 'detect'
@@ -637,17 +637,17 @@ class DomainPolicy(models.Model):
         return '%s %s' % (self.url_prefix, self.browse_mode)
 
     def _get_browser(self):
-        if self.browse_mode == DomainPolicy.SELENIUM:
+        if self.browse_mode == UrlPolicy.SELENIUM:
             return SeleniumBrowser
-        if self.browse_mode == DomainPolicy.REQUESTS:
+        if self.browse_mode == UrlPolicy.REQUESTS:
             return RequestBrowser
-        if self.browse_mode in (DomainPolicy.SELENIUM, DomainPolicy.DETECT):
+        if self.browse_mode in (UrlPolicy.SELENIUM, UrlPolicy.DETECT):
             return SeleniumBrowser
         return RequestBrowser
 
     @staticmethod
     def get_from_url(url):
-        return DomainPolicy.objects.filter(
+        return UrlPolicy.objects.filter(
             url_prefix=models.functions.Substr(
                 models.Value(url), 1, models.functions.Length('url_prefix')
             )
@@ -674,14 +674,14 @@ class DomainPolicy(models.Model):
             except:
                 raise Exception('Authentication failed')
 
-        if self.browse_mode == DomainPolicy.DETECT:
+        if self.browse_mode == UrlPolicy.DETECT:
             print('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links())) != len(list(page.get_links())):
-                self.browse_mode = DomainPolicy.SELENIUM
+                self.browse_mode = UrlPolicy.SELENIUM
             else:
-                self.browse_mode = DomainPolicy.REQUESTS
+                self.browse_mode = UrlPolicy.REQUESTS
                 page = requests_page
             print('browser detected %s on %s' % (self.browse_mode, url))
             self.save()
@@ -691,8 +691,8 @@ class DomainPolicy(models.Model):
     @staticmethod
     def get_cookies(url):
         try:
-            cookies = DomainPolicy.get_from_url(url).auth_cookies
+            cookies = UrlPolicy.get_from_url(url).auth_cookies
             if cookies:
                 return json.loads(cookies)
-        except DomainPolicy.DoesNotExist:
+        except UrlPolicy.DoesNotExist:
             pass

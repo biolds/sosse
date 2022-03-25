@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
 
 from ...browser import Browser
-from ...models import CrawlerStats, Document, DomainPolicy, WorkerStats, MINUTELY
+from ...models import CrawlerStats, Document, UrlPolicy, WorkerStats, MINUTELY
 
 
 class Command(BaseCommand):
@@ -59,7 +59,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.update(worker_no=None)
-        DomainPolicy.objects.get_or_create(url_prefix='') # mandatory default policy
+        UrlPolicy.objects.get_or_create(url_prefix='') # mandatory default policy
 
         for url in options['urls']:
             doc = Document.queue(url=url)

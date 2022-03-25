@@ -1,14 +1,14 @@
 from django import forms
+from django.db import models
 from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.template import defaultfilters
 
-from .models import Document, DomainPolicy, QueueWhitelist, AuthField, SearchEngine, FavIcon
+from .models import Document, DomainPolicy, AuthField, SearchEngine, FavIcon
 
 admin.site.enable_nav_sidebar = False
-admin.site.register(QueueWhitelist)
 
 
 @admin.register(FavIcon)
@@ -157,3 +157,10 @@ class DomainPolicyForm(forms.ModelForm):
 class DomainPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = DomainPolicyForm
+    list_display = ('url_prefix', 'url_size', 'browse_mode', 'recrawl_mode')
+    search_fields = ('url_prefix',)
+
+    @staticmethod
+    @admin.display(ordering=models.functions.Length('url_prefix'))
+    def url_size(obj):
+        return len(obj.url_prefix)

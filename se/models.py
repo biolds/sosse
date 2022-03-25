@@ -255,11 +255,9 @@ class Document(models.Model):
         except Document.DoesNotExist:
             pass
 
-        for w in QueueWhitelist.objects.all():
-            if url.startswith(w.url):
-                break
-        else:
-            return
+        domain_policy = DomainPolicy.get_from_url(url)
+        if domain_policy.no_crawl:
+            return None
 
         doc, _ = Document.objects.get_or_create(url=url)
         doc.save()
@@ -388,12 +386,6 @@ class Link(models.Model):
 
     class Meta:
         unique_together = ('doc_from', 'doc_to', 'link_no')
-
-class QueueWhitelist(models.Model):
-    url = models.TextField(unique=True)
-
-    def __str__(self):
-        return self.url
 
 
 class AuthField(models.Model):
@@ -627,6 +619,8 @@ class DomainPolicy(models.Model):
     ]
 
     url_prefix = models.TextField(unique=True)
+    no_crawl = models.BooleanField(default=False)
+
     browse_mode = models.CharField(max_length=10, choices=MODE, default=DETECT)
     recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
     recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)

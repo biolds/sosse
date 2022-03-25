@@ -156,8 +156,14 @@ class UrlPolicyForm(forms.ModelForm):
 class UrlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = UrlPolicyForm
-    list_display = ('url_prefix', 'url_size', 'default_browse_mode', 'recrawl_mode')
+    list_display = ('_url_prefix', 'url_size', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_prefix',)
+
+    @staticmethod
+    def _url_prefix(obj):
+        if obj.url_prefix == '':
+            return '(default)'
+        return obj.url_prefix
 
     @staticmethod
     @admin.display(ordering=models.functions.Length('url_prefix'))

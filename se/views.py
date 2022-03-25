@@ -48,7 +48,7 @@ def get_documents(request, form):
     FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
-    all_results = Document.objects.exclude(last_crawl__isnull=True)
+    all_results = Document.objects.exclude(crawl_last__isnull=True)
     results = all_results
     q = remove_accent(form.cleaned_data['q'])
     if q:

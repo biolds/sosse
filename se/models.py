@@ -39,6 +39,9 @@ def sanitize_url(url):
     else:
         new_path = os.path.abspath(url.path)
         new_path = new_path.replace('//', '/')
+        if url.path.endswith('/'):
+            # restore traling / (deleted by abspath)
+            new_path += '/'
         url = url._replace(path=new_path)
 
     url = url.geturl()
@@ -99,6 +102,7 @@ class Document(models.Model):
     crawl_last = models.DateTimeField(blank=True, null=True)
     crawl_next = models.DateTimeField(blank=True, null=True)
     crawl_dt = models.DurationField(blank=True, null=True)
+    crawl_depth = models.PositiveIntegerField(blank=True, null=True)
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
     worker_no = models.PositiveIntegerField(blank=True, null=True)
@@ -156,11 +160,9 @@ class Document(models.Model):
         if not verbose:
             return
         n = now()
-        print('%s %s' % (n - stats['prev'], s))
         stats['prev'] = n
 
     def _dom_walk(self, elem, url_policy, links):
-        #print('%s %s' % (elem.name, elem.string))
         if elem.name in ('[document]', 'title', 'script', 'style'):
             return
 
@@ -174,7 +176,7 @@ class Document(models.Model):
                     href = elem.get('href').strip()
                     if href:
                         href = absolutize_url(self.url, href)
-                        target = Document.queue(href)
+                        target = Document.queue(href, self.crawl_depth)
                         if target:
                             links['links'].append(Link(doc_from=self,
                                               link_no=len(links['links']),
@@ -248,19 +250,45 @@ class Document(models.Model):
             self.error_hash = md5(err.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def queue(url):
+    def _should_crawl(url_policy, parent_depth, url):
+        if url_policy.crawl_depth is None:
+            return True, None
+
+        url_depth = parent_depth or 0
+        url_depth += 1
+
+        if url_depth > url_policy.crawl_depth:
+            print('%s is too deep, skipping' % url)
+            return False, url_depth
+
+        return True, url_depth
+
+    @staticmethod
+    def queue(url, parent_depth):
+        url_policy = UrlPolicy.get_from_url(url)
+
         try:
             doc = Document.objects.get(url=url)
+
+            should_crawl, url_depth = Document._should_crawl(url_policy, parent_depth, url)
+
+            if url_depth is not None and doc.crawl_depth is not None:
+                url_depth = min(url_depth, doc.crawl_depth)
+            if url_depth != doc.crawl_depth:
+                doc.crawl_depth = url_depth
+                doc.save()
             return doc
         except Document.DoesNotExist:
             pass
 
-        url_policy = UrlPolicy.get_from_url(url)
         if url_policy.no_crawl:
             return None
 
-        doc, _ = Document.objects.get_or_create(url=url)
-        doc.save()
+        should_crawl, url_depth = Document._should_crawl(url_policy, parent_depth, url)
+        if not should_crawl:
+            return None
+
+        doc, _ = Document.objects.get_or_create(url=url, defaults={'crawl_depth': url_depth})
         return doc
 
     def _schedule_next(self, changed):
@@ -634,6 +662,7 @@ class UrlPolicy(models.Model):
     recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
     recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
     recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=50 * 24 * 365)
+    crawl_depth = models.PositiveIntegerField(null=True, blank=True)
 
     store_links = models.BooleanField(default=True)
     hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS)

@@ -705,12 +705,13 @@ class UrlPolicy(models.Model):
         if page.got_redirect:
             # The request was redirected, check if we need auth
             try:
-                #raise Exception('%s\n%s\n%s' % (self.auth_login_url_re, page.url, self.auth_form_selector))
+                print('may auth %s / %s' % (page.url, self.auth_login_url_re))
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
                         re.search(self.auth_login_url_re, page.url) :
                     print('doing auth on %s' % url)
                     new_page = page.browser.try_auth(page, url, self)
+                    new_page.got_redirect = True
 
                     if new_page:
                         page = new_page

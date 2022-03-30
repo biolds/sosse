@@ -12,6 +12,7 @@ from time import sleep
 from traceback import format_exc
 from urllib.parse import urlparse
 
+from bs4 import Doctype
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
@@ -163,30 +164,37 @@ class Document(models.Model):
         stats['prev'] = n
 
     def _dom_walk(self, elem, url_policy, links):
+        if isinstance(elem, Doctype):
+            return
+
         if elem.name in ('[document]', 'title', 'script', 'style'):
             return
 
-        s = str(getattr(elem, 'string', '')).strip(' \t\n\r')
-        if not s:
-            return
+        s = getattr(elem, 'string', None)
+        if s is not None:
+            s = s.strip(' \t\n\r')
 
-        if elem.name in (None, 'a') and getattr(elem, 'string', None):
-            if s:
-                if elem.name == 'a' and url_policy.store_links:
-                    href = elem.get('href').strip()
-                    if href:
-                        href = absolutize_url(self.url, href)
-                        target = Document.queue(href, self.crawl_depth)
-                        if target:
-                            links['links'].append(Link(doc_from=self,
-                                              link_no=len(links['links']),
-                                              doc_to=target,
-                                              text=s,
-                                              pos=len(links['text'])))
+        if elem.name in (None, 'a') and s:
+            #print('%s / %s' % (elem.name, s))
+            if links['text']:
+                links['text'] += '\n'
 
-                if links['text']:
-                    links['text'] += '\n'
-                links['text'] += s
+            if elem.name == 'a' and url_policy.store_links:
+                href = elem.get('href').strip()
+                if href:
+                    href = absolutize_url(self.url, href)
+                    target = Document.queue(href, self.crawl_depth)
+                    if target:
+                        links['links'].append(Link(doc_from=self,
+                                          link_no=len(links['links']),
+                                          doc_to=target,
+                                          text=s,
+                                          pos=len(links['text'])))
+
+            links['text'] += s
+
+            if elem.name == 'a':
+                return
 
         if hasattr(elem, 'children'):
             for child in elem.children:
@@ -206,7 +214,6 @@ class Document(models.Model):
             return
 
         self.content_hash = content_hash
-
         self._index_log('queuing links', stats, verbose)
 
         self.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
@@ -216,15 +223,13 @@ class Document(models.Model):
         self.normalized_title = remove_accent(self.title)
         self._index_log('get soup', stats, verbose)
 
-        text = ''
-
         links = {
             'links': [],
-            'pos': 0,
             'text': ''
         }
         for elem in parsed.children:
             self._dom_walk(elem, url_policy, links)
+        text = links['text']
 
         self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
 
@@ -234,7 +239,7 @@ class Document(models.Model):
             Link.objects.bulk_create(links['links'])
             self._index_log('bulk', stats, verbose)
 
-        self.content = links['text']
+        self.content = text
         self.normalized_content = remove_accent(text)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
         self._index_log('remove accent', stats, verbose)

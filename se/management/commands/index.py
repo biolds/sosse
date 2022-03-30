@@ -26,6 +26,7 @@ class Command(BaseCommand):
 
             if page.url == doc.url:
                 doc.index(page, url_policy, verbose=True, force=True)
+                doc.save()
             else:
                 pint('Got redirect')
             print('Duration %s' % (now() - n))

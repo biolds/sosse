@@ -152,6 +152,8 @@ def search(request):
 
     myse_langdetect_to_postgres = OrderedDict()
     for key, val in sorted(settings.MYSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
+        if not Document.objects.filter(lang_iso_639_1=key).exists():
+            continue
         myse_langdetect_to_postgres[key] = val
 
     context = get_context({

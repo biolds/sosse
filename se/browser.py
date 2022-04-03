@@ -75,7 +75,7 @@ class RequestBrowser(Browser):
         return page
 
     @classmethod
-    def get(cls, url, raw=False):
+    def get(cls, url, raw=False, check_status=False):
         from .models import absolutize_url, UrlPolicy
         got_redirect = False
         page = None
@@ -86,6 +86,8 @@ class RequestBrowser(Browser):
 
             cookies = UrlPolicy.get_cookies(url)
             r = requests.get(url, cookies=cookies)
+            if check_status:
+                r.raise_for_status()
 
             if len(r.history):
                 did_redirect = True

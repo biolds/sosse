@@ -564,7 +564,7 @@ class FavIcon(models.Model):
     url = models.TextField(unique=True)
     content = models.BinaryField(null=True, blank=True)
     mimetype = models.CharField(max_length=64, null=True, blank=True)
-    missing = models.BooleanField(default=False)
+    missing = models.BooleanField(default=True)
 
     @classmethod
     def extract(cls, doc, page):
@@ -581,8 +581,6 @@ class FavIcon(models.Model):
         if not created:
             return
 
-        favicon.missing = True
-
         try:
             if url.startswith('data:'):
                 data = url.split(':', 1)[1]
@@ -595,7 +593,7 @@ class FavIcon(models.Model):
                 favicon.content = data
                 favicon.save()
             else:
-                page = RequestBrowser.get(url, raw=True)
+                page = RequestBrowser.get(url, raw=True, check_status=True)
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)
                 favicon.content = page.content
                 favicon.save()

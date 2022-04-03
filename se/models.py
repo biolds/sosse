@@ -664,7 +664,7 @@ class UrlPolicy(models.Model):
     default_browse_mode = models.CharField(max_length=10, choices=MODE, default=DETECT)
     recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
     recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
-    recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=50 * 24 * 365)
+    recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=60 * 24 * 365)
     crawl_depth = models.PositiveIntegerField(null=True, blank=True)
 
     store_links = models.BooleanField(default=True)

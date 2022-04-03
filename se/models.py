@@ -625,7 +625,7 @@ class FavIcon(models.Model):
         return links[0].get('href')
 
 
-class DomainBrowseMode(models.Model):
+class DomainSetting(models.Model):
     SELENIUM = 'selenium'
     REQUESTS = 'requests'
     MODE = [
@@ -642,7 +642,7 @@ class DomainBrowseMode(models.Model):
 
 class UrlPolicy(models.Model):
     DETECT = 'detect'
-    MODE = [(DETECT, 'Detect')] + DomainBrowseMode.MODE
+    MODE = [(DETECT, 'Detect')] + DomainSetting.MODE
 
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
@@ -690,17 +690,17 @@ class UrlPolicy(models.Model):
         domain = urlparse(url).netloc
         dom_browse_mode = None
         try:
-            dom_browse_mode = DomainBrowseMode.objects.get(domain=domain)
-            if dom_browse_mode.browse_mode == DomainBrowseMode.SELENIUM:
+            dom_browse_mode = DomainSetting.objects.get(domain=domain)
+            if dom_browse_mode.browse_mode == DomainSetting.SELENIUM:
                 browser = SeleniumBrowser
-            elif dom_browse_mode.browse_mode == DomainBrowseMode.REQUESTS:
+            elif dom_browse_mode.browse_mode == DomainSetting.REQUESTS:
                 browser = RequestBrowser
             else:
                 raise Exception('Unsupported browse_mode')
-        except DomainBrowseMode.DoesNotExist:
-            if self.default_browse_mode == DomainBrowseMode.REQUESTS:
+        except DomainSetting.DoesNotExist:
+            if self.default_browse_mode == DomainSetting.REQUESTS:
                 browser = RequestBrowser
-            elif self.default_browse_mode in (DomainBrowseMode.SELENIUM, UrlPolicy.DETECT):
+            elif self.default_browse_mode in (DomainSetting.SELENIUM, UrlPolicy.DETECT):
                 browser = SeleniumBrowser
             else:
                 raise Exception('Unsupported default_browse_mode')
@@ -728,12 +728,12 @@ class UrlPolicy(models.Model):
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links())) != len(list(page.get_links())):
-                new_mode = DomainBrowseMode.SELENIUM
+                new_mode = DomainSetting.SELENIUM
             else:
-                new_mode = DomainBrowseMode.REQUESTS
+                new_mode = DomainSetting.REQUESTS
                 page = requests_page
             print('browser detected %s on %s' % (new_mode, url))
-            DomainBrowseMode.objects.get_or_create(url_policy=self,
+            DomainSetting.objects.get_or_create(url_policy=self,
                                                    browse_mode=new_mode,
                                                    domain=domain)
 

@@ -6,10 +6,10 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.template import defaultfilters
 
-from .models import AuthField, Document, DomainBrowseMode, FavIcon, UrlPolicy, SearchEngine
+from .models import AuthField, Document, DomainSetting, FavIcon, UrlPolicy, SearchEngine
 
 admin.site.enable_nav_sidebar = False
-admin.site.register(DomainBrowseMode)
+admin.site.register(DomainSetting)
 
 @admin.register(FavIcon)
 class FavIconAdmin(admin.ModelAdmin):

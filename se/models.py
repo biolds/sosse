@@ -182,8 +182,9 @@ class Document(models.Model):
                 links['text'] += '\n'
 
             if elem.name == 'a' and url_policy.store_links:
-                href = elem.get('href').strip()
+                href = elem.get('href')
                 if href:
+                    href = href.strip()
                     href = absolutize_url(self.url, href)
                     target = Document.queue(href, self.crawl_depth)
                     if target:

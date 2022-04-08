@@ -94,6 +94,7 @@ class Document(models.Model):
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
+    robotstxt_rejected = models.BooleanField(default=False)
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
@@ -161,6 +162,7 @@ class Document(models.Model):
         if not verbose:
             return
         n = now()
+        print('%s %s' % (n - stats['prev'], s))
         stats['prev'] = n
 
     def _dom_walk(self, elem, url_policy, links):
@@ -333,7 +335,22 @@ class Document(models.Model):
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
                     url_policy = UrlPolicy.get_from_url(doc.url)
-                    page = url_policy.url_get(doc.url)
+                    domain = urlparse(doc.url).netloc
+                    domain_setting, _ = DomainSetting.objects.get_or_create(url_policy=url_policy,
+                                                                            domain=domain,
+                                                                            defaults={'browse_mode': url_policy.default_browse_mode})
+                    if not domain_setting.robots_authorized(doc.url):
+                        print('%s rejected by robots.txt' % doc.url)
+                        doc.robotstxt_rejected = True
+                        n = now()
+                        doc.crawl_last = n
+                        if not doc.crawl_first:
+                            doc.crawl_first = n
+                        doc.crawl_next = None
+                        doc.crawl_dt = None
+                        break
+
+                    page = url_policy.url_get(domain_setting, doc.url)
 
                     if page.url == doc.url:
                         doc.index(page, url_policy)
@@ -624,23 +641,166 @@ class FavIcon(models.Model):
 
 
 class DomainSetting(models.Model):
-    SELENIUM = 'selenium'
-    REQUESTS = 'requests'
-    MODE = [
-        (SELENIUM, 'Selenium'),
-        (REQUESTS, 'Requests'),
+    BROWSE_DETECT = 'detect'
+    BROWSE_SELENIUM = 'selenium'
+    BROWSE_REQUESTS = 'requests'
+    BROWSE_MODE = [
+        (BROWSE_DETECT, 'Detect'),
+        (BROWSE_SELENIUM, 'Selenium'),
+        (BROWSE_REQUESTS, 'Requests'),
     ]
 
+    ROBOTS_UNKNOWN = 'unknown'
+    ROBOTS_EMPTY = 'empty'
+    ROBOTS_LOADED = 'loaded'
+    ROBOTS_IGNORE = 'ignore'
+
+    ROBOTS_STATUS = [
+        (ROBOTS_UNKNOWN, 'Unknown'),
+        (ROBOTS_EMPTY, 'Empty'),
+        (ROBOTS_LOADED, 'Loaded'),
+        (ROBOTS_IGNORE, 'Ignore')
+    ]
+
+    ROBOTS_TXT_USER_AGENT = 'user-agent'
+    ROBOTS_TXT_ALLOW = 'allow'
+    ROBOTS_TXT_DISALLOW = 'disallow'
+    ROBOTS_TXT_KEYS = (ROBOTS_TXT_USER_AGENT, ROBOTS_TXT_ALLOW, ROBOTS_TXT_DISALLOW)
+
+    UA_HASH = None
+
     url_policy = models.ForeignKey('UrlPolicy', on_delete=models.CASCADE)
-    browse_mode = models.CharField(max_length=10, choices=MODE)
+    browse_mode = models.CharField(max_length=10, choices=BROWSE_MODE, default=BROWSE_DETECT)
     domain = models.TextField()
+
+    robots_status = models.CharField(max_length=10, choices=ROBOTS_STATUS, default=ROBOTS_UNKNOWN)
+    robots_ua_hash = models.CharField(max_length=32, default='', blank=True)
+    robots_allow = models.TextField(default='', blank=True)
+    robots_disallow = models.TextField(default='', blank=True)
 
     def __str__(self):
         return '%s %s' % (self.domain, self.browse_mode)
 
+    @classmethod
+    def ua_hash(cls):
+        if cls.UA_HASH is None:
+            if settings.USER_AGENT is not None:
+                cls.UA_HASH = md5(settings.USER_AGENT.encode('ascii')).hexdigest()
+        return cls.UA_HASH
+
+    def _parse_line(self, line):
+        if '#' in line:
+            line, _ = line.split('#', 1)
+
+        if ':' not in line:
+            return None, None
+
+        key, val = line.split(':', 1)
+        key = key.strip().lower()
+        val = val.strip()
+
+        # https://github.com/google/robotstxt/blob/02bc6cdfa32db50d42563180c42aeb47042b4f0c/robots.cc#L690
+        if key in ('dissallow', 'dissalow', 'disalow', 'diasllow', 'disallaw'):
+            key = self.ROBOTS_TXT_DISALLOW
+
+        if key in ('user_agent', 'user agent', 'useragent'):
+            key = self.ROBOTS_TXT_USER_AGENT
+
+        if key not in self.ROBOTS_TXT_KEYS:
+            return None, None
+
+        return key, val
+
+    def _ua_matches(self, val):
+        return val.lower() in settings.USER_AGENT.lower()
+
+    def _parse_robotstxt(self, content):
+        ua_rules = []
+        generic_rules = []
+        current_rules = None
+
+        for line in content.splitlines():
+            key, val = self._parse_line(line)
+
+            if key is None:
+                continue
+
+            if key == self.ROBOTS_TXT_USER_AGENT:
+                if self._ua_matches(val):
+                    print('matching UA %s' % val)
+                    current_rules = ua_rules
+                elif val == '*':
+                    print('global UA')
+                    current_rules = generic_rules
+                else:
+                    current_rules = None
+                continue
+
+            if current_rules is None:
+                continue
+
+            val = re.escape(val)
+            val = val.replace(r'\*', '.*')
+            if val.endswith(r'\$'):
+                val = val[:-2] + '$'
+
+            print('adding %s' % repr((key, val)))
+            current_rules.append((key, val))
+
+        if ua_rules:
+            rules = ua_rules
+        elif generic_rules:
+            rules = generic_rules
+        else:
+            rules = []
+
+        self.robots_allow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_ALLOW])
+        self.robots_disallow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
+        self.robots_ua_hash = self.ua_hash()
+
+    def _load_robotstxt(self):
+        print('loading robots txt')
+        try:
+            page = RequestBrowser.get('http://%s/robots.txt' % self.domain, check_status=True)
+            self._parse_robotstxt(page.content)
+        except requests.HTTPError:
+            self.robots_status = DomainSetting.ROBOTS_EMPTY
+            print('http errror')
+            return
+
+        self.robots_status = DomainSetting.ROBOTS_LOADED
+        print('status %s' % DomainSetting.ROBOTS_LOADED)
+
+    def robots_authorized(self, url):
+        if self.robots_status == DomainSetting.ROBOTS_IGNORE:
+            return True
+
+        if self.robots_status == DomainSetting.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:
+            self._load_robotstxt()
+            self.save()
+
+        if self.robots_status == DomainSetting.ROBOTS_EMPTY:
+            return True
+
+        url = urlparse(url).path
+
+        disallow_length = None
+        for pattern in self.robots_disallow.split('\n'):
+            if re.match(pattern, url):
+               disallow_length = max(disallow_length or 0, len(pattern))
+
+        if disallow_length is None:
+            return True
+
+        for pattern in self.robots_allow.split('\n'):
+            if re.match(pattern, url):
+               if len(pattern) > disallow_length:
+                    return True
+
+        return False
+
+
 class UrlPolicy(models.Model):
-    DETECT = 'detect'
-    MODE = [(DETECT, 'Detect')] + DomainSetting.MODE
 
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
@@ -661,7 +821,7 @@ class UrlPolicy(models.Model):
     url_prefix = models.TextField(unique=True)
     no_crawl = models.BooleanField(default=False)
 
-    default_browse_mode = models.CharField(max_length=10, choices=MODE, default=DETECT)
+    default_browse_mode = models.CharField(max_length=10, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT)
     recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
     recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
     recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=60 * 24 * 365)
@@ -684,24 +844,13 @@ class UrlPolicy(models.Model):
             url_prefix_len=models.functions.Length('url_prefix')
         ).order_by('-url_prefix_len').first()
 
-    def url_get(self, url):
-        domain = urlparse(url).netloc
-        dom_browse_mode = None
-        try:
-            dom_browse_mode = DomainSetting.objects.get(domain=domain)
-            if dom_browse_mode.browse_mode == DomainSetting.SELENIUM:
-                browser = SeleniumBrowser
-            elif dom_browse_mode.browse_mode == DomainSetting.REQUESTS:
-                browser = RequestBrowser
-            else:
-                raise Exception('Unsupported browse_mode')
-        except DomainSetting.DoesNotExist:
-            if self.default_browse_mode == DomainSetting.REQUESTS:
-                browser = RequestBrowser
-            elif self.default_browse_mode in (DomainSetting.SELENIUM, UrlPolicy.DETECT):
-                browser = SeleniumBrowser
-            else:
-                raise Exception('Unsupported default_browse_mode')
+    def url_get(self, domain_setting, url):
+        if domain_setting.browse_mode in (DomainSetting.BROWSE_DETECT, DomainSetting.BROWSE_SELENIUM):
+            browser = SeleniumBrowser
+        elif domain_setting.browse_mode == DomainSetting.BROWSE_REQUESTS:
+            browser = RequestBrowser
+        else:
+            raise Exception('Unsupported browse_mode')
 
         page = browser.get(url)
 
@@ -721,20 +870,18 @@ class UrlPolicy(models.Model):
             except:
                 raise Exception('Authentication failed')
 
-        if dom_browse_mode is None and self.default_browse_mode == UrlPolicy.DETECT:
+        if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
             print('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links())) != len(list(page.get_links())):
-                new_mode = DomainSetting.SELENIUM
+                new_mode = DomainSetting.BROWSE_SELENIUM
             else:
-                new_mode = DomainSetting.REQUESTS
+                new_mode = DomainSetting.BROWSE_REQUESTS
                 page = requests_page
             print('browser detected %s on %s' % (new_mode, url))
-            DomainSetting.objects.get_or_create(url_policy=self,
-                                                   browse_mode=new_mode,
-                                                   domain=domain)
-
+            domain_setting.browse_mode = new_mode
+            domain_setting.save()
         return page
 
     @staticmethod

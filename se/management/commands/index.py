@@ -1,8 +1,10 @@
+from urllib.parse import urlparse
+
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
 
 from ...browser import Browser
-from ...models import Document, UrlPolicy
+from ...models import Document, DomainSetting, UrlPolicy
 
 
 class Command(BaseCommand):
@@ -22,7 +24,11 @@ class Command(BaseCommand):
             n = now()
             doc = Document.pick_or_create(url, 999999)
             url_policy = UrlPolicy.get_from_url(doc.url)
-            page = url_policy.url_get(doc.url)
+            domain = urlparse(doc.url).netloc
+            domain_setting, _ = DomainSetting.objects.get_or_create(url_policy=url_policy,
+                                                                    domain=domain,
+                                                                    defaults={'browse_mode': url_policy.default_browse_mode})
+            page = url_policy.url_get(domain_setting, doc.url)
 
             if page.url == doc.url:
                 doc.index(page, url_policy, verbose=True, force=True)

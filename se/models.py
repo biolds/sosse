@@ -178,8 +178,8 @@ class Document(models.Model):
 
         if elem.name in (None, 'a') and s:
             #print('%s / %s' % (elem.name, s))
-            if links['text']:
-                links['text'] += '\n'
+            if links['text'] and links['text'][-1] not in (' ', '\n'):
+                links['text'] += ' '
 
             if elem.name == 'a' and url_policy.store_links:
                 href = elem.get('href')
@@ -202,6 +202,13 @@ class Document(models.Model):
         if hasattr(elem, 'children'):
             for child in elem.children:
                 self._dom_walk(child, url_policy, links)
+
+        if elem.name in ('div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
+            if links['text']:
+                if links['text'][-1] == ' ':
+                    links['text'] = links['text'][:-1] + '\n'
+                elif links['text'][-1] != '\n':
+                    links['text'] += '\n'
 
     def index(self, page, url_policy, verbose=False, force=False):
         n = now()
@@ -745,7 +752,6 @@ class DomainSetting(models.Model):
             if val.endswith(r'\$'):
                 val = val[:-2] + '$'
 
-            print('adding %s' % repr((key, val)))
             current_rules.append((key, val))
 
         if ua_rules:

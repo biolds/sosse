@@ -15,7 +15,7 @@ let adv_search_lines = 0;
 
 function search_more() {
     const more_link = document.getElementById('more');
-    more_link.innerText = '- less';
+    more_link.innerText = '⮝ less';
     more_link.setAttribute('onclick', 'search_less()');
     const q = document.getElementById('id_q');
     q.removeAttribute('required');
@@ -31,7 +31,7 @@ function search_more() {
 
 function search_less() {
     const more_link = document.getElementById('more');
-    more_link.innerText = '+ more';
+    more_link.innerText = '⮟ advanced';
     more_link.setAttribute('onclick', 'search_more()');
     const q = document.getElementById('id_q');
     q.setAttribute('required' ,'');
@@ -43,6 +43,26 @@ function search_less() {
 
 }
 
+function update_adv_padding() {
+    const adv_search = document.getElementById('adv_search');
+    const len = adv_search.children.length;
+    for (let i = 1; i < len; i++) {
+        const child = adv_search.children[i];
+        if (len === 2 && i === 1) {
+            child.style['margin-left'] = '43px';
+        } else if (len > 2 && i === 1) {
+            child.style['margin-left'] = '86px';
+        } else if (len > 2 && i < adv_search.children.length - 1) {
+            child.style['margin-left'] = '43px';
+        }
+    }
+    const lang = adv_search.children[0];
+    lang.style['margin-left'] = '86px';
+    if (len > 2) {
+        adv_search.children[len - 1].style['margin-left'] = null;
+    }
+}
+
 function add_new_adv_search() {
     adv_search_lines++;
 
@@ -52,7 +72,6 @@ function add_new_adv_search() {
     new_adv_search = document.createElement('div');
     new_adv_search.setAttribute('id', 'adv_search' + adv_search_lines);
     new_adv_search.innerHTML = template.innerHTML;
-    new_adv_search.className = 'adv_search';
     for (let i = 0; i < new_adv_search.children.length; i++) {
         const child = new_adv_search.children[i];
         if (['INPUT', 'SELECT'].indexOf(child.tagName) === -1) {
@@ -93,6 +112,7 @@ function add_new_adv_search() {
     }
 
     adv_search.appendChild(new_adv_search);
+    update_adv_padding();
 }
 
 function del_adv_search(no) {
@@ -111,6 +131,7 @@ function del_adv_search(no) {
         }
     }
     to_del.remove()
+    update_adv_padding();
 }
 
 function load_adv_search() {

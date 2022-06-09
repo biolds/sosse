@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,20 +12,39 @@
     {% endblock %}
 
     <style>
-        {% if settings.DARK_MODE %}
-        body {
-            background: #111;
-        }
-        {% endif %}
-
         #menu {
-            float: right;
+            position: absolute;
+            right: 8px;
+            width: 80px;
+        }
+        #logo {
+            background-color: #e7f0ff;
+            padding: 5%;
+            border-radius: 5%;
+            border-width: 1px;
+            width: 50%;
+        }
+        #logo:hover {
+            background-color: #eee;
+        }
+        #menu_panel {
+            padding: 5%;
+            border-color: #cfcbcb;
+            border-style: solid;
+            border-radius: 5%;
+            border-width: 1px;
+            background-color: #fff;
+            display: none;
         }
         .links {
             display: block;
-            text-align: right;
+            text-align: center;
             font-size: 13px;
             text-decoration: none;
+            color: #000;
+        }
+        .links:hover {
+            background-color: #e7f0ff;
         }
         {% block css %}
         {% endblock %}
@@ -39,6 +59,20 @@
           }
         }
 
+        function showMenu(display) {
+          const menu = document.getElementById('menu_panel');
+          menu.style.display = display ? 'block' : 'none';
+        }
+
+        function menuIsDisplayed() {
+          const menu = document.getElementById('menu_panel');
+          return menu.style.display === 'block';
+        }
+        function toggleMenu() {
+          const displayed = menuIsDisplayed();
+          showMenu(!displayed);
+        }
+
         function getPageSize() {
           if (localStorage.getItem('mysePageSize')) {
             return parseInt(localStorage.getItem('mysePageSize'));
@@ -46,16 +80,41 @@
             return {{ settings.MYSE_DEFAULT_PAGE_SIZE }};
           }
         }
+
+        // when document is ready
+        // https://stackoverflow.com/questions/799981/document-ready-equivalent-without-jquery
+        document.addEventListener("DOMContentLoaded", function(event) {
+          // https://www.w3docs.com/snippets/javascript/how-to-detect-a-click-outside-an-element.html
+          document.addEventListener("click", (evt) => {
+            if (!menuIsDisplayed()) {
+              return;
+            }
+            const menuButton = document.getElementById('menu_button');
+            let targetEl = evt.target;
+            do {
+              if(targetEl === menuButton) {
+                return;
+              }
+              targetEl = targetEl.parentNode;
+            } while (targetEl);
+            showMenu(false);
+          });
+        });
         {% block js %}
         {% endblock %}
     </script>
 </head>
 <body>
     <div id="menu">
-        <a href="/" class="links">Home</a>
-        <a href="/prefs/" class="links">Prefs</a>
-        <a href="/stats/" class="links">Stats</a>
-        <a href="/admin/" class="links">Admin</a>
+        <div id="menu_button" style="text-align: right" onclick="toggleMenu()">
+            <img id="logo" src="{% static "se/logo.svg" %}">
+        </div>
+        <div id="menu_panel">
+            <a href="/" class="links">Home</a>
+            <a href="/prefs/" class="links">Prefs</a>
+            <a href="/stats/" class="links">Stats</a>
+            <a href="/admin/" class="links">Admin</a>
+        </div>
     </div>
 
     {% block body %}

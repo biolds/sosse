@@ -10,6 +10,23 @@
         text-align: center;
         padding: 10px;
     }
+    input,select {
+        background-color: #e7f0ff;
+        border-style: solid;
+        border-width: 0px 0px 1px 0px;
+        border-color: #e7f0ff;
+        padding: 10px;
+        margin: 2px 0px 2px 0px;
+    }
+    input:focus,select:focus {
+        outline: 0px;
+        border-style: solid;
+        border-bottom-width: 1px;
+        border-color: #6066bf;
+    }
+    input:hover,select:hover {
+        background-color: #eee;
+    }
     .res-head {
         padding-top: 10px;
     }
@@ -36,16 +53,13 @@
     }
 
     #more {
+        color: #000;
         text-decoration: none;
         font-size: 13px;
     }
 
     #adv_search {
         padding-top: 20px;
-    }
-
-    .adv_search {
-        padding-bottom: 5px;
     }
 
     #word_stats {
@@ -57,22 +71,28 @@
         border-left-style: solid;
         border-color: black;
     }
+    .dyn_button {
+        width: 38px;
+        text-align: center;
+    }
 {% endblock %}
 
 {% block body %}
-    <form method="get" class="search-form" id="search_form">
-        {% for field in form.hidden_fields %}
-            {{ field }}
-        {% endfor %}
+    <form method="get" id="search_form">
+        <div class="search-form">
+            {% for field in form.hidden_fields %}
+                {{ field }}
+            {% endfor %}
 
-        {% for field in form.visible_fields %}
-            {# {{ field.label }} #}{{ field }}
-        {% endfor %}
-        <input type="submit" value="🔎" onclick="return on_submit()">
-        <div id="more_div">
-            <a id="more" href="#" onclick="search_more()">+ more</a>
+            {% for field in form.visible_fields %}
+                {# {{ field.label }} #}{{ field }}
+            {% endfor %}
+            <input type="submit" value="🔎" onclick="return on_submit()">
+            <div id="more_div">
+                <a id="more" href="#" onclick="search_more()">⮟ advanced</a>
+            </div>
         </div>
-    
+
         <template id="adv_search_tmpl">
             <input class="dyn_button" type="button" value="+">
             <input class="dyn_button" type="button" value="-">

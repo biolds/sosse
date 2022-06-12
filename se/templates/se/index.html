@@ -6,12 +6,25 @@
 {% endblock %}
 
 {% block css %}
+    #search_form {
+        border-style: solid;
+        border-width: 0px 0px 1px 0px;
+        border-color: #e7f0ff;
+        margin: 0px -8px 25px -8px;
+        padding-bottom: 25px;
+        box-shadow: 0px 5px 5px 0px #e3e5f6;
+    }
     .search-form {
         text-align: center;
         padding: 10px;
     }
-    .res-head {
-        padding-top: 10px;
+    .res {
+        margin: 6px 0px 6px 0px;
+        padding: 10px 10px 10px 10px;
+        border-radius: 10px;
+    }
+    .res:hover {
+        background-color: #f4f4f4;
     }
     .res-img {
         height: 16px;
@@ -30,6 +43,10 @@
     .res-rank {
         font-size: 10px;
         display: inline;
+    }
+    .res-headline {
+        text-decoration: none;
+        color: #000;
     }
     .pagination {
         padding: 20px 0px 20px 0px;
@@ -110,10 +127,8 @@
     </form>
 
     {% if results %}
-        <hr/>
         {{ results|length }} result{{ results|pluralize:"s" }}
         <button style="float: right" onclick="return show_word_stats()">📊</button>
-        <br/>
         <div id="word_stats" style="display: none">
             <div style="text-align: center">Word stats</div>
             <table id="word_stats_table">
@@ -124,23 +139,25 @@
             </table>
         </div>
         {% for r in paginated %}
-            <div class="res-head">
-                {% if r.favicon and not r.favicon.missing %}
-                    <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
-                {% endif %}
-                <a href="{{ r.url }}">
-                    <h3 class="res-title">{{ r.title }}</h3>
+            <div class="res">
+                <div>
+                    {% if r.favicon and not r.favicon.missing %}
+                        <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
+                    {% endif %}
+                    <a href="{{ r.url }}">
+                        <h3 class="res-title">{{ r.title }}</h3>
+                    </a>
+                </div>
+                <a href="{{ r.url }}" class="res-url">
+                    {{ r.url }}
                 </a>
+                <div class="res-rank">/ {{ r.rank|floatformat:"1" }}</div>
+                <div class="res-rank">{{ r.lang_iso_639_1 }}</div>
+                <div class="res-rank">{{ r.id }}</div>
+                <div class="res-rank"><a href="{% url 'www' r.url %}">cached</a></div>
+                <br/>
+                <a href="{{ r.url }}" class="res-headline">{{ r.headline }}</a>
             </div>
-            <a href="{{ r.url }}" class="res-url">
-                {{ r.url }}
-            </a>
-            <div class="res-rank">/ {{ r.rank|floatformat:"1" }}</div>
-            <div class="res-rank">{{ r.lang_iso_639_1 }}</div>
-            <div class="res-rank">{{ r.id }}</div>
-            <div class="res-rank"><a href="{% url 'www' r.url %}">cached</a></div>
-            <br/>
-            <div class="headline">{{ r.headline }}</div>
         {% endfor %}
 
         <div class="pagination">

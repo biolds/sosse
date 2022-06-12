@@ -11,41 +11,8 @@
     {% block head %}
     {% endblock %}
 
+    <link rel="stylesheet" href="{% static "se/style.css" %}">
     <style>
-        #menu {
-            position: absolute;
-            right: 8px;
-            width: 80px;
-        }
-        #logo {
-            background-color: #e7f0ff;
-            padding: 5%;
-            border-radius: 5%;
-            border-width: 1px;
-            width: 50%;
-        }
-        #logo:hover {
-            background-color: #eee;
-        }
-        #menu_panel {
-            padding: 5%;
-            border-color: #cfcbcb;
-            border-style: solid;
-            border-radius: 5%;
-            border-width: 1px;
-            background-color: #fff;
-            display: none;
-        }
-        .links {
-            display: block;
-            text-align: center;
-            font-size: 13px;
-            text-decoration: none;
-            color: #000;
-        }
-        .links:hover {
-            background-color: #e7f0ff;
-        }
         {% block css %}
         {% endblock %}
     </style>

@@ -67,9 +67,31 @@
         text-align: left;
         overflow-y: scroll;
         height: 300px;
-        border-left-width: 1px;
-        border-left-style: solid;
-        border-color: black;
+        width: 250px;
+    }
+    #word_stats_list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+    .word_stats_txt {
+        float: left;
+        width: 50%;
+        margin-right: -8px;
+        padding: 2px 0px 2px 8px;
+    }
+    .links:hover .word_stats_txt {
+        background-color: #e7f0ff;
+    }
+    .word_stats_count {
+        float: right;
+        width: 50%;
+        text-align: right;
+        margin-left: -8px;
+        padding: 2px 8px 2px 0px;
+    }
+    .links:hover .word_stats_count {
+        background-color: #e7f0ff;
     }
     .dyn_button {
         width: 38px;
@@ -129,14 +151,13 @@
     {% if results %}
         {{ results|length }} result{{ results|pluralize:"s" }}
         <button style="float: right" onclick="return show_word_stats()">📊</button>
-        <div id="word_stats" style="display: none">
-            <div style="text-align: center">Word stats</div>
-            <table id="word_stats_table">
-                <tr>
-                    <th>Word</th>
-                    <th>Docs</th>
-                </tr>
-            </table>
+        <div id="word_stats" class="panel">
+            <ul id="word_stats_list">
+                <li>
+                    <div class="word_stats_txt">Word</div>
+                    <div class="word_stats_count">Count</div>
+                </li>
+            </ul>
         </div>
         {% for r in paginated %}
             <div class="res">

@@ -220,7 +220,7 @@ let word_stats_loaded = false;
 function show_word_stats() {
     const word_stats = document.getElementById('word_stats');
     if (!word_stats_displayed) {
-        word_stats.removeAttribute('style');
+        word_stats.style.display = 'block';
 
         if (!word_stats_loaded) {
             // https://stackoverflow.com/questions/247483/http-get-request-in-javascript
@@ -237,29 +237,30 @@ function show_word_stats() {
             xmlHttp.send(null);
         }
     } else {
-        word_stats.style = 'display: none';
+        word_stats.style.display = 'none';
     }
     word_stats_displayed = !word_stats_displayed;
 }
 
 function do_show_word_stats(data) {
-    const table = document.getElementById('word_stats_table');
+    const table = document.getElementById('word_stats_list');
     data.forEach(function (e) {
-        const line = document.createElement('tr');
+        const line = document.createElement('li');
         table.appendChild(line);
 
-        const word = document.createElement('td');
-        line.appendChild(word)
         const word_a = document.createElement('a');
-        word.appendChild(word_a)
-        word_a.innerText = e[0];
+        word_a.className = 'links';
         word_a.setAttribute('href', e[2]);
+        line.appendChild(word_a)
 
-        const count = document.createElement('td');
-        line.appendChild(count)
-        const count_a = document.createElement('a');
-        count.appendChild(count_a)
-        count_a.innerText = e[1];
-        count_a.setAttribute('href', e[2]);
+        const word_txt = document.createElement('div');
+        word_txt.className = 'word_stats_txt';
+        word_txt.innerText = e[0];
+        word_a.appendChild(word_txt);
+
+        const word_count = document.createElement('div');
+        word_count.className = 'word_stats_count';
+        word_count.innerText = e[1];
+        word_a.appendChild(word_count);
     });
 }

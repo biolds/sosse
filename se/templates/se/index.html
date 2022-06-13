@@ -97,6 +97,25 @@
         width: 38px;
         text-align: center;
     }
+    #search_button {
+        background-image: url('{% static "se/icon-search.svg" %}');
+        background-size: 15px 15px;
+        background-repeat:  no-repeat;
+        background-position: center;
+        width: 37px;
+        height: 37px;
+        margin-bottom: 7px;
+    }
+    #stats_button {
+        background-image: url('{% static "se/icon-stats.svg" %}');
+        background-size: 15px 15px;
+        background-repeat:  no-repeat;
+        background-position: center;
+        width: 37px;
+        height: 37px;
+        margin-bottom: 7px;
+        float: right;
+    }
 {% endblock %}
 
 {% block body %}
@@ -109,7 +128,7 @@
             {% for field in form.visible_fields %}
                 {# {{ field.label }} #}{{ field }}
             {% endfor %}
-            <input type="submit" value="🔎" onclick="return on_submit()">
+            <input id="search_button" type="submit" value="" onclick="return on_submit()">
             <div id="more_div">
                 <a id="more" href="#" onclick="search_more()">⮟ advanced</a>
             </div>
@@ -149,8 +168,10 @@
     </form>
 
     {% if results %}
-        {{ results|length }} result{{ results|pluralize:"s" }}
-        <button style="float: right" onclick="return show_word_stats()">📊</button>
+        <div>
+            {{ results|length }} result{{ results|pluralize:"s" }}
+            <button id="stats_button" onclick="return show_word_stats()"></button>
+        </div>
         <div id="word_stats" class="panel">
             <ul id="word_stats_list">
                 <li>

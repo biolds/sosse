@@ -61,7 +61,11 @@
     #adv_search {
         padding-top: 20px;
     }
-
+    #stats_menu {
+        top: 135px;
+        right: 8px;
+        width: 160px;
+    }
     #word_stats {
         float: right;
         text-align: left;
@@ -99,22 +103,9 @@
     }
     #search_button {
         background-image: url('{% static "se/icon-search.svg" %}');
-        background-size: 15px 15px;
-        background-repeat:  no-repeat;
-        background-position: center;
-        width: 37px;
-        height: 37px;
-        margin-bottom: 7px;
     }
     #stats_button {
         background-image: url('{% static "se/icon-stats.svg" %}');
-        background-size: 15px 15px;
-        background-repeat:  no-repeat;
-        background-position: center;
-        width: 37px;
-        height: 37px;
-        margin-bottom: 7px;
-        float: right;
     }
 {% endblock %}
 
@@ -128,7 +119,7 @@
             {% for field in form.visible_fields %}
                 {# {{ field.label }} #}{{ field }}
             {% endfor %}
-            <input id="search_button" type="submit" value="" onclick="return on_submit()">
+            <input id="search_button" class="img_button" type="submit" value=" " onclick="return on_submit()">
             <div id="more_div">
                 <a id="more" href="#" onclick="search_more()">⮟ advanced</a>
             </div>
@@ -170,15 +161,18 @@
     {% if results %}
         <div>
             {{ results|length }} result{{ results|pluralize:"s" }}
-            <button id="stats_button" onclick="return show_word_stats()"></button>
         </div>
-        <div id="word_stats" class="panel">
-            <ul id="word_stats_list">
-                <li>
-                    <div class="word_stats_txt">Word</div>
-                    <div class="word_stats_count">Count</div>
-                </li>
-            </ul>
+        <div class="menu" id="stats_menu">
+            <button id="stats_button" class="menu_button img_button" onclick="return show_word_stats()">
+            </button>
+            <div id="word_stats" class="panel">
+                <ul id="word_stats_list">
+                    <li>
+                        <div class="word_stats_txt">Word</div>
+                        <div class="word_stats_count">Count</div>
+                    </li>
+                </ul>
+            </div>
         </div>
         {% for r in paginated %}
             <div class="res">

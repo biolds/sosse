@@ -1,4 +1,6 @@
-window.onload = function() {
+// when document is ready
+// https://stackoverflow.com/questions/799981/document-ready-equivalent-without-jquery
+document.addEventListener("DOMContentLoaded", function(event) {
     const langInput = document.getElementById('id_l');
     langInput.value = getLang();
 
@@ -9,7 +11,7 @@ window.onload = function() {
 
     const form = document.getElementById('search_form');
     form.addEventListener('submit', on_submit, false);
-}
+});
 
 let adv_search_lines = 0;
 
@@ -214,32 +216,25 @@ function on_submit() {
     return false;
 }
 
-let word_stats_displayed = false;
 let word_stats_loaded = false;
 
 function show_word_stats() {
     const word_stats = document.getElementById('word_stats');
-    if (!word_stats_displayed) {
-        word_stats.style.display = 'block';
-
-        if (!word_stats_loaded) {
-            // https://stackoverflow.com/questions/247483/http-get-request-in-javascript
-            const xmlHttp = new XMLHttpRequest();
-            xmlHttp.onreadystatechange = function() {
-                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                    const data = JSON.parse(xmlHttp.responseText);
-                    do_show_word_stats(data);
-                    word_stats_loaded = true;
-                }
+    const word_stats_displayed = word_stats.style.display === 'block';
+    if (!word_stats_displayed && !word_stats_loaded) {
+        // https://stackoverflow.com/questions/247483/http-get-request-in-javascript
+        const xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                const data = JSON.parse(xmlHttp.responseText);
+                do_show_word_stats(data);
+                word_stats_loaded = true;
             }
-            const url = '/word_stats/' + document.location.search;
-            xmlHttp.open("GET", url, true); // true for asynchronous
-            xmlHttp.send(null);
         }
-    } else {
-        word_stats.style.display = 'none';
+        const url = '/word_stats/' + document.location.search;
+        xmlHttp.open("GET", url, true); // true for asynchronous
+        xmlHttp.send(null);
     }
-    word_stats_displayed = !word_stats_displayed;
 }
 
 function do_show_word_stats(data) {

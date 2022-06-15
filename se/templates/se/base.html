@@ -25,21 +25,6 @@
             return (navigator.language || navigator.userLanguage).replace(/-.*/, '');
           }
         }
-
-        function showMenu(display) {
-          const menu = document.getElementById('menu_panel');
-          menu.style.display = display ? 'block' : 'none';
-        }
-
-        function menuIsDisplayed() {
-          const menu = document.getElementById('menu_panel');
-          return menu.style.display === 'block';
-        }
-        function toggleMenu() {
-          const displayed = menuIsDisplayed();
-          showMenu(!displayed);
-        }
-
         function getPageSize() {
           if (localStorage.getItem('mysePageSize')) {
             return parseInt(localStorage.getItem('mysePageSize'));
@@ -48,35 +33,54 @@
           }
         }
 
-        // when document is ready
-        // https://stackoverflow.com/questions/799981/document-ready-equivalent-without-jquery
+
         document.addEventListener("DOMContentLoaded", function(event) {
-          // https://www.w3docs.com/snippets/javascript/how-to-detect-a-click-outside-an-element.html
-          document.addEventListener("click", (evt) => {
-            if (!menuIsDisplayed()) {
-              return;
+            const buttons = document.getElementsByClassName('menu_button');
+            for (let i = 0; i < buttons.length; i++) {
+                const el = buttons[i];
+                el.addEventListener('click', function(ev) {
+                    const panel = ev.target.parentElement.getElementsByClassName('panel')[0];
+                    const panelDisplayed = panel.style.display === 'block';
+                    panel.style.display = panelDisplayed ? 'none': 'block';
+                }, false);
             }
-            const menuButton = document.getElementById('menu_button');
-            let targetEl = evt.target;
-            do {
-              if(targetEl === menuButton) {
-                return;
-              }
-              targetEl = targetEl.parentNode;
-            } while (targetEl);
-            showMenu(false);
-          });
+        });
+
+        // Close menu panels on click outside
+        // https://www.w3docs.com/snippets/javascript/how-to-detect-a-click-outside-an-element.html
+        document.addEventListener("click", (evt) => {
+            const panels = document.getElementsByClassName('panel');
+            for (let i = 0; i < panels.length; i++) {
+                const panel = panels[i];
+
+                if (panel.style.display === 'none') {
+                    continue;
+                }
+
+                let targetEl = evt.target;
+                let needHide = true;
+                const button = panel.parentElement.getElementsByClassName('menu_button')[0];
+
+                while (targetEl) {
+                    if(targetEl === button) {
+                        needHide = false;
+                        break
+                    }
+                    targetEl = targetEl.parentNode;
+                }
+                if (needHide) {
+                    panel.style.display = 'none';
+                }
+            }
         });
         {% block js %}
         {% endblock %}
     </script>
 </head>
 <body>
-    <div id="menu">
-        <div id="menu_button" style="text-align: right" onclick="toggleMenu()">
-            <img id="logo" src="{% static "se/logo.svg" %}">
-        </div>
-        <div id="menu_panel" class="panel">
+    <div class="menu" id="main_menu">
+        <button class="menu_button img_button" id="main_menu_button"></button>
+        <div id="main_menu_panel" class="panel">
             <a href="/" class="links menu_links">Home</a>
             <a href="/prefs/" class="links menu_links">Prefs</a>
             <a href="/stats/" class="links menu_links">Stats</a>

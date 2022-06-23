@@ -50,6 +50,7 @@
     }
     .pagination {
         padding: 20px 0px 20px 0px;
+        text-align: center;
     }
 
     #more {
@@ -194,22 +195,25 @@
             </div>
         {% endfor %}
 
-        <div class="pagination">
-            <span class="step-links">
-                {% if paginated.has_previous %}
-                    <a href="{{ page_first }}">&laquo; first</a>
-                    <a href="{{ page_previous }}">previous</a>
-                {% endif %}
-
-                <span class="current">
-                    Page {{ paginated.number }} of {{ paginated.paginator.num_pages }}.
-                </span>
-
-                {% if paginated.has_next %}
-                    <a href="{{ page_next }}">next</a>
-                    <a href="{{ page_last }}">last &raquo;</a>
-                {% endif %}
-            </span>
-        </div>
+        {% if paginated.paginator.num_pages %}
+            <div class="pagination">
+                <div style="padding-bottom: 15px">
+                    {{ paginated.number }} of {{ paginated.paginator.num_pages }}
+                </div>
+                <div>
+                    {% if paginated.has_previous %}
+                        <a class="a_button" href="{{ page_previous }}">Prev</a>
+                    {% else %}
+                        <a class="a_button a_button_disabled" onclick="return false">Previous</a>
+                    {% endif %}
+                        ·
+                    {% if paginated.has_next %}
+                        <a class="a_button" href="{{ page_next }}">Next</a>
+                    {% else %}
+                        <a class="a_button a_button_disabled" onclick="return false">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %} {# paginated.paginator.num_pages #}
     {% endif %}
 {% endblock %}

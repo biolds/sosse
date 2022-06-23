@@ -62,7 +62,6 @@
         padding-top: 20px;
     }
     #stats_menu {
-        top: 135px;
         right: 8px;
         width: 160px;
     }
@@ -79,20 +78,18 @@
         padding: 0;
     }
     .word_stats_txt {
-        float: left;
-        width: 50%;
+        width: 90%;
         margin-right: -8px;
         padding: 2px 0px 2px 8px;
+        display: inline;
     }
     .links:hover .word_stats_txt {
         background-color: #e7f0ff;
     }
     .word_stats_count {
-        float: right;
-        width: 50%;
+        width: 10%;
         text-align: right;
-        margin-left: -8px;
-        padding: 2px 8px 2px 0px;
+        display: inline;
     }
     .links:hover .word_stats_count {
         background-color: #e7f0ff;
@@ -168,8 +165,9 @@
             <div id="word_stats" class="panel">
                 <ul id="word_stats_list">
                     <li>
-                        <div class="word_stats_txt">Word</div>
-                        <div class="word_stats_count">Count</div>
+                        <div>
+                            Document's word statistics
+                        </div>
                     </li>
                 </ul>
             </div>

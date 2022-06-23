@@ -16,6 +16,16 @@ from .forms import SearchForm
 from .models import Document, FavIcon, SearchEngine, remove_accent
 
 
+def human_nb(nb):
+    unit = ('', 'k', 'M', 'G', 'T', 'P')
+    unit_no = 0
+
+    while nb > 1000:
+        nb /= 1000
+        unit_no += 1
+    return '%i%s' % (nb, unit[unit_no])
+
+
 def format_url(request, params):
     parsed_url = urlparse(request.get_full_path())
     query_string = parse_qs(parsed_url.query)
@@ -195,7 +205,7 @@ def word_stats(request):
         raw_query = raw_query[len('EXPLAIN '):]
 
         results = Document.objects.raw('SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100', (raw_query,))
-        results = [(e.word, e.ndoc, format_url(request, 'q=%s %s' % (q, e.word))[len('/word_stats'):]) for e in list(results)]
+        results = [(e.word, human_nb(e.ndoc), format_url(request, 'q=%s %s' % (q, e.word))[len('/word_stats'):]) for e in list(results)]
         results = json.dumps(results)
 
     return HttpResponse(results, content_type='application/json')

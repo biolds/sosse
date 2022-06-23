@@ -248,14 +248,17 @@ function do_show_word_stats(data) {
         word_a.setAttribute('href', e[2]);
         line.appendChild(word_a)
 
-        const word_txt = document.createElement('div');
-        word_txt.className = 'word_stats_txt';
-        word_txt.innerText = e[0];
-        word_a.appendChild(word_txt);
+        const div = document.createElement('div');
+        word_a.appendChild(div);
 
         const word_count = document.createElement('div');
         word_count.className = 'word_stats_count';
         word_count.innerText = e[1];
-        word_a.appendChild(word_count);
+        div.appendChild(word_count);
+
+        const word_txt = document.createElement('div');
+        word_txt.className = 'word_stats_txt';
+        word_txt.innerText = e[0];
+        div.appendChild(word_txt);
     });
 }

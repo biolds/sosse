@@ -170,6 +170,7 @@ def search(request):
     context = get_context({
         'form': form,
         'results': results,
+        'results_count': human_nb(len(results)),
         'paginated': paginated,
         'q': q,
         'title': q,

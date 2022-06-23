@@ -157,7 +157,7 @@
 
     {% if results %}
         <div>
-            {{ results|length }} result{{ results|pluralize:"s" }}
+            {{ results_count }} result{{ results|pluralize:"s" }}
         </div>
         <div class="menu" id="stats_menu">
             <button id="stats_button" class="menu_button img_button" onclick="return show_word_stats()">

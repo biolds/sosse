@@ -340,6 +340,7 @@ class Document(models.Model):
             try:
                 worker_stats.doc_processed += 1
                 doc.worker_no = None
+                doc.crawl_last = now()
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
                     url_policy = UrlPolicy.get_from_url(doc.url)
@@ -367,7 +368,6 @@ class Document(models.Model):
                         if not page.got_redirect:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         print('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
-                        doc.crawl_last = now()
                         doc._schedule_next(doc.redirect_url != page.url)
                         doc.redirect_url = page.url
                         doc.save()

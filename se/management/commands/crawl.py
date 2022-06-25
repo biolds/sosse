@@ -59,7 +59,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.update(worker_no=None)
-        UrlPolicy.objects.get_or_create(url_prefix='', no_crawl=True) # mandatory default policy
+        UrlPolicy.objects.get_or_create(url_prefix='', defaults={'no_crawl': True}) # mandatory default policy
 
         for url in options['urls']:
             doc = Document.queue(url, None)

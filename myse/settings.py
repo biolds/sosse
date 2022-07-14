@@ -373,4 +373,4 @@ MYSE_FAIL_OVER_LANG = 'english'
 from hashlib import md5
 HASHING_ALGO = md5
 
-USER_AGENT = 'Bubble'
+USER_AGENT = 'Bubble Search'

@@ -1,0 +1,18 @@
+<div class="menu" id="main_menu">
+    <button class="menu_button img_button" id="main_menu_button"></button>
+    <div id="main_menu_panel" class="panel">
+        <a href="/" class="links menu_links">Home</a>
+        <a href="/prefs/" class="links menu_links">Prefs</a>
+        <a href="/stats/" class="links menu_links">Stats</a>
+        <a href="/admin/" class="links menu_links">Config</a>
+        {% if user.has_usable_password %}
+            <a href="{% url 'admin:password_change' %}" class="links menu_links">Change pass</a>
+            <a href="{% url 'admin:logout' %}" class="links menu_links">Log out</a>
+        {% endif %}
+    </div>
+</div>
+{% if user.has_usable_password %}
+    <div id="menu_username" class="menu">
+        User {% firstof user.get_short_name user.get_username %}
+    </div>
+{% endif %}

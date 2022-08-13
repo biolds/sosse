@@ -1,0 +1,34 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block stylesheet %}{% static "se/style.css" %}{% endblock %}
+
+{% block extrastyle %}
+    <link rel="icon" href="{% static "se/bubble.svg" %}" />
+    <link rel="stylesheet" href="{% static "se/admin-base.css" %}">
+    <style>
+        #branding {
+            display: inline-block;
+        }
+        #branding > h2 {
+            margin-top: 0;
+        }
+        #user-tools {
+            float: right;
+            text-align: right;
+        }
+    </style>
+{% endblock %}
+
+{% block extrahead %}
+    <script src="{% static 'se/base.js' %}" defer></script>
+{% endblock %}
+
+{% block usertools %}
+    {% include "se/main_menu.html" %}
+{% endblock %}
+
+{% block content_title %}
+    <h3>{{ title }}</h3>
+{% endblock %}

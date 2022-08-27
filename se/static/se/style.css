@@ -1,7 +1,7 @@
 #main_menu {
     top: 8px;
     right: 8px;
-    width: 80px;
+    width: 100px;
 }
 #main_menu_button {
     background-image: url('/static/se/logo.svg');

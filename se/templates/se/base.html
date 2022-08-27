@@ -78,15 +78,7 @@
     </script>
 </head>
 <body>
-    <div class="menu" id="main_menu">
-        <button class="menu_button img_button" id="main_menu_button"></button>
-        <div id="main_menu_panel" class="panel">
-            <a href="/" class="links menu_links">Home</a>
-            <a href="/prefs/" class="links menu_links">Prefs</a>
-            <a href="/stats/" class="links menu_links">Stats</a>
-            <a href="/admin/" class="links menu_links">Admin</a>
-        </div>
-    </div>
+    {% include "se/main_menu.html" %}
 
     {% block body %}
     {% endblock %}

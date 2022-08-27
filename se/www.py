@@ -37,7 +37,7 @@ def www(request, url):
 
     context = {
         'doc': doc,
-        'title': doc.title,
+        'page_title': doc.title,
         'content': content,
     }
     if doc.favicon and not doc.favicon.missing:

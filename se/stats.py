@@ -180,7 +180,7 @@ def stats(request):
 
     # Crawler stats
     context = get_context({
-        'title': 'Statistics',
+        'page_title': 'Statistics',
 
         # index
         'doc_count': doc_count,

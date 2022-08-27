@@ -7,18 +7,6 @@
 {% block extrastyle %}
     <link rel="icon" href="{% static "se/bubble.svg" %}" />
     <link rel="stylesheet" href="{% static "se/admin-base.css" %}">
-    <style>
-        #branding {
-            display: inline-block;
-        }
-        #branding > h2 {
-            margin-top: 0;
-        }
-        #user-tools {
-            float: right;
-            text-align: right;
-        }
-    </style>
 {% endblock %}
 
 {% block extrahead %}
@@ -26,9 +14,16 @@
 {% endblock %}
 
 {% block usertools %}
-    {% include "se/main_menu.html" %}
+    <div id="top_bar">
+        <div style="padding-left: 8px; margin-top: 8px;">
+            <h3>Configuration</h3>
+            {% include "se/main_menu.html" %}
+            {% block top_bar %}
+            {% endblock %}
+        </div>
+    </div>
 {% endblock %}
 
 {% block content_title %}
-    <h3>{{ title }}</h3>
+    <h3>{{ page_title }}</h3>
 {% endblock %}

@@ -1,13 +1,26 @@
+#top_bar {
+    border-style: solid;
+    border-width: 0px 0px 1px 0px;
+    border-color: #e7f0ff;
+    margin: 0px -8px 25px -8px;
+    padding-bottom: 25px;
+    box-shadow: 0px 5px 5px 0px #e3e5f6;
+    min-height: 39px;
+}
 #main_menu {
     top: 8px;
     right: 8px;
-    width: 100px;
+    width: 125px;
 }
 #main_menu_button {
     background-image: url('/static/se/logo.svg');
     width: 52px;
     height: 52px;
     background-size: 40px 40px;
+}
+#menu_username {
+    top: 8px;
+    right: 70px;
 }
 .menu {
     position: absolute;
@@ -37,7 +50,7 @@
 }
 .links {
     display: block;
-    font-size: 13px;
+    font-size: 16px;
     text-decoration: none;
     color: #000;
 }

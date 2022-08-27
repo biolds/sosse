@@ -13,6 +13,6 @@
 </div>
 {% if user.has_usable_password %}
     <div id="menu_username" class="menu">
-        User {% firstof user.get_short_name user.get_username %}
+        {% firstof user.get_short_name user.get_username %}
     </div>
 {% endif %}

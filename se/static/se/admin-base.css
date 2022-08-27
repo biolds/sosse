@@ -835,16 +835,6 @@ table#change-history tbody th {
 
 /* PAGE STRUCTURE */
 
-#container {
-    position: relative;
-    width: 100%;
-    min-width: 980px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
 #container > div {
     flex-shrink: 0;
 }

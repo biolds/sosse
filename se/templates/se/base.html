@@ -6,7 +6,7 @@
     {% if favicon %}
     <link rel="icon" href="{{ favicon }}" />
     {% endif %}
-    <title>Bubble Search{% if title %} · {{ title }}{% endif %}</title>
+    <title>Bubble Search{% if page_title %} · {{ page_title }}{% endif %}</title>
 
     {% block head %}
     {% endblock %}
@@ -78,9 +78,20 @@
     </script>
 </head>
 <body>
-    {% include "se/main_menu.html" %}
+    <div id="top_bar">
+        <div style="padding-left: 8px; margin-top: 8px;">
+            {% if page_title and not hide_title %}
+                <h3>{{ page_title }}</h3>
+            {% endif %}
+            {% include "se/main_menu.html" %}
+            {% block top_bar %}
+            {% endblock %}
+        </div>
+    </div>
 
-    {% block body %}
-    {% endblock %}
+    <div style="padding: 20px 40px 20px 40px">
+        {% block body %}
+        {% endblock %}
+    </div>
 </body>
 </html>

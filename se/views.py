@@ -168,12 +168,13 @@ def search(request):
         myse_langdetect_to_postgres[key] = val
 
     context = get_context({
+        'hide_title': True,
         'form': form,
         'results': results,
         'results_count': human_nb(len(results)),
         'paginated': paginated,
         'q': q,
-        'title': q,
+        'page_title': q,
         'myse_langdetect_to_postgres': myse_langdetect_to_postgres
     })
     if paginated and paginated.has_previous():
@@ -215,7 +216,7 @@ def word_stats(request):
 def prefs(request):
     supported_langs = json.dumps(Document.get_supported_lang_dict())
     context = get_context({
-        'title': 'Preferences',
+        'page_title': 'Preferences',
         'supported_langs': supported_langs
     })
     return render(request, 'se/prefs.html', context)

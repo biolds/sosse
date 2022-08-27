@@ -616,13 +616,13 @@ class FavIcon(models.Model):
                 data = b64decode(data)
                 favicon.mimetype = mimetype
                 favicon.content = data
-                favicon.save()
+                favicon.missing = False
             else:
                 page = RequestBrowser.get(url, raw=True, check_status=True)
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)
-                favicon.content = page.content
-                favicon.save()
-            favicon.missing = False
+                if favicon.mimetype.startswith('image/'):
+                    favicon.content = page.content
+                    favicon.missing = False
         except Exception:
             pass
 

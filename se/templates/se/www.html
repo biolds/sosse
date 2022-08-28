@@ -1,11 +1,52 @@
 {% extends "se/base.html" %}
 
+{% block css %}
+    #error_pre {
+        overflow: scroll;
+        border: 1px;
+        border-style: solid;
+        border-color: #aaa;
+        background-color: #fdd;
+    }
+{% endblock %}
+
 {% block body %}
     <h3>
         {% if favicon %}
             <img src="{{ favicon }}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon">
         {% endif %}
-        <a href="{{ doc.url }}">Original page 🌍</a>
-    <h3>
-    {{ content }}
+        Source page <a href="{{ doc.url }}">{{ doc.url }} 🌍</a>
+    </h3>
+    <ul>
+        {% if doc.crawl_last %}
+            <li>Last crawled on {{ doc.crawl_last }}</li>
+        {% else %}
+            <li>This page has not been crawled yet</li>
+        {% endif %}
+        {% if doc.crawl_next %}
+            <li>Next crawl is scheduled for {{ doc.crawl_next }}</li>
+        {% else %}
+            <li>No crawl is scheduled</li>
+        {% endif %}
+        {% if doc.crawl_first %}
+            <li>First successfully crawled on {{ doc.crawl_first }}</li>
+        {% endif %}
+        <li>This page follows the policy <a href="{% url 'admin:se_urlpolicy_change' url_policy.id %}">{{ url_policy.readable_name }}</a></li>
+        {% if doc.crawl_depth is not None %}
+            <li>Page depth is {{ doc.crawl_depth }}</li>
+        {% endif %}
+        {% if doc.robotstxt_rejected %}
+            <li>The crawler was rejected by a robots.txt rule</li>
+        {% endif %}
+    </ul>
+    {% if doc.error %}
+        Last crawl triggered an error:
+        <pre id="error_pre">
+            {{ doc.error }}
+        </pre>
+    {% endif %}
+    {% if content %}
+        <hr/>
+        {{ content }}
+    {% endif %}
 {% endblock %}

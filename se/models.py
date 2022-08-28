@@ -363,6 +363,7 @@ class Document(models.Model):
 
                     if page.url == doc.url:
                         doc.index(page, url_policy)
+                        doc.set_error('')
                         break
                     else:
                         if not page.got_redirect:
@@ -808,7 +809,6 @@ class DomainSetting(models.Model):
 
 
 class UrlPolicy(models.Model):
-
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
     RECRAWL_ADAPTIVE = 'adaptive'
@@ -850,6 +850,11 @@ class UrlPolicy(models.Model):
         ).annotate(
             url_prefix_len=models.functions.Length('url_prefix')
         ).order_by('-url_prefix_len').first()
+
+    def readable_name(self):
+        if self.url_prefix == '':
+            return '<default>'
+        return f'<{self.url_prefix}>'
 
     def url_get(self, domain_setting, url):
         if domain_setting.browse_mode in (DomainSetting.BROWSE_DETECT, DomainSetting.BROWSE_SELENIUM):

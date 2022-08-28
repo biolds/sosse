@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render, reverse
 from django.utils.html import format_html, escape
 
-from .models import Document, Link
+from .models import Document, Link, UrlPolicy
 
 
 def www(request, url):
@@ -35,9 +35,19 @@ def www(request, url):
         content_pos += len(l) + 1 # +1 for the \n stripped by splitlines()
         content += format_html('{}<br/>', l)
 
+    url_policy = UrlPolicy.get_from_url(doc.url)
+
+    should_crawl = None
+    if not url_policy.no_crawl and doc.crawl_depth is not None:
+        should_crawl, _ = Document._should_crawl(url_policy,
+                                                 doc.crawl_depth + 1,
+                                                 doc.url)
+
     context = {
+        'url_policy': url_policy,
+        'should_crawl': should_crawl,
         'doc': doc,
-        'page_title': doc.title,
+        'page_title': doc.title or doc.url,
         'content': content,
     }
     if doc.favicon and not doc.favicon.missing:

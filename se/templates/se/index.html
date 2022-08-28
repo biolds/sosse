@@ -107,9 +107,8 @@
                 {{ field }}
             {% endfor %}
 
-            {% for field in form.visible_fields %}
-                {# {{ field.label }} #}{{ field }}
-            {% endfor %}
+            {{ form.q }}
+
             <input id="search_button" class="img_button" type="submit" value=" " onclick="return on_submit()">
             <div id="more_div">
                 <a id="more" href="#" onclick="search_more()">⮟ advanced</a>
@@ -140,12 +139,17 @@
         </template>
         
         <div id="adv_search" style="display: none">
-            <select id="doc_lang" name="doc_lang">
-                <option value="">Any</option>
-                {% for key, val in myse_langdetect_to_postgres.items %}
-                    <option value="{{ key }}">{{ val.flag }} {{ val.name|title }}</option>
-                {% endfor %}
-            </select>
+            <div>
+                Language
+                <select id="doc_lang" name="doc_lang">
+                    <option value="">Any</option>
+                    {% for key, val in myse_langdetect_to_postgres.items %}
+                        <option value="{{ key }}">{{ val.flag }} {{ val.name|title }}</option>
+                    {% endfor %}
+                </select>
+
+                Sort {{ form.s }}
+            </div>
         </div>
     </form>
 {% endblock %}

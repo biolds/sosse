@@ -59,15 +59,14 @@ def get_documents(request, form):
     FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
-    all_results = Document.objects.exclude(crawl_last__isnull=True)
-    results = all_results
+    results = all_results = Document.objects.exclude()
     q = remove_accent(form.cleaned_data['q'])
     if q:
         lang = form.cleaned_data['l']
         query = SearchQuery(q, config=lang, search_type='websearch')
         results = Document.objects.filter(vector=query).annotate(
             rank=SearchRank(models.F('vector'), query),
-        ).exclude(rank__lte=0.01).order_by('-rank', 'title')
+        ).exclude(rank__lte=0.01)
 
     filters = {}
     for key, val in request.GET.items():
@@ -131,6 +130,10 @@ def get_documents(request, form):
     doc_lang = form.cleaned_data.get('doc_lang')
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
+
+    order_by = form.cleaned_data['order_by']
+    results = results.order_by(*order_by)
+
     if results == all_results:
         return []
     return results

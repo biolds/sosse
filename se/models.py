@@ -764,10 +764,11 @@ class DomainSetting(models.Model):
 
         self.robots_allow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_ALLOW])
         self.robots_disallow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
-        self.robots_ua_hash = self.ua_hash()
 
     def _load_robotstxt(self):
         print('loading robots txt')
+        self.robots_ua_hash = self.ua_hash()
+
         try:
             page = RequestBrowser.get('http://%s/robots.txt' % self.domain, check_status=True)
             self._parse_robotstxt(page.content)

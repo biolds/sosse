@@ -58,7 +58,7 @@ class Command(BaseCommand):
                 sleep(1)
 
     def handle(self, *args, **options):
-        Document.objects.update(worker_no=None)
+        Document.objects.exclude(worker_no=None).update(worker_no=None)
         UrlPolicy.objects.get_or_create(url_prefix='', defaults={'no_crawl': True}) # mandatory default policy
 
         for url in options['urls']:

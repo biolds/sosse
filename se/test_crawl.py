@@ -36,9 +36,9 @@ class CrawlerTest(TestCase):
         self.url_policy = UrlPolicy.objects.create(url_prefix='http://127.0.0.1/',
                                                    no_crawl=False,
                                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS)
-        Document.queue('http://127.0.0.1/', None)
 
     def _crawl(self):
+        Document.queue('http://127.0.0.1/', None)
         while Document.crawl(0):
             pass
 
@@ -59,6 +59,7 @@ class CrawlerTest(TestCase):
         doc = Document.objects.get()
         self.assertEqual(doc.url, 'http://127.0.0.1/')
         self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_depth, None)
 
         self.assertEqual(Link.objects.count(), 0)
 
@@ -78,8 +79,10 @@ class CrawlerTest(TestCase):
         docs = Document.objects.order_by('id')
         self.assertEqual(docs[0].url, 'http://127.0.0.1/')
         self.assertEqual(docs[0].content, 'Root Link1')
+        self.assertEqual(docs[0].crawl_depth, None)
         self.assertEqual(docs[1].url, 'http://127.0.0.1/page1/')
         self.assertEqual(docs[1].content, 'Page1')
+        self.assertEqual(docs[1].crawl_depth, None)
 
         self.assertEqual(Link.objects.count(), 1)
         link = Link.objects.get()
@@ -88,3 +91,82 @@ class CrawlerTest(TestCase):
         self.assertEqual(link.text, 'Link1')
         self.assertEqual(link.pos, 5)
         self.assertEqual(link.link_no, 0)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_003_crawl_depth(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': 'Root <a href="/page1/">Link1</a>',
+            'http://127.0.0.1/page1/': 'Page1 <a href="/page2/">Link2</a>',
+            'http://127.0.0.1/page2/': 'Page2',
+        })
+        self.url_policy.crawl_depth = 2
+        self.url_policy.save()
+        self._crawl()
+        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS + [
+                mock.call('http://127.0.0.1/page1/'),
+            ],
+            RequestBrowser.call_args_list)
+
+        self.assertEqual(Document.objects.count(), 2)
+        docs = Document.objects.order_by('id')
+        self.assertEqual(docs[0].url, 'http://127.0.0.1/')
+        self.assertEqual(docs[0].content, 'Root Link1')
+        self.assertEqual(docs[0].crawl_depth, 1)
+        self.assertEqual(docs[1].url, 'http://127.0.0.1/page1/')
+        self.assertEqual(docs[1].content, 'Page1 Link2')
+        self.assertEqual(docs[1].crawl_depth, 2)
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, docs[0])
+        self.assertEqual(link.doc_to, docs[1])
+        self.assertEqual(link.text, 'Link1')
+        self.assertEqual(link.pos, 5)
+        self.assertEqual(link.link_no, 0)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_004_no_crawl(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': 'Root <a href="/page1/">Link1</a>',
+            'http://127.0.0.1/page1/': 'Page1',
+        })
+        UrlPolicy.objects.create(url_prefix='http://127.0.0.1/page1/', no_crawl=True)
+        self._crawl()
+        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
+                       RequestBrowser.call_args_list)
+
+        self.assertEqual(Document.objects.count(), 1)
+        docs = Document.objects.order_by('id')
+        self.assertEqual(docs[0].url, 'http://127.0.0.1/')
+        self.assertEqual(docs[0].content, 'Root Link1')
+        self.assertEqual(docs[0].crawl_depth, None)
+
+        self.assertEqual(Link.objects.count(), 0)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_005_extern_links(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': 'Root <a href="/page1/">Link1</a>',
+            'http://127.0.0.1/page1/': 'Page1',
+        })
+        self.url_policy.keep_extern_links = True
+        self.url_policy.save()
+        UrlPolicy.objects.create(url_prefix='http://127.0.0.1/page1/', no_crawl=True)
+        self._crawl()
+        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
+                       RequestBrowser.call_args_list)
+
+        self.assertEqual(Document.objects.count(), 1)
+        docs = Document.objects.order_by('id')
+        self.assertEqual(docs[0].url, 'http://127.0.0.1/')
+        self.assertEqual(docs[0].content, 'Root Link1')
+        self.assertEqual(docs[0].crawl_depth, None)
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, docs[0])
+        self.assertEqual(link.doc_to, None)
+        self.assertEqual(link.text, 'Link1')
+        self.assertEqual(link.pos, 5)
+        self.assertEqual(link.link_no, 0)
+        self.assertEqual(link.extern_url, 'http://127.0.0.1/page1/')

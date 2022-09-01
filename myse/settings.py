@@ -134,6 +134,27 @@ USE_L10N = False
 DATETIME_FORMAT = 'd/m/y H:i'
 TIME_ZONE = 'Europe/Paris'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'crawler': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
@@ -374,3 +395,6 @@ from hashlib import md5
 HASHING_ALGO = md5
 
 USER_AGENT = 'Bubble Search'
+
+# Exlcude pages not yet indexed from search results
+MYSE_EXCLUDE_NOT_INDEXED = True

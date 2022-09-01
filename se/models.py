@@ -3,6 +3,7 @@ import os
 import re
 import urllib.parse
 import unicodedata
+import logging
 
 from base64 import b64decode
 from datetime import date, datetime, timedelta
@@ -26,6 +27,8 @@ import requests
 from .browser import RequestBrowser, SeleniumBrowser
 
 DetectorFactory.seed = 0
+
+crawl_logger = logging.getLogger('crawler')
 
 
 def sanitize_url(url):
@@ -181,18 +184,28 @@ class Document(models.Model):
             if links['text'] and links['text'][-1] not in (' ', '\n'):
                 links['text'] += ' '
 
-            if elem.name == 'a' and url_policy.store_links:
+            if elem.name == 'a':
                 href = elem.get('href')
                 if href:
                     href = href.strip()
                     href = absolutize_url(self.url, href)
                     target = Document.queue(href, self.crawl_depth)
+                    link = None
                     if target:
-                        links['links'].append(Link(doc_from=self,
-                                          link_no=len(links['links']),
-                                          doc_to=target,
-                                          text=s,
-                                          pos=len(links['text'])))
+                        link = Link(doc_from=self,
+                                    link_no=len(links['links']),
+                                    doc_to=target,
+                                    text=s,
+                                    pos=len(links['text']))
+                    elif url_policy.keep_extern_links:
+                        link = Link(doc_from=self,
+                                    link_no=len(links['links']),
+                                    text=s,
+                                    pos=len(links['text']),
+                                    extern_url=href)
+
+                    if link:
+                        links['links'].append(link)
 
             links['text'] += s
 
@@ -243,11 +256,13 @@ class Document(models.Model):
 
         self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
 
-        if url_policy.store_links:
-            Link.objects.filter(doc_from=self).delete()
-            self._index_log('delete', stats, verbose)
-            Link.objects.bulk_create(links['links'])
-            self._index_log('bulk', stats, verbose)
+        Link.objects.filter(doc_from=self).delete()
+        self._index_log('delete', stats, verbose)
+        # The bulk request triggers a deadlock
+        #Link.objects.bulk_create(links['links'])
+        for link in links['links']:
+            link.save()
+        self._index_log('bulk', stats, verbose)
 
         self.content = text
         self.normalized_content = remove_accent(text)
@@ -267,15 +282,17 @@ class Document(models.Model):
     @staticmethod
     def _should_crawl(url_policy, parent_depth, url):
         if url_policy.crawl_depth is None:
+            crawl_logger.debug('_should_crawl %s -> True None', url)
             return True, None
 
         url_depth = parent_depth or 0
         url_depth += 1
 
         if url_depth > url_policy.crawl_depth:
-            print('%s is too deep, skipping' % url)
+            crawl_logger.debug('_should_crawl %s too deep, skip -> False %s', url, url_depth)
             return False, url_depth
 
+        crawl_logger.debug('_should_crawl %s to crawl -> True %s', url, url_depth)
         return True, url_depth
 
     @staticmethod
@@ -438,13 +455,14 @@ class Document(models.Model):
 
 class Link(models.Model):
     doc_from = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='links_to')
-    doc_to = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='linked_from')
+    doc_to = models.ForeignKey(Document, null=True, blank=True, on_delete=models.CASCADE, related_name='linked_from')
     text = models.TextField()
     pos = models.PositiveIntegerField()
     link_no = models.PositiveIntegerField()
+    extern_url = models.TextField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('doc_from', 'doc_to', 'link_no')
+        unique_together = ('doc_from', 'link_no')
 
 
 class AuthField(models.Model):
@@ -835,7 +853,7 @@ class UrlPolicy(models.Model):
     recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=60 * 24 * 365)
     crawl_depth = models.PositiveIntegerField(null=True, blank=True)
 
-    store_links = models.BooleanField(default=True)
+    keep_extern_links = models.BooleanField(default=False)
     hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS)
 
     auth_login_url_re = models.TextField(null=True, blank=True)

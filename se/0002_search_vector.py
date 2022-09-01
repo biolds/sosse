@@ -43,8 +43,9 @@ class Migration(migrations.Migration):
               CREATE TRIGGER link_row_trigger
               BEFORE INSERT OR UPDATE
               ON se_link
-              FOR EACH ROW EXECUTE PROCEDURE link_weight_vector();
-
+              FOR EACH ROW
+              WHEN (new.doc_to_id IS NOT NULL)
+              EXECUTE PROCEDURE link_weight_vector();
             ''',
 
             reverse_sql = '''

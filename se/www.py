@@ -25,11 +25,17 @@ def www(request, url):
             l = l[link_pos + len(link.text):]
             content_pos += len(txt) + len(link.text)
 
-            content += format_html('{}<a href="{}">{}</a> <a href="{}">🌍</a>',
-                                    txt,
-                                    reverse('www', args=(link.doc_to.url,)),
-                                    link.text,
-                                    link.doc_to.url)
+            if link.doc_to:
+                content += format_html('{}<a href="{}">{}</a> · <a href="{}">🌍</a>',
+                                        txt,
+                                        reverse('www', args=(link.doc_to.url,)),
+                                        link.text,
+                                        link.doc_to.url)
+            else:
+                content += format_html('{} [{}] · <a href="{}">🌍</a>',
+                                        txt,
+                                        link.text,
+                                        link.extern_url)
             link_no += 1
 
         content_pos += len(l) + 1 # +1 for the \n stripped by splitlines()
@@ -43,14 +49,19 @@ def www(request, url):
                                                  doc.crawl_depth + 1,
                                                  doc.url)
 
+    title = doc.title or doc.url
+    favicon = None
+    if doc.favicon and not doc.favicon.missing:
+        favicon = reverse('favicon', args=(doc.favicon.id,))
+        title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
+
     context = {
         'url_policy': url_policy,
         'should_crawl': should_crawl,
         'doc': doc,
-        'page_title': doc.title or doc.url,
+        'page_title': title,
         'content': content,
+        'favicon': favicon
     }
-    if doc.favicon and not doc.favicon.missing:
-        context['favicon'] = reverse('favicon', args=(doc.favicon.id,))
 
     return render(request, 'se/www.html', context)

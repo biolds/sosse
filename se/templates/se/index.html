@@ -143,7 +143,7 @@
                 Language
                 <select id="doc_lang" name="doc_lang">
                     <option value="">Any</option>
-                    {% for key, val in myse_langdetect_to_postgres.items %}
+                    {% for key, val in osse_langdetect_to_postgres.items %}
                         <option value="{{ key }}">{{ val.flag }} {{ val.name|title }}</option>
                     {% endfor %}
                 </select>

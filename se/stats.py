@@ -157,7 +157,7 @@ def stats(request):
 
         for lang in indexed_langs[:8]:
             lang_iso = lang['lang_iso_639_1']
-            lang_desc = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
+            lang_desc = settings.OSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
             title = lang_iso.title()
             if lang_desc.get('flag'):
                 title = title + ' ' + lang_desc['flag']

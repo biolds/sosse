@@ -133,7 +133,7 @@ class Document(models.Model):
     def get_supported_lang_dict(cls):
         supported = cls.get_supported_langs()
         langs = {}
-        for iso, lang in settings.MYSE_LANGDETECT_TO_POSTGRES.items():
+        for iso, lang in settings.OSSE_LANGDETECT_TO_POSTGRES.items():
             if lang['name'] in supported:
                 langs[iso] = lang
         return langs
@@ -145,9 +145,9 @@ class Document(models.Model):
         except LangDetectException:
             lang_iso = None
 
-        lang_pg = settings.MYSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
+        lang_pg = settings.OSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
         if lang_pg not in cls.get_supported_langs():
-            lang_pg = settings.MYSE_FAIL_OVER_LANG
+            lang_pg = settings.OSSE_FAIL_OVER_LANG
 
         return lang_iso, lang_pg
 

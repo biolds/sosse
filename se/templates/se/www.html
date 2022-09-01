@@ -33,6 +33,9 @@
         {% if doc.robotstxt_rejected %}
             <li>The crawler was rejected by a robots.txt rule</li>
         {% endif %}
+        {% if doc.redirect_url %}
+            <li>This page redirects to <a href="{% url 'www' doc.redirect_url %}">{{ doc.redirect_url }}</a> · <a href="{{ doc.redirect_url }}">🌍</a></li>
+        {% endif %}
     </ul>
     {% if doc.error %}
         Last crawl triggered an error:

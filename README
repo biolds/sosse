@@ -33,7 +33,7 @@ Adding an OpenSearch search engine:
 Adding a language:
 - check/add support for the language detection in Langdetect (https://pypi.org/project/langdetect/)
 - check/add support for the language in postgresql (https://www.postgresql.org/docs/current/textsearch-dictionaries.html)
-- add the new entry to the MYSE_LANGDETECT_TO_POSTGRES option, where the key is ISO 639-1 code for this language,
+- add the new entry to the OSSE_LANGDETECT_TO_POSTGRES option, where the key is ISO 639-1 code for this language,
   and the value, the name of the language as stored in PostgreSQL
 
 Parameters:

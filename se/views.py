@@ -50,7 +50,7 @@ def format_url(request, params):
 def get_context(ctx):
     ctx.update({
         'settings': settings,
-        'favicon': '%s/se/bubble.svg' % settings.STATIC_URL
+        'favicon': '%s/se/favicon.svg' % settings.STATIC_URL
     })
     return ctx
 
@@ -60,7 +60,7 @@ def get_documents(request, form):
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
     results = Document.objects.all()
-    if settings.MYSE_EXCLUDE_NOT_INDEXED:
+    if settings.OSSE_EXCLUDE_NOT_INDEXED:
         results = results.exclude(crawl_last__isnull=True)
     all_results = results
 
@@ -168,11 +168,11 @@ def search(request):
     else:
         form = SearchForm()
 
-    myse_langdetect_to_postgres = OrderedDict()
-    for key, val in sorted(settings.MYSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
+    osse_langdetect_to_postgres = OrderedDict()
+    for key, val in sorted(settings.OSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
         if not Document.objects.filter(lang_iso_639_1=key).exists():
             continue
-        myse_langdetect_to_postgres[key] = val
+        osse_langdetect_to_postgres[key] = val
 
     context = get_context({
         'hide_title': True,
@@ -182,7 +182,7 @@ def search(request):
         'paginated': paginated,
         'q': q,
         'page_title': q,
-        'myse_langdetect_to_postgres': myse_langdetect_to_postgres
+        'osse_langdetect_to_postgres': osse_langdetect_to_postgres
     })
     if paginated and paginated.has_previous():
         context.update({

@@ -50,16 +50,18 @@ def www(request, url):
                                                  doc.url)
 
     title = doc.title or doc.url
+    page_title = None
     favicon = None
     if doc.favicon and not doc.favicon.missing:
         favicon = reverse('favicon', args=(doc.favicon.id,))
-        title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
+        page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
 
     context = {
         'url_policy': url_policy,
         'should_crawl': should_crawl,
         'doc': doc,
-        'page_title': title,
+        'head_title': title,
+        'page_title': page_title or title,
         'content': content,
         'favicon': favicon
     }

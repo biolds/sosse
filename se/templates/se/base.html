@@ -6,7 +6,7 @@
     {% if favicon %}
     <link rel="icon" href="{{ favicon }}" />
     {% endif %}
-    <title>Bubble Search{% if page_title %} · {{ page_title }}{% endif %}</title>
+    <title>OSSE{% if page_title %} · {{ head_title|default:page_title }}{% endif %}</title>
 
     {% block head %}
     {% endblock %}
@@ -19,17 +19,17 @@
 
     <script>
         function getLang() {
-          if (localStorage.getItem('myseLanguage')) {
-            return localStorage.getItem('myseLanguage');
+          if (localStorage.getItem('osseLanguage')) {
+            return localStorage.getItem('osseLanguage');
           } else {
             return (navigator.language || navigator.userLanguage).replace(/-.*/, '');
           }
         }
         function getPageSize() {
-          if (localStorage.getItem('mysePageSize')) {
-            return parseInt(localStorage.getItem('mysePageSize'));
+          if (localStorage.getItem('ossePageSize')) {
+            return parseInt(localStorage.getItem('ossePageSize'));
           } else {
-            return {{ settings.MYSE_DEFAULT_PAGE_SIZE }};
+            return {{ settings.OSSE_DEFAULT_PAGE_SIZE }};
           }
         }
 

@@ -12,10 +12,6 @@ def get_documents(request, form):
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
     results = Document.objects.all()
-    if settings.OSSE_EXCLUDE_NOT_INDEXED:
-        results = results.exclude(crawl_last__isnull=True)
-    if settings.OSSE_EXCLUDE_REDIRECT:
-        results = results.filter(redirect_url__isnull=True)
     all_results = results
 
     q = remove_accent(form.cleaned_data['q'])
@@ -25,6 +21,11 @@ def get_documents(request, form):
         results = Document.objects.filter(vector=query).annotate(
             rank=SearchRank(models.F('vector'), query),
         ).exclude(rank__lte=0.01)
+
+    if settings.OSSE_EXCLUDE_NOT_INDEXED:
+        results = results.exclude(crawl_last__isnull=True)
+    if settings.OSSE_EXCLUDE_REDIRECT:
+        results = results.filter(redirect_url__isnull=True)
 
     filters = {}
     for key, val in request.GET.items():

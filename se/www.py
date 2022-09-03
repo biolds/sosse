@@ -15,10 +15,12 @@ def www(request, url):
 
     content = format_html('')
     content_pos = 0
-    links = list(Link.objects.filter(doc_from=doc).order_by('link_no'))
+
+    links = Link.objects.filter(doc_from=doc).order_by('link_no')
+    links_count = Link.objects.filter(doc_from=doc).count()
     link_no = 0
     for l in doc.content.splitlines():
-        while link_no < len(links) and links[link_no].pos < content_pos + len(l):
+        while link_no < links_count and links[link_no].pos < content_pos + len(l):
             link = links[link_no]
             link_pos = link.pos - content_pos
             txt = l[:link_pos]

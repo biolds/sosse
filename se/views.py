@@ -141,6 +141,9 @@ def get_documents(request, form):
 
         results = results.filter(qf)
 
+    if results == all_results:
+        return []
+
     doc_lang = form.cleaned_data.get('doc_lang')
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
@@ -148,8 +151,6 @@ def get_documents(request, form):
     order_by = form.cleaned_data['order_by']
     results = results.order_by(*order_by).distinct()
 
-    if results == all_results:
-        return []
     return results
 
 

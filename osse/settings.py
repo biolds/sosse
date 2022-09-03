@@ -396,5 +396,8 @@ HASHING_ALGO = md5
 
 USER_AGENT = 'OSSE'
 
-# Exlcude pages not yet indexed from search results
+# Exclude pages not yet indexed from search results
 OSSE_EXCLUDE_NOT_INDEXED = True
+
+# Exclude pages that redirect to an other from results
+OSSE_EXCLUDE_REDIRECT = True

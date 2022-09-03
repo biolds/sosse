@@ -62,6 +62,8 @@ def get_documents(request, form):
     results = Document.objects.all()
     if settings.OSSE_EXCLUDE_NOT_INDEXED:
         results = results.exclude(crawl_last__isnull=True)
+    if settings.OSSE_EXCLUDE_REDIRECT:
+        results = results.filter(redirect_url__isnull=True)
     all_results = results
 
     q = remove_accent(form.cleaned_data['q'])

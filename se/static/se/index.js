@@ -213,6 +213,7 @@ function on_submit() {
 
     const form = document.getElementById('search_form');
     form.submit();
+    form.appendChild(adv_search);
     return false;
 }
 

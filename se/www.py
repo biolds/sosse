@@ -45,12 +45,6 @@ def www(request, url):
 
     url_policy = UrlPolicy.get_from_url(doc.url)
 
-    should_crawl = None
-    if not url_policy.no_crawl and doc.crawl_depth is not None:
-        should_crawl, _ = Document._should_crawl(url_policy,
-                                                 doc.crawl_depth + 1,
-                                                 doc.url)
-
     title = doc.title or doc.url
     page_title = None
     favicon = None
@@ -60,7 +54,6 @@ def www(request, url):
 
     context = {
         'url_policy': url_policy,
-        'should_crawl': should_crawl,
         'doc': doc,
         'head_title': title,
         'page_title': page_title or title,

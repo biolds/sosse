@@ -59,6 +59,11 @@
         width: 160px;
         top: 135px;
     }
+    #atom_menu {
+        right: 8px;
+        width: 160px;
+        top: 180px;
+    }
     #word_stats {
         float: right;
         text-align: left;
@@ -97,6 +102,9 @@
     }
     #stats_button {
         background-image: url('{% static "se/icon-stats.svg" %}');
+    }
+    #atom_button {
+        background-image: url('{% static "se/icon-atom.svg" %}');
     }
 {% endblock %}
 
@@ -159,12 +167,18 @@
 {% endblock %}
 
 {% block body %}
-    {% if results %}
-        <div>
-            {{ results_count }} result{{ results|pluralize:"s" }}
-        </div>
+    {% if q %}
+        {% if results_count == '0' %}
+            <div>
+                No result
+            </div>
+        {% else %}
+            <div>
+                {{ results_count }} result{{ results|pluralize:"s" }}
+            </div>
+        {% endif %}
         <div class="menu" id="stats_menu">
-            <button id="stats_button" class="menu_button img_button" onclick="return show_word_stats()">
+            <button id="stats_button" title="Words statistics" class="menu_button img_button" onclick="return show_word_stats()">
             </button>
             <div id="word_stats" class="panel">
                 <ul id="word_stats_list">
@@ -174,6 +188,13 @@
                         </div>
                     </li>
                 </ul>
+            </div>
+        </div>
+        <div class="menu" id="atom_menu">
+            <button id="atom_button" title="Atom feeds" class="menu_button img_button"></button>
+            <div id="atom_menu_panel" class="panel">
+                <a href="/atom/?{{ request.META.QUERY_STRING }}" class="links menu_links">Atom results feed</a>
+                <a href="/atom/?{{ request.META.QUERY_STRING }}&cached=1" class="links menu_links">Atom cached feed</a>
             </div>
         </div>
         {% for r in paginated %}

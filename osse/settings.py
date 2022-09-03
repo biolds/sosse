@@ -96,7 +96,6 @@ DATABASES = {
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/html/static'
 
-
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -160,6 +159,7 @@ LOGGING = {
 
 OSSE_DEFAULT_PAGE_SIZE = 20
 OSSE_MAX_PAGE_SIZE = 200
+OSSE_ATOM_FEED_SIZE = 200
 
 OSSE_LANGDETECT_TO_POSTGRES = {
     'ar': {

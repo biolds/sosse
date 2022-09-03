@@ -120,6 +120,14 @@ def get_documents(request, form):
             title_param = {'title' + param: value}
             url_param = {'url' + param: value}
             qf = models.Q(**content_param) | models.Q(**title_param) | models.Q(**url_param)
+        elif field == 'lto_url':
+            qf = models.Q(links_to__doc_to__url=value) | models.Q(links_to__extern_url=value)
+        elif field == 'lto_txt':
+            qf = models.Q(links_to__text=value)
+        elif field == 'lby_url':
+            qf = models.Q(linked_from__doc_from__url=value) | models.Q(linked_from__extern_url=value)
+        elif field == 'lby_txt':
+            qf = models.Q(linked_from__text=value)
         else:
             qparams = {field + param: value}
             qf = models.Q(**qparams)
@@ -138,7 +146,7 @@ def get_documents(request, form):
         results = results.filter(lang_iso_639_1=doc_lang)
 
     order_by = form.cleaned_data['order_by']
-    results = results.order_by(*order_by)
+    results = results.order_by(*order_by).distinct()
 
     if results == all_results:
         return []

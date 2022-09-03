@@ -147,7 +147,7 @@ function load_adv_search() {
     var params = {};
     paramsString.split("&").forEach(function(part) {
       var item = part.split("=");
-      params[item[0]] = decodeURIComponent(item[1]);
+      params[item[0]] = decodeURIComponent(item[1].replaceAll('+', ' '));
     });
 
     if (params.doc_lang) {

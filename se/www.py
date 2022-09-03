@@ -1,17 +1,12 @@
-from django.shortcuts import get_object_or_404, render, reverse
-from django.utils.html import format_html, escape
+from django.shortcuts import render, reverse
+from django.utils.html import format_html
 
-from .models import Document, Link, UrlPolicy
+from .models import Link
+from .cached import get_document, get_context
 
 
 def www(request, url):
-    # re-establish double //
-    scheme, url = url.split('/', 1)
-    if url[0] != '/':
-        url = '/' + url
-    url = scheme + '/' + url
-
-    doc = get_object_or_404(Document, url=url)
+    doc = get_document(url)
 
     content = format_html('')
     content_pos = 0
@@ -43,22 +38,6 @@ def www(request, url):
         content_pos += len(l) + 1 # +1 for the \n stripped by splitlines()
         content += format_html('{}<br/>', l)
 
-    url_policy = UrlPolicy.get_from_url(doc.url)
-
-    title = doc.title or doc.url
-    page_title = None
-    favicon = None
-    if doc.favicon and not doc.favicon.missing:
-        favicon = reverse('favicon', args=(doc.favicon.id,))
-        page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
-
-    context = {
-        'url_policy': url_policy,
-        'doc': doc,
-        'head_title': title,
-        'page_title': page_title or title,
-        'content': content,
-        'favicon': favicon
-    }
-
+    context = get_context(doc)
+    context['content'] = content
     return render(request, 'se/www.html', context)

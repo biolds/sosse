@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, re_path
 from se.views import favicon, prefs, search, word_stats
 from se.atom import atom
+from se.screenshot import screenshot
 from se.stats import stats
 from se.www import www
 
@@ -28,5 +29,6 @@ urlpatterns = [
     path('atom/', atom),
     path('word_stats/', word_stats),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
+    re_path(r'screenshot/(?P<url>.*)', screenshot, name='screenshot'),
     re_path(r'www/(?P<url>.*)', www, name='www')
 ]

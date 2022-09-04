@@ -32,4 +32,3 @@ def get_context(doc):
         'page_title': page_title,
         'favicon': favicon
     }
-

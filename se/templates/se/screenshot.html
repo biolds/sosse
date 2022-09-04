@@ -1,0 +1,21 @@
+{% extends "se/base.html" %}
+
+{% block css %}
+    #error_pre {
+        overflow: scroll;
+        border: 1px;
+        border-style: solid;
+        border-color: #aaa;
+        background-color: #fdd;
+    }
+    #screenshot {
+        position: absolute;
+        width: 100%;
+        margin-left: -48px;
+    }
+{% endblock %}
+
+{% block body %}
+    {% include "se/cached.html" %}
+    <img id="screenshot" src="{{ screenshot }}" style="padding-left: -48px; width: 100%; height: auto"/>
+{% endblock %}

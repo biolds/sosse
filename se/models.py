@@ -96,11 +96,14 @@ class Document(models.Model):
     vector = SearchVectorField(null=True, blank=True)
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
     vector_lang = RegConfigField(default='simple')
+
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
     robotstxt_rejected = models.BooleanField(default=False)
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
+
+    screenshot_file = models.CharField(max_length=4096, blank=True, null=True)
 
     # Crawling info
     crawl_first = models.DateTimeField(blank=True, null=True)
@@ -271,6 +274,13 @@ class Document(models.Model):
 
         FavIcon.extract(self, page)
         self._index_log('favicon', stats, verbose)
+
+        if url_policy.take_screenshots:
+            self.screenshot_index()
+
+    def screenshot_index(self):
+        f = SeleniumBrowser.take_screenshots(self.url)
+        self.screenshot_file = f
 
     def set_error(self, err):
         self.error = err
@@ -859,6 +869,8 @@ class UrlPolicy(models.Model):
     auth_login_url_re = models.TextField(null=True, blank=True)
     auth_form_selector = models.TextField(null=True, blank=True)
     auth_cookies = models.TextField(blank=True, default='')
+
+    take_screenshots = models.BooleanField(default=False)
 
     @staticmethod
     def get_from_url(url):

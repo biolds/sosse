@@ -401,3 +401,8 @@ OSSE_EXCLUDE_NOT_INDEXED = True
 
 # Exclude pages that redirect to an other from results
 OSSE_EXCLUDE_REDIRECT = True
+
+OSSE_SCREENSHOTS_DIR = '/var/lib/osse/screenshots/'
+OSSE_SCREENSHOTS_URL = '/screenshots/'
+if DEBUG:
+    OSSE_SCREENSHOTS_DIR = os.path.join(BASE_DIR, 'screenshots/')

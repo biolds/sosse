@@ -149,6 +149,9 @@ class UrlPolicyForm(forms.ModelForm):
             if not required and cleaned_data.get(key) is not None:
                 self.add_error(key, 'This field must be null when using this recrawl mode')
 
+        if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM and cleaned_data['take_screenshots']:
+            self.add_error('default_browse_mode', 'Browsing mode must be set to Selenium to take screenshots')
+            self.add_error('take_screenshots', 'Browsing mode must be set to Selenium to take screenshots')
         return cleaned_data
 
 

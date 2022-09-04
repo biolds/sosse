@@ -35,5 +35,5 @@ class Command(BaseCommand):
                 doc.index(page, url_policy, verbose=True, force=True)
                 doc.save()
             else:
-                pint('Got redirect')
+                print('Got redirect')
             print('Duration %s' % (now() - n))

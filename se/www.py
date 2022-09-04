@@ -40,4 +40,10 @@ def www(request, url):
 
     context = get_context(doc)
     context['content'] = content
+
+    if doc.screenshot_file:
+        context['other_link'] = {
+            'href': reverse('screenshot', args=[url]),
+            'text': 'Screenshot'
+        }
     return render(request, 'se/www.html', context)

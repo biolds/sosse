@@ -1,4 +1,6 @@
 import json
+import os
+from hashlib import md5
 from time import sleep
 
 from bs4 import BeautifulSoup
@@ -243,10 +245,27 @@ class SeleniumBrowser(Browser):
         if url != cls.driver.current_url:
             page.got_redirect = True
 
-        #f = page.url.replace('/', '_')
-        #cls.driver.get_screenshot_as_file('/tmp/%s.png' % f)
         return page
 
+    @classmethod
+    def screenshot_name(cls, url):
+        filename = md5(url.encode('utf-8')).hexdigest() + '.png'
+        base_dir = filename[:2]
+        return base_dir, filename
+
+    @classmethod
+    def take_screenshots(cls, url):
+        base_dir, filename = cls.screenshot_name(url)
+        d = os.path.join(settings.OSSE_SCREENSHOTS_DIR, base_dir)
+        os.makedirs(d, exist_ok=True)
+        f = os.path.join(d, filename)
+
+        width = cls.driver.execute_script('return document.body.clientWidth');
+        height = cls.driver.execute_script('return document.body.clientHeight');
+        print('%sx%s' % (width, height))
+        cls.driver.set_window_rect(0, 0, width, height)
+        cls.driver.get_screenshot_as_file(f)
+        return os.path.join(base_dir, filename)
 
     @classmethod
     def try_auth(cls, page, url, url_policy):

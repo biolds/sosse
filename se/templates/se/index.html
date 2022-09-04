@@ -214,6 +214,9 @@
                 <div class="res-rank">{{ r.lang_iso_639_1 }}</div>
                 <div class="res-rank">{{ r.id }}</div>
                 <div class="res-rank"><a href="{% url 'www' r.url %}">cached</a></div>
+                {% if r.screenshot_file %}
+                    <div class="res-rank"><a href="{% url 'screenshot' r.url %}">screenshot</a></div>
+                {% endif %}
                 <br/>
                 <a href="{{ r.url }}" class="res-headline">{{ r.headline }}</a>
             </div>

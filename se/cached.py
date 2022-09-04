@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404, reverse
 from django.utils.html import format_html
 
@@ -20,13 +21,15 @@ def get_context(doc):
     favicon = None
     if doc.favicon and not doc.favicon.missing:
         favicon = reverse('favicon', args=(doc.favicon.id,))
-        page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
+    else:
+        favicon = settings.STATIC_URL + '/se/favicon.svg'
 
+    page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
     return {
         'url_policy': url_policy,
         'doc': doc,
         'head_title': title,
-        'page_title': page_title or title,
+        'page_title': page_title,
         'favicon': favicon
     }
 

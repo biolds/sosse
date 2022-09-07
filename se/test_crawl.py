@@ -37,6 +37,10 @@ class CrawlerTest(TestCase):
                                                    no_crawl=False,
                                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS)
 
+    def tearDown(self):
+        self.root_policy.delete()
+        self.url_policy.delete()
+
     def _crawl(self):
         Document.queue('http://127.0.0.1/', None)
         while Document.crawl(0):

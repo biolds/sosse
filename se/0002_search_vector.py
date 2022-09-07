@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
               BEGIN
                 new.vector = setweight(to_tsvector(new.vector_lang, new.normalized_title), 'A') ||
                              setweight(to_tsvector(new.vector_lang, new.normalized_url), 'A') ||
-                             setweight(to_tsvector(new.vector_lang, (SELECT STRING_AGG(text, ' ') FROM se_link WHERE doc_to_id=new.id)), 'B') ||
+                             setweight(to_tsvector(new.vector_lang, COALESCE('', (SELECT STRING_AGG(text, ' ') FROM se_link WHERE doc_to_id=new.id))), 'B') ||
                              setweight(to_tsvector(new.vector_lang, new.normalized_content), 'C');
                 return new;
               END
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 UPDATE se_document SET
                     vector = setweight(to_tsvector(vector_lang, se_document.normalized_title), 'A') ||
                              setweight(to_tsvector(vector_lang, se_document.normalized_url), 'A') ||
-                             setweight(to_tsvector(vector_lang, (SELECT STRING_AGG(se_link.text, ' ') FROM se_link WHERE se_link.doc_to_id=se_document.id)), 'B') ||
+                             setweight(to_tsvector(vector_lang, COALESCE('', (SELECT STRING_AGG(se_link.text, ' ') FROM se_link WHERE se_link.doc_to_id=se_document.id))), 'B') ||
                              setweight(to_tsvector(vector_lang, se_document.normalized_content), 'C')
                 WHERE id = new.doc_to_id;
                 RETURN new;

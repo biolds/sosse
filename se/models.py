@@ -794,7 +794,7 @@ class DomainSetting(models.Model):
         self.robots_disallow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
 
     def _load_robotstxt(self):
-        print('loading robots txt')
+        crawl_logger.debug('loading robots txt')
         self.robots_ua_hash = self.ua_hash()
 
         try:
@@ -802,11 +802,9 @@ class DomainSetting(models.Model):
             self._parse_robotstxt(page.content)
         except requests.HTTPError:
             self.robots_status = DomainSetting.ROBOTS_EMPTY
-            print('http errror')
-            return
+        else:
+            self.robots_status = DomainSetting.ROBOTS_LOADED
 
-        self.robots_status = DomainSetting.ROBOTS_LOADED
-        print('status %s' % DomainSetting.ROBOTS_LOADED)
 
     def robots_authorized(self, url):
         if self.robots_status == DomainSetting.ROBOTS_IGNORE:

@@ -36,7 +36,7 @@ def atom(request):
         if redirect_url:
             return HttpResponse('External search cannot be performed', content_type='text/plain', status=400)
 
-        results = get_documents(request, form)
+        _, results = get_documents(request, form)
 
         key = request.GET.get('s', '')
         if key.startswith('-'):

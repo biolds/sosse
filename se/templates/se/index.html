@@ -167,7 +167,7 @@
 {% endblock %}
 
 {% block body %}
-    {% if q %}
+    {% if has_query %}
         {% if results_count == '0' %}
             <div>
                 No result

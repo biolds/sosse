@@ -67,7 +67,7 @@ def search(request):
         if redirect_url:
             return redirect(redirect_url)
 
-        results = get_documents(request, form)
+        has_query, results = get_documents(request, form)
         paginator = Paginator(results, form.cleaned_data['ps'])
         page_number = request.GET.get('p')
         paginated = paginator.get_page(page_number)
@@ -92,6 +92,7 @@ def search(request):
         'results': results,
         'results_count': human_nb(len(results)),
         'paginated': paginated,
+        'has_query': has_query,
         'q': q,
         'page_title': q,
         'osse_langdetect_to_postgres': osse_langdetect_to_postgres
@@ -115,7 +116,7 @@ def word_stats(request):
     if form.is_valid():
         q = form.cleaned_data['q']
         q = remove_accent(q)
-        doc_query = get_documents(request, form).values('vector')
+        _, doc_query = get_documents(request, form).values('vector')
 
         # Hack to obtain final SQL query, as described there:
         # https://code.djangoproject.com/ticket/17741#comment:4

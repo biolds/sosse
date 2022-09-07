@@ -12,10 +12,11 @@ def get_documents(request, form):
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
     results = Document.objects.all()
-    all_results = results
+    has_query = False
 
     q = remove_accent(form.cleaned_data['q'])
     if q:
+        has_query = True
         lang = form.cleaned_data['l']
         query = SearchQuery(q, config=lang, search_type='websearch')
         results = Document.objects.filter(vector=query).annotate(
@@ -47,6 +48,7 @@ def get_documents(request, form):
         if cont:
             continue
 
+        has_query=True
         ftype = f['ft']
         field = f['ff']
         operator = f['fo']
@@ -94,14 +96,10 @@ def get_documents(request, form):
 
         results = results.filter(qf)
 
-    if results == all_results:
-        return []
-
     doc_lang = form.cleaned_data.get('doc_lang')
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
 
     order_by = form.cleaned_data['order_by']
     results = results.order_by(*order_by).distinct()
-
-    return results
+    return has_query, results

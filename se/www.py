@@ -19,8 +19,8 @@ def www(request, url):
             link = links[link_no]
             link_pos = link.pos - content_pos
             txt = l[:link_pos]
-            l = l[link_pos + len(link.text):]
-            content_pos += len(txt) + len(link.text)
+            l = l[link_pos + len(link.text or ''):]
+            content_pos += len(txt) + len(link.text or '')
 
             if link.doc_to:
                 content += format_html('{}<a href="{}">{}</a> · <a href="{}">🌍</a>',

@@ -168,7 +168,8 @@ class SeleniumBrowser(Browser):
         options = Options()
         options.binary_location = "/usr/bin/chromium"
         options.add_argument("start-maximized")
-        options.add_argument("--window-size=1920,1080")
+        options.add_argument('--start-fullscreen')
+        options.add_argument('--window-size=%s,%s' % cls.screen_size())
         options.add_argument("--enable-precise-memory-info")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-default-apps")
@@ -193,8 +194,6 @@ class SeleniumBrowser(Browser):
         while retry > 0:
             retry -= 1
 
-            #content = cls.driver.execute_script('return document.getElementsByTagName("body")[0].innerHTML')
-            #content = '<html>%s</html>' % content
             content = cls.driver.page_source
 
             if content == previous_content:
@@ -249,9 +248,14 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def screenshot_name(cls, url):
-        filename = md5(url.encode('utf-8')).hexdigest() + '.png'
+        filename = md5(url.encode('utf-8')).hexdigest()
         base_dir = filename[:2]
         return base_dir, filename
+
+    @classmethod
+    def screen_size(cls):
+        w, h = settings.OSSE_SCREENSHOTS_SIZE.split('x')
+        return int(w), int(h)
 
     @classmethod
     def take_screenshots(cls, url):
@@ -260,12 +264,64 @@ class SeleniumBrowser(Browser):
         os.makedirs(d, exist_ok=True)
         f = os.path.join(d, filename)
 
-        width = cls.driver.execute_script('return document.body.clientWidth');
-        height = cls.driver.execute_script('return document.body.clientHeight');
-        print('%sx%s' % (width, height))
-        cls.driver.set_window_rect(0, 0, width, height)
-        cls.driver.get_screenshot_as_file(f)
-        return os.path.join(base_dir, filename)
+        width, height = cls.screen_size()
+        cls.driver.set_window_rect(0, 0, *cls.screen_size())
+        cls.driver.execute_script('document.body.style.overflow = "hidden"');
+        doc_height = cls.driver.execute_script('''
+            const body = document.body;
+            const html = document.documentElement;
+            return height = Math.max(body.scrollHeight, body.offsetHeight, 
+                                   html.clientHeight, html.scrollHeight, html.offsetHeight);
+        ''')
+
+        img_no = 0
+        while (img_no + 1) * height < doc_height:
+            cls.scroll_to_page(img_no)
+            cls.driver.get_screenshot_as_file('%s_%s.png' % (f, img_no))
+            img_no += 1
+
+        remaining = doc_height - (img_no * height)
+        if remaining > 0:
+            cls.driver.set_window_rect(0, 0, width, remaining)
+            cls.scroll_to_page(img_no)
+            cls.driver.get_screenshot_as_file('%s_%s.png' % (f, img_no))
+            img_no += 1
+
+        return os.path.join(base_dir, filename), img_no
+
+    @classmethod
+    def scroll_to_page(cls, page_no):
+        _, height = cls.screen_size()
+        cls.driver.execute_script('window.scroll(0, %s)' % (page_no * height))
+
+    @classmethod
+    def get_link_pos_abs(cls, selector):
+        return cls.driver.execute_script('''
+            const e = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+
+            if (e === null) {
+                return {}
+            };
+            let el = e.singleNodeValue;
+            if (el === null) {
+                return {}
+            };
+            if (el.children.length === 1 && el.children[0].tagName === 'IMG') {
+                el = el.children[0];
+            }
+            const bodyRect = document.body.getBoundingClientRect();
+            const elemRect = el.getBoundingClientRect();
+            const pageWidth = %s;
+            if (elemRect.left >= pageWidth) {
+                return {};
+            }
+            return {
+                elemLeft: elemRect.left,
+                elemTop: elemRect.top,
+                elemRight: Math.min(pageWidth, elemRect.right),
+                elemBottom: elemRect.bottom,
+            }
+        ''' % (selector, cls.screen_size()[0]))
 
     @classmethod
     def try_auth(cls, page, url, url_policy):

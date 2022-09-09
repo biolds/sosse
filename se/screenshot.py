@@ -8,11 +8,16 @@ from .cached import get_document, get_context
 def screenshot(request, url):
     doc = get_document(url)
 
-    context = get_context(doc)
     base_dir, filename = SeleniumBrowser.screenshot_name(doc.url)
-    context['screenshot'] = settings.OSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename
-    context['other_link'] = {
-        'href': reverse('www', args=[url]),
-        'text': 'Cached page'
-    }
+
+    context = get_context(doc)
+    context.update({
+        'screenshot': settings.OSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
+        'other_link': {
+            'href': reverse('www', args=[url]),
+            'text': 'Cached page',
+        },
+        'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
+        'screens': range(doc.screenshot_count or 0)
+    })
     return render(request, 'se/screenshot.html', context)

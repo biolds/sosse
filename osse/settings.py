@@ -148,8 +148,8 @@ LOGGING = {
     'loggers': {
         'crawler': {
             'handlers': ['console'],
-            #'level': 'INFO',
-            'level': 'DEBUG',
+            'level': 'INFO',
+            #'level': 'DEBUG',
             'propagate': False,
         },
     },
@@ -403,6 +403,7 @@ OSSE_EXCLUDE_NOT_INDEXED = True
 # Exclude pages that redirect to an other from results
 OSSE_EXCLUDE_REDIRECT = True
 
+OSSE_SCREENSHOTS_SIZE = '1920x1080'
 OSSE_SCREENSHOTS_DIR = '/var/lib/osse/screenshots/'
 OSSE_SCREENSHOTS_URL = '/screenshots/'
 #if DEBUG:

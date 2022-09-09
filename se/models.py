@@ -13,7 +13,7 @@ from time import sleep
 from traceback import format_exc
 from urllib.parse import urlparse
 
-from bs4 import Doctype
+from bs4 import Doctype, Tag
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
@@ -112,6 +112,7 @@ class Document(models.Model):
     redirect_url = models.TextField(null=True, blank=True)
 
     screenshot_file = models.CharField(max_length=4096, blank=True, null=True)
+    screenshot_count = models.PositiveIntegerField(blank=True, null=True)
 
     # Crawling info
     crawl_first = models.DateTimeField(blank=True, null=True)
@@ -179,6 +180,18 @@ class Document(models.Model):
         print('%s %s' % (n - stats['prev'], s))
         stats['prev'] = n
 
+    def _build_selector(self, elem):
+        no = 1
+        for sibling in elem.previous_siblings:
+            if isinstance(elem, Tag) and sibling.name == elem.name:
+                no += 1
+
+        selector = '/%s[%i]' % (elem.name, no)
+
+        if elem.name != 'html':
+            selector = self._build_selector(elem.parent) + selector
+        return selector
+
     def _dom_walk(self, elem, url_policy, links):
         if isinstance(elem, Doctype):
             return
@@ -190,8 +203,8 @@ class Document(models.Model):
         if s is not None:
             s = s.strip(' \t\n\r')
 
-        if elem.name in (None, 'a') and s:
-            #print('%s / %s' % (elem.name, s))
+        # Keep the link if it has text, or if we take screenshots
+        if elem.name in (None, 'a') and (s or url_policy.take_screenshots):
             if links['text'] and links['text'][-1] not in (' ', '\n'):
                 links['text'] += ' '
 
@@ -218,9 +231,12 @@ class Document(models.Model):
                                     extern_url=href)
 
                     if link:
+                        if url_policy.take_screenshots:
+                            link.css_selector = self._build_selector(elem)
                         links['links'].append(link)
 
-            links['text'] += s
+            if s:
+                links['text'] += s
 
             if elem.name == 'a':
                 return
@@ -269,14 +285,6 @@ class Document(models.Model):
 
         self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
 
-        Link.objects.filter(doc_from=self).delete()
-        self._index_log('delete', stats, verbose)
-        # The bulk request triggers a deadlock
-        #Link.objects.bulk_create(links['links'])
-        for link in links['links']:
-            link.save()
-        self._index_log('bulk', stats, verbose)
-
         self.content = text
         self.normalized_content = remove_accent(text)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
@@ -286,11 +294,37 @@ class Document(models.Model):
         self._index_log('favicon', stats, verbose)
 
         if url_policy.take_screenshots:
-            self.screenshot_index()
+            self.screenshot_index(links['links'])
 
-    def screenshot_index(self):
-        f = SeleniumBrowser.take_screenshots(self.url)
-        self.screenshot_file = f
+        Link.objects.filter(doc_from=self).delete()
+        self._index_log('delete', stats, verbose)
+
+        # The bulk request triggers a deadlock
+        #Link.objects.bulk_create(links['links'])
+        for link in links['links']:
+            link.save()
+        self._index_log('bulk', stats, verbose)
+
+    def screenshot_index(self, links):
+        filename, img_count = SeleniumBrowser.take_screenshots(self.url)
+        self.screenshot_file = filename
+        self.screenshot_count = img_count
+
+        SeleniumBrowser.scroll_to_page(0)
+        for i, link in enumerate(links):
+            loc = SeleniumBrowser.get_link_pos_abs(link.css_selector)
+            if loc == {}:
+                continue
+            for attr in ('elemLeft', 'elemTop', 'elemRight', 'elemBottom'):
+                if not isinstance(loc[attr], (int, float)):
+                    break
+            else:
+                link.screen_pos = '%s,%s,%s,%s' % (
+                    int(loc['elemLeft']),
+                    int(loc['elemTop']),
+                    int(loc['elemRight'] - loc['elemLeft']),
+                    int(loc['elemBottom'] - loc['elemTop'])
+                )
 
     def set_error(self, err):
         self.error = err
@@ -476,13 +510,39 @@ class Document(models.Model):
 class Link(models.Model):
     doc_from = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='links_to')
     doc_to = models.ForeignKey(Document, null=True, blank=True, on_delete=models.CASCADE, related_name='linked_from')
-    text = models.TextField()
+    text = models.TextField(null=True, blank=True)
     pos = models.PositiveIntegerField()
     link_no = models.PositiveIntegerField()
     extern_url = models.TextField(null=True, blank=True)
+    screen_pos = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
         unique_together = ('doc_from', 'link_no')
+
+    def pos_left(self):
+        if not self.screen_pos:
+            return 0
+        return self.screen_pos.split(',')[0]
+
+    def pos_top(self):
+        if not self.screen_pos:
+            return 0
+        return self.screen_pos.split(',')[1]
+
+    def pos_bottom(self):
+        if not self.screen_pos:
+            return 0
+        return str(100 - int(self.screen_pos.split(',')[1]))
+
+    def pos_width(self):
+        if not self.screen_pos:
+            return 0
+        return self.screen_pos.split(',')[2]
+
+    def pos_height(self):
+        if not self.screen_pos:
+            return 0
+        return self.screen_pos.split(',')[3]
 
 
 class AuthField(models.Model):

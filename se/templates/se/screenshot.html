@@ -1,4 +1,12 @@
 {% extends "se/base.html" %}
+{% load static %}
+
+{% block head %}
+    <script type="text/javascript" src="{% static "se/screenshot.js" %}"></script>
+    {% for screen in screens %}
+         <link rel="preload" href="{{ screenshot }}_{{ forloop.counter0 }}.png" as="image" type="image/png"/>
+    {% endfor %}
+{% endblock %}
 
 {% block css %}
     #error_pre {
@@ -8,14 +16,32 @@
         border-color: #aaa;
         background-color: #fdd;
     }
-    #screenshot {
+    #screenshots {
         position: absolute;
-        width: 100%;
         margin-left: -48px;
+    }
+    #screenshots > img {
+        margin-top: -4px;
+    }
+    .img_link {
+        position: absolute;
+        margin-top: -4px;
+    }
+    .img_link:hover {
+        position: absolute;
+        margin-top: -4px;
+        box-shadow: 0px 0px 4px 4px #000;
     }
 {% endblock %}
 
 {% block body %}
     {% include "se/cached.html" %}
-    <img id="screenshot" src="{{ screenshot }}" style="padding-left: -48px; width: 100%; height: auto"/>
+    <div id="screenshots">
+    {% for link in links %}
+       <a class="img_link" style="left: {{ link.pos_left }}px; top: {{ link.pos_top }}px; width: {{ link.pos_width }}px; height: {{ link.pos_height }}px;" data-loc="{{ link.screen_pos }}" href="{% if link.doc_to %}{% url 'screenshot' link.doc_to.url %}{% else %}{{ link.extern_url }}{% endif %}"></a>
+    {% endfor %}
+    {% for screen in screens %}
+         <img src="{{ screenshot }}_{{ forloop.counter0 }}.png"/>
+    {% endfor %}
+    </div>
 {% endblock %}

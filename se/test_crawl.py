@@ -153,7 +153,7 @@ class CrawlerTest(TestCase):
             'http://127.0.0.1/': 'Root <a href="/page1/">Link1</a>',
             'http://127.0.0.1/page1/': 'Page1',
         })
-        self.url_policy.keep_extern_links = True
+        self.url_policy.store_extern_links = True
         self.url_policy.save()
         UrlPolicy.objects.create(url_prefix='http://127.0.0.1/page1/', no_crawl=True)
         self._crawl()

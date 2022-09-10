@@ -200,7 +200,7 @@ class Document(models.Model):
                                     doc_to=target,
                                     text=s,
                                     pos=len(links['text']))
-                    elif url_policy.keep_extern_links:
+                    elif url_policy.store_extern_links:
                         link = Link(doc_from=self,
                                     link_no=len(links['links']),
                                     text=s,
@@ -861,7 +861,7 @@ class UrlPolicy(models.Model):
     recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=60 * 24 * 365)
     crawl_depth = models.PositiveIntegerField(null=True, blank=True)
 
-    keep_extern_links = models.BooleanField(default=False)
+    store_extern_links = models.BooleanField(default=False)
     hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS)
 
     auth_login_url_re = models.TextField(null=True, blank=True)

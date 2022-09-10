@@ -11,7 +11,7 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
-from .models import Document, FavIcon, SearchEngine
+from .models import Document, FavIcon, SearchEngine, remove_accent
 from .search import get_documents
 
 
@@ -116,7 +116,8 @@ def word_stats(request):
     if form.is_valid():
         q = form.cleaned_data['q']
         q = remove_accent(q)
-        _, doc_query = get_documents(request, form).values('vector')
+        _, doc_query = get_documents(request, form, True)
+        doc_query = doc_query.values('vector')
 
         # Hack to obtain final SQL query, as described there:
         # https://code.djangoproject.com/ticket/17741#comment:4

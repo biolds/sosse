@@ -7,7 +7,7 @@ from django.db import models
 from .models import Document, remove_accent
 
 
-def get_documents(request, form):
+def get_documents(request, form, stats_call=False):
     FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
@@ -102,6 +102,7 @@ def get_documents(request, form):
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
 
-    order_by = form.cleaned_data['order_by']
-    results = results.order_by(*order_by).distinct()
+    if not stats_call:
+        order_by = form.cleaned_data['order_by']
+        results = results.order_by(*order_by).distinct()
     return has_query, results

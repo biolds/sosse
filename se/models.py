@@ -31,10 +31,14 @@ DetectorFactory.seed = 0
 crawl_logger = logging.getLogger('crawler')
 
 
-def sanitize_url(url):
-    for to_del in ('?', '#'):
-        if to_del in url:
-            url = url.split(to_del, 1)[0]
+def sanitize_url(url, keep_params, keep_anchors):
+    if not keep_params:
+        if '?' in url:
+            url = url.split('?', 1)[0]
+
+    if not keep_anchors:
+        if '#' in url:
+            url = url.split('#', 1)[0]
 
     url = urlparse(url)
 
@@ -52,15 +56,19 @@ def sanitize_url(url):
     return url
 
 
-def absolutize_url(url, p):
+def absolutize_url(url, p, keep_params, keep_anchors):
     if p.startswith('data:'):
         return p
 
     if p == '':
-        return sanitize_url(url)
+        return sanitize_url(url, keep_params, keep_anchors)
+
+    if p.startswith('//'):
+        scheme = url.split('//', 1)[0]
+        p = scheme + p
 
     if re.match('[a-zA-Z]+:', p):
-        return sanitize_url(p)
+        return sanitize_url(p, keep_params, keep_anchors)
 
     url = urlparse(url)
     if p.startswith('/'):
@@ -70,7 +78,7 @@ def absolutize_url(url, p):
         new_path += '/' + p
 
     url = url._replace(path=new_path)
-    return sanitize_url(url.geturl())
+    return sanitize_url(url.geturl(), keep_params, keep_anchors)
 
 
 def remove_accent(s):
@@ -191,7 +199,7 @@ class Document(models.Model):
                 href = elem.get('href')
                 if href:
                     href = href.strip()
-                    href = absolutize_url(self.url, href)
+                    href = absolutize_url(self.url, href, url_policy.keep_params, False)
                     target = Document.queue(href, self.crawl_depth)
                     link = None
                     if target:
@@ -201,6 +209,8 @@ class Document(models.Model):
                                     text=s,
                                     pos=len(links['text']))
                     elif url_policy.store_extern_links:
+                        href = elem.get('href').strip()
+                        href = absolutize_url(self.url, href, True, True)
                         link = Link(doc_from=self,
                                     link_no=len(links['links']),
                                     text=s,
@@ -627,7 +637,7 @@ class FavIcon(models.Model):
         if url is None:
             url = '/favicon.ico'
 
-        url = absolutize_url(doc.url, url)
+        url = absolutize_url(doc.url, url, True, False)
 
         favicon, created = FavIcon.objects.get_or_create(url=url)
         doc.favicon = favicon
@@ -862,6 +872,8 @@ class UrlPolicy(models.Model):
     crawl_depth = models.PositiveIntegerField(null=True, blank=True)
 
     store_extern_links = models.BooleanField(default=False)
+    keep_params = models.BooleanField(default=False)
+
     hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS)
 
     auth_login_url_re = models.TextField(null=True, blank=True)

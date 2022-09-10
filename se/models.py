@@ -660,9 +660,9 @@ class FavIcon(models.Model):
     @classmethod
     def _get_url(cls, page):
         parsed = page.get_soup()
-        links = parsed.find_all('link', rel="shortcut icon")
+        links = parsed.find_all('link', rel=re.compile('shortcut icon', re.IGNORECASE))
         if links == []:
-            links = parsed.find_all('link', rel="icon")
+            links = parsed.find_all('link', rel=re.compile('icon', re.IGNORECASE))
 
         if len(links) == 0:
             return None

@@ -26,7 +26,7 @@ def filesizeformat(n):
     return '%0.1f%sB' % (n / factor, unit)
 
 
-def datetime_graph(pygal_style, freq, data, col, _now):
+def datetime_graph(pygal_config, pygal_style, freq, data, col, _now):
     if freq == MINUTELY:
         start = _now - timedelta(hours=23)
         start = start.replace(minute=0, second=0, microsecond=0)
@@ -60,7 +60,7 @@ def datetime_graph(pygal_style, freq, data, col, _now):
         x_title = None
         cls = pygal.DateLine
 
-    g = cls(style=pygal_style, disable_xml_declaration=True,
+    g = cls(pygal_config, style=pygal_style, disable_xml_declaration=True,
                                      truncate_label=-1, show_legend=False, fill=True,
                                      x_value_formatter=lambda dt: dt.strftime(format_str),
                                      x_title=x_title, range=(0, None))
@@ -81,7 +81,7 @@ def datetime_graph(pygal_style, freq, data, col, _now):
     return g
 
 
-def crawler_stats(pygal_style, freq):
+def crawler_stats(pygal_config, pygal_style, freq):
     _now = now()
     if freq == MINUTELY:
         dt = _now - timedelta(days=1)
@@ -93,7 +93,7 @@ def crawler_stats(pygal_style, freq):
         return {}
 
     # Doc count minutely
-    doc_count = datetime_graph(pygal_style, freq, data, 'doc_count', _now)
+    doc_count = datetime_graph(pygal_config, pygal_style, freq, data, 'doc_count', _now)
     factor, unit = get_unit(data.aggregate(m=models.Max('doc_count')).get('m', 0) or 0)
     doc_count.title = 'Doc count'
     if unit:
@@ -107,14 +107,14 @@ def crawler_stats(pygal_style, freq):
     else:
         idx_speed_data = data.annotate(speed=models.F('indexing_speed') / 60.0 / 60.0 / 24.0)
         factor, unit = get_unit(idx_speed_data.aggregate(m=models.Max('speed')).get('m', 0) or 0.0)
-    idx_speed = datetime_graph(pygal_style, freq, idx_speed_data, 'speed', _now)
+    idx_speed = datetime_graph(pygal_config, pygal_style, freq, idx_speed_data, 'speed', _now)
     if not unit:
         unit = 'doc'
     idx_speed.title = 'Processing speed (%s/s)' % unit
     idx_speed = idx_speed.render()
 
     # Url queued minutely
-    url_queue = datetime_graph(pygal_style, freq, data, 'queued_url', _now)
+    url_queue = datetime_graph(pygal_config, pygal_style, freq, data, 'queued_url', _now)
     factor, unit = get_unit(data.aggregate(m=models.Max('queued_url')).get('m', 1))
     url_queue.title = 'URL queued'
     if unit:
@@ -129,6 +129,9 @@ def crawler_stats(pygal_style, freq):
 
 
 def stats(request):
+    pygal_config = pygal.Config()
+    pygal_config.jq = settings.STATIC_URL + '/se/pygal-tooltips.min.js'
+
     pygal_style = pygal.style.Style(
         background='transparent',
         plot_background='transparent',
@@ -148,7 +151,7 @@ def stats(request):
     # Language chart
     lang_chart = None
     if indexed_langs:
-        lang_chart = pygal.Bar(style=pygal_style, disable_xml_declaration=True, range=(0, None))
+        lang_chart = pygal.Bar(pygal_config, style=pygal_style, disable_xml_declaration=True, range=(0, None))
         lang_chart.title = "Document's language"
 
         factor, unit = get_unit(indexed_langs[0]['count'])
@@ -181,7 +184,7 @@ def stats(request):
             if not os.path.islink(fp):
                 screenshot_size += os.path.getsize(fp)
 
-    hdd_pie = pygal.Pie(style=pygal_style, disable_xml_declaration=True)
+    hdd_pie = pygal.Pie(pygal_config, style=pygal_style, disable_xml_declaration=True)
     hdd_pie.title = 'HDD size (total %s)' % filesizeformat(hdd_size)
     hdd_pie.add('DB(%s)' % filesizeformat(db_size), db_size)
     hdd_pie.add('Screenshots(%s)' % filesizeformat(screenshot_size), screenshot_size)
@@ -203,6 +206,6 @@ def stats(request):
         'hdd_pie': hdd_pie.render(),
     })
 
-    context.update(crawler_stats(pygal_style, MINUTELY))
-    context.update(crawler_stats(pygal_style, DAILY))
+    context.update(crawler_stats(pygal_config, pygal_style, MINUTELY))
+    context.update(crawler_stats(pygal_config, pygal_style, DAILY))
     return render(request, 'se/stats.html', context)

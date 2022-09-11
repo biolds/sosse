@@ -504,7 +504,7 @@ class Document(models.Model):
 
 
 class Link(models.Model):
-    doc_from = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='links_to')
+    doc_from = models.ForeignKey(Document, null=True, blank=True, on_delete=models.SET_NULL, related_name='links_to')
     doc_to = models.ForeignKey(Document, null=True, blank=True, on_delete=models.CASCADE, related_name='linked_from')
     text = models.TextField(null=True, blank=True)
     pos = models.PositiveIntegerField()

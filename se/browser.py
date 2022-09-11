@@ -9,6 +9,7 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from urllib.parse import unquote
 
 
 class Page:
@@ -31,12 +32,12 @@ class Page:
             elem.extract()
         return self.soup
 
-    def get_links(self):
+    def get_links(self, keep_params):
         from .models import absolutize_url
 
         for a in self.get_soup().find_all('a'):
             if a.get('href'):
-                u = absolutize_url(self.url, a.get('href').strip())
+                u = absolutize_url(self.url, a.get('href').strip(), keep_params, False)
                 if '#' in u:
                     raise Exception('aaa %s %s %s' % (u, self.url, a.get('href')))
                 yield u
@@ -201,7 +202,7 @@ class SeleniumBrowser(Browser):
             previous_content = content
             sleep(0.1)
 
-        page = Page(cls.driver.current_url,
+        page = Page(unquote(cls.driver.current_url),
                     content,
                     None,
                     cls)

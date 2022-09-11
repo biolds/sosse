@@ -16,7 +16,7 @@
     {% if doc.crawl_first %}
         <li>First successfully crawled on {{ doc.crawl_first }}</li>
     {% endif %}
-    <li>This page follows the policy <a href="{% url 'admin:se_urlpolicy_change' url_policy.id %}">{{ url_policy.readable_name }}</a></li>
+    <li>This page follows the policy <a href="{% url 'admin:se_urlpolicy_change' url_policy.id %}">{{ url_policy.url_regex }}</a></li>
     {% if doc.crawl_depth is not None %}
         <li>Page depth is {{ doc.crawl_depth }}</li>
     {% endif %}

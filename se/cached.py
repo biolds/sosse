@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404, reverse
 from django.utils.html import format_html
+from urllib.parse import unquote
 
 from .models import Document, UrlPolicy
 
@@ -11,6 +12,8 @@ def get_document(url):
     if url[0] != '/':
         url = '/' + url
     url = scheme + '/' + url
+    url = unquote(url)
+    url = unquote(url)
     return get_object_or_404(Document, url=url)
 
 

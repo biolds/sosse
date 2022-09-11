@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import connection, models
+from django.shortcuts import reverse
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
@@ -47,7 +48,7 @@ def sanitize_url(url, keep_params, keep_anchors):
     else:
         new_path = os.path.abspath(url.path)
         new_path = new_path.replace('//', '/')
-        if url.path.endswith('/'):
+        if url.path.endswith('/') and url.path != '/':
             # restore traling / (deleted by abspath)
             new_path += '/'
         url = url._replace(path=new_path)
@@ -95,6 +96,7 @@ class RegConfigField(models.Field):
 class Document(models.Model):
     # Document info
     url = models.TextField(unique=True)
+
     normalized_url = models.TextField()
     title = models.TextField()
     normalized_title = models.TextField()
@@ -119,7 +121,7 @@ class Document(models.Model):
     crawl_last = models.DateTimeField(blank=True, null=True)
     crawl_next = models.DateTimeField(blank=True, null=True)
     crawl_dt = models.DurationField(blank=True, null=True)
-    crawl_depth = models.PositiveIntegerField(blank=True, null=True)
+    crawl_depth = models.PositiveIntegerField(default=0)
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
     worker_no = models.PositiveIntegerField(blank=True, null=True)
@@ -128,6 +130,9 @@ class Document(models.Model):
 
     class Meta:
         indexes = [GinIndex(fields=(('vector',)))]
+
+    def get_absolute_url(self):
+        return reverse('www', args=(self.url,))
 
     @classmethod
     def get_supported_langs(cls):
@@ -212,8 +217,11 @@ class Document(models.Model):
                 href = elem.get('href')
                 if href:
                     href = href.strip()
-                    href = absolutize_url(self.url, href, url_policy.keep_params, False)
-                    target = Document.queue(href, self.crawl_depth)
+
+                    href_for_policy = absolutize_url(self.url, href, True, True)
+                    child_policy = UrlPolicy.get_from_url(href_for_policy)
+                    href = absolutize_url(self.url, href, child_policy.keep_params, False)
+                    target = Document.queue(href, url_policy, self)
                     link = None
                     if target:
                         link = Link(doc_from=self,
@@ -334,47 +342,36 @@ class Document(models.Model):
             self.error_hash = md5(err.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def _should_crawl(url_policy, parent_depth, url):
-        if url_policy.crawl_depth is None:
-            crawl_logger.debug('_should_crawl %s -> True None', url)
-            return True, None
-
-        url_depth = parent_depth or 0
-        url_depth += 1
-
-        if url_depth > url_policy.crawl_depth:
-            crawl_logger.debug('_should_crawl %s too deep, skip -> False %s', url, url_depth)
-            return False, url_depth
-
-        crawl_logger.debug('_should_crawl %s to crawl -> True %s', url, url_depth)
-        return True, url_depth
-
-    @staticmethod
-    def queue(url, parent_depth):
+    def queue(url, parent_policy, parent):
         url_policy = UrlPolicy.get_from_url(url)
+        crawl_logger.debug('%s matched %s, %s' % (url, url_policy.url_regex, url_policy.crawl_when))
 
-        try:
-            doc = Document.objects.get(url=url)
+        if url_policy.crawl_when == UrlPolicy.CRAWL_ALWAYS or parent is None:
+            crawl_logger.debug('%s -> always crawl' % url)
+            return Document.objects.get_or_create(url=url)[0]
 
-            should_crawl, url_depth = Document._should_crawl(url_policy, parent_depth, url)
-
-            if url_depth is not None and doc.crawl_depth is not None:
-                url_depth = min(url_depth, doc.crawl_depth)
-            if url_depth != doc.crawl_depth:
-                doc.crawl_depth = url_depth
-                doc.save()
-            return doc
-        except Document.DoesNotExist:
-            pass
-
-        if url_policy.no_crawl:
+        if url_policy.crawl_when == UrlPolicy.CRAWL_NEVER:
+            crawl_logger.debug('%s -> never crawl' % url)
             return None
 
-        should_crawl, url_depth = Document._should_crawl(url_policy, parent_depth, url)
-        if not should_crawl:
-            return None
+        doc = None
+        url_depth = None
 
-        doc, _ = Document.objects.get_or_create(url=url, defaults={'crawl_depth': url_depth})
+        if parent_policy.crawl_when == UrlPolicy.CRAWL_ALWAYS and parent_policy.crawl_depth > 0:
+            doc = Document.objects.get_or_create(url=url)[0]
+            url_depth = max(parent_policy.crawl_depth, doc.crawl_depth)
+            crawl_logger.debug('%s -> recurse for %s' % (url, url_depth))
+        elif parent_policy.crawl_when == UrlPolicy.CRAWL_ON_DEPTH and parent.crawl_depth > 1:
+            doc = Document.objects.get_or_create(url=url)[0]
+            url_depth = max(parent.crawl_depth - 1, doc.crawl_depth)
+            crawl_logger.debug('%s -> recurse at %s' % (url, url_depth))
+        else:
+            crawl_logger.debug('%s -> no recurse (from parent %s)' % (url, parent_policy.crawl_when))
+
+        if doc and url_depth != doc.crawl_depth:
+            doc.crawl_depth = url_depth
+            doc.save()
+
         return doc
 
     def _schedule_next(self, changed):
@@ -416,8 +413,7 @@ class Document(models.Model):
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
                     url_policy = UrlPolicy.get_from_url(doc.url)
                     domain = urlparse(doc.url).netloc
-                    domain_setting, _ = DomainSetting.objects.get_or_create(url_policy=url_policy,
-                                                                            domain=domain,
+                    domain_setting, _ = DomainSetting.objects.get_or_create(domain=domain,
                                                                             defaults={'browse_mode': url_policy.default_browse_mode})
                     if not domain_setting.robots_authorized(doc.url):
                         print('%s rejected by robots.txt' % doc.url)
@@ -776,7 +772,6 @@ class DomainSetting(models.Model):
 
     UA_HASH = None
 
-    url_policy = models.ForeignKey('UrlPolicy', on_delete=models.CASCADE)
     browse_mode = models.CharField(max_length=10, choices=BROWSE_MODE, default=BROWSE_DETECT)
     domain = models.TextField()
 
@@ -922,14 +917,23 @@ class UrlPolicy(models.Model):
         (HASH_NO_NUMBERS, 'Normalize numbers before'),
     ]
 
-    url_prefix = models.TextField(unique=True)
-    no_crawl = models.BooleanField(default=False)
+    CRAWL_ALWAYS = 'always'
+    CRAWL_ON_DEPTH = 'depth'
+    CRAWL_NEVER = 'never'
+    CRAWL_WHEN = [
+        (CRAWL_ALWAYS, 'Always'),
+        (CRAWL_ON_DEPTH, 'Depending on depth'),
+        (CRAWL_NEVER, 'Never'),
+    ]
 
-    default_browse_mode = models.CharField(max_length=10, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT)
-    recrawl_mode = models.CharField(max_length=10, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
+    url_regex = models.TextField(unique=True)
+    crawl_when = models.CharField(max_length=6, choices=CRAWL_WHEN, default=CRAWL_ALWAYS)
+
+    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT)
+    recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
     recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
     recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=60 * 24 * 365)
-    crawl_depth = models.PositiveIntegerField(null=True, blank=True)
+    crawl_depth = models.PositiveIntegerField(default=0)
 
     store_extern_links = models.BooleanField(default=False)
     keep_params = models.BooleanField(default=False)
@@ -944,18 +948,9 @@ class UrlPolicy(models.Model):
 
     @staticmethod
     def get_from_url(url):
-        return UrlPolicy.objects.filter(
-            url_prefix=models.functions.Substr(
-                models.Value(url), 1, models.functions.Length('url_prefix')
-            )
-        ).annotate(
-            url_prefix_len=models.functions.Length('url_prefix')
-        ).order_by('-url_prefix_len').first()
-
-    def readable_name(self):
-        if self.url_prefix == '':
-            return '<default>'
-        return f'<{self.url_prefix}>'
+        return UrlPolicy.objects.extra(where=['%s ~ url_regex'], params=[url]).annotate(
+            url_regex_len=models.functions.Length('url_regex')
+        ).order_by('-url_regex_len').first()
 
     def url_get(self, domain_setting, url):
         if domain_setting.browse_mode in (DomainSetting.BROWSE_DETECT, DomainSetting.BROWSE_SELENIUM):
@@ -987,7 +982,7 @@ class UrlPolicy(models.Model):
             print('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
 
-            if len(list(requests_page.get_links())) != len(list(page.get_links())):
+            if len(list(requests_page.get_links(self))) != len(list(page.get_links(self))):
                 new_mode = DomainSetting.BROWSE_SELENIUM
             else:
                 new_mode = DomainSetting.BROWSE_REQUESTS

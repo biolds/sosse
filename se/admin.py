@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.timezone import now
 from django.template import defaultfilters
 
 from .models import AuthField, Document, DomainSetting, FavIcon, UrlPolicy, SearchEngine
@@ -68,6 +69,11 @@ class DocumentQueueFilter(admin.SimpleListFilter):
             return queryset.filter(crawl_next__isnull=True)
 
 
+@admin.action(description='Crawl now')
+def crawl_now(modeladmin, request, queryset):
+    queryset.update(crawl_next=now())
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('url', 'fav', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
@@ -75,6 +81,7 @@ class DocumentAdmin(admin.ModelAdmin):
     search_fields = ['url', 'title']
     exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
     readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'url_policy', 'crawl_first', 'crawl_last')
+    actions = [crawl_now]
 
     @staticmethod
     @admin.display(ordering='crawl_next')
@@ -159,14 +166,5 @@ class UrlPolicyForm(forms.ModelForm):
 class UrlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = UrlPolicyForm
-    list_display = ('_url_prefix', 'url_size', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
-    search_fields = ('url_prefix',)
-
-    @staticmethod
-    def _url_prefix(obj):
-        return obj.readable_name()
-
-    @staticmethod
-    @admin.display(ordering=models.functions.Length('url_prefix'))
-    def url_size(obj):
-        return len(obj.url_prefix)
+    list_display = ('url_regex', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
+    search_fields = ('url_regex',)

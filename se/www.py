@@ -6,6 +6,8 @@ from .cached import get_document, get_context
 
 
 def www(request, url):
+    # Keep the url with parameters
+    url = request.META['REQUEST_URI'][5:]
     doc = get_document(url)
 
     content = format_html('')

@@ -172,9 +172,19 @@ def stats(request):
     hdd_other = hdd_size - hdd_free - db_size
     factor, unit = get_unit(hdd_size)
 
+    # Screenshot dir size
+    # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
+    screenshot_size = 0
+    for dirpath, dirnames, filenames in os.walk(settings.OSSE_SCREENSHOTS_DIR):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if not os.path.islink(fp):
+                screenshot_size += os.path.getsize(fp)
+
     hdd_pie = pygal.Pie(style=pygal_style, disable_xml_declaration=True)
     hdd_pie.title = 'HDD size (total %s)' % filesizeformat(hdd_size)
     hdd_pie.add('DB(%s)' % filesizeformat(db_size), db_size)
+    hdd_pie.add('Screenshots(%s)' % filesizeformat(screenshot_size), screenshot_size)
     hdd_pie.add('Other(%s)' % filesizeformat(hdd_other), hdd_other)
     hdd_pie.add('Free(%s)' % filesizeformat(hdd_free), hdd_free)
 

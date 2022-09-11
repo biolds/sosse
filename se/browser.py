@@ -88,7 +88,7 @@ class RequestBrowser(Browser):
             redirects -= 1
 
             cookies = UrlPolicy.get_cookies(url)
-            r = requests.get(url, cookies=cookies)
+            r = requests.get(url, cookies=cookies, headers={'User-Agent': settings.OSSE_USER_AGENT})
             if check_status:
                 r.raise_for_status()
 
@@ -140,7 +140,11 @@ class RequestBrowser(Browser):
 
         post_url = form.get('action')
         post_url = absolutize_url(page.url, post_url)
-        r = requests.post(post_url, data=payload, cookies=page.cookies, allow_redirects=False)
+        r = requests.post(post_url,
+                          data=payload,
+                          cookies=page.cookies,
+                          allow_redirects=False,
+                          headers={'User-Agent': settings.OSSE_USER_AGENT})
 
         url_policy.auth_cookies = json.dumps(dict(r.cookies))
         url_policy.save()
@@ -153,7 +157,7 @@ class RequestBrowser(Browser):
             raise Exception('No location in the redirection')
 
         location = absolutize_url(r.url, location)
-        r = requests.get(location, cookies=r.cookies)
+        r = requests.get(location, cookies=r.cookies, headers={'User-Agent': settings.OSSE_USER_AGENT})
         r.raise_for_status()
         return cls._page_from_request(r)
 
@@ -168,7 +172,8 @@ class SeleniumBrowser(Browser):
         from .models import UrlPolicy
         options = Options()
         options.binary_location = "/usr/bin/chromium"
-        options.add_argument("start-maximized")
+        options.add_argument('--user-agent=%s' % settings.OSSE_USER_AGENT)
+        options.add_argument('--start-maximized')
         options.add_argument('--start-fullscreen')
         options.add_argument('--window-size=%s,%s' % cls.screen_size())
         options.add_argument("--enable-precise-memory-info")

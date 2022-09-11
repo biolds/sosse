@@ -786,8 +786,8 @@ class DomainSetting(models.Model):
     @classmethod
     def ua_hash(cls):
         if cls.UA_HASH is None:
-            if settings.USER_AGENT is not None:
-                cls.UA_HASH = md5(settings.USER_AGENT.encode('ascii')).hexdigest()
+            if settings.OSSE_USER_AGENT is not None:
+                cls.UA_HASH = md5(settings.OSSE_USER_AGENT.encode('ascii')).hexdigest()
         return cls.UA_HASH
 
     def _parse_line(self, line):
@@ -814,7 +814,7 @@ class DomainSetting(models.Model):
         return key, val
 
     def _ua_matches(self, val):
-        return val.lower() in settings.USER_AGENT.lower()
+        return val.lower() in settings.OSSE_USER_AGENT.lower()
 
     def _parse_robotstxt(self, content):
         ua_rules = []

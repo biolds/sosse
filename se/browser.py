@@ -177,6 +177,9 @@ class SeleniumBrowser(Browser):
         options.add_argument("--incognito")
         options.add_argument("--no-sandbox")
         options.add_argument("--headless")
+
+        # Disable downloads
+        options.add_experimental_option('prefs', {'download_restrictions': 3})
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.delete_all_cookies()
 

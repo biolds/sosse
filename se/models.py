@@ -380,15 +380,15 @@ class Document(models.Model):
             self.crawl_next = None
             self.crawl_dt = None
         elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_CONSTANT:
-            self.crawl_next = self.crawl_last + timedelta(minutes=url_policy.recrawl_dt_min)
+            self.crawl_next = self.crawl_last + url_policy.recrawl_dt_min
             self.crawl_dt = None
         elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_ADAPTIVE:
             if self.crawl_dt is None:
-                self.crawl_dt = timedelta(minutes=url_policy.recrawl_dt_min)
+                self.crawl_dt = url_policy.recrawl_dt_min
             elif not changed:
-                self.crawl_dt = min(timedelta(minutes=url_policy.recrawl_dt_max), self.crawl_dt * 2)
+                self.crawl_dt = min(url_policy.recrawl_dt_max, self.crawl_dt * 2)
             else:
-                self.crawl_dt = max(timedelta(minutes=url_policy.recrawl_dt_min), self.crawl_dt / 2)
+                self.crawl_dt = max(url_policy.recrawl_dt_min, self.crawl_dt / 2)
             self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
@@ -931,8 +931,8 @@ class UrlPolicy(models.Model):
 
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT)
     recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
-    recrawl_dt_min = models.PositiveIntegerField(null=True, blank=True, help_text='Min. time before recrawling a page (in minutes)', default=60)
-    recrawl_dt_max = models.PositiveIntegerField(null=True, blank=True, help_text='Max. time before recrawling a page (in minutes)', default=60 * 24 * 365)
+    recrawl_dt_min = models.DurationField(blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(minutes=1))
+    recrawl_dt_max = models.DurationField(blank=True, null=True, help_text='Max. time before recrawling a page', default=timedelta(days=365))
     crawl_depth = models.PositiveIntegerField(default=0)
 
     store_extern_links = models.BooleanField(default=False)

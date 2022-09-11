@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 from django.test import TestCase
@@ -41,6 +42,10 @@ class CrawlerTest(TestCase):
         self.url_policy = UrlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
                                                    crawl_when=UrlPolicy.CRAWL_ALWAYS,
                                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+        self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
+        self.fake_next2 = datetime(2000, 1, 1, 3, tzinfo=timezone.utc)
+        self.fake_next3 = datetime(2000, 1, 1, 6, tzinfo=timezone.utc)
 
     def tearDown(self):
         self.root_policy.delete()
@@ -188,3 +193,104 @@ class CrawlerTest(TestCase):
         self.assertEqual(link.pos, 5)
         self.assertEqual(link.link_no, 0)
         self.assertEqual(link.extern_url, 'http://127.0.0.1/page1/')
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.models.now')
+    def test_005_recrawl_none(self, now, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
+        now.side_effect = lambda: self.fake_now
+        self.url_policy.recrawl_mode = UrlPolicy.RECRAWL_NONE
+        self.url_policy.recrawl_dt_min = None
+        self.url_policy.recrawl_dt_max = None
+        self.url_policy.save()
+
+        self._crawl()
+        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
+                        RequestBrowser.call_args_list)
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_first, self.fake_now)
+        self.assertEqual(doc.crawl_last, self.fake_now)
+        self.assertEqual(doc.crawl_next, None)
+        self.assertEqual(doc.crawl_dt, None)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.models.now')
+    def test_006_recrawl_constant(self, now, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
+        self.url_policy.recrawl_mode = UrlPolicy.RECRAWL_CONSTANT
+        self.url_policy.recrawl_dt_min = timedelta(hours=1)
+        self.url_policy.recrawl_dt_max = None
+        self.url_policy.save()
+
+        now.side_effect = lambda: self.fake_now
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_first, self.fake_now)
+        self.assertEqual(doc.crawl_last, self.fake_now)
+        self.assertEqual(doc.crawl_next, self.fake_next)
+        self.assertEqual(doc.crawl_dt, None)
+
+        now.side_effect = lambda: self.fake_next
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_first, self.fake_now)
+        self.assertEqual(doc.crawl_last, self.fake_next)
+        self.assertEqual(doc.crawl_next, self.fake_next + timedelta(hours=1))
+        self.assertEqual(doc.crawl_dt, None)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.models.now')
+    def test_007_recrawl_adaptive(self, now, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
+        self.url_policy.recrawl_mode = UrlPolicy.RECRAWL_ADAPTIVE
+        self.url_policy.recrawl_dt_min = timedelta(hours=1)
+        self.url_policy.recrawl_dt_max = timedelta(hours=3)
+        self.url_policy.save()
+
+        now.side_effect = lambda: self.fake_now
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_first, self.fake_now)
+        self.assertEqual(doc.crawl_last, self.fake_now)
+        self.assertEqual(doc.crawl_next, self.fake_next)
+        self.assertEqual(doc.crawl_dt, timedelta(hours=1))
+
+        now.side_effect = lambda: self.fake_next
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_first, self.fake_now)
+        self.assertEqual(doc.crawl_last, self.fake_next)
+        self.assertEqual(doc.crawl_next, self.fake_next2)
+        self.assertEqual(doc.crawl_dt, timedelta(hours=2))
+
+        now.side_effect = lambda: self.fake_next2
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'Hello world')
+        self.assertEqual(doc.crawl_first, self.fake_now)
+        self.assertEqual(doc.crawl_last, self.fake_next2)
+        self.assertEqual(doc.crawl_next, self.fake_next3)
+        self.assertEqual(doc.crawl_dt, timedelta(hours=3))

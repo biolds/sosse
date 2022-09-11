@@ -77,9 +77,10 @@ def get_documents(request, form, stats_call=False):
             qf = models.Q(**content_param) | models.Q(**title_param) | models.Q(**url_param)
         elif field in ('lto_url', 'lto_txt', 'lby_url', 'lby_txt'):
             field, rel_field = field.split('_')
+            subfield = 'doc_to' if field == 'lto' else 'doc_from'
             field = 'links_to' if field == 'lto' else 'linked_from'
             if rel_field == 'url':
-                key1 = f'{field}__doc_to__url{param}'
+                key1 = f'{field}__{subfield}__url{param}'
                 key2 = f'{field}__extern_url{param}'
                 qf = models.Q(**{key1: value}) | models.Q(**{key2: value})
             else:

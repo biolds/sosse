@@ -90,12 +90,12 @@ class SearchTest(TestCase):
         self.assertEqual(docs[0], self.page)
 
     def test_010_linked_by_url_contains(self):
-        docs = self._search_docs('ft1=inc&ff1=lby_url&fo1=contain&fv1=127.0.0.1')
+        docs = self._search_docs('ft1=inc&ff1=lby_url&fo1=regexp&fv1=^http://127.0.0.1/$')
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
 
     def test_011_linked_by_text_contains(self):
-        docs = self._search_docs('ft1=inc&ff1=lby_txt&fo1=contain&fv1=link')
+        docs = self._search_docs('ft1=inc&ff1=lby_txt&fo1=contain&fv1=text')
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
 

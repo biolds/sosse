@@ -406,5 +406,6 @@ OSSE_EXCLUDE_REDIRECT = True
 OSSE_SCREENSHOTS_SIZE = '1920x1080'
 OSSE_SCREENSHOTS_DIR = '/var/lib/osse/screenshots/'
 OSSE_SCREENSHOTS_URL = '/screenshots/'
-#if DEBUG:
-#    OSSE_SCREENSHOTS_DIR = os.path.join(BASE_DIR, 'screenshots/')
+
+# Number of simultaneous crawlers, the number of cpu count is used if set to None
+OSSE_CRAWLER_COUNT = 1

@@ -18,8 +18,6 @@ class Command(BaseCommand):
         Browser.destroy()
 
     def add_arguments(self, parser):
-        parser.add_argument('--force', action='store_true', help='Reindex url in error')
-        parser.add_argument('--worker', nargs=1, type=int, default=[None], help='Worker count (defaults to the available cpu count)')
         parser.add_argument('urls', nargs='*', type=str)
 
     @staticmethod
@@ -63,13 +61,10 @@ class Command(BaseCommand):
 
         for url in options['urls']:
             doc = Document.queue(url, None, 0)
-            if options.get('force') and doc.crawl_last:
-                doc.crawl_next = now()
-                doc.save()
-        
+
         self.stdout.write('Crawl initializing')
 
-        worker_count = options['worker'][0]
+        worker_count = settings.OSSE_CRAWLER_COUNT
         if worker_count is None:
             worker_count = cpu_count()
 

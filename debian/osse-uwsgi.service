@@ -1,0 +1,19 @@
+[Unit]
+Description=OSSE uWSGI server
+After=syslog.target
+
+[Service]
+ExecStartPre=-mkdir -p /run/osse
+ExecStartPre=-touch /var/log/osse/debug.log /var/log/osse/main.log
+ExecStartPre=-chown www-data:www-data /run/osse /var/log/osse/debug.log /var/log/osse/main.log
+ExecStart=/usr/bin/uwsgi --uid www-data --gid www-data --ini /etc/osse/uwsgi.ini \
+           --logto /var/log/uwsgi/osse.log
+
+RuntimeDirectory=
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

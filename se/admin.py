@@ -76,11 +76,11 @@ def crawl_now(modeladmin, request, queryset):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('url', 'fav', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
+    list_display = ('url', 'fav', 'cached', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
-    search_fields = ['url', 'title']
+    search_fields = ['url__regex', 'title__regex']
     exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
-    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'url_policy', 'crawl_first', 'crawl_last')
+    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'url_policy', 'crawl_first', 'crawl_last', 'screenshot_file')
     actions = [crawl_now]
 
     @staticmethod
@@ -103,6 +103,10 @@ class DocumentAdmin(admin.ModelAdmin):
     @staticmethod
     def link(obj):
         return format_html('<a href="{}">Link 🔗</a>', obj.url)
+
+    @staticmethod
+    def cached(obj):
+        return format_html('<a href="{}">Link 🔗</a>', obj.get_absolute_url())
 
     @staticmethod
     def lang(obj):

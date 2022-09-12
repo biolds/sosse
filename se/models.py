@@ -132,7 +132,10 @@ class Document(models.Model):
         indexes = [GinIndex(fields=(('vector',)))]
 
     def get_absolute_url(self):
-        return reverse('www', args=(self.url,))
+        if self.screenshot_file:
+            return reverse('screenshot', args=(self.url,))
+        else:
+            return reverse('www', args=(self.url,))
 
     @classmethod
     def get_supported_langs(cls):

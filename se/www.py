@@ -27,7 +27,7 @@ def www(request, url):
             if link.doc_to:
                 content += format_html('{}<a href="{}">{}</a> · <a href="{}">🌍</a>',
                                         txt,
-                                        reverse('www', args=(link.doc_to.url,)),
+                                        link.doc_to.get_absolute_url(),
                                         link.text,
                                         link.doc_to.url)
             else:

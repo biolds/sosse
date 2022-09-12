@@ -399,7 +399,7 @@ class Document(models.Model):
 
         worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
 
-        print('%i (%i/%i) %i %s ...' % (worker_no,
+        crawl_logger.info('%i (%i/%i) %i %s ...' % (worker_no,
                                         Document.objects.filter(crawl_last__isnull=True).count(),
                                         Document.objects.filter(crawl_last__isnull=False).count(),
                                         doc.id, doc.url))
@@ -416,7 +416,7 @@ class Document(models.Model):
                     domain_setting, _ = DomainSetting.objects.get_or_create(domain=domain,
                                                                             defaults={'browse_mode': url_policy.default_browse_mode})
                     if not domain_setting.robots_authorized(doc.url):
-                        print('%s rejected by robots.txt' % doc.url)
+                        crawl_logger.debug('%s rejected by robots.txt' % doc.url)
                         doc.robotstxt_rejected = True
                         n = now()
                         doc.crawl_last = n
@@ -435,7 +435,7 @@ class Document(models.Model):
                     else:
                         if not page.got_redirect:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
-                        print('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
+                        crawl_logger.debug('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
                         doc._schedule_next(doc.redirect_url != page.url)
                         doc.redirect_url = page.url
                         doc.save()
@@ -446,7 +446,7 @@ class Document(models.Model):
             except Exception as e:
                 doc.set_error(format_exc())
                 doc.save()
-                print(format_exc())
+                crawl_logger.error(format_exc())
                 break
 
         if doc:
@@ -829,10 +829,10 @@ class DomainSetting(models.Model):
 
             if key == self.ROBOTS_TXT_USER_AGENT:
                 if self._ua_matches(val):
-                    print('matching UA %s' % val)
+                    crawl_logger.debug('matching UA %s' % val)
                     current_rules = ua_rules
                 elif val == '*':
-                    print('global UA')
+                    crawl_logger.debug('global UA')
                     current_rules = generic_rules
                 else:
                     current_rules = None
@@ -965,11 +965,11 @@ class UrlPolicy(models.Model):
         if page.got_redirect:
             # The request was redirected, check if we need auth
             try:
-                print('may auth %s / %s' % (page.url, self.auth_login_url_re))
+                crawl_logger.debug('may auth %s / %s' % (page.url, self.auth_login_url_re))
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
                         re.search(self.auth_login_url_re, page.url) :
-                    print('doing auth on %s' % url)
+                    crawl_logger.debug('doing auth on %s' % url)
                     new_page = page.browser.try_auth(page, url, self)
                     new_page.got_redirect = True
 
@@ -979,7 +979,7 @@ class UrlPolicy(models.Model):
                 raise Exception('Authentication failed')
 
         if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
-            print('browser detection on %s' % url)
+            crawl_logger.debug('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links(self))) != len(list(page.get_links(self))):
@@ -987,7 +987,7 @@ class UrlPolicy(models.Model):
             else:
                 new_mode = DomainSetting.BROWSE_REQUESTS
                 page = requests_page
-            print('browser detected %s on %s' % (new_mode, url))
+            crawl_logger.debug('browser detected %s on %s' % (new_mode, url))
             domain_setting.browse_mode = new_mode
             domain_setting.save()
         return page

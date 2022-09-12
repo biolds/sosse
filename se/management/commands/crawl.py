@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from multiprocessing import cpu_count, Process
 from time import sleep
@@ -9,6 +10,8 @@ from django.utils.timezone import now
 
 from ...browser import Browser
 from ...models import CrawlerStats, Document, UrlPolicy, WorkerStats, MINUTELY
+
+crawl_logger = logging.getLogger('crawler')
 
 
 class Command(BaseCommand):
@@ -25,9 +28,9 @@ class Command(BaseCommand):
         connection.close()
         connection.connect()
 
-        print('Worker %i initializing' % worker_no)
+        crawl_logger.info('Worker %i initializing' % worker_no)
         Browser.init()
-        print('Worker %i starting' % worker_no)
+        crawl_logger.info('Worker %i starting' % worker_no)
 
         if worker_no == 0:
             last = CrawlerStats.objects.filter(freq=MINUTELY).order_by('t').last()
@@ -49,7 +52,7 @@ class Command(BaseCommand):
                 sleep_count = 0
             else:
                 if sleep_count == 0:
-                    print('%s Idle...' % worker_no)
+                    crawl_logger.warning('%s Idle...' % worker_no)
                 sleep_count += 1
                 if sleep_count == 60:
                     sleep_count = 0
@@ -62,11 +65,11 @@ class Command(BaseCommand):
         for url in options['urls']:
             doc = Document.queue(url, None, 0)
 
-        self.stdout.write('Crawl initializing')
-
         worker_count = settings.OSSE_CRAWLER_COUNT
         if worker_count is None:
             worker_count = cpu_count()
+
+        crawl_logger.info('Starting %i crawlers' % worker_count)
 
         workers = []
         for crawler_no in range(worker_count):
@@ -75,7 +78,8 @@ class Command(BaseCommand):
             workers.append(p)
             sleep(5)
 
+        crawl_logger.info('Crawlers started')
         for worker in workers:
             worker.join()
 
-        self.stdout.write('Crawl finished')
+        crawl_logger.info('Crawlers finished')

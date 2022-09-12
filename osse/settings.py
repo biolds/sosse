@@ -140,6 +140,11 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'crawler_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/osse/crawler.log',
+        },
     },
     'root': {
         'handlers': ['console'],
@@ -147,7 +152,7 @@ LOGGING = {
     },
     'loggers': {
         'crawler': {
-            'handlers': ['console'],
+            'handlers': ['crawler_file'],
             'level': 'INFO',
             #'level': 'DEBUG',
             'propagate': False,

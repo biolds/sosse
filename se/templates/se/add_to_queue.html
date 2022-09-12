@@ -1,0 +1,56 @@
+{% extends "admin/base.html" %}
+{% block content %}
+    <form method="post" action="{% url 'admin:queue_confirm' %}">
+        {% csrf_token %}
+        {{ form }}
+        {% if url_policy %}
+            <input type="submit" name="action" value="Refresh">
+
+            <p>
+                This URL will be crawled with policy <a href="{% url 'admin:se_urlpolicy_change' url_policy.id %}">{{ url_policy }}</a>:
+            </p>
+            <ul>
+                {% if url_policy.crawl_when == UrlPolicy.CRAWL_ALWAYS %}
+                    <li>All URL matching the policy regexp will be crawled</li>
+                    {% if url_policy.crawl_depth > 1 %}
+                        <li>The crawler will recurse {{ url_policy.crawl_depth }} time{{ url_policy.crawl_depth|pluralize:'s' }} into URL when matching policies "Depending on depth"</li>
+                    {% endif %}
+                {% else %}
+                    <li>Only this URL will be crawled</li>
+                {% endif %}
+                <li>
+                    {% if url_policy.default_browse_mode == DomainSetting.BROWSE_DETECT %}
+                        A browser will be used if necessary
+                    {% elif url_policy.default_browse_mode == DomainSetting.BROWSE_SELENIUM %}
+                        A browser will be used
+                    {% else %}
+                        No browser will be used
+                    {% endif %}
+                </li>
+                {% if url_policy.crawl_when == UrlPolicy.CRAWL_ALWAYS %}
+                    <li>
+                        {% if url_policy.recrawl_mode == UrlPolicy.RECRAWL_NONE %}
+                            Crawled only once
+                        {% elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_CONSTANT %}
+                            Crawled every {{ recrawl_every }}
+                        {% else %}
+                            Recrawling will adapt from every {{ recrawl_min }} to every {{ recrawl_max }}
+                        {% endif %}
+                    </li>
+                {% endif %}
+                {% if url_policy.take_screenshots %}
+                    <li>Screenshots of pages will be saved</li>
+                {% endif %}
+            </ul>
+            <p>
+                <a href="{% url 'admin:se_urlpolicy_add' %}?url_regex={{ url }}">Create a new policy</a>
+            </p>
+
+            <p>
+                <input type="submit" name="action" value="Confirm">
+            </p>
+        {% else %}
+            <input type="submit" name="action" value="Add to queue">
+        {% endif %}
+    </form>
+{% endblock %}

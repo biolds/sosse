@@ -949,6 +949,9 @@ class UrlPolicy(models.Model):
 
     take_screenshots = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f'<{self.url_regex}>'
+
     @staticmethod
     def get_from_url(url):
         return UrlPolicy.objects.extra(where=['%s ~ url_regex'], params=[url]).annotate(

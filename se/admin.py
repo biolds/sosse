@@ -1,16 +1,21 @@
 from django import forms
 from django.db import models
 from django.conf import settings
-from django.contrib import admin
-from django.urls import reverse
+from django.contrib import admin, messages
+from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils.timezone import now
-from django.template import defaultfilters
+from django.shortcuts import redirect, reverse
+from django.template import defaultfilters, response
 
+from .forms import AddToQueueForm
 from .models import AuthField, Document, DomainSetting, FavIcon, UrlPolicy, SearchEngine
+from .utils import human_datetime
+
 
 admin.site.enable_nav_sidebar = False
 admin.site.register(DomainSetting)
+
 
 @admin.register(FavIcon)
 class FavIconAdmin(admin.ModelAdmin):
@@ -82,6 +87,56 @@ class DocumentAdmin(admin.ModelAdmin):
     exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
     readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'url_policy', 'crawl_first', 'crawl_last', 'screenshot_file')
     actions = [crawl_now]
+
+    def get_urls(self):
+        urls = super().get_urls()
+        return [
+            path('queue/', self.admin_site.admin_view(self.add_to_queue), name='queue'),
+            path('queue_confirm/', self.admin_site.admin_view(self.add_to_queue_confirm), name='queue_confirm')
+        ] + urls
+
+    def add_to_queue(self, request):
+        context = dict(
+           self.admin_site.each_context(request),
+           form=AddToQueueForm()
+        )
+        return response.TemplateResponse(request, 'se/add_to_queue.html', context)
+
+    def add_to_queue_confirm(self, request):
+        if request.method != 'POST':
+            redirect(reverse('admin:queue'))
+
+        form = AddToQueueForm(request.POST)
+        context = dict(
+           self.admin_site.each_context(request),
+           form=form
+        )
+        if not form.is_valid():
+            return response.TemplateResponse(request, 'se/add_to_queue.html', context)
+
+        if request.POST.get('action') == 'Confirm':
+            doc, created = Document.objects.get_or_create(url=form.cleaned_data['url'])
+            if not created:
+                doc.crawl_next = now()
+            doc.save()
+            messages.success(request, 'URL was queued.')
+            return redirect(reverse('admin:se_document_changelist'))
+
+        url_policy = UrlPolicy.get_from_url(form.cleaned_data['url'])
+        context.update({
+            'url_policy': url_policy,
+            'url': form.cleaned_data['url'],
+            'UrlPolicy': UrlPolicy,
+            'DomainSetting': DomainSetting,
+        })
+        if url_policy.recrawl_mode == UrlPolicy.RECRAWL_CONSTANT:
+            context['recrawl_every'] = human_datetime(url_policy.recrawl_dt_min)
+        elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_ADAPTIVE:
+            context.update({
+                'recrawl_min': human_datetime(url_policy.recrawl_dt_min),
+                'recrawl_max': human_datetime(url_policy.recrawl_dt_max)
+            })
+        return response.TemplateResponse(request, 'se/add_to_queue.html', context)
 
     @staticmethod
     @admin.display(ordering='crawl_next')
@@ -170,5 +225,5 @@ class UrlPolicyForm(forms.ModelForm):
 class UrlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = UrlPolicyForm
-    list_display = ('url_regex', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
+    list_display = ('url_regex', 'crawl_when', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)

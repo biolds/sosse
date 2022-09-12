@@ -1,5 +1,8 @@
+import re
+
 from django import forms
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from .models import Document
 
@@ -67,3 +70,14 @@ class SearchForm(forms.Form):
         cleaned_data['order_by'] = order_by
 
         return cleaned_data
+
+
+class AddToQueueForm(forms.Form):
+    url = forms.CharField(label='URL to crawl')
+    url.widget.attrs.update({'style': 'width: 100%'})
+
+    def clean_url(self):
+        value = self.cleaned_data['url']
+        if not re.match(r'https?://[a-zA-Z0-9_-][a-zA-Z0-9\_\-\.]*/', value):
+            raise ValidationError('Please put a valid URL')
+        return value

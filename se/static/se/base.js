@@ -7,6 +7,7 @@ function getLang() {
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
+    // Panel opening on menu buttons
     const buttons = document.getElementsByClassName('menu_button');
     for (let i = 0; i < buttons.length; i++) {
         const el = buttons[i];

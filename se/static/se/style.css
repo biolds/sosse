@@ -61,8 +61,8 @@
     background-size: 15px 15px;
     background-repeat:  no-repeat;
     background-position: center;
-    width: 37px;
-    height: 37px;
+    width: 40px;
+    height: 40px;
     margin-bottom: 7px;
 }
 button,input,select {
@@ -81,6 +81,7 @@ button:focus,input:focus,select:focus {
 }
 button:hover,input:hover,select:hover {
     background-color: #eee;
+    cursor: pointer;
 }
 .a_button {
     color: #000;

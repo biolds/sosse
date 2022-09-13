@@ -11,6 +11,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     const form = document.getElementById('search_form');
     form.addEventListener('submit', on_submit, false);
+
+    const search_field = document.getElementById('search_field');
+    const search_button = document.getElementById('search_button');
+    const search_input = document.getElementById('id_q');
+    const clear = document.createElement('input');
+    clear.id = 'clear_button';
+    clear.className = 'img_button';
+    clear.setAttribute('type', 'button');
+    clear.addEventListener('click', function(ev) {
+        search_input.focus();
+        search_input.value = '';
+    });
+    search_field.insertBefore(clear, search_button);
 });
 
 let adv_search_lines = 0;

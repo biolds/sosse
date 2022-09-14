@@ -891,13 +891,18 @@ class DomainSetting(models.Model):
 
         disallow_length = None
         for pattern in self.robots_disallow.split('\n'):
+            if not pattern:
+                continue
             if re.match(pattern, url):
-               disallow_length = max(disallow_length or 0, len(pattern))
+                crawl_logger.debug('%s matched robots disallow: %s' % (url, pattern))
+                disallow_length = max(disallow_length or 0, len(pattern))
 
         if disallow_length is None:
             return True
 
         for pattern in self.robots_allow.split('\n'):
+            if not pattern:
+                continue
             if re.match(pattern, url):
                if len(pattern) > disallow_length:
                     return True

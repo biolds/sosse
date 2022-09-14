@@ -130,7 +130,7 @@ def crawler_stats(pygal_config, pygal_style, freq):
 
 def stats(request):
     pygal_config = pygal.Config()
-    pygal_config.jq = settings.STATIC_URL + '/se/pygal-tooltips.min.js'
+    pygal_config.js = (settings.STATIC_URL + '/se/pygal-tooltips.min.js',)
 
     pygal_style = pygal.style.Style(
         background='transparent',

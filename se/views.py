@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
 from .models import Document, FavIcon, SearchEngine, remove_accent
-from .search import get_documents
+from .search import add_headlines, get_documents
 
 
 def human_nb(nb):
@@ -67,16 +67,11 @@ def search(request):
         if redirect_url:
             return redirect(redirect_url)
 
-        has_query, results = get_documents(request, form)
+        has_query, results, query = get_documents(request, form)
         paginator = Paginator(results, form.cleaned_data['ps'])
         page_number = request.GET.get('p')
         paginated = paginator.get_page(page_number)
-
-        for res in paginated:
-            res.headline = ''
-            lines = res.content.splitlines()
-            if lines:
-                res.headline = lines[0]
+        paginated = add_headlines(paginated, query)
     else:
         form = SearchForm()
 
@@ -116,7 +111,7 @@ def word_stats(request):
     if form.is_valid():
         q = form.cleaned_data['q']
         q = remove_accent(q)
-        _, doc_query = get_documents(request, form, True)
+        _, doc_query, _ = get_documents(request, form, True)
         doc_query = doc_query.values('vector')
 
         # Hack to obtain final SQL query, as described there:

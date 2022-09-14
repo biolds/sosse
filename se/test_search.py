@@ -9,22 +9,22 @@ from requests import HTTPError
 from .browser import RequestBrowser, Page
 from .forms import SearchForm
 from .models import Document, Link
-from .search import get_documents
+from .search import add_headlines, get_documents
 
 
 class SearchTest(TestCase):
     def setUp(self):
         self.root = Document.objects.create(url='http://127.0.0.1/',
                                             normalized_url='http://127.0.0.1/',
-                                            content='Hello world',
-                                            normalized_content='Hello world',
+                                            content='Hello world one two three',
+                                            normalized_content='Hello world one two three',
                                             title='Root',
                                             normalized_title='Root',
                                             crawl_last=timezone.now())
         self.page = Document.objects.create(url='http://127.0.0.1/page1',
                                             normalized_url='http://127.0.0.1/page1',
-                                            content='Page1',
-                                            normalized_content='Page1',
+                                            content='Page1, World Télé one three',
+                                            normalized_content='Page1, World Tele one three',
                                             title='Page1',
                                             normalized_title='Page1',
                                             crawl_last=timezone.now())
@@ -108,7 +108,7 @@ class SearchTest(TestCase):
         self.assertEqual(docs.count(), 0)
 
     def test_013_equal(self):
-        docs = self._search_docs('ft1=inc&ff1=doc&fo1=equal&fv1=hello world')
+        docs = self._search_docs('ft1=inc&ff1=doc&fo1=equal&fv1=hello world one two three')
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.root)
 
@@ -128,3 +128,43 @@ class SearchTest(TestCase):
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
 
+    def test_016_web_match(self):
+        docs = self._search_docs('q=world')
+        self.assertEqual(docs.count(), 2)
+
+    def test_017_web_not_match(self):
+        docs = self._search_docs('q=-hello')
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
+    def test_018_web_and(self):
+        docs = self._search_docs('q=hello world')
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.root)
+
+    def test_019_web_or(self):
+        docs = self._search_docs('q=page1')
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
+        docs = self._search_docs('q=hello or page1')
+        self.assertEqual(docs.count(), 2)
+
+    def test_020_web_exact(self):
+        docs = self._search_docs('q="one three"')
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
+    def test_021_headline(self):
+        request = WSGIRequest({
+            'REQUEST_METHOD': 'GET',
+            'QUERY_STRING': 'q=tele',
+            'wsgi.input': ''
+        })
+        form = SearchForm(request.GET)
+        self.assertTrue(form.is_valid())
+        _, docs, query = get_documents(request, form)
+        docs = add_headlines(docs, query)
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+        self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Télé</span>')

@@ -1,8 +1,11 @@
 import re
+import uuid
 
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank
 from django.db import models
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 from .models import Document, remove_accent
 
@@ -15,13 +18,18 @@ def get_documents(request, form, stats_call=False):
     has_query = False
 
     q = remove_accent(form.cleaned_data['q'])
+    query = None
     if q:
         has_query = True
         lang = form.cleaned_data['l']
         query = SearchQuery(q, config=lang, search_type='websearch')
-        results = Document.objects.filter(vector=query).annotate(
+        all_results = Document.objects.filter(vector=query).annotate(
             rank=SearchRank(models.F('vector'), query),
-        ).exclude(rank__lte=0.01)
+        )
+        results = all_results.exclude(rank__lte=0.01)
+
+        if results.count() == 0:
+            results = all_results
 
     if settings.OSSE_EXCLUDE_NOT_INDEXED:
         results = results.exclude(crawl_last__isnull=True)
@@ -106,4 +114,59 @@ def get_documents(request, form, stats_call=False):
     if not stats_call:
         order_by = form.cleaned_data['order_by']
         results = results.order_by(*order_by).distinct()
-    return has_query, results
+
+    return has_query, results, query
+
+
+def fallback_headline(doc):
+    lines = doc.content.splitlines()
+    if lines:
+        return lines[0]
+    return ''
+
+
+def add_headlines(paginated, query):
+    for res in paginated:
+        # rebuild the headline using non-normalized content
+        if query:
+            rnd = uuid.uuid1().hex
+            pg_headline = Document.objects.filter(id=res.id).annotate(
+                headline=SearchHeadline(
+                    'normalized_content',
+                    query,
+                    start_sel='s' + rnd,
+                    stop_sel='e' + rnd,
+                )
+            ).first()
+
+            # find the location of the headline in the normalized content
+            headline = pg_headline.headline.replace('s' + rnd, '')
+            headline = headline.replace('e' + rnd, '')
+
+            if headline not in res.normalized_content or \
+                    's' + rnd not in pg_headline.headline or \
+                    'e' + rnd not in pg_headline.headline:
+                res.headline = fallback_headline(res)
+                continue
+
+            headline_idx = res.normalized_content.index(headline)
+            src = pg_headline.headline
+            dest = escape('')
+            while src:
+                txt, src = src.split('s' + rnd, 1)
+                dest += escape(res.content[headline_idx:headline_idx + len(txt)])
+                headline_idx += len(txt)
+
+                match, src = src.split('e' + rnd, 1)
+                dest += '<span class="res-highlight">'
+                dest += escape(res.content[headline_idx:headline_idx + len(match)])
+                headline_idx += len(match)
+                dest += '</span>'
+
+                if 's' + rnd not in src or 'e' + rnd not in src:
+                    dest += res.content[headline_idx:len(src)]
+                    break
+            res.headline = mark_safe(dest)
+        else:
+            res.headline = fallback_headline(res)
+    return paginated

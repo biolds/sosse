@@ -754,8 +754,8 @@ class DomainSetting(models.Model):
     BROWSE_REQUESTS = 'requests'
     BROWSE_MODE = [
         (BROWSE_DETECT, 'Detect'),
-        (BROWSE_SELENIUM, 'Selenium'),
-        (BROWSE_REQUESTS, 'Requests'),
+        (BROWSE_SELENIUM, 'Chromium'),
+        (BROWSE_REQUESTS, 'Python Requests (faster)'),
     ]
 
     ROBOTS_UNKNOWN = 'unknown'

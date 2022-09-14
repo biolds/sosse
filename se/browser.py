@@ -210,7 +210,7 @@ class SeleniumBrowser(Browser):
             previous_content = content
             sleep(0.1)
 
-        page = Page(unquote(cls.driver.current_url),
+        page = Page(cls.driver.current_url,
                     content,
                     None,
                     cls)
@@ -250,7 +250,7 @@ class SeleniumBrowser(Browser):
 
         page = cls._get_page()
 
-        if url != cls.driver.current_url:
+        if url != page.url:
             page.got_redirect = True
 
         return page

@@ -145,12 +145,21 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/var/log/osse/crawler.log',
         },
+        'webserver_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/osse/webserver.log',
+        },
     },
     'root': {
         'handlers': ['console'],
         'level': 'WARNING',
     },
     'loggers': {
+        'django': {
+            'handlers': ['webserver_file'],
+            'propagate': True,
+        },
         'crawler': {
             'handlers': ['crawler_file'],
             'level': 'INFO',
@@ -413,4 +422,4 @@ OSSE_SCREENSHOTS_DIR = '/var/lib/osse/screenshots/'
 OSSE_SCREENSHOTS_URL = '/screenshots/'
 
 # Number of simultaneous crawlers, the number of cpu count is used if set to None
-OSSE_CRAWLER_COUNT = 1
+OSSE_CRAWLER_COUNT = None

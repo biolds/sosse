@@ -1,0 +1,11 @@
+{% extends "se/base.html" %}
+
+{% block body %}
+    {% for e in paginated %}
+        <p>
+            {{ e.date }} · <a href="{% url 'search' %}?{{ e.querystring}}">{{ e.query }}</a>
+        </p>
+    {% endfor %}
+
+    {% include 'se/pagination.html' %}
+{% endblock %}

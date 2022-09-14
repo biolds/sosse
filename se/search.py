@@ -10,8 +10,9 @@ from django.utils.html import escape
 from .models import Document, remove_accent
 
 
+FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
+
 def get_documents(request, form, stats_call=False):
-    FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
     results = Document.objects.all()

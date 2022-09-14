@@ -6,6 +6,7 @@
         <a href="/stats/" class="links menu_links">Stats</a>
         <a href="/admin/" class="links menu_links">Config</a>
         {% if user.has_usable_password %}
+            <a href="{% url 'history' %}" class="links menu_links">History</a>
             <a href="{% url 'admin:password_change' %}" class="links menu_links">Change pass</a>
             <a href="{% url 'admin:logout' %}" class="links menu_links">Log out</a>
         {% endif %}

@@ -11,7 +11,7 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
-from .models import Document, FavIcon, SearchEngine, remove_accent
+from .models import Document, FavIcon, SearchEngine, SearchHistory, remove_accent
 from .search import add_headlines, get_documents
 
 
@@ -47,6 +47,21 @@ def format_url(request, params):
     return parsed_url._replace(query=qs).geturl()
 
 
+def get_pagination(request, paginated):
+    context = {}
+    if paginated and paginated.has_previous():
+        context.update({
+            'page_first': format_url(request, 'p='),
+            'page_previous': format_url(request, 'p=%i' % paginated.previous_page_number()),
+        })
+    if paginated and paginated.has_next():
+        context.update({
+            'page_next': format_url(request, 'p=%i' % paginated.next_page_number()),
+            'page_last': format_url(request, 'p=%i' % paginated.paginator.num_pages)
+        })
+    return context
+
+
 def get_context(ctx):
     ctx.update({
         'settings': settings,
@@ -71,6 +86,7 @@ def search(request):
         page_number = request.GET.get('p')
         paginated = paginator.get_page(page_number)
         paginated = add_headlines(paginated, query)
+        SearchHistory.save_history(request, q)
     else:
         form = SearchForm()
 
@@ -91,16 +107,7 @@ def search(request):
         'page_title': q,
         'osse_langdetect_to_postgres': osse_langdetect_to_postgres
     })
-    if paginated and paginated.has_previous():
-        context.update({
-            'page_first': format_url(request, 'p='),
-            'page_previous': format_url(request, 'p=%i' % paginated.previous_page_number()),
-        })
-    if paginated and paginated.has_next():
-        context.update({
-            'page_next': format_url(request, 'p=%i' % paginated.next_page_number()),
-            'page_last': format_url(request, 'p=%i' % paginated.paginator.num_pages)
-        })
+    context.update(get_pagination(request, paginated))
     return render(request, 'se/index.html', context)
 
 
@@ -140,3 +147,20 @@ def prefs(request):
 def favicon(request, favicon_id):
     fav = get_object_or_404(FavIcon, id=favicon_id)
     return HttpResponse(fav.content, content_type=fav.mimetype)
+
+
+def history(request):
+    page_size = int(request.GET.get('ps', settings.OSSE_DEFAULT_PAGE_SIZE))
+    page_size = min(page_size, settings.OSSE_MAX_PAGE_SIZE)
+
+    history = SearchHistory.objects.filter(user=request.user).order_by('-date')
+    paginator = Paginator(history, page_size)
+    page_number = int(request.GET.get('p', 1))
+    paginated = paginator.get_page(page_number)
+
+    context = {
+        'page_title': 'Search history',
+        'paginated': paginated
+    }
+    context.update(get_pagination(request, paginated))
+    return render(request, 'se/history.html', context)

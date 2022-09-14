@@ -44,10 +44,6 @@
         width: 160px;
         height: 100px;
     }
-    .pagination {
-        padding: 20px 0px 20px 0px;
-        text-align: center;
-    }
 
     #search_field {
         text-align: center;
@@ -247,25 +243,6 @@
             </div>
         {% endfor %}
 
-        {% if paginated.paginator.num_pages %}
-            <div class="pagination">
-                <div style="padding-bottom: 15px">
-                    {{ paginated.number }} of {{ paginated.paginator.num_pages }}
-                </div>
-                <div>
-                    {% if paginated.has_previous %}
-                        <a class="a_button" href="{{ page_previous }}">Prev</a>
-                    {% else %}
-                        <a class="a_button a_button_disabled" onclick="return false">Prev</a>
-                    {% endif %}
-                        ·
-                    {% if paginated.has_next %}
-                        <a class="a_button" href="{{ page_next }}">Next</a>
-                    {% else %}
-                        <a class="a_button a_button_disabled" onclick="return false">Next</a>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %} {# paginated.paginator.num_pages #}
+        {% include 'se/pagination.html' %}
     {% endif %}
 {% endblock %}

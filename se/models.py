@@ -15,9 +15,11 @@ from urllib.parse import urlparse
 
 from bs4 import Doctype, Tag
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import connection, models
+from django.http import QueryDict
 from django.shortcuts import reverse
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
@@ -1006,3 +1008,50 @@ class UrlPolicy(models.Model):
                 return json.loads(cookies)
         except UrlPolicy.DoesNotExist:
             pass
+
+
+class SearchHistory(models.Model):
+    query = models.TextField()
+    querystring = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    @classmethod
+    def save_history(cls, request, q):
+        from .search import FILTER_RE
+        params = {}
+
+        queryparams = ''
+        for key, val in request.GET.items():
+            if not re.match(FILTER_RE, key) and \
+                    key not in ('l', 'doc_lang', 's', 'q'):
+                continue
+            params[key] = val
+
+            if not key.startswith('fv'):
+                continue
+
+            if queryparams:
+                queryparams += ' '
+            queryparams += val
+
+        if q:
+            if queryparams:
+                q = '%s (%s)' % (q, queryparams)
+        else:
+            q = queryparams
+
+        qd = QueryDict(mutable=True)
+        qd.update(params)
+        qs = qd.urlencode()
+
+        last = SearchHistory.objects.filter(user=request.user).order_by('date').last()
+        if last and last.querystring == qs:
+            return
+
+        if not q and not qs:
+            return
+
+        SearchHistory.objects.create(querystring=qs,
+                                     query=q,
+                                     user=request.user)

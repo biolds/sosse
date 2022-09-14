@@ -100,3 +100,7 @@ button:hover,input:hover,select:hover {
     background-color: #eee;
     color: #737373;
 }
+.pagination {
+    padding: 20px 0px 20px 0px;
+    text-align: center;
+}

@@ -4,7 +4,9 @@
 <head>
     <meta charset="utf-8">
     {% if favicon %}
-    <link rel="icon" href="{{ favicon }}" />
+        <link rel="icon" href="{{ favicon }}" />
+    {% else %}
+        <link rel="icon" href="{% static "se/favicon.svg" %}" />
     {% endif %}
     <title>OSSE{% if page_title %} · {{ head_title|default:page_title }}{% endif %}</title>
 

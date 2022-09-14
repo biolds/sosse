@@ -50,7 +50,6 @@ def format_url(request, params):
 def get_context(ctx):
     ctx.update({
         'settings': settings,
-        'favicon': '%s/se/favicon.svg' % settings.STATIC_URL
     })
     return ctx
 

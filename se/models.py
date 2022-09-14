@@ -404,7 +404,7 @@ class Document(models.Model):
 
         worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
 
-        crawl_logger.info('%i (%i/%i) %i %s ...' % (worker_no,
+        crawl_logger.info('Worker:%i Queued:%i Indexed:%i Id:%i %s ...' % (worker_no,
                                         Document.objects.filter(crawl_last__isnull=True).count(),
                                         Document.objects.filter(crawl_last__isnull=False).count(),
                                         doc.id, doc.url))

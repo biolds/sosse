@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     clear.id = 'clear_button';
     clear.className = 'img_button';
     clear.setAttribute('type', 'button');
+    clear.setAttribute('value', ' ');
     clear.addEventListener('click', function(ev) {
         search_input.focus();
         search_input.value = '';
@@ -30,7 +31,7 @@ let adv_search_lines = 0;
 
 function search_more() {
     const more_link = document.getElementById('more');
-    more_link.innerText = '⮝ less';
+    more_link.innerText = '⮝ advanced';
     more_link.setAttribute('onclick', 'search_less()');
     const q = document.getElementById('id_q');
     q.removeAttribute('required');

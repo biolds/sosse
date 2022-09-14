@@ -136,9 +136,11 @@ def stats(request):
         background='transparent',
         plot_background='transparent',
         title_font_size=40,
-        legend_font_size=40,
-        label_font_size=35,
-        major_label_font_size=35,
+        legend_font_size=30,
+        label_font_size=30,
+        major_label_font_size=30,
+        value_font_size=30,
+        value_label_font_size=30
     )
 
     with connection.cursor() as cursor:

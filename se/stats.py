@@ -92,6 +92,8 @@ def crawler_stats(pygal_config, pygal_style, freq):
     if data.count() < 1:
         return {}
 
+    pygal_style.colors = ('#c6dcff',)
+
     # Doc count minutely
     doc_count = datetime_graph(pygal_config, pygal_style, freq, data, 'doc_count', _now)
     factor, unit = get_unit(data.aggregate(m=models.Max('doc_count')).get('m', 0) or 0)

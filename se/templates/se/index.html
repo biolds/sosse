@@ -40,6 +40,11 @@
         text-decoration: none;
         color: #000;
     }
+    .res-preview {
+        float: right;
+        width: 160px;
+        height: 100px;
+    }
     .pagination {
         padding: 20px 0px 20px 0px;
         text-align: center;
@@ -198,8 +203,13 @@
             </div>
         </div>
         {% for r in paginated %}
-            <div class="res">
+            <div class="res" {% if r.screenshot_file %}style="min-height: 100px"{% endif %}>
                 <div>
+                    {% if r.screenshot_file %}
+                        <a href="{{ r.url }}">
+                            <img src="{{ settings.OSSE_SCREENSHOTS_URL }}/{{ r.screenshot_file }}_0.png" class="res-preview" />
+                        </a>
+                    {% endif %}
                     {% if r.favicon and not r.favicon.missing %}
                         <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
                     {% endif %}

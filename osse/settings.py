@@ -150,11 +150,13 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/var/log/osse/crawler.log',
+            'formatter': 'timestamp'
         },
         'webserver_file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/var/log/osse/webserver.log',
+            'formatter': 'timestamp'
         },
     },
     'root': {

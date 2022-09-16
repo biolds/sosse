@@ -1050,13 +1050,14 @@ class SearchHistory(models.Model):
         qd.update(params)
         qs = qd.urlencode()
 
-        last = SearchHistory.objects.filter(user=request.user).order_by('date').last()
-        if last and last.querystring == qs:
-            return
+        if not request.user.is_anonymous:
+            last = SearchHistory.objects.filter(user=request.user).order_by('date').last()
+            if last and last.querystring == qs:
+                return
 
-        if not q and not qs:
-            return
+            if not q and not qs:
+                return
 
-        SearchHistory.objects.create(querystring=qs,
-                                     query=q,
-                                     user=request.user)
+            SearchHistory.objects.create(querystring=qs,
+                                         query=q,
+                                         user=request.user)

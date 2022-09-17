@@ -3,6 +3,7 @@ import json
 from urllib.parse import urlparse, parse_qs
 
 from django.conf import settings
+from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
 from django.db import connection
 from django.http import HttpResponse
@@ -164,3 +165,7 @@ def history(request):
     }
     context.update(get_pagination(request, paginated))
     return render(request, 'se/history.html', context)
+
+
+class SELoginView(LoginView):
+    template_name = 'admin/login.html'

@@ -36,8 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'se',
-    'django.contrib.admin',
+    'se.apps.SEConfig',
+    'se.apps.SEAdminConfig',
 ]
 
 MIDDLEWARE = [
@@ -92,6 +92,8 @@ DATABASES = {
     }
 }
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/html/static'

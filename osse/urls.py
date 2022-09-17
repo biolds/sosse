@@ -14,8 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth.views import LogoutView
 from django.urls import path, re_path
-from se.views import favicon, history, prefs, search, word_stats
+from se.views import favicon, history, prefs, search, word_stats, SELoginView
 from se.atom import atom
 from se.screenshot import screenshot
 from se.stats import stats
@@ -29,6 +30,8 @@ urlpatterns = [
     path('atom/', atom),
     path('word_stats/', word_stats),
     path('history/', history, name='history'),
+    path('login/', SELoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
     re_path(r'screenshot/(?P<url>.*)', screenshot, name='screenshot'),
     re_path(r'www/(?P<url>.*)', www, name='www')

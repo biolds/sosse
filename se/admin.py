@@ -13,8 +13,18 @@ from .models import AuthField, Document, DomainSetting, FavIcon, UrlPolicy, Sear
 from .utils import human_datetime
 
 
-admin.site.enable_nav_sidebar = False
-admin.site.register(DomainSetting)
+class SEAdminSite(admin.AdminSite):
+    pass
+
+
+admin_site = SEAdminSite(name='admin')
+admin_site.enable_nav_sidebar = False
+admin_site.register(DomainSetting)
+
+
+def get_admin():
+    global admin_site
+    return admin_site
 
 
 @admin.register(FavIcon)

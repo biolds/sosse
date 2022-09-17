@@ -3,7 +3,7 @@ import os
 
 from django.conf import settings
 from django.db import connection, models
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.utils.timezone import now
 from langdetect.detector_factory import PROFILES_DIRECTORY
 import pygal
@@ -131,6 +131,8 @@ def crawler_stats(pygal_config, pygal_style, freq):
 
 
 def stats(request):
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect(reverse('search'))
     pygal_config = pygal.Config()
     pygal_config.js = (settings.STATIC_URL + '/se/pygal-tooltips.min.js',)
 

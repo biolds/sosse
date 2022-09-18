@@ -698,7 +698,7 @@ class FavIcon(models.Model):
         if url is None:
             url = '/favicon.ico'
 
-        url = absolutize_url(doc.url, url, True, False)
+        url = absolutize_url(doc.url, url, False, False)
 
         favicon, created = FavIcon.objects.get_or_create(url=url)
         doc.favicon = favicon

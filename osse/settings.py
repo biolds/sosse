@@ -19,17 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@yvo5va0sb6-i@t+vw3tr3b=)^^uh-9#0$*qs%8kxtwe7544-m'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
-
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,37 +60,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'osse.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#    }
-#}
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django',
-        'USER': 'django',
-        'PASSWORD': 'password',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
-
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/html/static'
-
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -115,25 +79,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
-
-LANGUAGE_CODE = 'fr-FR'
-USE_L10N = False
-DATETIME_FORMAT = 'd/m/y H:i'
-TIME_ZONE = 'Europe/Paris'
 
 LOGGING = {
     'version': 1,
@@ -178,13 +123,6 @@ LOGGING = {
         },
     },
 }
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
-OSSE_DEFAULT_PAGE_SIZE = 20
-OSSE_MAX_PAGE_SIZE = 200
-OSSE_ATOM_FEED_SIZE = 200
 
 OSSE_LANGDETECT_TO_POSTGRES = {
     'ar': {
@@ -414,22 +352,6 @@ OSSE_LANGDETECT_TO_POSTGRES = {
         'flag': '🇹🇼'
     }
 }
-OSSE_FAIL_OVER_LANG = 'english'
 
-from hashlib import md5
-HASHING_ALGO = md5
-
-OSSE_USER_AGENT = 'OSSE'
-
-# Exclude pages not yet indexed from search results
-OSSE_EXCLUDE_NOT_INDEXED = True
-
-# Exclude pages that redirect to an other from results
-OSSE_EXCLUDE_REDIRECT = True
-
-OSSE_SCREENSHOTS_SIZE = '1920x1080'
-OSSE_SCREENSHOTS_DIR = '/var/lib/osse/screenshots/'
-OSSE_SCREENSHOTS_URL = '/screenshots/'
-
-# Number of simultaneous crawlers, the number of cpu count is used if set to None
-OSSE_CRAWLER_COUNT = None
+from .conf import Conf
+globals().update(Conf.get())

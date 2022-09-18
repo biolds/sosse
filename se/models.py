@@ -785,9 +785,6 @@ class DomainSetting(models.Model):
     robots_allow = models.TextField(default='', blank=True)
     robots_disallow = models.TextField(default='', blank=True)
 
-    def __str__(self):
-        return '%s %s' % (self.domain, self.browse_mode)
-
     @classmethod
     def ua_hash(cls):
         if cls.UA_HASH is None:

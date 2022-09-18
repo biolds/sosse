@@ -9,13 +9,14 @@ from django.shortcuts import redirect, reverse
 from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
-from .models import AuthField, Document, DomainSetting, FavIcon, UrlPolicy, SearchEngine
+from .models import AuthField, Document, DomainSetting, UrlPolicy, SearchEngine
 from .utils import human_datetime
 
 
 class SEAdminSite(admin.AdminSite):
-    pass
-
+    def get_app_list(self, request):
+        # Reverse the order to make authentication appear last
+        return reversed(super().get_app_list(request))
 
 admin_site = SEAdminSite(name='admin')
 admin_site.enable_nav_sidebar = False
@@ -25,22 +26,6 @@ admin_site.register(DomainSetting)
 def get_admin():
     global admin_site
     return admin_site
-
-
-@admin.register(FavIcon)
-class FavIconAdmin(admin.ModelAdmin):
-    list_display = ('_url', 'fav')
-
-    @staticmethod
-    def _url(obj):
-        if len(obj.url) > 128:
-            return obj.url[:128] + '...'
-        return obj.url
-
-    @staticmethod
-    def fav(obj):
-        if not obj.missing:
-            return format_html('<img src="{}" style="widgth: 16px; height: 16px">', reverse('favicon', args=(obj.id,)))
 
 
 @admin.register(SearchEngine)
@@ -78,10 +63,10 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(crawl_next__isnull=False)
+            return queryset.filter(crawl_next__isnull=False) | queryset.filter(crawl_last__isnull=True)
 
         if self.value() == 'no':
-            return queryset.filter(crawl_next__isnull=True)
+            return queryset.filter(crawl_next__isnull=True, crawl_last__isnull=False)
 
 
 @admin.action(description='Crawl now')
@@ -91,7 +76,7 @@ def crawl_now(modeladmin, request, queryset):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('url', 'fav', 'cached', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
+    list_display = ('_url', 'fav', 'cached', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
     exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
@@ -199,6 +184,10 @@ class DocumentAdmin(admin.ModelAdmin):
         policy = UrlPolicy.get_from_url(obj.url)
         return format_html('<a href="/admin/se/urlpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
 
+    @staticmethod
+    def _url(obj):
+        return format_html('<span title="{}">{}</span>', obj.url, obj.url)
+
 
 class InlineAuthField(admin.TabularInline):
     model = AuthField
@@ -226,8 +215,8 @@ class UrlPolicyForm(forms.ModelForm):
                 self.add_error(key, 'This field must be null when using this recrawl mode')
 
         if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM and cleaned_data['take_screenshots']:
-            self.add_error('default_browse_mode', 'Browsing mode must be set to Selenium to take screenshots')
-            self.add_error('take_screenshots', 'Browsing mode must be set to Selenium to take screenshots')
+            self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to take screenshots')
+            self.add_error('take_screenshots', 'Browsing mode must be set to Chromium to take screenshots')
         return cleaned_data
 
 

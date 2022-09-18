@@ -104,3 +104,11 @@ button:hover,input:hover,select:hover {
     padding: 20px 0px 20px 0px;
     text-align: center;
 }
+
+.field-_url > a {
+    display: inline-block;
+    width: 500px;
+    overflow: hidden;
+    text-overflow: "…";
+    white-space: nowrap;
+}

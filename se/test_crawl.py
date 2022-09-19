@@ -5,7 +5,7 @@ from django.test import TestCase
 from requests import HTTPError
 
 from .browser import RequestBrowser, Page
-from .models import Document, DomainSetting, Link, UrlPolicy
+from .models import Document, DomainSetting, Link, CrawlPolicy
 
 
 class BrowserMock:
@@ -36,11 +36,11 @@ class CrawlerTest(TestCase):
 
     def setUp(self):
         RequestBrowser.init()
-        self.root_policy = UrlPolicy.objects.create(url_regex='.*',
-                                                    crawl_when=UrlPolicy.CRAWL_NEVER,
+        self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
+                                                    crawl_when=CrawlPolicy.CRAWL_NEVER,
                                                     default_browse_mode=DomainSetting.BROWSE_REQUESTS)
-        self.url_policy = UrlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
-                                                   crawl_when=UrlPolicy.CRAWL_ALWAYS,
+        self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
+                                                   crawl_when=CrawlPolicy.CRAWL_ALWAYS,
                                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
@@ -49,7 +49,7 @@ class CrawlerTest(TestCase):
 
     def tearDown(self):
         self.root_policy.delete()
-        self.url_policy.delete()
+        self.crawl_policy.delete()
 
     def _crawl(self):
         Document.queue('http://127.0.0.1/', None, None)
@@ -116,11 +116,11 @@ class CrawlerTest(TestCase):
             'http://127.0.0.2/page2/': 'No 2 - Page2',
             'http://127.0.0.3/': 'Page3'
         })
-        self.url_policy.crawl_depth = 2
-        self.url_policy.save()
+        self.crawl_policy.crawl_depth = 2
+        self.crawl_policy.save()
 
-        UrlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
-                                 crawl_when=UrlPolicy.CRAWL_ON_DEPTH,
+        CrawlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
+                                 crawl_when=CrawlPolicy.CRAWL_ON_DEPTH,
                                  default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self._crawl()
 
@@ -172,9 +172,9 @@ class CrawlerTest(TestCase):
             'http://127.0.0.1/': 'Root <a href="/page1/">Link1</a>',
             'http://127.0.0.1/page1/': 'Page1',
         })
-        self.url_policy.store_extern_links = True
-        self.url_policy.save()
-        UrlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', crawl_when=UrlPolicy.CRAWL_NEVER)
+        self.crawl_policy.store_extern_links = True
+        self.crawl_policy.save()
+        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', crawl_when=CrawlPolicy.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
                        RequestBrowser.call_args_list)
@@ -199,10 +199,10 @@ class CrawlerTest(TestCase):
     def test_005_recrawl_none(self, now, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
         now.side_effect = lambda: self.fake_now
-        self.url_policy.recrawl_mode = UrlPolicy.RECRAWL_NONE
-        self.url_policy.recrawl_dt_min = None
-        self.url_policy.recrawl_dt_max = None
-        self.url_policy.save()
+        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_NONE
+        self.crawl_policy.recrawl_dt_min = None
+        self.crawl_policy.recrawl_dt_max = None
+        self.crawl_policy.save()
 
         self._crawl()
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
@@ -221,10 +221,10 @@ class CrawlerTest(TestCase):
     @mock.patch('se.models.now')
     def test_006_recrawl_constant(self, now, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
-        self.url_policy.recrawl_mode = UrlPolicy.RECRAWL_CONSTANT
-        self.url_policy.recrawl_dt_min = timedelta(hours=1)
-        self.url_policy.recrawl_dt_max = None
-        self.url_policy.save()
+        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_CONSTANT
+        self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
+        self.crawl_policy.recrawl_dt_max = None
+        self.crawl_policy.save()
 
         now.side_effect = lambda: self.fake_now
         self._crawl()
@@ -254,10 +254,10 @@ class CrawlerTest(TestCase):
     @mock.patch('se.models.now')
     def test_007_recrawl_adaptive(self, now, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
-        self.url_policy.recrawl_mode = UrlPolicy.RECRAWL_ADAPTIVE
-        self.url_policy.recrawl_dt_min = timedelta(hours=1)
-        self.url_policy.recrawl_dt_max = timedelta(hours=3)
-        self.url_policy.save()
+        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
+        self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
+        self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
+        self.crawl_policy.save()
 
         now.side_effect = lambda: self.fake_now
         self._crawl()

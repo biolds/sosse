@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, reverse
 from django.utils.html import format_html
 from urllib.parse import unquote
 
-from .models import Document, UrlPolicy
+from .models import Document, CrawlPolicy
 
 
 def get_document(url):
@@ -18,7 +18,7 @@ def get_document(url):
 
 
 def get_context(doc):
-    url_policy = UrlPolicy.get_from_url(doc.url)
+    crawl_policy = CrawlPolicy.get_from_url(doc.url)
     title = doc.title or doc.url
     page_title = None
     favicon = None
@@ -29,7 +29,7 @@ def get_context(doc):
 
     page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
     return {
-        'url_policy': url_policy,
+        'crawl_policy': crawl_policy,
         'doc': doc,
         'head_title': title,
         'page_title': page_title,

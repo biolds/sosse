@@ -173,10 +173,10 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
-    def _hash_content(self, content, url_policy):
-        if url_policy.hash_mode == UrlPolicy.HASH_RAW:
+    def _hash_content(self, content, crawl_policy):
+        if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
             pass
-        elif url_policy.hash_mode == UrlPolicy.HASH_NO_NUMBERS:
+        elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
             content = re.sub('[0-9]+', '0', content)
         else:
             raise Exception('HASH_MODE not supported')
@@ -202,7 +202,7 @@ class Document(models.Model):
             selector = self._build_selector(elem.parent) + selector
         return selector
 
-    def _dom_walk(self, elem, url_policy, links):
+    def _dom_walk(self, elem, crawl_policy, links):
         if isinstance(elem, Doctype):
             return
 
@@ -214,7 +214,7 @@ class Document(models.Model):
             s = s.strip(' \t\n\r')
 
         # Keep the link if it has text, or if we take screenshots
-        if elem.name in (None, 'a') and (s or url_policy.take_screenshots):
+        if elem.name in (None, 'a') and (s or crawl_policy.take_screenshots):
             if links['text'] and links['text'][-1] not in (' ', '\n'):
                 links['text'] += ' '
 
@@ -224,9 +224,9 @@ class Document(models.Model):
                     href = href.strip()
 
                     href_for_policy = absolutize_url(self.url, href, True, True)
-                    child_policy = UrlPolicy.get_from_url(href_for_policy)
+                    child_policy = CrawlPolicy.get_from_url(href_for_policy)
                     href = absolutize_url(self.url, href, child_policy.keep_params, False)
-                    target = Document.queue(href, url_policy, self)
+                    target = Document.queue(href, crawl_policy, self)
                     link = None
                     if target:
                         link = Link(doc_from=self,
@@ -234,7 +234,7 @@ class Document(models.Model):
                                     doc_to=target,
                                     text=s,
                                     pos=len(links['text']))
-                    elif url_policy.store_extern_links:
+                    elif crawl_policy.store_extern_links:
                         href = elem.get('href').strip()
                         href = absolutize_url(self.url, href, True, True)
                         link = Link(doc_from=self,
@@ -244,7 +244,7 @@ class Document(models.Model):
                                     extern_url=href)
 
                     if link:
-                        if url_policy.take_screenshots:
+                        if crawl_policy.take_screenshots:
                             link.css_selector = self._build_selector(elem)
                         links['links'].append(link)
 
@@ -256,7 +256,7 @@ class Document(models.Model):
 
         if hasattr(elem, 'children'):
             for child in elem.children:
-                self._dom_walk(child, url_policy, links)
+                self._dom_walk(child, crawl_policy, links)
 
         if elem.name in ('div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
             if links['text']:
@@ -265,10 +265,10 @@ class Document(models.Model):
                 elif links['text'][-1] != '\n':
                     links['text'] += '\n'
 
-    def index(self, page, url_policy, verbose=False, force=False):
+    def index(self, page, crawl_policy, verbose=False, force=False):
         n = now()
         stats = {'prev': n}
-        content_hash = self._hash_content(page.content, url_policy)
+        content_hash = self._hash_content(page.content, crawl_policy)
         self._index_log('hash', stats, verbose)
 
         self.crawl_last = n
@@ -293,7 +293,7 @@ class Document(models.Model):
             'text': ''
         }
         for elem in parsed.children:
-            self._dom_walk(elem, url_policy, links)
+            self._dom_walk(elem, crawl_policy, links)
         text = links['text']
 
         self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
@@ -306,7 +306,7 @@ class Document(models.Model):
         FavIcon.extract(self, page)
         self._index_log('favicon', stats, verbose)
 
-        if url_policy.take_screenshots:
+        if crawl_policy.take_screenshots:
             self.screenshot_index(links['links'])
 
         Link.objects.filter(doc_from=self).delete()
@@ -348,25 +348,25 @@ class Document(models.Model):
 
     @staticmethod
     def queue(url, parent_policy, parent):
-        url_policy = UrlPolicy.get_from_url(url)
-        crawl_logger.debug('%s matched %s, %s' % (url, url_policy.url_regex, url_policy.crawl_when))
+        crawl_policy = CrawlPolicy.get_from_url(url)
+        crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.crawl_when))
 
-        if url_policy.crawl_when == UrlPolicy.CRAWL_ALWAYS or parent is None:
+        if crawl_policy.crawl_when == CrawlPolicy.CRAWL_ALWAYS or parent is None:
             crawl_logger.debug('%s -> always crawl' % url)
             return Document.objects.get_or_create(url=url)[0]
 
-        if url_policy.crawl_when == UrlPolicy.CRAWL_NEVER:
+        if crawl_policy.crawl_when == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug('%s -> never crawl' % url)
             return None
 
         doc = None
         url_depth = None
 
-        if parent_policy.crawl_when == UrlPolicy.CRAWL_ALWAYS and parent_policy.crawl_depth > 0:
+        if parent_policy.crawl_when == CrawlPolicy.CRAWL_ALWAYS and parent_policy.crawl_depth > 0:
             doc = Document.objects.get_or_create(url=url)[0]
             url_depth = max(parent_policy.crawl_depth, doc.crawl_depth)
             crawl_logger.debug('%s -> recurse for %s' % (url, url_depth))
-        elif parent_policy.crawl_when == UrlPolicy.CRAWL_ON_DEPTH and parent.crawl_depth > 1:
+        elif parent_policy.crawl_when == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_depth > 1:
             doc = Document.objects.get_or_create(url=url)[0]
             url_depth = max(parent.crawl_depth - 1, doc.crawl_depth)
             crawl_logger.debug('%s -> recurse at %s' % (url, url_depth))
@@ -380,20 +380,20 @@ class Document(models.Model):
         return doc
 
     def _schedule_next(self, changed):
-        url_policy = UrlPolicy.get_from_url(self.url)
-        if url_policy.recrawl_mode == UrlPolicy.RECRAWL_NONE:
+        crawl_policy = CrawlPolicy.get_from_url(self.url)
+        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE:
             self.crawl_next = None
             self.crawl_dt = None
-        elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_CONSTANT:
-            self.crawl_next = self.crawl_last + url_policy.recrawl_dt_min
+        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
+            self.crawl_next = self.crawl_last + crawl_policy.recrawl_dt_min
             self.crawl_dt = None
-        elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_ADAPTIVE:
+        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_ADAPTIVE:
             if self.crawl_dt is None:
-                self.crawl_dt = url_policy.recrawl_dt_min
+                self.crawl_dt = crawl_policy.recrawl_dt_min
             elif not changed:
-                self.crawl_dt = min(url_policy.recrawl_dt_max, self.crawl_dt * 2)
+                self.crawl_dt = min(crawl_policy.recrawl_dt_max, self.crawl_dt * 2)
             else:
-                self.crawl_dt = max(url_policy.recrawl_dt_min, self.crawl_dt / 2)
+                self.crawl_dt = max(crawl_policy.recrawl_dt_min, self.crawl_dt / 2)
             self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
@@ -416,10 +416,10 @@ class Document(models.Model):
                 doc.crawl_last = now()
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
-                    url_policy = UrlPolicy.get_from_url(doc.url)
+                    crawl_policy = CrawlPolicy.get_from_url(doc.url)
                     domain = urlparse(doc.url).netloc
                     domain_setting, _ = DomainSetting.objects.get_or_create(domain=domain,
-                                                                            defaults={'browse_mode': url_policy.default_browse_mode})
+                                                                            defaults={'browse_mode': crawl_policy.default_browse_mode})
                     if not domain_setting.robots_authorized(doc.url):
                         crawl_logger.debug('%s rejected by robots.txt' % doc.url)
                         doc.robotstxt_rejected = True
@@ -431,10 +431,10 @@ class Document(models.Model):
                         doc.crawl_dt = None
                         break
 
-                    page = url_policy.url_get(domain_setting, doc.url)
+                    page = crawl_policy.url_get(domain_setting, doc.url)
 
                     if page.url == doc.url:
-                        doc.index(page, url_policy)
+                        doc.index(page, crawl_policy)
                         doc.set_error('')
                         break
                     else:
@@ -549,7 +549,7 @@ class Link(models.Model):
 class AuthField(models.Model):
     key = models.CharField(max_length=256)
     value = models.CharField(max_length=256)
-    url_policy = models.ForeignKey('UrlPolicy', on_delete=models.CASCADE)
+    crawl_policy = models.ForeignKey('CrawlPolicy', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s form field' % self.key
@@ -907,7 +907,7 @@ class DomainSetting(models.Model):
         return False
 
 
-class UrlPolicy(models.Model):
+class CrawlPolicy(models.Model):
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
     RECRAWL_ADAPTIVE = 'adaptive'
@@ -958,7 +958,7 @@ class UrlPolicy(models.Model):
 
     @staticmethod
     def get_from_url(url):
-        return UrlPolicy.objects.extra(where=['%s ~ url_regex'], params=[url]).annotate(
+        return CrawlPolicy.objects.extra(where=['%s ~ url_regex'], params=[url]).annotate(
             url_regex_len=models.functions.Length('url_regex')
         ).order_by('-url_regex_len').first()
 
@@ -1005,10 +1005,10 @@ class UrlPolicy(models.Model):
     @staticmethod
     def get_cookies(url):
         try:
-            cookies = UrlPolicy.get_from_url(url).auth_cookies
+            cookies = CrawlPolicy.get_from_url(url).auth_cookies
             if cookies:
                 return json.loads(cookies)
-        except UrlPolicy.DoesNotExist:
+        except CrawlPolicy.DoesNotExist:
             pass
 
 

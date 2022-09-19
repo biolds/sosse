@@ -9,7 +9,7 @@ from django.shortcuts import redirect, reverse
 from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
-from .models import AuthField, Document, DomainSetting, UrlPolicy, SearchEngine
+from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine
 from .utils import human_datetime
 
 
@@ -80,7 +80,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
     exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
-    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'url_policy', 'crawl_first', 'crawl_last', 'screenshot_file')
+    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'crawl_policy', 'crawl_first', 'crawl_last', 'screenshot_file')
     actions = [crawl_now]
 
     def get_urls(self):
@@ -117,19 +117,19 @@ class DocumentAdmin(admin.ModelAdmin):
             messages.success(request, 'URL was queued.')
             return redirect(reverse('admin:se_document_changelist'))
 
-        url_policy = UrlPolicy.get_from_url(form.cleaned_data['url'])
+        crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data['url'])
         context.update({
-            'url_policy': url_policy,
+            'crawl_policy': crawl_policy,
             'url': form.cleaned_data['url'],
-            'UrlPolicy': UrlPolicy,
+            'CrawlPolicy': CrawlPolicy,
             'DomainSetting': DomainSetting,
         })
-        if url_policy.recrawl_mode == UrlPolicy.RECRAWL_CONSTANT:
-            context['recrawl_every'] = human_datetime(url_policy.recrawl_dt_min)
-        elif url_policy.recrawl_mode == UrlPolicy.RECRAWL_ADAPTIVE:
+        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
+            context['recrawl_every'] = human_datetime(crawl_policy.recrawl_dt_min)
+        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_ADAPTIVE:
             context.update({
-                'recrawl_min': human_datetime(url_policy.recrawl_dt_min),
-                'recrawl_max': human_datetime(url_policy.recrawl_dt_max)
+                'recrawl_min': human_datetime(crawl_policy.recrawl_dt_min),
+                'recrawl_max': human_datetime(crawl_policy.recrawl_dt_max)
             })
         return response.TemplateResponse(request, 'se/add_to_queue.html', context)
 
@@ -180,9 +180,9 @@ class DocumentAdmin(admin.ModelAdmin):
             return err_lines[-1]
 
     @staticmethod
-    def url_policy(obj):
-        policy = UrlPolicy.get_from_url(obj.url)
-        return format_html('<a href="/admin/se/urlpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
+    def crawl_policy(obj):
+        policy = CrawlPolicy.get_from_url(obj.url)
+        return format_html('<a href="/admin/se/crawlpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
 
     @staticmethod
     def _url(obj):
@@ -193,9 +193,9 @@ class InlineAuthField(admin.TabularInline):
     model = AuthField
 
 
-class UrlPolicyForm(forms.ModelForm):
+class CrawlPolicyForm(forms.ModelForm):
     class Meta:
-        model = UrlPolicy
+        model = CrawlPolicy
         exclude = tuple()
 
     def clean(self):
@@ -203,8 +203,8 @@ class UrlPolicyForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         keys_required = {
-            'recrawl_dt_min': cleaned_data['recrawl_mode'] in (UrlPolicy.RECRAWL_ADAPTIVE, UrlPolicy.RECRAWL_CONSTANT),
-            'recrawl_dt_max': cleaned_data['recrawl_mode'] in (UrlPolicy.RECRAWL_ADAPTIVE,),
+            'recrawl_dt_min': cleaned_data['recrawl_mode'] in (CrawlPolicy.RECRAWL_ADAPTIVE, CrawlPolicy.RECRAWL_CONSTANT),
+            'recrawl_dt_max': cleaned_data['recrawl_mode'] in (CrawlPolicy.RECRAWL_ADAPTIVE,),
         }
 
         for key, required in keys_required.items():
@@ -220,9 +220,9 @@ class UrlPolicyForm(forms.ModelForm):
         return cleaned_data
 
 
-@admin.register(UrlPolicy)
-class UrlPolicyAdmin(admin.ModelAdmin):
+@admin.register(CrawlPolicy)
+class CrawlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
-    form = UrlPolicyForm
+    form = CrawlPolicyForm
     list_display = ('url_regex', 'crawl_when', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)

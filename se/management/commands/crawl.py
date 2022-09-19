@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
 
 from ...browser import Browser
-from ...models import CrawlerStats, Document, UrlPolicy, WorkerStats, MINUTELY
+from ...models import CrawlerStats, Document, CrawlPolicy, WorkerStats, MINUTELY
 
 crawl_logger = logging.getLogger('crawler')
 
@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.exclude(worker_no=None).update(worker_no=None)
-        UrlPolicy.objects.get_or_create(url_regex='.*', defaults={'crawl_when': UrlPolicy.CRAWL_NEVER}) # mandatory default policy
+        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'crawl_when': CrawlPolicy.CRAWL_NEVER}) # mandatory default policy
 
         for url in options['urls']:
             doc = Document.queue(url, None, 0)

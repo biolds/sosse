@@ -123,7 +123,7 @@ class Document(models.Model):
     crawl_last = models.DateTimeField(blank=True, null=True)
     crawl_next = models.DateTimeField(blank=True, null=True)
     crawl_dt = models.DurationField(blank=True, null=True)
-    crawl_depth = models.PositiveIntegerField(default=0)
+    crawl_recurse = models.PositiveIntegerField(default=0)
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
     worker_no = models.PositiveIntegerField(blank=True, null=True)
@@ -349,32 +349,32 @@ class Document(models.Model):
     @staticmethod
     def queue(url, parent_policy, parent):
         crawl_policy = CrawlPolicy.get_from_url(url)
-        crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.crawl_when))
+        crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.condition))
 
-        if crawl_policy.crawl_when == CrawlPolicy.CRAWL_ALWAYS or parent is None:
+        if crawl_policy.condition == CrawlPolicy.CRAWL_ALL or parent is None:
             crawl_logger.debug('%s -> always crawl' % url)
             return Document.objects.get_or_create(url=url)[0]
 
-        if crawl_policy.crawl_when == CrawlPolicy.CRAWL_NEVER:
+        if crawl_policy.condition == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug('%s -> never crawl' % url)
             return None
 
         doc = None
         url_depth = None
 
-        if parent_policy.crawl_when == CrawlPolicy.CRAWL_ALWAYS and parent_policy.crawl_depth > 0:
+        if parent_policy.condition == CrawlPolicy.CRAWL_ALL and parent_policy.crawl_depth > 0:
             doc = Document.objects.get_or_create(url=url)[0]
-            url_depth = max(parent_policy.crawl_depth, doc.crawl_depth)
+            url_depth = max(parent_policy.crawl_depth, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse for %s' % (url, url_depth))
-        elif parent_policy.crawl_when == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_depth > 1:
+        elif parent_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
             doc = Document.objects.get_or_create(url=url)[0]
-            url_depth = max(parent.crawl_depth - 1, doc.crawl_depth)
+            url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse at %s' % (url, url_depth))
         else:
-            crawl_logger.debug('%s -> no recurse (from parent %s)' % (url, parent_policy.crawl_when))
+            crawl_logger.debug('%s -> no recurse (from parent %s)' % (url, parent_policy.condition))
 
-        if doc and url_depth != doc.crawl_depth:
-            doc.crawl_depth = url_depth
+        if doc and url_depth != doc.crawl_recurse:
+            doc.crawl_recurse = url_depth
             doc.save()
 
         return doc
@@ -547,13 +547,12 @@ class Link(models.Model):
 
 
 class AuthField(models.Model):
-    key = models.CharField(max_length=256)
+    key = models.CharField(max_length=256, verbose_name='<input> name attribute')
     value = models.CharField(max_length=256)
     crawl_policy = models.ForeignKey('CrawlPolicy', on_delete=models.CASCADE)
 
-    def __str__(self):
-        return '%s form field' % self.key
-
+    class Meta:
+        verbose_name = 'authentication field'
 
 MINUTELY = 'M'
 DAILY = 'D'
@@ -755,7 +754,7 @@ class DomainSetting(models.Model):
     BROWSE_MODE = [
         (BROWSE_DETECT, 'Detect'),
         (BROWSE_SELENIUM, 'Chromium'),
-        (BROWSE_REQUESTS, 'Python Requests (faster)'),
+        (BROWSE_REQUESTS, 'Python Requests'),
     ]
 
     ROBOTS_UNKNOWN = 'unknown'
@@ -912,7 +911,7 @@ class CrawlPolicy(models.Model):
     RECRAWL_CONSTANT = 'constant'
     RECRAWL_ADAPTIVE = 'adaptive'
     RECRAWL_MODE = [
-        (RECRAWL_NONE, 'No recrawl'),
+        (RECRAWL_NONE, 'Once'),
         (RECRAWL_CONSTANT, 'Constant time'),
         (RECRAWL_ADAPTIVE, 'Adaptive')
     ]
@@ -924,37 +923,38 @@ class CrawlPolicy(models.Model):
         (HASH_NO_NUMBERS, 'Normalize numbers before'),
     ]
 
-    CRAWL_ALWAYS = 'always'
+    CRAWL_ALL = 'always'
     CRAWL_ON_DEPTH = 'depth'
     CRAWL_NEVER = 'never'
-    CRAWL_WHEN = [
-        (CRAWL_ALWAYS, 'Always'),
+    CRAWL_CONDITION = [
+        (CRAWL_ALL, 'Crawl all pages'),
         (CRAWL_ON_DEPTH, 'Depending on depth'),
-        (CRAWL_NEVER, 'Never'),
+        (CRAWL_NEVER, 'Never crawl'),
     ]
 
     url_regex = models.TextField(unique=True)
-    crawl_when = models.CharField(max_length=6, choices=CRAWL_WHEN, default=CRAWL_ALWAYS)
+    condition = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
+    crawl_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
+    keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
 
-    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT)
-    recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE)
+    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
+    take_screenshots = models.BooleanField(default=False)
+    store_extern_links = models.BooleanField(default=False)
+
+    recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')
     recrawl_dt_min = models.DurationField(blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(minutes=1))
     recrawl_dt_max = models.DurationField(blank=True, null=True, help_text='Max. time before recrawling a page', default=timedelta(days=365))
-    crawl_depth = models.PositiveIntegerField(default=0)
+    hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS, help_text='Page content hashing method used to detect changes in the content')
 
-    store_extern_links = models.BooleanField(default=False)
-    keep_params = models.BooleanField(default=False)
+    auth_login_url_re = models.TextField(null=True, blank=True, verbose_name='Login URL', help_text='A redirection to this URL will trigger authentication')
+    auth_form_selector = models.TextField(null=True, blank=True, verbose_name='Form selector', help_text='CSS selector pointing to the authentication &lt;form&gt; element')
+    auth_cookies = models.TextField(blank=True, default='', verbose_name='Authentication cookie')
 
-    hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS)
-
-    auth_login_url_re = models.TextField(null=True, blank=True)
-    auth_form_selector = models.TextField(null=True, blank=True)
-    auth_cookies = models.TextField(blank=True, default='')
-
-    take_screenshots = models.BooleanField(default=False)
+    class Meta:
+        verbose_name_plural = 'crawl policies'
 
     def __str__(self):
-        return f'<{self.url_regex}>'
+        return f'「{self.url_regex}」'
 
     @staticmethod
     def get_from_url(url):

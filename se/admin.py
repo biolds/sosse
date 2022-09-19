@@ -224,5 +224,20 @@ class CrawlPolicyForm(forms.ModelForm):
 class CrawlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
-    list_display = ('url_regex', 'crawl_when', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
+    list_display = ('url_regex', 'condition', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)
+    readonly_fields = ('auth_cookies',)
+    fieldsets = (
+        (None, {
+            'fields': ('url_regex', 'condition', 'crawl_depth', 'keep_params')
+        }),
+        ('Browser', {
+            'fields': ('default_browse_mode', 'take_screenshots', 'store_extern_links')
+        }),
+        ('Updates', {
+            'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')
+        }),
+        ('Authentication', {
+            'fields': ('auth_login_url_re', 'auth_form_selector', 'auth_cookies'),
+        }),
+    )

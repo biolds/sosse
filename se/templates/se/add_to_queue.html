@@ -10,7 +10,7 @@
                 This URL will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
             </p>
             <ul>
-                {% if crawl_policy.crawl_when == CrawlPolicy.CRAWL_ALWAYS %}
+                {% if crawl_policy.condition == CrawlPolicy.CRAWL_ALL %}
                     <li>All URL matching the policy regexp will be crawled</li>
                     {% if crawl_policy.crawl_depth > 1 %}
                         <li>The crawler will recurse {{ crawl_policy.crawl_depth }} time{{ crawl_policy.crawl_depth|pluralize:'s' }} into URL when matching policies "Depending on depth"</li>
@@ -27,7 +27,7 @@
                         No browser will be used
                     {% endif %}
                 </li>
-                {% if crawl_policy.crawl_when == CrawlPolicy.CRAWL_ALWAYS %}
+                {% if crawl_policy.condition == CrawlPolicy.CRAWL_ALL %}
                     <li>
                         {% if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE %}
                             Crawled only once

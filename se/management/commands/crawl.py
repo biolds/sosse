@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.exclude(worker_no=None).update(worker_no=None)
-        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'crawl_when': CrawlPolicy.CRAWL_NEVER}) # mandatory default policy
+        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER}) # mandatory default policy
 
         for url in options['urls']:
             doc = Document.queue(url, None, 0)

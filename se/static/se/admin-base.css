@@ -223,7 +223,7 @@ fieldset {
     min-width: 0;
     padding: 0;
     border: none;
-    border-top: 1px solid var(--hairline-color);
+    border-top: 2px solid var(--hairline-color);
 }
 
 /*
@@ -604,8 +604,8 @@ input[type=button][disabled].default {
 .module h2, .module caption, .inline-group h2 {
     margin: 0;
     padding: 8px;
-    font-weight: 400;
-    font-size: 13px;
+    font-weight: 300;
+    font-size: 18px;
     text-align: left;
     /* background: var(--primary);
     color: var(--header-link-color); */

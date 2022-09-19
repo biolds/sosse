@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('url_regex', models.TextField(unique=True)),
-                ('crawl_when', models.CharField(choices=[('always', 'Always'), ('depth', 'Depending on depth'), ('never', 'Never')], default='always', max_length=6)),
+                ('condition', models.CharField(choices=[('always', 'Always'), ('depth', 'Depending on depth'), ('never', 'Never')], default='always', max_length=6)),
                 ('default_browse_mode', models.CharField(choices=[('detect', 'Detect'), ('selenium', 'Chromium'), ('requests', 'Python Requests (faster)')], default='detect', max_length=8)),
                 ('recrawl_mode', models.CharField(choices=[('none', 'No recrawl'), ('constant', 'Constant time'), ('adaptive', 'Adaptive')], default='adaptive', max_length=8)),
                 ('recrawl_dt_min', models.DurationField(blank=True, default=datetime.timedelta(seconds=60), help_text='Min. time before recrawling a page', null=True)),

@@ -37,10 +37,10 @@ class CrawlerTest(TestCase):
     def setUp(self):
         RequestBrowser.init()
         self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
-                                                    crawl_when=CrawlPolicy.CRAWL_NEVER,
+                                                    condition=CrawlPolicy.CRAWL_NEVER,
                                                     default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
-                                                   crawl_when=CrawlPolicy.CRAWL_ALWAYS,
+                                                   condition=CrawlPolicy.CRAWL_ALL,
                                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
@@ -72,7 +72,7 @@ class CrawlerTest(TestCase):
         doc = Document.objects.get()
         self.assertEqual(doc.url, 'http://127.0.0.1/')
         self.assertEqual(doc.content, 'Hello world')
-        self.assertEqual(doc.crawl_depth, 0)
+        self.assertEqual(doc.crawl_recurse, 0)
 
         self.assertEqual(Link.objects.count(), 0)
 
@@ -93,10 +93,10 @@ class CrawlerTest(TestCase):
         docs = Document.objects.order_by('id')
         self.assertEqual(docs[0].url, 'http://127.0.0.1/')
         self.assertEqual(docs[0].content, 'Root Link1')
-        self.assertEqual(docs[0].crawl_depth, 0)
+        self.assertEqual(docs[0].crawl_recurse, 0)
         self.assertEqual(docs[1].url, 'http://127.0.0.1/page1/')
         self.assertEqual(docs[1].content, 'Page1 Link1')
-        self.assertEqual(docs[1].crawl_depth, 0)
+        self.assertEqual(docs[1].crawl_recurse, 0)
 
         self.assertEqual(Link.objects.count(), 1)
         link = Link.objects.get()
@@ -120,7 +120,7 @@ class CrawlerTest(TestCase):
         self.crawl_policy.save()
 
         CrawlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
-                                 crawl_when=CrawlPolicy.CRAWL_ON_DEPTH,
+                                 condition=CrawlPolicy.CRAWL_ON_DEPTH,
                                  default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self._crawl()
 
@@ -137,16 +137,16 @@ class CrawlerTest(TestCase):
         docs = Document.objects.order_by('id')
         self.assertEqual(docs[0].url, 'http://127.0.0.1/')
         self.assertEqual(docs[0].content, 'Root Link1')
-        self.assertEqual(docs[0].crawl_depth, 0)
+        self.assertEqual(docs[0].crawl_recurse, 0)
         self.assertEqual(docs[1].url, 'http://127.0.0.1/page1/')
         self.assertEqual(docs[1].content, 'Page1 Link1 Link3')
-        self.assertEqual(docs[1].crawl_depth, 0)
+        self.assertEqual(docs[1].crawl_recurse, 0)
         self.assertEqual(docs[2].url, 'http://127.0.0.2/')
         self.assertEqual(docs[2].content, 'No 2 No 2 Link1 Link3')
-        self.assertEqual(docs[2].crawl_depth, 2)
+        self.assertEqual(docs[2].crawl_recurse, 2)
         self.assertEqual(docs[3].url, 'http://127.0.0.2/page1/')
         self.assertEqual(docs[3].content, 'Page2 No 2 Link2')
-        self.assertEqual(docs[3].crawl_depth, 1)
+        self.assertEqual(docs[3].crawl_recurse, 1)
 
         self.assertEqual(Link.objects.count(), 3)
         links = Link.objects.order_by('id')
@@ -174,7 +174,7 @@ class CrawlerTest(TestCase):
         })
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
-        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', crawl_when=CrawlPolicy.CRAWL_NEVER)
+        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', condition=CrawlPolicy.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
                        RequestBrowser.call_args_list)
@@ -183,7 +183,7 @@ class CrawlerTest(TestCase):
         docs = Document.objects.order_by('id')
         self.assertEqual(docs[0].url, 'http://127.0.0.1/')
         self.assertEqual(docs[0].content, 'Root Link1')
-        self.assertEqual(docs[0].crawl_depth, 0)
+        self.assertEqual(docs[0].crawl_recurse, 0)
 
         self.assertEqual(Link.objects.count(), 1)
         link = Link.objects.get()

@@ -196,7 +196,7 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _get_page(cls):
-        retry = 100
+        retry = settings.OSSE_JS_STABLE_RETRY
         previous_content = None
         content = None
 
@@ -208,7 +208,7 @@ class SeleniumBrowser(Browser):
             if content == previous_content:
                 break
             previous_content = content
-            sleep(0.1)
+            sleep(settings.OSSE_JS_STABLE_TIME)
 
         page = Page(cls.driver.current_url,
                     content,

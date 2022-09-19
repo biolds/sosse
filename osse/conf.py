@@ -141,6 +141,16 @@ DEFAULTS = OrderedDict([
             'comment': 'Resolution of the browser used to take screenshots',
             'default': '1920x1080'
         }],
+        ['js_stable_time', {
+            'comment': 'When loading a page in a browser, it is processed after the page stays unchanged for <js_stable_time> seconds',
+            'default': 0.1,
+            'type': float
+        }],
+        ['js_stable_retry', {
+            'comment': 'Check at most <js_stable_retry> times for the page to stay unchanged before processing',
+            'default': 100,
+            'tye': int
+        }]
     ])]
 ])
 
@@ -176,7 +186,11 @@ class Conf:
                     try:
                         settings[var_name] = var_type(value)
                     except ValueError:
-                        raise Exception('Configuration parsing error: in section "%s", "%s" option is not a valid integer: %s' % (section, key, t, value))
+                        t = {
+                            int: 'integer',
+                            float: 'float number'
+                        }[var_type]
+                        raise Exception('Configuration parsing error: in section "%s", "%s" option is not a valid %s: %s' % (section, key, t, value))
                 else:
                     settings[var_name] = value
 

@@ -106,11 +106,11 @@ class Document(models.Model):
     normalized_content = models.TextField()
     content_hash = models.CharField(max_length=128, null=True, blank=True)
     vector = SearchVectorField(null=True, blank=True)
-    lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True)
+    lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True, verbose_name='Language')
     vector_lang = RegConfigField(default='simple')
 
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
-    robotstxt_rejected = models.BooleanField(default=False)
+    robotstxt_rejected = models.BooleanField(default=False, verbose_name='Rejected by robots.txt')
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
@@ -119,11 +119,11 @@ class Document(models.Model):
     screenshot_count = models.PositiveIntegerField(blank=True, null=True)
 
     # Crawling info
-    crawl_first = models.DateTimeField(blank=True, null=True)
-    crawl_last = models.DateTimeField(blank=True, null=True)
-    crawl_next = models.DateTimeField(blank=True, null=True)
-    crawl_dt = models.DurationField(blank=True, null=True)
-    crawl_recurse = models.PositiveIntegerField(default=0)
+    crawl_first = models.DateTimeField(blank=True, null=True, verbose_name='Crawled first')
+    crawl_last = models.DateTimeField(blank=True, null=True, verbose_name='Crawled last')
+    crawl_next = models.DateTimeField(blank=True, null=True, verbose_name='Crawl next')
+    crawl_dt = models.DurationField(blank=True, null=True, verbose_name='Crawl DT')
+    crawl_recurse = models.PositiveIntegerField(default=0, verbose_name='Recursion remaining')
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
     worker_no = models.PositiveIntegerField(blank=True, null=True)
@@ -417,9 +417,8 @@ class Document(models.Model):
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
                     crawl_policy = CrawlPolicy.get_from_url(doc.url)
-                    domain = urlparse(doc.url).netloc
-                    domain_setting, _ = DomainSetting.objects.get_or_create(domain=domain,
-                                                                            defaults={'browse_mode': crawl_policy.default_browse_mode})
+                    domain_setting = DomainSetting.get_from_url(doc.url, crawl_policy.default_browse_mode)
+
                     if not domain_setting.robots_authorized(doc.url):
                         crawl_logger.debug('%s rejected by robots.txt' % doc.url)
                         doc.robotstxt_rejected = True
@@ -777,12 +776,15 @@ class DomainSetting(models.Model):
     UA_HASH = None
 
     browse_mode = models.CharField(max_length=10, choices=BROWSE_MODE, default=BROWSE_DETECT)
-    domain = models.TextField()
+    domain = models.TextField(unique=True)
 
     robots_status = models.CharField(max_length=10, choices=ROBOTS_STATUS, default=ROBOTS_UNKNOWN)
     robots_ua_hash = models.CharField(max_length=32, default='', blank=True)
     robots_allow = models.TextField(default='', blank=True)
     robots_disallow = models.TextField(default='', blank=True)
+
+    def __str__(self):
+        return self.domain
 
     @classmethod
     def ua_hash(cls):
@@ -904,6 +906,12 @@ class DomainSetting(models.Model):
                     return True
 
         return False
+
+    @classmethod
+    def get_from_url(cls, url, default_browse_mode):
+        domain = urlparse(url).netloc
+        return DomainSetting.objects.get_or_create(domain=domain,
+                                                   defaults={'browse_mode': default_browse_mode})[0]
 
 
 class CrawlPolicy(models.Model):

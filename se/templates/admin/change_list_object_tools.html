@@ -8,13 +8,6 @@
                 {% blocktranslate with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktranslate %}
             </a>
         </li>
-        {% if cl.opts.model_name == 'document' or cl.opts.model_name == 'crawlpolicy' %}
-        <li>
-            <a href="{% url 'admin:queue' %}" class="addlink">
-                Crawl new URL
-            </a>
-        </li>
-        {% endif %}
     {% endif %}
 {% endblock %}
 

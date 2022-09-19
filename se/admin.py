@@ -20,7 +20,6 @@ class SEAdminSite(admin.AdminSite):
 
 admin_site = SEAdminSite(name='admin')
 admin_site.enable_nav_sidebar = False
-admin_site.register(DomainSetting)
 
 
 def get_admin():
@@ -76,12 +75,16 @@ def crawl_now(modeladmin, request, queryset):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('_url', 'fav', 'cached', 'link', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
+    list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
-    exclude = ('normalized_url', 'normalized_title', 'normalized_content', 'vector', 'vector_lang', 'worker_no')
-    readonly_fields = ('content_hash', 'favicon', 'redirect_url', 'error', 'error_hash', 'url', 'title', 'content', 'crawl_policy', 'crawl_first', 'crawl_last', 'screenshot_file')
+    fields = ('url', 'crawl_policy', 'domain', 'cached', 'link', 'title', 'lang', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
+        'crawl_recurse', 'content', 'robotstxt_rejected',)
+    readonly_fields = fields
     actions = [crawl_now]
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
     def get_urls(self):
         urls = super().get_urls()
@@ -152,11 +155,17 @@ class DocumentAdmin(admin.ModelAdmin):
 
     @staticmethod
     def link(obj):
-        return format_html('<a href="{}">Link 🔗</a>', obj.url)
+        return format_html('<a href="{}">Source page 🔗</a>', obj.url)
 
     @staticmethod
     def cached(obj):
-        return format_html('<a href="{}">Link 🔗</a>', obj.get_absolute_url())
+        return format_html('<a href="{}">Cached version 🔗</a>', obj.get_absolute_url())
+
+    @staticmethod
+    def domain(obj):
+        crawl_policy = CrawlPolicy.get_from_url(obj.url)
+        dom = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
+        return format_html('<a href="{}">{}</a>', reverse('admin:se_domainsetting_change', args=(dom.id,)), dom)
 
     @staticmethod
     def lang(obj):
@@ -182,7 +191,7 @@ class DocumentAdmin(admin.ModelAdmin):
     @staticmethod
     def crawl_policy(obj):
         policy = CrawlPolicy.get_from_url(obj.url)
-        return format_html('<a href="/admin/se/crawlpolicy/{}/change">Policy {} {}</a>', policy.id, policy.id, repr(policy))
+        return format_html('<a href="{}">{}</a>', reverse('admin:se_crawlpolicy_change', args=(policy.id,)), policy)
 
     @staticmethod
     def _url(obj):
@@ -241,3 +250,11 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('auth_login_url_re', 'auth_form_selector', 'auth_cookies'),
         }),
     )
+
+
+@admin.register(DomainSetting)
+class CrawlPolicyAdmin(admin.ModelAdmin):
+    list_display = ('domain', 'robots_status', 'browse_mode')
+    search_fields = ('domain',)
+    fields = ('domain', 'browse_mode', 'robots_status', 'robots_allow', 'robots_disallow')
+    readonly_fields = ('domain', 'robots_status', 'robots_allow', 'robots_disallow')

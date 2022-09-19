@@ -13,6 +13,13 @@
           {% endif %}
           <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
         </caption>
+        {% if app.app_label == 'se' %}
+          <tr>
+            <th scope="row"><a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
+            <td></td>
+            <td></td>
+          </tr>
+        {% endif %}
         {% for model in app.models %}
           <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
             {% if model.admin_url %}

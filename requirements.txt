@@ -1,0 +1,12 @@
+bs4
+defusedxml
+django<4
+django-uwsgi
+html5lib
+langdetect
+lxml
+psycopg2
+pygal
+python-magic
+requests
+selenium

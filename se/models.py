@@ -920,6 +920,12 @@ class DomainSetting(models.Model):
                                                    defaults={'browse_mode': default_browse_mode})[0]
 
 
+BROWSER_MAP = {
+    DomainSetting.BROWSE_SELENIUM: SeleniumBrowser,
+    DomainSetting.BROWSE_REQUESTS: RequestBrowser,
+}
+
+
 class CrawlPolicy(models.Model):
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
@@ -978,12 +984,15 @@ class CrawlPolicy(models.Model):
         ).order_by('-url_regex_len').first()
 
     def url_get(self, domain_setting, url):
-        if domain_setting.browse_mode in (DomainSetting.BROWSE_DETECT, DomainSetting.BROWSE_SELENIUM):
-            browser = SeleniumBrowser
-        elif domain_setting.browse_mode == DomainSetting.BROWSE_REQUESTS:
-            browser = RequestBrowser
+        if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
+            if domain_setting.browse_mode in (DomainSetting.BROWSE_DETECT, DomainSetting.BROWSE_SELENIUM):
+                browser = SeleniumBrowser
+            elif domain_setting.browse_mode == DomainSetting.BROWSE_REQUESTS:
+                browser = RequestBrowser
+            else:
+                raise Exception('Unsupported browse_mode')
         else:
-            raise Exception('Unsupported browse_mode')
+            browser = BROWSER_MAP[self.default_browse_mode]
 
         page = browser.get(url)
 

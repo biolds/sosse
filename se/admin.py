@@ -4,7 +4,7 @@ from django import forms
 from django.db import models
 from django.conf import settings
 from django.contrib import admin, messages
-from django.urls import path, reverse
+from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
 from django.shortcuts import redirect, reverse
@@ -265,7 +265,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
 
 
 @admin.register(DomainSetting)
-class CrawlPolicyAdmin(admin.ModelAdmin):
+class DomainSettingAdmin(admin.ModelAdmin):
     list_display = ('domain', 'robots_status', 'browse_mode')
     search_fields = ('domain',)
     fields = ('domain', 'browse_mode', 'robots_status', 'robots_allow', 'robots_disallow')

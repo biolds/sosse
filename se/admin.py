@@ -75,6 +75,11 @@ def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now())
 
 
+@admin.action(description='Force reindex now')
+def reindex_now(modeladmin, request, queryset):
+    queryset.update(crawl_next=now(), content_hash=None)
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
@@ -83,7 +88,7 @@ class DocumentAdmin(admin.ModelAdmin):
     fields = ('url', 'crawl_policy', 'domain', 'cached', 'link', 'title', 'lang', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
         'crawl_recurse', 'content', 'robotstxt_rejected',)
     readonly_fields = fields
-    actions = [crawl_now]
+    actions = [crawl_now, reindex_now]
 
     def has_add_permission(self, request, obj=None):
         return False

@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django import forms
 from django.db import models
 from django.conf import settings
@@ -235,10 +237,10 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     form = CrawlPolicyForm
     list_display = ('url_regex', 'condition', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)
-    readonly_fields = ('auth_cookies',)
+    readonly_fields = ('documents', 'auth_cookies',)
     fieldsets = (
         (None, {
-            'fields': ('url_regex', 'condition', 'crawl_depth', 'keep_params')
+            'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'keep_params')
         }),
         ('Browser', {
             'fields': ('default_browse_mode', 'take_screenshots', 'store_extern_links')
@@ -250,6 +252,11 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('auth_login_url_re', 'auth_form_selector', 'auth_cookies'),
         }),
     )
+
+    @staticmethod
+    def documents(obj):
+        params = urlencode({'q': obj.url_regex})
+        return format_html('<a href="{}">Matching documents</a>', reverse('admin:se_document_changelist') + '?' + params)
 
 
 @admin.register(DomainSetting)

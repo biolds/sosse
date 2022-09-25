@@ -85,7 +85,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'timestamp': {
-            'format': '{asctime} {levelname} {message}',
+            'format': '{asctime} {process} {levelname} {message}',
             'style': '{',
         },
     },

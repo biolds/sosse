@@ -104,10 +104,11 @@ class Document(models.Model):
     normalized_title = models.TextField()
     content = models.TextField()
     normalized_content = models.TextField()
-    content_hash = models.CharField(max_length=128, null=True, blank=True)
+    content_hash = models.TextField(null=True, blank=True)
     vector = SearchVectorField(null=True, blank=True)
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True, verbose_name='Language')
     vector_lang = RegConfigField(default='simple')
+    mimetype = models.CharField(max_length=64, null=True, blank=True)
 
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
     robotstxt_rejected = models.BooleanField(default=False, verbose_name='Rejected by robots.txt')
@@ -220,7 +221,7 @@ class Document(models.Model):
 
             if elem.name == 'a':
                 href = elem.get('href')
-                if href:
+                if href and not href.startswith('data:'):
                     href = href.strip()
 
                     href_for_policy = absolutize_url(self.url, href, True, True)
@@ -282,6 +283,11 @@ class Document(models.Model):
         self._index_log('queuing links', stats, verbose)
 
         self.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
+        self.mimetype = magic_from_buffer(page.content, mime=True)
+
+        if not re.match(crawl_policy.mimetype_regex, self.mimetype):
+            crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
+            return
 
         parsed = page.get_soup()
         self.title = page.title or self.url
@@ -942,6 +948,7 @@ class CrawlPolicy(models.Model):
 
     url_regex = models.TextField(unique=True)
     condition = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
+    mimetype_regex = models.TextField(default='text/.*')
     crawl_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
     keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
 

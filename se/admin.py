@@ -85,8 +85,8 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
-    fields = ('url', 'crawl_policy', 'domain', 'cached', 'link', 'title', 'lang', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
-        'crawl_recurse', 'content', 'robotstxt_rejected',)
+    fields = ('url', 'crawl_policy', 'domain', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
+        'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
     readonly_fields = fields
     actions = [crawl_now, reindex_now]
 
@@ -245,7 +245,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     readonly_fields = ('documents', 'auth_cookies',)
     fieldsets = (
         (None, {
-            'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'keep_params')
+            'fields': ('url_regex', 'documents', 'condition', 'mimetype_regex', 'crawl_depth', 'keep_params')
         }),
         ('Browser', {
             'fields': ('default_browse_mode', 'take_screenshots', 'store_extern_links')

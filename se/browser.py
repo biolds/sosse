@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from hashlib import md5
 from time import sleep
@@ -10,6 +11,9 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import unquote
+
+
+crawl_logger = logging.getLogger('crawler')
 
 
 class Page:
@@ -68,7 +72,11 @@ class RequestBrowser(Browser):
     def _page_from_request(cls, r, raw=False):
         content = r.content
         if not raw:
-            content = content.decode('utf-8')
+            try:
+                content = content.decode('utf-8')
+            except UnicodeDecodeError:
+                # Binary file
+                pass
         page = Page(r.url,
                     content,
                     dict(r.cookies),
@@ -184,7 +192,6 @@ class SeleniumBrowser(Browser):
         options.add_argument("--headless")
 
         # Disable downloads
-        options.add_experimental_option('prefs', {'download_restrictions': 3})
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.delete_all_cookies()
 
@@ -244,15 +251,62 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def get(cls, url):
+        current_url = cls.driver.current_url
+
+        # Clear the download dir
+        for f in os.listdir('.'):
+            crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
+            os.unlink(f)
+
         cls.driver.get(url)
         if cls._load_cookie(url):
+            current_url = cls.driver.current_url
             cls.driver.get(url)
+
+        if ((current_url != url and cls.driver.current_url == current_url) or # If we got redirected to the url that was previously set in the browser
+                cls.driver.current_url == 'data:,'): # The url can be "data:," during a few milliseconds when the download starts
+            page = cls._handle_download(url)
+            if page:
+                return page
 
         page = cls._get_page()
 
         if url != page.url:
             page.got_redirect = True
 
+        return page
+
+    @classmethod
+    def _handle_download(cls, url):
+        retry = settings.OSSE_DL_CHECK_RETRY
+        while retry:
+            if len(os.listdir('.')) != 0:
+                break
+            crawl_logger.debug('no download in progress')
+            sleep(settings.OSSE_DL_CHECK_TIME)
+        else:
+            if len(os.listdir('.')) != 0: # redo the check in case OSSE_DL_CHECK_RETRY == 0
+                crawl_logger.debug('no download has started')
+                return
+
+        crawl_logger.debug('Download in progress: %s' % os.listdir('.'))
+        sizes = [os.stat(f).st_size for f in os.listdir('.')]
+        while True:
+            sleep(0.1)
+            _sizes = [os.stat(f).st_size for f in os.listdir('.')]
+            if sizes == _sizes:
+                break
+            sizes = _sizes
+
+        crawl_logger.debug('Download done: %s' % os.listdir('.'))
+        with open(os.listdir('.')[0], 'rb') as f:
+            content = f.read(1024 * 1024)
+
+        page = Page(url, content, None, cls)
+
+        # Remove all files in case multiple were downloaded
+        for f in os.listdir('.'):
+            os.unlink(f)
         return page
 
     @classmethod

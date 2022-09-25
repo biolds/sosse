@@ -149,7 +149,21 @@ DEFAULTS = OrderedDict([
         ['js_stable_retry', {
             'comment': 'Check at most <js_stable_retry> times for the page to stay unchanged before processing',
             'default': 100,
-            'tye': int
+            'type': int
+        }],
+        ['tmp_dl_dir', {
+            'comment': 'Base directory where files are temporarily downloaded',
+            'default': '/var/lib/osse/downloads'
+        }],
+        ['dl_check_time', {
+            'comment': 'Download detection will every <dl_check_time> seconds for a started download',
+            'default': 0.1,
+            'type': float
+        }],
+        ['dl_check_retry', {
+            'comment': 'Download detection will retry <dl_check_retry> times for a started download',
+            'default': 2,
+            'type': int
         }]
     ])]
 ])

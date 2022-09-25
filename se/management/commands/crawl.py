@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime, timedelta
 from multiprocessing import cpu_count, Process
 from time import sleep
@@ -25,10 +26,18 @@ class Command(BaseCommand):
 
     @staticmethod
     def process(worker_no, options):
+        crawl_logger.info('Worker %i initializing' % worker_no)
         connection.close()
         connection.connect()
 
-        crawl_logger.info('Worker %i initializing' % worker_no)
+        base_dir = settings.OSSE_TMP_DL_DIR + '/' + str(worker_no)
+        if not os.path.isdir(base_dir):
+            os.makedirs(base_dir)
+        os.chdir(base_dir)
+
+        for f in os.listdir(base_dir):
+            os.unlink(f)
+
         Browser.init()
         crawl_logger.info('Worker %i starting' % worker_no)
 

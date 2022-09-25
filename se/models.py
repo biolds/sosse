@@ -178,10 +178,13 @@ class Document(models.Model):
         if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
             pass
         elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
-            content = re.sub('[0-9]+', '0', content)
+            if isinstance(content, str):
+                content = re.sub('[0-9]+', '0', content)
         else:
             raise Exception('HASH_MODE not supported')
 
+        if isinstance(content, bytes):
+            return settings.HASHING_ALGO(content).hexdigest()
         return settings.HASHING_ALGO(content.encode('utf-8')).hexdigest()
 
     def _index_log(self, s, stats, verbose):
@@ -289,40 +292,47 @@ class Document(models.Model):
             crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
             return
 
-        parsed = page.get_soup()
-        self.title = page.title or self.url
-        self.normalized_title = remove_accent(self.title)
-        self._index_log('get soup', stats, verbose)
+        if self.mimetype.startswith('text/'):
+            parsed = page.get_soup()
+            self.title = page.title or self.url
+            self.normalized_title = remove_accent(self.title)
+            self._index_log('get soup', stats, verbose)
 
-        links = {
-            'links': [],
-            'text': ''
-        }
-        for elem in parsed.children:
-            self._dom_walk(elem, crawl_policy, links)
-        text = links['text']
+            links = {
+                'links': [],
+                'text': ''
+            }
+            for elem in parsed.children:
+                self._dom_walk(elem, crawl_policy, links)
+            text = links['text']
 
-        self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
+            self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
 
-        self.content = text
-        self.normalized_content = remove_accent(text)
-        self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
-        self._index_log('remove accent', stats, verbose)
+            self.content = text
+            self.normalized_content = remove_accent(text)
+            self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
+            self._index_log('remove accent', stats, verbose)
+
+            if crawl_policy.take_screenshots:
+                self.screenshot_index(links['links'])
+
+            Link.objects.filter(doc_from=self).delete()
+            self._index_log('delete', stats, verbose)
+
+            # The bulk request triggers a deadlock
+            #Link.objects.bulk_create(links['links'])
+            for link in links['links']:
+                link.save()
+            self._index_log('bulk', stats, verbose)
+        else:
+            self.content = ''
+            self.normalized_content = ''
+            self.title = ''
+            self.normalized_title = ''
+            Link.objects.filter(doc_from=self).delete()
 
         FavIcon.extract(self, page)
         self._index_log('favicon', stats, verbose)
-
-        if crawl_policy.take_screenshots:
-            self.screenshot_index(links['links'])
-
-        Link.objects.filter(doc_from=self).delete()
-        self._index_log('delete', stats, verbose)
-
-        # The bulk request triggers a deadlock
-        #Link.objects.bulk_create(links['links'])
-        for link in links['links']:
-            link.save()
-        self._index_log('bulk', stats, verbose)
 
     def screenshot_index(self, links):
         filename, img_count = SeleniumBrowser.take_screenshots(self.url)
@@ -416,6 +426,7 @@ class Document(models.Model):
                                         doc.id, doc.url))
 
         while True:
+            # Loop until we stop redirecting
             try:
                 worker_stats.doc_processed += 1
                 doc.worker_no = None
@@ -452,7 +463,8 @@ class Document(models.Model):
                         doc = Document.pick_or_create(page.url, worker_no)
                         if doc is None:
                             break
-
+                else:
+                    break
             except Exception as e:
                 doc.set_error(format_exc())
                 doc.save()

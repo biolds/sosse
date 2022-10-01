@@ -1,13 +1,14 @@
-<div class="menu" id="main_menu">
-    <button class="menu_button img_button" id="main_menu_button"></button>
-    <div id="main_menu_panel" class="panel">
-        <a href="/" class="links menu_links">Home</a>
-        <a href="/prefs/" class="links menu_links">Prefs</a>
+{% load static %}
+<div id="user_menu" class="menu">
+    {% if user.has_usable_password %}
+        <div id="menu_username">
+            {% firstof user.get_short_name user.get_username %}
+        </div>
+    {% endif %}
+    <button class="menu_button img_button" id="user_menu_button"></button>
+    <div id="user_menu_panel" class="panel">
+        <a href="/prefs/" class="links menu_links">Preferences</a>
         {% if user.is_active %}
-            {% if user.is_staff %}
-                <a href="/stats/" class="links menu_links">Stats</a>
-                <a href="/admin/" class="links menu_links">Config</a>
-            {% endif %}
             <a href="{% url 'history' %}" class="links menu_links">History</a>
             <a href="{% url 'admin:password_change' %}" class="links menu_links">Change pass</a>
             <a href="{% url 'logout' %}" class="links menu_links">Log out</a>
@@ -16,8 +17,12 @@
         {% endif %}
     </div>
 </div>
-{% if user.has_usable_password %}
-    <div id="menu_username" class="menu">
-        {% firstof user.get_short_name user.get_username %}
+{% if user.is_active and user.is_staff %}
+    <div id="conf_menu" class="menu">
+        <button class="menu_button img_button" id="conf_menu_button"></button>
+        <div id="conf_menu_panel" class="panel">
+            <a href="/stats/" class="links menu_links">Statistics</a>
+            <a href="/admin/" class="links menu_links">Configuration</a>
+        </div>
     </div>
 {% endif %}

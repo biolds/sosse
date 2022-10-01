@@ -6,7 +6,7 @@
     {% if favicon %}
         <link rel="icon" href="{{ favicon }}" />
     {% else %}
-        <link rel="icon" href="{% static "se/favicon.svg" %}" />
+        <link rel="icon" href="{% static "se/logo.svg" %}" />
     {% endif %}
     <title>OSSE{% if page_title %} · {{ head_title|default:page_title }}{% endif %}</title>
 
@@ -81,6 +81,9 @@
 </head>
 <body>
     <div id="top_bar">
+        <a href="/" id="logo">
+            <img src="{% static "se/logo.svg" %}">SOSSE
+        </a>
         <div style="padding-left: 8px; margin-top: 8px;">
             {% if page_title and not hide_title %}
                 <h3>{{ page_title }}</h3>

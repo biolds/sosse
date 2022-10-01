@@ -62,7 +62,7 @@ def atom(request):
             feed.append(elem('updated', getattr(results[0], key).isoformat()))
         feed_id = 'OSSE' + request.META['QUERY_STRING']
         feed.append(elem('id', str_to_uuid(feed_id)))
-        feed.append(elem('icon', base_url + settings.STATIC_URL + 'favicon.svg'))
+        feed.append(elem('icon', base_url + settings.STATIC_URL + 'logo.svg'))
 
         for doc in results[:settings.OSSE_ATOM_FEED_SIZE]:
             entry = Element('entry')

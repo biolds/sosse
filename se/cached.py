@@ -25,7 +25,7 @@ def get_context(doc):
     if doc.favicon and not doc.favicon.missing:
         favicon = reverse('favicon', args=(doc.favicon.id,))
     else:
-        favicon = settings.STATIC_URL + '/se/favicon.svg'
+        favicon = settings.STATIC_URL + '/se/logo.svg'
 
     page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
     return {

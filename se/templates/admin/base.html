@@ -5,7 +5,7 @@
 {% block stylesheet %}{% static "se/style.css" %}{% endblock %}
 
 {% block extrastyle %}
-    <link rel="icon" href="{% static "se/favicon.svg" %}" />
+    <link rel="icon" href="{% static "se/logo.svg" %}" />
     <link rel="stylesheet" href="{% static "se/admin-base.css" %}">
 {% endblock %}
 
@@ -15,6 +15,7 @@
 
 {% block usertools %}
     <div id="top_bar">
+        <a href="/" style="float: left"><img src="{% static "se/logo.svg" %}"></a>
         <div style="padding-left: 8px; margin-top: 8px;">
             <h3>Configuration</h3>
             {% include "se/main_menu.html" %}

@@ -1,38 +1,50 @@
+body {
+    margin: 0;
+}
 #top_bar {
     border-style: solid;
     border-width: 0px 0px 1px 0px;
     border-color: #e7f0ff;
-    margin: 0px -8px 25px -8px;
-    padding-bottom: 25px;
+    margin: 0px 0px 25px 0px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 8px;
     box-shadow: 0px 5px 5px 0px #e3e5f6;
-    min-height: 39px;
 }
-#main_menu {
+#logo img {
+    vertical-align: middle;
+    width: 44px;
+    margin-right: 5px;
+}
+#logo {
+    color: black;
+    text-decoration: none;
+}
+#menu_username {
+    top: 11px;
+    right: 48px;
+    position: absolute;
+    text-align: right;
+}
+#user_menu {
     top: 8px;
     right: 8px;
     width: 125px;
 }
-#main_menu_button {
-    background-image: url('/static/se/logo.svg');
-    width: 52px;
-    height: 52px;
-    background-size: 40px 40px;
+#user_menu_button {
+    background-image: url('/static/se/icon-user.svg');
 }
-#menu_username {
-    top: 8px;
-    right: 70px;
+#conf_menu {
+    top: 53px;
+    right: 8px;
+    width: 125px;
+}
+#conf_menu_button {
+    background-image: url('/static/se/icon-cog.svg');
 }
 .menu {
     position: absolute;
     text-align: right;
-}
-#logo {
-    background-color: #e7f0ff;
-    padding: 5%;
-    border-radius: 5%;
-    border-width: 1px;
-    width: 50%;
-    background-color: #eee;
 }
 .panel {
     padding: 4px 4px 4px 4px;

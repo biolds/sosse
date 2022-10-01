@@ -2,7 +2,7 @@ let width, height, images, links;
 
 function resize() {
     // width with implicit margin
-    const w_width = document.body.getBoundingClientRect().width + 16;
+    const w_width = document.body.getBoundingClientRect().width + 8;
     const ratio = w_width / width;
 
     for (let i = 0; i < images.length; i++) {

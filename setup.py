@@ -1,5 +1,14 @@
 from setuptools import setup, find_namespace_packages
-from os import path, listdir
+import os
+
+
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
 
 setup(
     name='OSSE',
@@ -9,6 +18,7 @@ setup(
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     include_package_data=True,
+    package_date={'': package_files('se/static') + package_files('se/templates')},
 
     # metadata to display on PyPI
     author="Laurent Defert",

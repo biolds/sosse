@@ -1,3 +1,4 @@
+OSSE_DOCKER_VER ?= main
 TMP ?= /tmp
 current_dir = $(shell pwd)
 
@@ -18,3 +19,7 @@ deb:
 docker:
 	docker pull debian:bullseye
 	cd $(current_dir)/build/ && docker build --rm -t osse-deb .
+
+osse_docker:
+	docker pull debian:bullseye
+	docker build --build-arg OSSE_DOCKER_VER=$(OSSE_DOCKER_VER) -t osse:$(OSSE_DOCKER_VER) .

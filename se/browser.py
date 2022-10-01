@@ -77,7 +77,9 @@ class RequestBrowser(Browser):
             except UnicodeDecodeError:
                 # Binary file
                 pass
-        page = Page(r.url,
+
+        url = unquote(r.url)
+        page = Page(url,
                     content,
                     dict(r.cookies),
                     cls)

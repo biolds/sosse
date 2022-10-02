@@ -900,6 +900,10 @@ table#change-history tbody th {
 
 /* HEADER */
 
+#header {
+    padding: 0px 0px;
+}
+
 /*
 #header {
     width: auto;

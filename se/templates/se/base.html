@@ -84,14 +84,12 @@
         <a href="/" id="logo">
             <img src="{% static "se/logo.svg" %}">SOSSE
         </a>
-        <div style="padding-left: 8px; margin-top: 8px;">
-            {% if page_title and not hide_title %}
-                <h3>{{ page_title }}</h3>
-            {% endif %}
-            {% include "se/main_menu.html" %}
-            {% block top_bar %}
-            {% endblock %}
-        </div>
+        {% if page_title and not hide_title %}
+            <h3>{{ page_title }}</h3>
+        {% endif %}
+        {% include "se/main_menu.html" %}
+        {% block top_bar %}
+        {% endblock %}
     </div>
 
     <div style="padding: 20px 40px 20px 40px">

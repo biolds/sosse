@@ -21,10 +21,11 @@ body {
     text-decoration: none;
 }
 #menu_username {
-    top: 11px;
-    right: 48px;
+    top: 10px;
+    right: 45px;
     position: absolute;
     text-align: right;
+    font-size: 13px;
 }
 #user_menu {
     top: 8px;
@@ -35,7 +36,7 @@ body {
     background-image: url('/static/se/icon-user.svg');
 }
 #conf_menu {
-    top: 53px;
+    top: 48px;
     right: 8px;
     width: 125px;
 }
@@ -73,8 +74,8 @@ body {
     background-size: 15px 15px;
     background-repeat:  no-repeat;
     background-position: center;
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     margin-bottom: 7px;
 }
 button,input,select {

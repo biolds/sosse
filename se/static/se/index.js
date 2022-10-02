@@ -31,7 +31,7 @@ let adv_search_lines = 0;
 
 function search_more() {
     const more_link = document.getElementById('more');
-    more_link.innerText = '⮝ advanced';
+    more_link.innerText = '⮝ params';
     more_link.setAttribute('onclick', 'search_less()');
     const q = document.getElementById('id_q');
     q.removeAttribute('required');
@@ -47,7 +47,7 @@ function search_more() {
 
 function search_less() {
     const more_link = document.getElementById('more');
-    more_link.innerText = '⮟ advanced';
+    more_link.innerText = '⮟ params';
     more_link.setAttribute('onclick', 'search_more()');
     const q = document.getElementById('id_q');
     q.setAttribute('required' ,'');

@@ -11,9 +11,9 @@ def package_files(directory):
 
 
 setup(
-    name='OSSE',
+    name='SOSSE',
     version='0.1',
-    packages=find_namespace_packages(include=['se', 'se.*', 'osse', 'osse.*']),
+    packages=find_namespace_packages(include=['se', 'se.*', 'sosse', 'sosse.*']),
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
@@ -25,8 +25,8 @@ setup(
     author_email="laurent_defert@yahoo.fr",
     description="Open Source Search Engine",
     keywords="search engine",
-    url="https://github.com/biolds/osse",
-    scripts=['osse-admin'],
+    url="https://github.com/biolds/sosse",
+    scripts=['sosse-admin'],
     #project_urls={
     #    "Bug Tracker": "https://bugs.example.com/HelloWorld/",
     #    "Documentation": "https://docs.example.com/HelloWorld/",

@@ -54,17 +54,17 @@ def atom(request):
 
         feed = Element('feed')
         feed.attrib['xmlns'] = 'http://www.w3.org/2005/Atom'
-        feed.append(elem('title', f'OSSE · {q}'))
-        feed.append(elem('description', f'OSSE search results for {q}'))
+        feed.append(elem('title', f'SOSSE · {q}'))
+        feed.append(elem('description', f'SOSSE search results for {q}'))
         url = base_url + reverse('search') + '?' + request.META['QUERY_STRING']
         feed.append(elem('link', None, href=url))
         if len(results):
             feed.append(elem('updated', getattr(results[0], key).isoformat()))
-        feed_id = 'OSSE' + request.META['QUERY_STRING']
+        feed_id = 'SOSSE' + request.META['QUERY_STRING']
         feed.append(elem('id', str_to_uuid(feed_id)))
         feed.append(elem('icon', base_url + settings.STATIC_URL + 'logo.svg'))
 
-        for doc in results[:settings.OSSE_ATOM_FEED_SIZE]:
+        for doc in results[:settings.SOSSE_ATOM_FEED_SIZE]:
             entry = Element('entry')
             entry.append(elem('title', doc.title))
             if cached_page == '0':

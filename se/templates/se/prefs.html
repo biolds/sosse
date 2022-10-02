@@ -31,10 +31,10 @@ window.onload = function() {
 function save() {
     const langSelect = document.getElementById('language');
     const langValue = langSelect.options[langSelect.selectedIndex].value;
-    localStorage.setItem('osseLanguage', langSelect.value);
+    localStorage.setItem('sosseLanguage', langSelect.value);
 
     const pageSize = document.getElementById('page_size');
-    localStorage.setItem('ossePageSize', pageSize.value);
+    localStorage.setItem('sossePageSize', pageSize.value);
 
     window.location = '/';
 }
@@ -54,7 +54,7 @@ function cancel() {
     <select id="language"></select>
     <br/><br/>
     <div class="label">Results by page</div>
-    <input id="page_size" type="number" step="10" min="10" max="{{ settings.OSSE_MAX_PAGE_SIZE }}">
+    <input id="page_size" type="number" step="10" min="10" max="{{ settings.SOSSE_MAX_PAGE_SIZE }}">
     <br/><br/>
     <button onclick="save()">Save</button>
     <button onclick="cancel()">Cancel</button>

@@ -10,7 +10,7 @@
     {% else %}
         <link rel="icon" href="{% static "se/logo.svg" %}" />
     {% endif %}
-    <title>OSSE{% if title %} · {{ head_title|default:title }}{% endif %}</title>
+    <title>SOSSE{% if title %} · {{ head_title|default:title }}{% endif %}</title>
 
     {% block head %}
     {% endblock %}
@@ -24,10 +24,10 @@
     <script src="{% static 'se/base.js' %}"></script>
     <script>
         function getPageSize() {
-          if (localStorage.getItem('ossePageSize')) {
-            return parseInt(localStorage.getItem('ossePageSize'));
+          if (localStorage.getItem('sossePageSize')) {
+            return parseInt(localStorage.getItem('sossePageSize'));
           } else {
-            return {{ settings.OSSE_DEFAULT_PAGE_SIZE }};
+            return {{ settings.SOSSE_DEFAULT_PAGE_SIZE }};
           }
         }
         {% block js %}

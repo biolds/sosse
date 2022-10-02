@@ -179,7 +179,7 @@ class DocumentAdmin(admin.ModelAdmin):
     @staticmethod
     def lang(obj):
         lang = obj.lang_iso_639_1
-        flag = settings.OSSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('flag')
+        flag = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('flag')
 
         if flag:
             lang = f'{flag} {lang}'

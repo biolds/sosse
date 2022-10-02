@@ -14,7 +14,7 @@ def screenshot(request, url):
 
     context = get_context(doc)
     context.update({
-        'screenshot': settings.OSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
+        'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
         'other_link': {
             'href': reverse('www', args=[url]),
             'text': 'Cached page',

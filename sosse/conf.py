@@ -4,7 +4,7 @@ from collections import OrderedDict
 from configparser import ConfigParser
 
 
-CONF_FILE = '/etc/osse/osse.conf'
+CONF_FILE = '/etc/sosse/sosse.conf'
 
 
 DEFAULTS = OrderedDict([
@@ -22,10 +22,10 @@ DEFAULTS = OrderedDict([
         }],
         ['db_name', {
             'comment': 'Postgresql connection parameters',
-            'default': 'osse'
+            'default': 'sosse'
         }],
         ['db_user', {
-            'default': 'osse'
+            'default': 'sosse'
         }],
         ['db_pass', {
             'default': 'CHANGE ME'
@@ -49,17 +49,17 @@ DEFAULTS = OrderedDict([
         }],
         ['static_root', {
             'var': 'STATIC_ROOT',
-            'default': '/var/lib/osse/static/'
+            'default': '/var/lib/sosse/static/'
         }],
         ['screenshots_url', {
             'default': '/screenshots/'
         }],
         ['screenshots_dir', {
-            'default': '/var/lib/osse/screenshots/'
+            'default': '/var/lib/sosse/screenshots/'
         }],
         ['static_root', {
             'var': 'STATIC_ROOT',
-            'default': '/var/lib/osse/static/'
+            'default': '/var/lib/sosse/static/'
         }],
         ['use_i18n', {
             'var': 'USE_I18N',
@@ -135,7 +135,7 @@ DEFAULTS = OrderedDict([
         }],
         ['user_agent', {
             'comment': 'User agent used by crawlers',
-            'default': 'OSSE'
+            'default': 'SOSSE'
         }],
         ['screenshots_size', {
             'comment': 'Resolution of the browser used to take screenshots',
@@ -153,7 +153,7 @@ DEFAULTS = OrderedDict([
         }],
         ['tmp_dl_dir', {
             'comment': 'Base directory where files are temporarily downloaded',
-            'default': '/var/lib/osse/downloads'
+            'default': '/var/lib/sosse/downloads'
         }],
         ['dl_check_time', {
             'comment': 'Download detection will every <dl_check_time> seconds for a started download',
@@ -177,7 +177,7 @@ class Conf:
         # Set defaults
         for section, conf in DEFAULTS.items():
             for key, val in conf.items():
-                var_name = val.get('var', 'OSSE_' + key.upper())
+                var_name = val.get('var', 'SOSSE_' + key.upper())
                 settings[var_name] = val['default']
 
         # Read the real conf
@@ -191,7 +191,7 @@ class Conf:
                 if key not in DEFAULTS[section]:
                     raise Exception('Invalid option "%s" found in section %s' % (key, section))
 
-                var_name = DEFAULTS[section][key].get('var', 'OSSE_' + key.upper())
+                var_name = DEFAULTS[section][key].get('var', 'SOSSE_' + key.upper())
                 var_type = DEFAULTS[section][key].get('type', str)
 
                 if var_type == bool:
@@ -208,7 +208,7 @@ class Conf:
                 else:
                     settings[var_name] = value
 
-        hash_algo = settings.pop('OSSE_HASHING_ALGO')
+        hash_algo = settings.pop('SOSSE_HASHING_ALGO')
         algos = []
         for a in dir(hashlib):
             try:
@@ -221,7 +221,7 @@ class Conf:
         if hash_algo not in algos:
             raise Exception('Configuration parsing error: invalid hashing_algo value "%s", must be one of %s' % (hash_algo, ', '.join(sorted(algos))))
 
-        crawler_count = settings.pop('OSSE_CRAWLER_COUNT')
+        crawler_count = settings.pop('SOSSE_CRAWLER_COUNT')
         if not crawler_count:
             crawler_count = None
         else:
@@ -235,15 +235,15 @@ class Conf:
             'DATABASES': {
                 'default': {
                     'ENGINE': 'django.db.backends.postgresql',
-                    'NAME': settings.pop('OSSE_DB_NAME'),
-                    'USER': settings.pop('OSSE_DB_USER'),
-                    'PASSWORD': settings.pop('OSSE_DB_PASS'),
-                    'HOST': settings.pop('OSSE_DB_HOST'),
-                    'PORT': str(settings.pop('OSSE_DB_PORT'))
+                    'NAME': settings.pop('SOSSE_DB_NAME'),
+                    'USER': settings.pop('SOSSE_DB_USER'),
+                    'PASSWORD': settings.pop('SOSSE_DB_PASS'),
+                    'HOST': settings.pop('SOSSE_DB_HOST'),
+                    'PORT': str(settings.pop('SOSSE_DB_PORT'))
                 }
             },
-            'ALLOWED_HOSTS': [settings.pop('OSSE_ALLOWED_HOST')],
-            'OSSE_CRAWLER_COUNT': crawler_count
+            'ALLOWED_HOSTS': [settings.pop('SOSSE_ALLOWED_HOST')],
+            'SOSSE_CRAWLER_COUNT': crawler_count
         })
         return settings
 

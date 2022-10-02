@@ -156,7 +156,7 @@ class Document(models.Model):
     def get_supported_lang_dict(cls):
         supported = cls.get_supported_langs()
         langs = {}
-        for iso, lang in settings.OSSE_LANGDETECT_TO_POSTGRES.items():
+        for iso, lang in settings.SOSSE_LANGDETECT_TO_POSTGRES.items():
             if lang['name'] in supported:
                 langs[iso] = lang
         return langs
@@ -168,9 +168,9 @@ class Document(models.Model):
         except LangDetectException:
             lang_iso = None
 
-        lang_pg = settings.OSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
+        lang_pg = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
         if lang_pg not in cls.get_supported_langs():
-            lang_pg = settings.OSSE_FAIL_OVER_LANG
+            lang_pg = settings.SOSSE_FAIL_OVER_LANG
 
         return lang_iso, lang_pg
 
@@ -811,8 +811,8 @@ class DomainSetting(models.Model):
     @classmethod
     def ua_hash(cls):
         if cls.UA_HASH is None:
-            if settings.OSSE_USER_AGENT is not None:
-                cls.UA_HASH = md5(settings.OSSE_USER_AGENT.encode('ascii')).hexdigest()
+            if settings.SOSSE_USER_AGENT is not None:
+                cls.UA_HASH = md5(settings.SOSSE_USER_AGENT.encode('ascii')).hexdigest()
         return cls.UA_HASH
 
     def _parse_line(self, line):
@@ -839,7 +839,7 @@ class DomainSetting(models.Model):
         return key, val
 
     def _ua_matches(self, val):
-        return val.lower() in settings.OSSE_USER_AGENT.lower()
+        return val.lower() in settings.SOSSE_USER_AGENT.lower()
 
     def _parse_robotstxt(self, content):
         ua_rules = []

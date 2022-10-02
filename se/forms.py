@@ -25,26 +25,26 @@ class SearchForm(forms.Form):
                         required=False,
                         widget=forms.TextInput(attrs={'autofocus': True}))
     l = forms.CharField(widget=forms.HiddenInput, initial='en', required=False)
-    ps = forms.IntegerField(widget=forms.HiddenInput, initial=settings.OSSE_DEFAULT_PAGE_SIZE, required=False)
+    ps = forms.IntegerField(widget=forms.HiddenInput, initial=settings.SOSSE_DEFAULT_PAGE_SIZE, required=False)
     s = forms.ChoiceField(initial='-rank', choices=SORT, required=False)
 
     def clean(self):
         cleaned_data = super().clean()
 
         lang_iso = cleaned_data.get('l', 'en')
-        pg_lang = settings.OSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
+        pg_lang = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
 
         if pg_lang not in Document.get_supported_langs():
-            pg_lang = settings.OSSE_FAIL_OVER_LANG
+            pg_lang = settings.SOSSE_FAIL_OVER_LANG
 
         cleaned_data['l'] = pg_lang
 
-        page_size = cleaned_data.get('ps', settings.OSSE_DEFAULT_PAGE_SIZE) or settings.OSSE_DEFAULT_PAGE_SIZE
-        page_size = min(page_size, settings.OSSE_MAX_PAGE_SIZE)
+        page_size = cleaned_data.get('ps', settings.SOSSE_DEFAULT_PAGE_SIZE) or settings.SOSSE_DEFAULT_PAGE_SIZE
+        page_size = min(page_size, settings.SOSSE_MAX_PAGE_SIZE)
         cleaned_data['ps'] = page_size
 
         doc_lang = self.data.get('doc_lang')
-        if doc_lang in settings.OSSE_LANGDETECT_TO_POSTGRES:
+        if doc_lang in settings.SOSSE_LANGDETECT_TO_POSTGRES:
             cleaned_data['doc_lang'] = doc_lang
 
         if cleaned_data['q']:

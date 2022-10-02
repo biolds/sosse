@@ -91,11 +91,11 @@ def search(request):
     else:
         form = SearchForm()
 
-    osse_langdetect_to_postgres = OrderedDict()
-    for key, val in sorted(settings.OSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
+    sosse_langdetect_to_postgres = OrderedDict()
+    for key, val in sorted(settings.SOSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
         if not Document.objects.filter(lang_iso_639_1=key).exists():
             continue
-        osse_langdetect_to_postgres[key] = val
+        sosse_langdetect_to_postgres[key] = val
 
     context = get_context({
         'hide_title': True,
@@ -106,7 +106,7 @@ def search(request):
         'has_query': has_query,
         'q': q,
         'title': q,
-        'osse_langdetect_to_postgres': osse_langdetect_to_postgres
+        'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres
     })
     context.update(get_pagination(request, paginated))
     return render(request, 'se/index.html', context)
@@ -151,8 +151,8 @@ def favicon(request, favicon_id):
 
 
 def history(request):
-    page_size = int(request.GET.get('ps', settings.OSSE_DEFAULT_PAGE_SIZE))
-    page_size = min(page_size, settings.OSSE_MAX_PAGE_SIZE)
+    page_size = int(request.GET.get('ps', settings.SOSSE_DEFAULT_PAGE_SIZE))
+    page_size = min(page_size, settings.SOSSE_MAX_PAGE_SIZE)
 
     history = SearchHistory.objects.filter(user=request.user).order_by('-date')
     paginator = Paginator(history, page_size)

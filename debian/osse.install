@@ -1,6 +1,0 @@
-osse usr/lib/python3.9/dist-packages
-se usr/lib/python3.9/dist-packages
-osse-admin usr/bin
-debian/uwsgi.ini etc/osse/
-debian/uwsgi.params etc/osse/
-debian/osse.conf etc/nginx/sites-available

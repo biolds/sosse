@@ -30,7 +30,7 @@ class Command(BaseCommand):
         connection.close()
         connection.connect()
 
-        base_dir = settings.OSSE_TMP_DL_DIR + '/' + str(worker_no)
+        base_dir = settings.SOSSE_TMP_DL_DIR + '/' + str(worker_no)
         if not os.path.isdir(base_dir):
             os.makedirs(base_dir)
         os.chdir(base_dir)
@@ -74,7 +74,7 @@ class Command(BaseCommand):
         for url in options['urls']:
             doc = Document.queue(url, None, 0)
 
-        worker_count = settings.OSSE_CRAWLER_COUNT
+        worker_count = settings.SOSSE_CRAWLER_COUNT
         if worker_count is None:
             worker_count = cpu_count()
 

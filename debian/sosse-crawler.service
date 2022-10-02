@@ -1,0 +1,20 @@
+[Unit]
+Description=SOSSE crawler
+After=syslog.target
+
+[Service]
+ExecStartPre=-mkdir -p /run/sosse /var/log/sosse
+ExecStartPre=-touch /var/log/sosse/crawler.log
+ExecStartPre=-chown www-data:www-data /var/log/sosse/crawler.log
+ExecStart=/usr/bin/python3 /usr/bin/sosse-admin crawl
+User=www-data
+Group=www-data
+
+RuntimeDirectory=
+Restart=always
+KillSignal=SIGQUIT
+Type=simple
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

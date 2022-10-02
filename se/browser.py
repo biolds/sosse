@@ -98,7 +98,7 @@ class RequestBrowser(Browser):
             redirects -= 1
 
             cookies = CrawlPolicy.get_cookies(url)
-            r = requests.get(url, cookies=cookies, headers={'User-Agent': settings.OSSE_USER_AGENT})
+            r = requests.get(url, cookies=cookies, headers={'User-Agent': settings.SOSSE_USER_AGENT})
             if check_status:
                 r.raise_for_status()
 
@@ -154,7 +154,7 @@ class RequestBrowser(Browser):
                           data=payload,
                           cookies=page.cookies,
                           allow_redirects=False,
-                          headers={'User-Agent': settings.OSSE_USER_AGENT})
+                          headers={'User-Agent': settings.SOSSE_USER_AGENT})
 
         crawl_policy.auth_cookies = json.dumps(dict(r.cookies))
         crawl_policy.save()
@@ -167,7 +167,7 @@ class RequestBrowser(Browser):
             raise Exception('No location in the redirection')
 
         location = absolutize_url(r.url, location)
-        r = requests.get(location, cookies=r.cookies, headers={'User-Agent': settings.OSSE_USER_AGENT})
+        r = requests.get(location, cookies=r.cookies, headers={'User-Agent': settings.SOSSE_USER_AGENT})
         r.raise_for_status()
         return cls._page_from_request(r)
 
@@ -182,7 +182,7 @@ class SeleniumBrowser(Browser):
         from .models import CrawlPolicy
         options = Options()
         options.binary_location = "/usr/bin/chromium"
-        options.add_argument('--user-agent=%s' % settings.OSSE_USER_AGENT)
+        options.add_argument('--user-agent=%s' % settings.SOSSE_USER_AGENT)
         options.add_argument('--start-maximized')
         options.add_argument('--start-fullscreen')
         options.add_argument('--window-size=%s,%s' % cls.screen_size())
@@ -205,7 +205,7 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _get_page(cls):
-        retry = settings.OSSE_JS_STABLE_RETRY
+        retry = settings.SOSSE_JS_STABLE_RETRY
         previous_content = None
         content = None
 
@@ -217,7 +217,7 @@ class SeleniumBrowser(Browser):
             if content == previous_content:
                 break
             previous_content = content
-            sleep(settings.OSSE_JS_STABLE_TIME)
+            sleep(settings.SOSSE_JS_STABLE_TIME)
 
         page = Page(cls.driver.current_url,
                     content,
@@ -280,14 +280,14 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _handle_download(cls, url):
-        retry = settings.OSSE_DL_CHECK_RETRY
+        retry = settings.SOSSE_DL_CHECK_RETRY
         while retry:
             if len(os.listdir('.')) != 0:
                 break
             crawl_logger.debug('no download in progress')
-            sleep(settings.OSSE_DL_CHECK_TIME)
+            sleep(settings.SOSSE_DL_CHECK_TIME)
         else:
-            if len(os.listdir('.')) != 0: # redo the check in case OSSE_DL_CHECK_RETRY == 0
+            if len(os.listdir('.')) != 0: # redo the check in case SOSSE_DL_CHECK_RETRY == 0
                 crawl_logger.debug('no download has started')
                 return
 
@@ -319,13 +319,13 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def screen_size(cls):
-        w, h = settings.OSSE_SCREENSHOTS_SIZE.split('x')
+        w, h = settings.SOSSE_SCREENSHOTS_SIZE.split('x')
         return int(w), int(h)
 
     @classmethod
     def take_screenshots(cls, url):
         base_dir, filename = cls.screenshot_name(url)
-        d = os.path.join(settings.OSSE_SCREENSHOTS_DIR, base_dir)
+        d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, base_dir)
         os.makedirs(d, exist_ok=True)
         f = os.path.join(d, filename)
 

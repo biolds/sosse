@@ -1,4 +1,4 @@
-OSSE_DOCKER_VER ?= main
+SOSSE_DOCKER_VER ?= main
 TMP ?= /tmp
 current_dir = $(shell pwd)
 
@@ -10,16 +10,16 @@ setuptools:
 
 _deb:
 	dpkg-buildpackage -us -uc
-	mv /osse*_amd64.deb /deb/
+	mv /sosse*_amd64.deb /deb/
 
 deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
-	docker run --rm -v $(current_dir):/osse:ro -v $(current_dir)/deb:/deb osse-deb bash -c 'cp -x -r /osse /osse-deb && make -C /osse-deb _deb'
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb sosse-deb bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
 
 docker:
 	docker pull debian:bullseye
-	cd $(current_dir)/build/ && docker build --rm -t osse-deb .
+	cd $(current_dir)/build/ && docker build --rm -t sosse-deb .
 
-osse_docker:
+sosse_docker:
 	docker pull debian:bullseye
-	docker build --build-arg OSSE_DOCKER_VER=$(OSSE_DOCKER_VER) -t osse:$(OSSE_DOCKER_VER) .
+	docker build --build-arg SOSSE_DOCKER_VER=$(SOSSE_DOCKER_VER) -t sosse:$(SOSSE_DOCKER_VER) .

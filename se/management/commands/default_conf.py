@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from osse.conf import Conf
+from sosse.conf import Conf
 
 
 class Command(BaseCommand):

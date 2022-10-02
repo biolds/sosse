@@ -166,7 +166,7 @@ def stats(request):
 
         for lang in indexed_langs[:8]:
             lang_iso = lang['lang_iso_639_1']
-            lang_desc = settings.OSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
+            lang_desc = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
             title = lang_iso.title()
             if lang_desc.get('flag'):
                 title = title + ' ' + lang_desc['flag']
@@ -184,7 +184,7 @@ def stats(request):
     # Screenshot dir size
     # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
     screenshot_size = 0
-    for dirpath, dirnames, filenames in os.walk(settings.OSSE_SCREENSHOTS_DIR):
+    for dirpath, dirnames, filenames in os.walk(settings.SOSSE_SCREENSHOTS_DIR):
         for f in filenames:
             fp = os.path.join(dirpath, f)
             if not os.path.islink(fp):

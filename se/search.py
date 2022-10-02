@@ -32,9 +32,9 @@ def get_documents(request, form, stats_call=False):
         if results.count() == 0:
             results = all_results
 
-    if settings.OSSE_EXCLUDE_NOT_INDEXED:
+    if settings.SOSSE_EXCLUDE_NOT_INDEXED:
         results = results.exclude(crawl_last__isnull=True)
-    if settings.OSSE_EXCLUDE_REDIRECT:
+    if settings.SOSSE_EXCLUDE_REDIRECT:
         results = results.filter(redirect_url__isnull=True)
 
     filters = {}

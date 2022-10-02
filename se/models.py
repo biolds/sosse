@@ -278,7 +278,7 @@ class Document(models.Model):
         self.crawl_last = n
         if not self.crawl_first:
             self.crawl_first = n
-        self._schedule_next(self.content_hash != content_hash)
+        self._schedule_next(self.content_hash != content_hash, crawl_policy)
         if self.content_hash == content_hash and not force:
             return
 
@@ -395,9 +395,13 @@ class Document(models.Model):
 
         return doc
 
-    def _schedule_next(self, changed):
-        crawl_policy = CrawlPolicy.get_from_url(self.url)
-        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE:
+    def _schedule_next(self, changed, crawl_policy):
+        stop = False
+        if crawl_policy.condition == CrawlPolicy.CRAWL_NEVER or \
+                (crawl_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH and self.crawl_recurse == 0):
+            stop = True
+
+        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE or stop:
             self.crawl_next = None
             self.crawl_dt = None
         elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
@@ -457,7 +461,7 @@ class Document(models.Model):
                         if not page.got_redirect:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         crawl_logger.debug('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
-                        doc._schedule_next(doc.redirect_url != page.url)
+                        doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
                         doc.redirect_url = page.url
                         doc.save()
                         doc = Document.pick_or_create(page.url, worker_no)

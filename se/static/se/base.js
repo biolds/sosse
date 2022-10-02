@@ -1,6 +1,6 @@
 function getLang() {
-  if (localStorage.getItem('myseLanguage')) {
-    return localStorage.getItem('myseLanguage');
+  if (localStorage.getItem('osseLanguage')) {
+    return localStorage.getItem('osseLanguage');
   } else {
     return (navigator.language || navigator.userLanguage).replace(/-.*/, '');
   }

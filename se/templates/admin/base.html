@@ -1,51 +1,26 @@
-{% load i18n static %}<!DOCTYPE html>
-{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
-<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
-<head>
-<title>{% block title %}{% endblock %}</title>
-<link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "se/style.css" %}{% endblock %}">
-{% if not is_popup and is_nav_sidebar_enabled %}
-  <link rel="stylesheet" type="text/css" href="{% static "admin/css/nav_sidebar.css" %}">
-  <script src="{% static 'admin/js/nav_sidebar.js' %}" defer></script>
-{% endif %}
-{% block extrastyle %}
-    <link rel="icon" href="{% static "se/logo.svg" %}" />
-    <link rel="stylesheet" href="{% static "se/admin-base.css" %}">
-{% endblock %}
+{% extends "se/base.html" %}
+{% load i18n static %}
+
+{% block head %}
 {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
-{% block extrahead %}
-    <script src="{% static 'se/base.js' %}" defer></script>
-{% endblock %}
-{% block responsive %}
-    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+    <link rel="stylesheet" href="{% static "se/admin-base.css" %}">
     {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive_rtl.css" %}">{% endif %}
-{% endblock %}
-{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+    {% block extrastyle %}{% endblock %}
+    {% block extrahead %}{% endblock %}
 </head>
+{% endblock %}
 {% load i18n %}
 
+{% block bodytag %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
   data-admin-utc-offset="{% now "Z" %}">
+{% endblock %}
 
-<!-- Container -->
-<div id="container">
-
+{% block body %}
     {% if not is_popup %}
     <!-- Header -->
     <div>
-        <div id="branding">
-        {% block branding %}{% endblock %}
-        </div>
-        <div id="top_bar">
-            <a href="/" style="float: left"><img src="{% static "se/logo.svg" %}"></a>
-            <div style="padding-left: 8px; margin-top: 8px;">
-                <h3>Configuration</h3>
-                {% include "se/main_menu.html" %}
-                {% block top_bar %}
-                {% endblock %}
-            </div>
-        </div>
         {% block nav-global %}{% endblock %}
     </div>
     <!-- END Header -->
@@ -73,9 +48,7 @@
         {% endblock messages %}
         <!-- Content -->
         <div id="content" class="{% block coltype %}colM{% endblock %}">
-          {% block pretitle %}{% endblock %}
-          {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
-          {% block content_subtitle %}{% if subtitle %}<h2>{{ subtitle }}</h2>{% endif %}{% endblock %}
+          {% block content_subtitle %}{% if subtitle %}<h4>{{ subtitle }}</h4>{% endif %}{% endblock %}
           {% block content %}
             {% block object-tools %}{% endblock %}
             {{ content }}
@@ -87,12 +60,4 @@
         {% block footer %}<div id="footer"></div>{% endblock %}
       </div>
     </div>
-</div>
-<!-- END Container -->
-</body>
-</html>
-<!--
-{#{% block content_title %}#}
-    <h3>{{ page_title }}</h3>
-{#{% endblock %}#}
--->
+{% endblock %}

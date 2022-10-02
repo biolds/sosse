@@ -105,7 +105,7 @@ def search(request):
         'paginated': paginated,
         'has_query': has_query,
         'q': q,
-        'page_title': q,
+        'title': q,
         'osse_langdetect_to_postgres': osse_langdetect_to_postgres
     })
     context.update(get_pagination(request, paginated))
@@ -139,7 +139,7 @@ def word_stats(request):
 def prefs(request):
     supported_langs = json.dumps(Document.get_supported_lang_dict())
     context = get_context({
-        'page_title': 'Preferences',
+        'title': 'Preferences',
         'supported_langs': supported_langs
     })
     return render(request, 'se/prefs.html', context)
@@ -160,7 +160,7 @@ def history(request):
     paginated = paginator.get_page(page_number)
 
     context = {
-        'page_title': 'Search history',
+        'title': 'Search history',
         'paginated': paginated
     }
     context.update(get_pagination(request, paginated))

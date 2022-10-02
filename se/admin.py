@@ -103,7 +103,8 @@ class DocumentAdmin(admin.ModelAdmin):
     def add_to_queue(self, request):
         context = dict(
            self.admin_site.each_context(request),
-           form=AddToQueueForm()
+           form=AddToQueueForm(),
+            title='Crawl a new URL'
         )
         return response.TemplateResponse(request, 'se/add_to_queue.html', context)
 
@@ -113,8 +114,9 @@ class DocumentAdmin(admin.ModelAdmin):
 
         form = AddToQueueForm(request.POST)
         context = dict(
-           self.admin_site.each_context(request),
-           form=form
+            self.admin_site.each_context(request),
+            form=form,
+            title='Crawl a new URL'
         )
         if not form.is_valid():
             return response.TemplateResponse(request, 'se/add_to_queue.html', context)

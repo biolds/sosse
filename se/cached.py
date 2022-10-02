@@ -32,6 +32,6 @@ def get_context(doc):
         'crawl_policy': crawl_policy,
         'doc': doc,
         'head_title': title,
-        'page_title': page_title,
+        'title': page_title,
         'favicon': favicon
     }

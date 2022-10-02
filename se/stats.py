@@ -93,6 +93,7 @@ def crawler_stats(pygal_config, pygal_style, freq):
         return {}
 
     pygal_style.colors = ('#c6dcff',)
+    pygal_style.title_font_size = 30
 
     # Doc count minutely
     doc_count = datetime_graph(pygal_config, pygal_style, freq, data, 'doc_count', _now)

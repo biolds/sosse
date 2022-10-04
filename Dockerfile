@@ -8,7 +8,6 @@ RUN apt-get install -y git python3-pip python3-dev build-essential postgresql li
 #ADD . /tmp/sosse.git
 #RUN if [ "$SOSSE_DOCKER_VER" = local ]; then mv /tmp/sosse.git /root ; fi
 # to remove
-RUN pwd
 RUN if [ "$SOSSE_DOCKER_VER" != local ]; then git clone https://github.com/biolds/sosse.git /root/sosse.git ; fi
 
 WORKDIR /root/sosse.git
@@ -36,7 +35,7 @@ touch /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/crawler.lo
 chown www-data:www-data /run/sosse /var/log/sosse/* \n \
 sosse-admin migrate \n \
 sosse-admin loaddata /root/sosse.git/se.json \n \
-sosse-admin collectstatic -noinput \n \
+sosse-admin collectstatic --noinput \n \
 /usr/bin/uwsgi --daemonize2 --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini \n \
 /etc/init.d/nginx start \n \
 sosse-admin crawl' > /run.sh ; chmod +x /run.sh

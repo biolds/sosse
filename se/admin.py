@@ -268,7 +268,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
 
 @admin.register(DomainSetting)
 class DomainSettingAdmin(admin.ModelAdmin):
-    list_display = ('domain', 'robots_status', 'browse_mode')
+    list_display = ('domain', 'ignore_robots', 'robots_status', 'browse_mode')
     search_fields = ('domain',)
-    fields = ('domain', 'browse_mode', 'robots_status', 'robots_allow', 'robots_disallow')
+    fields = ('domain', 'browse_mode', 'ignore_robots', 'robots_status', 'robots_allow', 'robots_disallow')
     readonly_fields = ('domain', 'robots_status', 'robots_allow', 'robots_disallow')

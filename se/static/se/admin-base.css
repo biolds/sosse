@@ -619,6 +619,7 @@ input[type=button][disabled].default {
 
 .module table {
     border-collapse: collapse;
+    width: 100%;
 }
 
 /* MESSAGES & ERRORS */

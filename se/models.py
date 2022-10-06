@@ -800,10 +800,11 @@ class DomainSetting(models.Model):
     browse_mode = models.CharField(max_length=10, choices=BROWSE_MODE, default=BROWSE_DETECT)
     domain = models.TextField(unique=True)
 
-    robots_status = models.CharField(max_length=10, choices=ROBOTS_STATUS, default=ROBOTS_UNKNOWN)
+    robots_status = models.CharField(max_length=10, choices=ROBOTS_STATUS, default=ROBOTS_UNKNOWN, verbose_name='robots.txt status')
     robots_ua_hash = models.CharField(max_length=32, default='', blank=True)
-    robots_allow = models.TextField(default='', blank=True)
-    robots_disallow = models.TextField(default='', blank=True)
+    robots_allow = models.TextField(default='', blank=True, verbose_name='robots.txt allow rules')
+    robots_disallow = models.TextField(default='', blank=True, verbose_name='robots.txt disallow rules')
+    ignore_robots = models.BooleanField(default=False, verbose_name='Ignore robots.txt')
 
     def __str__(self):
         return self.domain
@@ -897,6 +898,9 @@ class DomainSetting(models.Model):
 
 
     def robots_authorized(self, url):
+        if self.ignore_robots:
+            return True
+
         if self.robots_status == DomainSetting.ROBOTS_IGNORE:
             return True
 
@@ -979,7 +983,7 @@ class CrawlPolicy(models.Model):
     store_extern_links = models.BooleanField(default=False)
 
     recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')
-    recrawl_dt_min = models.DurationField(blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(minutes=1))
+    recrawl_dt_min = models.DurationField(blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(days=1))
     recrawl_dt_max = models.DurationField(blank=True, null=True, help_text='Max. time before recrawling a page', default=timedelta(days=365))
     hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS, help_text='Page content hashing method used to detect changes in the content')
 

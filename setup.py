@@ -18,7 +18,7 @@ setup(
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     include_package_data=True,
-    package_date={'': package_files('se/static') + package_files('se/templates')},
+    package_data={'': package_files('se/static') + package_files('se/templates')},
 
     # metadata to display on PyPI
     author="Laurent Defert",

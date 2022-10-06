@@ -39,5 +39,6 @@ sosse-admin collectstatic --noinput \n \
 sosse-admin default_admin \n \
 /usr/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini & \n \
 /etc/init.d/nginx start \n \
+tail -F /var/log/sosse/crawler.log & \n \
 sosse-admin crawl' > /run.sh ; chmod +x /run.sh
 CMD /run.sh

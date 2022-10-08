@@ -19,6 +19,8 @@ body {
 #logo {
     color: black;
     text-decoration: none;
+    display: inline-block;
+    height: 100%
 }
 #menu_username {
     top: 10px;

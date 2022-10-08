@@ -462,6 +462,8 @@ class Document(models.Model):
                         doc.crawl_next = None
                         doc.crawl_dt = None
                         break
+                    else:
+                        doc.robotstxt_rejected = False
 
                     page = crawl_policy.url_get(domain_setting, doc.url)
 

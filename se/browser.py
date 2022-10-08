@@ -286,8 +286,9 @@ class SeleniumBrowser(Browser):
                 break
             crawl_logger.debug('no download in progress')
             sleep(settings.SOSSE_DL_CHECK_TIME)
+            retry -= 1
         else:
-            if len(os.listdir('.')) != 0: # redo the check in case SOSSE_DL_CHECK_RETRY == 0
+            if len(os.listdir('.')) == 0: # redo the check in case SOSSE_DL_CHECK_RETRY == 0
                 crawl_logger.debug('no download has started')
                 return
 

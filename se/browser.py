@@ -390,19 +390,30 @@ class SeleniumBrowser(Browser):
         ''' % (selector, cls.screen_size()[0]))
 
     @classmethod
+    def _find_elements_by_selector(cls, obj, selector):
+        if hasattr(obj, 'find_elements_by_css_selector'):
+            return obj.find_elements_by_css_selector(selector)
+
+        # Selenium 4
+        from selenium.webdriver.common.by import By
+        return obj.find_elements(By.CSS_SELECTOR, selector)
+
+    @classmethod
     def try_auth(cls, page, url, crawl_policy):
-        form = cls.driver.find_elements_by_css_selector(crawl_policy.auth_form_selector)
+        form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
 
         if len(form) == 0:
-            raise Exception('Could not find element with CSS selector: %s' % crawl_policy.auth_form_selector)
+            raise Exception('Could not find auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
         if len(form) > 1:
-            raise Exception('Found multiple element with CSS selector: %s' % crawl_policy.auth_form_selector)
+            raise Exception('Found multiple auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
         form = form[0]
         for f in crawl_policy.authfield_set.values('key', 'value'):
-            elem = form.find_element_by_css_selector('input[name="%s"]' % f['key'])
-            elem.send_keys(f['value'])
+            elem = cls._find_elements_by_selector(form, 'input[name="%s"]' % f['key'])
+            if len(elem) != 1:
+                raise Exception('Found %s multiple input element when trying to set auth field %s' % (len(elem), f['key']))
+            elem[0].send_keys(f['value'])
 
         form.submit()
         cookies = dict([(cookie['name'], cookie['value']) for cookie in cls.driver.get_cookies()])

@@ -96,15 +96,34 @@ class DocumentAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         return [
+            path('<path:object_id>/do_action/', self.admin_site.admin_view(self.do_action), name='doaction'),
             path('queue/', self.admin_site.admin_view(self.add_to_queue), name='queue'),
             path('queue_confirm/', self.admin_site.admin_view(self.add_to_queue_confirm), name='queue_confirm')
         ] + urls
+
+    def do_action(self, request, object_id):
+        action_name = request.POST.get('action')
+
+        for action in self.actions:
+            if action.__name__ == action_name:
+                break
+        else:
+            raise Exception('Action %s not support' % action)
+
+        queryset = self.get_queryset(request).filter(id=object_id)
+        action(self, request, queryset)
+        messages.success(request, 'Done.')
+        return redirect(reverse('admin:se_document_change', args=(object_id,)))
+
+    def render_change_form(self, request, context, *args, **kwargs):
+        context['actions'] = self.get_action_choices(request)
+        return super().render_change_form(request, context, *args, **kwargs)
 
     def add_to_queue(self, request):
         context = dict(
            self.admin_site.each_context(request),
            form=AddToQueueForm(),
-            title='Crawl a new URL'
+           title='Crawl a new URL'
         )
         return response.TemplateResponse(request, 'se/add_to_queue.html', context)
 

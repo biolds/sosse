@@ -5,3 +5,16 @@
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static "se/admin-forms.css" %}">
 {% endblock %}
+
+{% block object-tools %}
+    <span style="text-align: right">
+        <form action="{% url "admin:doaction" object_id %}" method="post">
+            {% csrf_token %}
+            {% for action in actions %}
+                {% if action.0 and action.0 != 'delete_selected' %}
+                    <button type="submit" name="action" value="{{ action.0 }}">{{ action.1 }}</button>
+                {% endif %}
+            {% endfor %}
+        </form>
+    </span>
+{% endblock %}

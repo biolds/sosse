@@ -248,12 +248,9 @@
                     {{ r.url }}
                 </a>
                 <div class="res-rank">/ {{ r.rank|floatformat:"1" }}</div>
-                <div class="res-rank">{{ r.lang_iso_639_1 }}</div>
+                <div class="res-rank">{{ r.lang_flag }}</div>
                 <div class="res-rank">{{ r.id }}</div>
-                <div class="res-rank"><a href="{% url 'www' r.url %}">cached</a></div>
-                {% if r.screenshot_file %}
-                    <div class="res-rank"><a href="{% url 'screenshot' r.url %}">screenshot</a></div>
-                {% endif %}
+                <div class="res-rank"><a href="{{ r.get_absolute_url }}">cached</a></div>
                 <br/>
                 <a href="{{ r.url }}" class="res-headline">{{ r.headline }}</a>
             </div>

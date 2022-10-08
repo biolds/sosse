@@ -44,8 +44,11 @@ def www(request, url):
     context['content'] = content
 
     if doc.screenshot_file:
-        context['other_link'] = {
+        context['other_links'] = [{
             'href': reverse('screenshot', args=[url]),
             'text': 'Screenshot'
-        }
+        }, {
+            'href': reverse('words', args=[url]),
+            'text': 'Words weight',
+        }]
     return render(request, 'se/www.html', context)

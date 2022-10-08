@@ -174,6 +174,17 @@ class Document(models.Model):
 
         return lang_iso, lang_pg
 
+    def lang_flag(self, full=False):
+        lang = self.lang_iso_639_1
+        flag = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('flag')
+
+        if full:
+            lang = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('name', lang)
+        if flag:
+            lang = f'{flag} {lang}'
+
+        return lang
+
     def _hash_content(self, content, crawl_policy):
         if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
             pass

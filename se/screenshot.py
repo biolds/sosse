@@ -15,10 +15,13 @@ def screenshot(request, url):
     context = get_context(doc)
     context.update({
         'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
-        'other_link': {
+        'other_links': [{
             'href': reverse('www', args=[url]),
             'text': 'Cached page',
-        },
+        }, {
+            'href': reverse('words', args=[url]),
+            'text': 'Words weight',
+        }],
         'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
         'screens': range(doc.screenshot_count or 0)
     })

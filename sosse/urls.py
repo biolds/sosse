@@ -20,6 +20,7 @@ from se.views import favicon, history, prefs, search, word_stats, SELoginView
 from se.atom import atom
 from se.screenshot import screenshot
 from se.stats import stats
+from se.words import words
 from se.www import www
 
 urlpatterns = [
@@ -34,5 +35,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
     re_path(r'screenshot/(?P<url>.*)', screenshot, name='screenshot'),
-    re_path(r'www/(?P<url>.*)', www, name='www')
+    re_path(r'www/(?P<url>.*)', www, name='www'),
+    re_path(r'words/(?P<url>.*)', words, name='words')
 ]

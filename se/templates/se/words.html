@@ -1,0 +1,18 @@
+{% extends "se/base.html" %}
+{% load static %}
+
+{% block body %}
+    {% include "se/cached.html" %}
+    <hr/>
+    <ul>
+        <li>{{ lang }} detected</li>
+        <li>The document has {{ doc.content.split|length }} words</li>
+        <li>The document has {{ doc.vector.split|length }} unique words</li>
+    </ul>
+    <hr/>
+    <ul>
+        {% for word, weights in words %}
+            <li><b>{{ word }}</b>: {{ weights }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

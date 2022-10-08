@@ -373,7 +373,7 @@ class Document(models.Model):
 
         if crawl_policy.condition == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug('%s -> never crawl' % url)
-            return None
+            return Document.objects.filter(url=url).first()
 
         doc = None
         url_depth = None
@@ -393,6 +393,7 @@ class Document(models.Model):
             doc.crawl_recurse = url_depth
             doc.save()
 
+        doc = doc or Document.objects.filter(url=url).first()
         return doc
 
     def _schedule_next(self, changed, crawl_policy):

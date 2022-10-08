@@ -719,6 +719,10 @@ td ul.errorlist + input, td ul.errorlist + select, td ul.errorlist + textarea {
 
 /* BREADCRUMBS */
 
+div.breadcrumbs {
+    padding-bottom: 5px;
+}
+
 /*
 div.breadcrumbs {
     background: var(--breadcrumbs-bg);

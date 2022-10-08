@@ -79,6 +79,8 @@ def search(request):
     if form.is_valid():
         q = form.cleaned_data['q']
         redirect_url = SearchEngine.should_redirect(q)
+        SearchHistory.save_history(request, q)
+
         if redirect_url:
             return redirect(redirect_url)
 
@@ -87,7 +89,6 @@ def search(request):
         page_number = request.GET.get('p')
         paginated = paginator.get_page(page_number)
         paginated = add_headlines(paginated, query)
-        SearchHistory.save_history(request, q)
     else:
         form = SearchForm()
 

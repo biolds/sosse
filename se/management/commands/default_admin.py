@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
-    help = 'Outputs default configuration file to stdout'
+    help = 'Create an admin superuser with admin password'
 
     def handle(self, *args, **options):
         if User.objects.count() != 0:

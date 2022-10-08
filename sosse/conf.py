@@ -104,6 +104,16 @@ DEFAULTS = OrderedDict([
             'default': 200,
             'type': int
         }],
+        ['data_upload_max_memory_size', {
+            'comment': 'https://docs.djangoproject.com/en/4.1/ref/settings/#data-upload-max-memory-size',
+            'default': 2621440,
+            'type': int
+        }],
+        ['data_upload_max_number_fields', {
+            'comment': 'https://docs.djangoproject.com/en/4.1/ref/settings/#data-upload-max-number-fields',
+            'default': 1000,
+            'type': int
+        }],
         ['atom_feed_size', {
             'comment': 'Size of Atom feeds',
             'default': 200,
@@ -243,6 +253,8 @@ class Conf:
                 }
             },
             'ALLOWED_HOSTS': [settings.pop('SOSSE_ALLOWED_HOST')],
+            'DATA_UPLOAD_MAX_MEMORY_SIZE': settings.pop('SOSSE_DATA_UPLOAD_MAX_MEMORY_SIZE'),
+            'DATA_UPLOAD_MAX_NUMBER_FIELDS': settings.pop('SOSSE_DATA_UPLOAD_MAX_NUMBER_FIELDS'),
             'SOSSE_CRAWLER_COUNT': crawler_count
         })
         return settings

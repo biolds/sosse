@@ -244,6 +244,14 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _get_page(cls):
+        # Wait for page being ready
+        retry = settings.SOSSE_JS_STABLE_RETRY
+        while retry > 0:
+            retry -= 1
+            if cls.driver.execute_script('return document.readyState;') == 'complete':
+                break
+
+        # Wait for page content to be stable
         retry = settings.SOSSE_JS_STABLE_RETRY
         previous_content = None
         content = None

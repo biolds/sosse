@@ -149,7 +149,8 @@ class RequestBrowser(Browser):
             payload[f['key']] = f['value']
 
         post_url = form.get('action')
-        post_url = absolutize_url(page.url, post_url)
+        post_url = absolutize_url(page.url, post_url, True, False)
+        crawl_logger.debug('authenticating to %s with %s (cookie: %s)' % (post_url, payload, page.cookies))
         r = requests.post(post_url,
                           data=payload,
                           cookies=page.cookies,
@@ -157,18 +158,23 @@ class RequestBrowser(Browser):
                           headers={'User-Agent': settings.SOSSE_USER_AGENT})
 
         crawl_policy.auth_cookies = json.dumps(dict(r.cookies))
+        crawl_logger.debug('auth returned cookie: %s' % crawl_policy.auth_cookies)
         crawl_policy.save()
 
         if r.status_code != 302:
+            crawl_logger.debug('no redirect after auth')
             return cls._page_from_request(r)
 
         location = r.headers.get('location')
         if not location:
             raise Exception('No location in the redirection')
 
-        location = absolutize_url(r.url, location)
+        location = absolutize_url(r.url, location, True, False)
+        crawl_logger.debug('got redirected to %s after authentication' % location)
         r = requests.get(location, cookies=r.cookies, headers={'User-Agent': settings.SOSSE_USER_AGENT})
         r.raise_for_status()
+        crawl_logger.debug('content:\n%s' % r.content)
+        crawl_logger.debug('authentication done')
         return cls._page_from_request(r)
 
 
@@ -408,18 +414,22 @@ class SeleniumBrowser(Browser):
         if len(form) > 1:
             raise Exception('Found multiple auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
+        crawl_logger.debug('form found')
         form = form[0]
         for f in crawl_policy.authfield_set.values('key', 'value'):
             elem = cls._find_elements_by_selector(form, 'input[name="%s"]' % f['key'])
             if len(elem) != 1:
                 raise Exception('Found %s multiple input element when trying to set auth field %s' % (len(elem), f['key']))
             elem[0].send_keys(f['value'])
+            crawl_logger.debug('settings %s = %s on %s' % (f['key'], f['value'], elem[0]))
 
         form.submit()
+        crawl_logger.debug('submitting')
         cookies = dict([(cookie['name'], cookie['value']) for cookie in cls.driver.get_cookies()])
         crawl_policy.auth_cookies = json.dumps(cookies)
         crawl_policy.save()
         cls._cache_cookie(crawl_policy)
+        crawl_logger.debug('got cookie %s' % crawl_policy.auth_cookies)
 
         if cls.driver.current_url != url:
             return cls.get(url)

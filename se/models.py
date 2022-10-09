@@ -1037,11 +1037,14 @@ class CrawlPolicy(models.Model):
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
                         re.search(self.auth_login_url_re, page.url) :
-                    crawl_logger.debug('doing auth on %s' % url)
+                    crawl_logger.debug('doing auth for %s' % url)
                     new_page = page.browser.try_auth(page, url, self)
                     new_page.got_redirect = True
 
-                    if new_page:
+                    if new_page.url != url:
+                        crawl_logger.debug('reopening %s after auth' % url)
+                        page = browser.get(url)
+                    else:
                         page = new_page
             except:
                 raise Exception('Authentication failed')

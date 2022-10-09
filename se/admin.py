@@ -257,7 +257,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     form = CrawlPolicyForm
     list_display = ('url_regex', 'condition', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)
-    readonly_fields = ('documents', 'auth_cookies',)
+    readonly_fields = ('documents',)
     fieldsets = (
         (None, {
             'fields': ('url_regex', 'documents', 'condition', 'mimetype_regex', 'crawl_depth', 'keep_params')
@@ -283,5 +283,10 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
 class DomainSettingAdmin(admin.ModelAdmin):
     list_display = ('domain', 'ignore_robots', 'robots_status', 'browse_mode')
     search_fields = ('domain',)
-    fields = ('domain', 'browse_mode', 'ignore_robots', 'robots_status', 'robots_allow', 'robots_disallow')
-    readonly_fields = ('domain', 'robots_status', 'robots_allow', 'robots_disallow')
+    fields = ('domain', 'documents', 'browse_mode', 'ignore_robots', 'robots_status', 'robots_allow', 'robots_disallow')
+    readonly_fields = ('domain', 'documents', 'robots_status', 'robots_allow', 'robots_disallow')
+
+    @staticmethod
+    def documents(obj):
+        params = urlencode({'q': '^https?://%s/' % obj.domain})
+        return format_html('<a href="{}">Matching documents</a>', reverse('admin:se_document_changelist') + '?' + params)

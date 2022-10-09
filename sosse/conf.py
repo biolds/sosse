@@ -216,7 +216,7 @@ class Conf:
 
                 if var_type == bool:
                     settings[var_name] = value.lower() not in ('false', 'no', '')
-                elif var_type == int:
+                elif var_type in (int, float):
                     try:
                         settings[var_name] = var_type(value)
                     except ValueError:

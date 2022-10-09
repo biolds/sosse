@@ -174,7 +174,17 @@ DEFAULTS = OrderedDict([
             'comment': 'Download detection will retry <dl_check_retry> times for a started download',
             'default': 2,
             'type': int
-        }]
+        }],
+        ['browser_crash_sleep', {
+            'comment': 'Sleep <browser_crash_sleep> seconsds before retrying after the browser crashed',
+            'default': 1.0,
+            'type': float
+        }],
+        ['browser_crash_retry', {
+            'comment': 'Retry <browser_crash_retry> time to index the page on browser crashes',
+            'default': 1,
+            'type': int
+        }],
     ])]
 ])
 

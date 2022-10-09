@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import traceback
 from hashlib import md5
 from time import sleep
 
@@ -8,6 +9,7 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 import requests
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import unquote
@@ -178,7 +180,31 @@ class RequestBrowser(Browser):
         return cls._page_from_request(r)
 
 
-class SeleniumBrowser(Browser):   
+def retry(f):
+    def _retry(*args, **kwargs):
+        count = 0
+        while count <= settings.SOSSE_BROWSER_CRASH_RETRY:
+            try:
+                r = f(*args, **kwargs)
+                crawl_logger.debug('%s succeeded' % f)
+                return r
+            except WebDriverException as e:
+                exc = traceback.format_exc()
+                crawl_logger.error('%s failed' % f)
+                crawl_logger.error('Selenium returned an exception:\n%s' % exc)
+
+                cls = args[0]
+                cls.destroy()
+                sleep(settings.SOSSE_BROWSER_CRASH_SLEEP)
+                cls.init()
+
+                if count == settings.SOSSE_BROWSER_CRASH_RETRY:
+                    raise
+                count += 1
+                crawl_logger.error('Retrying (%i / %i)' % (count, settings.SOSSE_BROWSER_CRASH_RETRY))
+    return _retry
+
+class SeleniumBrowser(Browser):
     driver = None
     cookie_loaded = []
     COOKIE_LOADED_SIZE = 1024
@@ -193,7 +219,6 @@ class SeleniumBrowser(Browser):
         options.add_argument('--start-fullscreen')
         options.add_argument('--window-size=%s,%s' % cls.screen_size())
         options.add_argument("--enable-precise-memory-info")
-        options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-default-apps")
         options.add_argument("--incognito")
         options.add_argument("--no-sandbox")
@@ -206,8 +231,16 @@ class SeleniumBrowser(Browser):
     @classmethod
     def destroy(cls):
         if cls.driver:
-            cls.driver.close()
-            cls.driver.quit()
+            # Ignore errors in case the browser crashed
+            try:
+                cls.driver.close()
+            except WebDriverException:
+                pass
+
+            try:
+                cls.driver.quit()
+            except WebDriverException:
+                pass
 
     @classmethod
     def _get_page(cls):
@@ -258,12 +291,14 @@ class SeleniumBrowser(Browser):
         return True
 
     @classmethod
+    @retry
     def get(cls, url):
         current_url = cls.driver.current_url
 
         # Clear the download dir
         for f in os.listdir('.'):
-            crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
+            if f != 'core':
+                crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
             os.unlink(f)
 
         cls.driver.get(url)
@@ -330,6 +365,7 @@ class SeleniumBrowser(Browser):
         return int(w), int(h)
 
     @classmethod
+    @retry
     def take_screenshots(cls, url):
         base_dir, filename = cls.screenshot_name(url)
         d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, base_dir)
@@ -342,7 +378,7 @@ class SeleniumBrowser(Browser):
         doc_height = cls.driver.execute_script('''
             const body = document.body;
             const html = document.documentElement;
-            return height = Math.max(body.scrollHeight, body.offsetHeight, 
+            return height = Math.max(body.scrollHeight, body.offsetHeight,
                                    html.clientHeight, html.scrollHeight, html.offsetHeight);
         ''')
 
@@ -405,6 +441,7 @@ class SeleniumBrowser(Browser):
         return obj.find_elements(By.CSS_SELECTOR, selector)
 
     @classmethod
+    @retry
     def try_auth(cls, page, url, crawl_policy):
         form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
 

@@ -88,6 +88,7 @@ class DocumentAdmin(admin.ModelAdmin):
     fields = ('url', 'crawl_policy', 'domain', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
         'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
     readonly_fields = fields
+    ordering = ('url',)
     actions = [crawl_now, reindex_now]
 
     def has_add_permission(self, request, obj=None):
@@ -216,6 +217,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', reverse('admin:se_crawlpolicy_change', args=(policy.id,)), policy)
 
     @staticmethod
+    @admin.display(ordering='url')
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
 

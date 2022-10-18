@@ -1,3 +1,5 @@
+import os
+
 from urllib.parse import urlencode
 
 from django import forms
@@ -220,6 +222,24 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(ordering='url')
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
+
+    def _delete_screenshot(self, obj):
+        if obj.screenshot_file:
+            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, obj.screenshot_file)
+
+            for i in range(obj.screenshot_count):
+                filename = '%s_%s.png' % (d, i)
+                if os.path.exists(filename):
+                    os.unlink(filename)
+
+    def delete_model(self, request, obj):
+        self._delete_screenshot(obj)
+        return super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset.all():
+            self._delete_screenshot(obj)
+        return super().delete_queryset(request, queryset)
 
 
 class InlineAuthField(admin.TabularInline):

@@ -24,7 +24,7 @@ class BrowserMock:
         content = self.web[url]
         if isinstance(content, HTTPError):
             raise content
-        return Page(url, content, {}, BrowserMock)
+        return Page(url, content, BrowserMock)
 
 
 class CrawlerTest(TestCase):

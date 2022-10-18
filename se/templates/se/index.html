@@ -234,7 +234,7 @@
                 <div>
                     {% if r.screenshot_file %}
                         <a href="{{ r.url }}">
-                            <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}/{{ r.screenshot_file }}_0.png" class="res-preview" />
+                            <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}/{{ r.screenshot_file }}_0.{{ r.screenshot_format }}" class="res-preview" />
                         </a>
                     {% endif %}
                     {% if r.favicon and not r.favicon.missing %}

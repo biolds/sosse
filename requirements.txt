@@ -5,7 +5,9 @@ django-uwsgi
 html5lib
 langdetect
 lxml
+pillow
 psycopg2
+publicsuffix2
 pygal
 python-magic
 requests

@@ -1,4 +1,3 @@
-
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models

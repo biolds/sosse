@@ -25,6 +25,8 @@ from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
 from magic import from_buffer as magic_from_buffer
+from PIL import Image
+from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
 from .browser import RequestBrowser, SeleniumBrowser
@@ -96,6 +98,13 @@ class RegConfigField(models.Field):
 
 
 class Document(models.Model):
+    SCREENSHOT_PNG = 'png'
+    SCREENSHOT_JPG = 'jpg'
+    SCREENSHOT_FORMAT = (
+        (SCREENSHOT_PNG, SCREENSHOT_PNG),
+        (SCREENSHOT_JPG, SCREENSHOT_JPG)
+    )
+
     # Document info
     url = models.TextField(unique=True)
 
@@ -118,6 +127,7 @@ class Document(models.Model):
 
     screenshot_file = models.CharField(max_length=4096, blank=True, null=True)
     screenshot_count = models.PositiveIntegerField(blank=True, null=True)
+    screenshot_format = models.CharField(max_length=3, choices=SCREENSHOT_FORMAT)
 
     # Crawling info
     crawl_first = models.DateTimeField(blank=True, null=True, verbose_name='Crawled first')
@@ -325,7 +335,7 @@ class Document(models.Model):
             self._index_log('remove accent', stats, verbose)
 
             if crawl_policy.take_screenshots:
-                self.screenshot_index(links['links'])
+                self.screenshot_index(links['links'], crawl_policy)
 
             Link.objects.filter(doc_from=self).delete()
             self._index_log('delete', stats, verbose)
@@ -345,10 +355,25 @@ class Document(models.Model):
         FavIcon.extract(self, page)
         self._index_log('favicon', stats, verbose)
 
-    def screenshot_index(self, links):
+    def screenshot_index(self, links, crawl_policy):
         filename, img_count = SeleniumBrowser.take_screenshots(self.url)
+
+        if crawl_policy.screenshot_format == Document.SCREENSHOT_JPG:
+            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, filename)
+
+            for i in range(img_count):
+                src = '%s_%s.png' % (d, i)
+                dst = '%s_%s.jpg' % (d, i)
+                crawl_logger.debug('Converting %s to %s' % (src, dst))
+
+                img = Image.open(src)
+                img = img.convert('RGB') # Remove alpha channel from the png
+                img.save(dst, 'jpeg')
+                os.unlink(src)
+
         self.screenshot_file = filename
         self.screenshot_count = img_count
+        self.screenshot_format = crawl_policy.screenshot_format
 
         SeleniumBrowser.scroll_to_page(0)
         for i, link in enumerate(links):
@@ -948,10 +973,119 @@ class DomainSetting(models.Model):
         return False
 
     @classmethod
-    def get_from_url(cls, url, default_browse_mode):
+    def get_from_url(cls, url, default_browse_mode=None):
         domain = urlparse(url).netloc
+
+        if not default_browse_mode:
+            crawl_policy = CrawlPolicy.get_from_url(url)
+            default_browse_mode = crawl_policy.default_browse_mode
+
         return DomainSetting.objects.get_or_create(domain=domain,
                                                    defaults={'browse_mode': default_browse_mode})[0]
+
+
+#raise Exception('cookies %s' % cls.driver.get_cookies())
+#Exception: cookies [{'domain': '192.168.114.4', 'expiry': 1665435006, 'httpOnly': True, 'name': '_csrf', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '3RvQQKj9SUin0J2pPihCVzB9AOI6MTY2NTM0ODYwNjA1NDYwMzY0NQ'}, {'domain': '192.168.114.4', 'httpOnly': True, 'name': 'i_like_gitea', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': 'c68de9bc3cbe58be'}]
+
+class Cookie(models.Model):
+    TLDS = PublicSuffixList().tlds
+
+    SAME_SITE_LAX = 'Lax'
+    SAME_SITE_STRICT = 'Strict'
+    SAME_SITE_NONE = 'None'
+    SAME_SITE = (
+        (SAME_SITE_LAX, SAME_SITE_LAX),
+        (SAME_SITE_STRICT, SAME_SITE_STRICT),
+        (SAME_SITE_NONE, SAME_SITE_NONE)
+    )
+    domain = models.TextField()
+    inc_subdomain = models.BooleanField()
+    name = models.TextField()
+    value = models.TextField()
+    path = models.TextField(default='/')
+    expires = models.DateTimeField(null=True, blank=True)
+    secure = models.BooleanField()
+    same_site = models.CharField(max_length=6, choices=SAME_SITE, default=SAME_SITE_STRICT)
+    http_only = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('domain', 'name', 'path')
+
+    @classmethod
+    def get_from_url(cls, url, queryset=None, expire=True):
+        parsed_url = urlparse(url)
+        domain = parsed_url.hostname
+        url_path = parsed_url.path
+
+        if queryset is None:
+            queryset = Cookie.objects.all()
+
+        if not url.startswith('https://'):
+            queryset = queryset.filter(secure=False)
+
+        _cookies = queryset.filter(domain=domain)
+
+        V = models.Value
+        F = models.F
+        Concat = models.functions.Concat
+        Right = models.functions.Right
+        Len = models.functions.Length
+        dom = ''
+
+        for sub in domain.split('.'):
+            if dom != '':
+                dom = '.' + dom
+            dom = sub + dom
+            _cookies |= queryset.filter(inc_subdomain=True).annotate(
+                left=Right(V(domain), Len('domain') + 1),
+                right=Concat(V('.'), 'domain', output_field=models.TextField())
+            ).filter(left=F('right'))
+
+        cookies = []
+        for c in _cookies:
+            cookie_path = c.path.rstrip('/')
+            if cookie_path == '' or url_path.rstrip('/') == cookie_path or url_path.startswith(cookie_path + '/'):
+                if expire and c.expires and c.expires <= now():
+                    c.delete()
+                    continue
+                cookies.append(c)
+
+        return cookies
+
+    @classmethod
+    def set(cls, url, cookies):
+        new_cookies = []
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc
+
+        for c in cookies:
+            name = c.pop('name')
+            path = c.pop('path', '') or ''
+
+            cookie_dom = c.pop('domain', None)
+            inc_subdomain = False
+            if cookie_dom:
+                cookie_dom = cookie_dom.lstrip('.')
+                inc_subdomain = True
+
+                if get_public_suffix(cookie_dom) != get_public_suffix(domain):
+                    crawl_logger.warning('%s is trying to set a cookie (%s) for a different domain %s' % (url, name, cookie_dom))
+                    continue
+
+                domain = cookie_dom
+
+            if domain in cls.TLDS:
+                crawl_logger.warning('%s is trying to set a cookie (%s) for a TLD (%s)' % (url, name, domain))
+                continue
+
+            c['inc_subdomain'] = inc_subdomain
+            cookie, created = Cookie.objects.get_or_create(c, domain=domain, name=name, path=path)
+
+            if created:
+                value = c['value']
+                crawl_logger.debug('Created cookie %s/%s %s=%s', domain, path, name, value)
+                new_cookies.append(cookie)
+        return new_cookies
 
 
 BROWSER_MAP = {
@@ -994,6 +1128,7 @@ class CrawlPolicy(models.Model):
 
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
     take_screenshots = models.BooleanField(default=False)
+    screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
     store_extern_links = models.BooleanField(default=False)
 
     recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')
@@ -1062,15 +1197,6 @@ class CrawlPolicy(models.Model):
             domain_setting.browse_mode = new_mode
             domain_setting.save()
         return page
-
-    @staticmethod
-    def get_cookies(url):
-        try:
-            cookies = CrawlPolicy.get_from_url(url).auth_cookies
-            if cookies:
-                return json.loads(cookies)
-        except CrawlPolicy.DoesNotExist:
-            pass
 
 
 class SearchHistory(models.Model):

@@ -1,9 +1,12 @@
 import json
 import logging
 import os
+import pytz
 import traceback
+from datetime import datetime
 from hashlib import md5
 from time import sleep
+from urllib.parse import unquote, urlparse
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -12,17 +15,15 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-from urllib.parse import unquote
 
 
 crawl_logger = logging.getLogger('crawler')
 
 
 class Page:
-    def __init__(self, url, content, cookies, browser):
+    def __init__(self, url, content, browser):
         self.url = url
         self.content = content
-        self.cookies = cookies
         self.got_redirect = False
         self.title = None
         self.soup = None
@@ -83,11 +84,50 @@ class RequestBrowser(Browser):
         url = unquote(r.url)
         page = Page(url,
                     content,
-                    dict(r.cookies),
                     cls)
         parsed = page.get_soup()
         page.title = parsed.title and parsed.title.string
         return page
+
+    @classmethod
+    def _set_cookies(cls, url, cookies):
+        from .models import Cookie
+        _cookies = []
+        for cookie in cookies:
+            expires = cookie.expires
+            if expires:
+                expires = datetime.fromtimestamp(expires, pytz.utc)
+
+            c = {
+                'domain': cookie.get_nonstandard_attr('Domain'),
+                'name': cookie.name,
+                'value': cookie.value,
+                'path': cookie.path,
+                'expires': expires,
+                'secure': cookie.secure,
+                'same_site': cookie.get_nonstandard_attr('SameSite'),
+                'http_only': cookie.has_nonstandard_attr('HttpOnly')
+            }
+            _cookies.append(c)
+
+        if _cookies:
+            Cookie.set(url, _cookies)
+
+    @classmethod
+    def _get_cookies(cls, url):
+        from .models import Cookie
+        jar = requests.cookies.RequestsCookieJar()
+
+        for c in Cookie.get_from_url(url):
+            jar.set(c.name, c.value, domain=c.domain)
+        return jar
+
+    @classmethod
+    def _get_headers(cls):
+        return {
+            'User-Agent': settings.SOSSE_USER_AGENT,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
 
     @classmethod
     def get(cls, url, raw=False, check_status=False):
@@ -99,8 +139,10 @@ class RequestBrowser(Browser):
         while redirects > 0:
             redirects -= 1
 
-            cookies = CrawlPolicy.get_cookies(url)
-            r = requests.get(url, cookies=cookies, headers={'User-Agent': settings.SOSSE_USER_AGENT})
+            cookies = cls._get_cookies(url)
+            r = requests.get(url, cookies=cookies, headers=cls._get_headers())
+            cls._set_cookies(url, r.cookies)
+
             if check_status:
                 r.raise_for_status()
 
@@ -152,15 +194,16 @@ class RequestBrowser(Browser):
 
         post_url = form.get('action')
         post_url = absolutize_url(page.url, post_url, True, False)
-        crawl_logger.debug('authenticating to %s with %s (cookie: %s)' % (post_url, payload, page.cookies))
+        cookies = cls._get_cookies(post_url)
+        crawl_logger.debug('authenticating to %s with %s (cookie: %s)' % (post_url, payload, cookies))
         r = requests.post(post_url,
                           data=payload,
-                          cookies=page.cookies,
+                          cookies=cookies,
                           allow_redirects=False,
-                          headers={'User-Agent': settings.SOSSE_USER_AGENT})
+                          headers=cls._get_headers())
+        cls._set_cookies(post_url, r.cookies)
 
-        crawl_policy.auth_cookies = json.dumps(dict(r.cookies))
-        crawl_logger.debug('auth returned cookie: %s' % crawl_policy.auth_cookies)
+        crawl_logger.debug('auth returned cookie: %s' % r.cookies)
         crawl_policy.save()
 
         if r.status_code != 302:
@@ -173,7 +216,9 @@ class RequestBrowser(Browser):
 
         location = absolutize_url(r.url, location, True, False)
         crawl_logger.debug('got redirected to %s after authentication' % location)
-        r = requests.get(location, cookies=r.cookies, headers={'User-Agent': settings.SOSSE_USER_AGENT})
+        cookies = cls._get_cookies(location)
+        r = requests.get(location, cookies=cookies, headers=cls._get_headers())
+        cls._set_cookies(location, r.cookies)
         r.raise_for_status()
         crawl_logger.debug('content:\n%s' % r.content)
         crawl_logger.debug('authentication done')
@@ -268,35 +313,68 @@ class SeleniumBrowser(Browser):
 
         page = Page(cls.driver.current_url,
                     content,
-                    None,
                     cls)
         page.title = cls.driver.title
         return page
 
     @classmethod
-    def _cache_cookie(cls, crawl_policy):
-        cls.cookie_loaded.append(crawl_policy.id)
+    def _save_cookies(cls, url):
+        from .models import Cookie
+        _cookies = []
+        for cookie in cls.driver.get_cookies():
+            c = {
+                'name': cookie['name'],
+                'value': cookie['value'],
+                'path': cookie['path'],
+                'secure': cookie['secure'],
+                'same_site': cookie['sameSite'],
+                'http_only': cookie['httpOnly']
+            }
 
-        if len(cls.cookie_loaded) > cls.COOKIE_LOADED_SIZE:
-            cls.cookie_loaded = cls.cookie_loaded[1:]
+            expires = cookie.get('expiry')
+            if expires:
+                c['expires'] = datetime.fromtimestamp(expires, pytz.utc)
+
+            _cookies.append(c)
+
+        if _cookies:
+            Cookie.set(url, _cookies)
 
     @classmethod
-    def _load_cookie(cls, url):
-        from .models import CrawlPolicy
-        crawl_policy = CrawlPolicy.get_from_url(url)
-        if crawl_policy is None:
-            return
+    def _load_cookies(cls, url):
+        from .models import Cookie
 
-        if crawl_policy.id in cls.cookie_loaded:
-            return False
+        # Cookies can only be set to the same domain,
+        # so first we navigate to the correct location
+        current_url = urlparse(cls.driver.current_url)
+        target_url = urlparse(url)
+        if current_url.netloc != target_url.netloc:
+            cls.driver.get(url)
 
-        cls._cache_cookie(crawl_policy)
+        cls.driver.delete_all_cookies()
+        for c in Cookie.get_from_url(url):
+            cookie = {
+                'name': c.name,
+                'value': c.value,
+                'domain': c.domain,
+                'path': c.path,
+                'secure': c.secure,
+                'httpOnly': c.http_only,
+                'sameSite': c.same_site,
+            }
+            if c.expires:
+                cookie['expiry'] = int(c.expires.strftime('%s'))
 
-        if crawl_policy.auth_cookies:
-            cookies = json.loads(crawl_policy.auth_cookies)
-            for name, value in cookies.items():
-                cls.driver.add_cookie({'name': name, 'value': value})
-        return True
+            try:
+                cls.driver.add_cookie(cookie)
+            except:
+                raise Exception(cookie)
+
+    @classmethod
+    def _browser_get(cls, url):
+        cls._load_cookies(url)
+        cls.driver.get(url)
+        cls._save_cookies(url)
 
     @classmethod
     @retry
@@ -309,10 +387,7 @@ class SeleniumBrowser(Browser):
                 crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
             os.unlink(f)
 
-        cls.driver.get(url)
-        if cls._load_cookie(url):
-            current_url = cls.driver.current_url
-            cls.driver.get(url)
+        cls._browser_get(url)
 
         if ((current_url != url and cls.driver.current_url == current_url) or # If we got redirected to the url that was previously set in the browser
                 cls.driver.current_url == 'data:,'): # The url can be "data:," during a few milliseconds when the download starts
@@ -354,7 +429,7 @@ class SeleniumBrowser(Browser):
         with open(os.listdir('.')[0], 'rb') as f:
             content = f.read(1024 * 1024)
 
-        page = Page(url, content, None, cls)
+        page = Page(url, content, cls)
 
         # Remove all files in case multiple were downloaded
         for f in os.listdir('.'):
@@ -470,10 +545,7 @@ class SeleniumBrowser(Browser):
 
         form.submit()
         crawl_logger.debug('submitting')
-        cookies = dict([(cookie['name'], cookie['value']) for cookie in cls.driver.get_cookies()])
-        crawl_policy.auth_cookies = json.dumps(cookies)
-        crawl_policy.save()
-        cls._cache_cookie(crawl_policy)
+        cls._save_cookies(cls.driver.current_url)
         crawl_logger.debug('got cookie %s' % crawl_policy.auth_cookies)
 
         if cls.driver.current_url != url:

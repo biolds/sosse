@@ -13,7 +13,7 @@ from django.shortcuts import redirect, reverse
 from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
-from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine
+from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie
 from .utils import human_datetime
 
 
@@ -87,7 +87,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
-    fields = ('url', 'crawl_policy', 'domain', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
+    fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
         'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
     readonly_fields = fields
     ordering = ('url',)
@@ -199,6 +199,10 @@ class DocumentAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', reverse('admin:se_domainsetting_change', args=(dom.id,)), dom)
 
     @staticmethod
+    def cookies(obj):
+        return format_html('<a href="{}">Cookies</a>', reverse('admin:se_cookie_changelist') + '?q=' + obj.url)
+
+    @staticmethod
     def lang(obj):
         return obj.lang_flag()
 
@@ -228,7 +232,7 @@ class DocumentAdmin(admin.ModelAdmin):
             d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, obj.screenshot_file)
 
             for i in range(obj.screenshot_count):
-                filename = '%s_%s.png' % (d, i)
+                filename = '%s_%s.%s' % (d, i, obj.screenshot_format)
                 if os.path.exists(filename):
                     os.unlink(filename)
 
@@ -285,7 +289,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('url_regex', 'documents', 'condition', 'mimetype_regex', 'crawl_depth', 'keep_params')
         }),
         ('Browser', {
-            'fields': ('default_browse_mode', 'take_screenshots', 'store_extern_links')
+            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'store_extern_links')
         }),
         ('Updates', {
             'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')
@@ -312,3 +316,18 @@ class DomainSettingAdmin(admin.ModelAdmin):
     def documents(obj):
         params = urlencode({'q': '^https?://%s/' % obj.domain})
         return format_html('<a href="{}">Matching documents</a>', reverse('admin:se_document_changelist') + '?' + params)
+
+
+@admin.register(Cookie)
+class CookieAdmin(admin.ModelAdmin):
+    list_display = ('domain', 'path', 'name', 'value', 'expires')
+    search_fields = ('domain__domain', 'path')
+    exclude = tuple()
+
+    def get_search_results(self, request, queryset, search_term):
+        if not search_term:
+            return Cookie.objects.all(), False
+        cookies = Cookie.get_from_url(search_term, queryset, expire=False)
+        cookies = sorted(cookies, key=lambda x:x.name)
+        _cookies = Cookie.objects.filter(id__in=[c.id for c in cookies])
+        return _cookies, False

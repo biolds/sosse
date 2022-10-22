@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 from multiprocessing import cpu_count, Process
 from time import sleep
+from traceback import format_exc
 
 from django.conf import settings
 from django.db import connection
@@ -38,7 +39,12 @@ class Command(BaseCommand):
         for f in os.listdir(base_dir):
             os.unlink(f)
 
-        Browser.init()
+        try:
+            Browser.init()
+        except Exception:
+            crawl_logger.error(format_exc())
+            raise
+
         crawl_logger.info('Worker %i starting' % worker_no)
 
         if worker_no == 0:

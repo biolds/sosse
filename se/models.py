@@ -355,25 +355,28 @@ class Document(models.Model):
         FavIcon.extract(self, page)
         self._index_log('favicon', stats, verbose)
 
+    def convert_to_jpg(self):
+        d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.screenshot_file)
+
+        for i in range(self.screenshot_count):
+            src = '%s_%s.png' % (d, i)
+            dst = '%s_%s.jpg' % (d, i)
+            crawl_logger.debug('Converting %s to %s' % (src, dst))
+
+            img = Image.open(src)
+            img = img.convert('RGB') # Remove alpha channel from the png
+            img.save(dst, 'jpeg')
+            os.unlink(src)
+
     def screenshot_index(self, links, crawl_policy):
         filename, img_count = SeleniumBrowser.take_screenshots(self.url)
-
-        if crawl_policy.screenshot_format == Document.SCREENSHOT_JPG:
-            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, filename)
-
-            for i in range(img_count):
-                src = '%s_%s.png' % (d, i)
-                dst = '%s_%s.jpg' % (d, i)
-                crawl_logger.debug('Converting %s to %s' % (src, dst))
-
-                img = Image.open(src)
-                img = img.convert('RGB') # Remove alpha channel from the png
-                img.save(dst, 'jpeg')
-                os.unlink(src)
 
         self.screenshot_file = filename
         self.screenshot_count = img_count
         self.screenshot_format = crawl_policy.screenshot_format
+
+        if crawl_policy.screenshot_format == Document.SCREENSHOT_JPG:
+            self.convert_to_jpg()
 
         SeleniumBrowser.scroll_to_page(0)
         for i, link in enumerate(links):

@@ -82,6 +82,16 @@ def reindex_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
 
 
+@admin.action(description='Convert screens to jpeg')
+def convert_to_jpg(modeladmin, request, queryset):
+    for doc in queryset.all():
+        if doc.screenshot_format == Document.SCREENSHOT_JPG or not doc.screenshot_file:
+            continue
+        doc.convert_to_jpg()
+        doc.screenshot_format = Document.SCREENSHOT_JPG
+        doc.save()
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
@@ -91,7 +101,7 @@ class DocumentAdmin(admin.ModelAdmin):
         'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
     readonly_fields = fields
     ordering = ('url',)
-    actions = [crawl_now, reindex_now]
+    actions = [crawl_now, reindex_now, convert_to_jpg]
 
     def has_add_permission(self, request, obj=None):
         return False

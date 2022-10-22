@@ -471,13 +471,13 @@ class Document(models.Model):
 
         while True:
             # Loop until we stop redirecting
+            crawl_policy = CrawlPolicy.get_from_url(doc.url)
             try:
                 worker_stats.doc_processed += 1
                 doc.worker_no = None
                 doc.crawl_last = now()
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
-                    crawl_policy = CrawlPolicy.get_from_url(doc.url)
                     domain_setting = DomainSetting.get_from_url(doc.url, crawl_policy.default_browse_mode)
 
                     if not domain_setting.robots_authorized(doc.url):
@@ -513,6 +513,7 @@ class Document(models.Model):
                     break
             except Exception as e:
                 doc.set_error(format_exc())
+                doc._schedule_next(True, crawl_policy)
                 doc.save()
                 crawl_logger.error(format_exc())
                 break

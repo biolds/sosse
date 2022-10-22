@@ -137,6 +137,10 @@ DEFAULTS = OrderedDict([
             'comment': 'Number of crawlers running concurrently (default to the number of CPU available)',
             'default': ''
         }],
+        ['user_agent', {
+            'comment': 'User agent used by crawlers',
+            'default': 'SOSSE'
+        }],
         ['fail_over_lang', {
             'comment': 'Language used to parse web pages when the original language could not be detected',
             'default': 'english'
@@ -145,13 +149,13 @@ DEFAULTS = OrderedDict([
             'comment': 'Hashing algorithms used to define if the content of a pae has changed',
             'default': 'md5'
         }],
-        ['user_agent', {
-            'comment': 'User agent used by crawlers',
-            'default': 'SOSSE'
-        }],
         ['screenshots_size', {
             'comment': 'Resolution of the browser used to take screenshots',
             'default': '1920x1080'
+        }],
+        ['browser_options', {
+            'comment': "Options passed to Chromium's command line",
+            'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
         }],
         ['js_stable_time', {
             'comment': 'When loading a page in a browser, it is processed after the page stays unchanged for <js_stable_time> seconds',

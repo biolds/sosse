@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pytz
+import shlex
 import traceback
 from datetime import datetime
 from hashlib import md5
@@ -262,13 +263,12 @@ class SeleniumBrowser(Browser):
         options.add_argument('--start-maximized')
         options.add_argument('--start-fullscreen')
         options.add_argument('--window-size=%s,%s' % cls.screen_size())
-        options.add_argument("--enable-precise-memory-info")
-        options.add_argument("--disable-default-apps")
-        options.add_argument("--incognito")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--headless")
 
-        # Disable downloads
+        opts = shlex.split(settings.SOSSE_BROWSER_OPTIONS)
+        for opt in opts:
+            crawl_logger.info('Passing option %s', opt)
+            options.add_argument(opt)
+
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.delete_all_cookies()
 

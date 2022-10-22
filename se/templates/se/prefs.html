@@ -1,8 +1,8 @@
 {% extends "se/base.html" %}
 
 {% block js %}
-window.onload = function() {
-    const supportedLangs = {{ supported_langs|safe }};   
+document.addEventListener("DOMContentLoaded", function(event) {
+    const supportedLangs = {{ supported_langs|safe }};
     const langSelect = document.getElementById('language');
     const userLang = getLang();
 
@@ -26,7 +26,10 @@ window.onload = function() {
 
     const pageSize = document.getElementById('page_size');
     pageSize.value = getPageSize();
-}
+
+    const cachedLinks = document.getElementById('cached_links');
+    cachedLinks.checked = getCachedLinks();
+});
 
 function save() {
     const langSelect = document.getElementById('language');
@@ -35,6 +38,9 @@ function save() {
 
     const pageSize = document.getElementById('page_size');
     localStorage.setItem('sossePageSize', pageSize.value);
+
+    const cachedLinks = document.getElementById('cached_links');
+    localStorage.setItem('sosseCachedLinks', cachedLinks.checked);
 
     window.location = '/';
 }
@@ -56,6 +62,10 @@ function cancel() {
     <div class="label">Results by page</div>
     <input id="page_size" type="number" step="10" min="10" max="{{ settings.SOSSE_MAX_PAGE_SIZE }}">
     <br/><br/>
+    <input id="cached_links" type="checkbox">
+    <label for="cached_links">Search result principal links point to cache</label>
+    <br/><br/>
+
     <button onclick="save()">Save</button>
     <button onclick="cancel()">Cancel</button>
 {% endblock %}

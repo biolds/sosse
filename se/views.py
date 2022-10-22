@@ -98,6 +98,18 @@ def search(request):
             continue
         sosse_langdetect_to_postgres[key] = val
 
+    for r in paginated:
+        if form.cleaned_data['c']:
+            r.link = r.get_absolute_url()
+            r.extra_link = r.url
+        else:
+            r.link = r.url
+            r.extra_link = r.get_absolute_url()
+
+    extra_link_txt = 'cached'
+    if form.cleaned_data['c']:
+        extra_link_txt = 'source'
+
     context = get_context({
         'hide_title': True,
         'form': form,
@@ -107,7 +119,8 @@ def search(request):
         'has_query': has_query,
         'q': q,
         'title': q,
-        'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres
+        'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres,
+        'extra_link_txt': extra_link_txt
     })
     context.update(get_pagination(request, paginated))
     return render(request, 'se/index.html', context)

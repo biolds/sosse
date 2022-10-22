@@ -7,6 +7,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
     const pageSize = document.getElementById('id_ps');
     pageSize.value = getPageSize();
 
+    const cachedLinks = document.getElementById('id_c');
+    if (getCachedLinks()) {
+        cachedLinks.value = '1';
+    } else {
+        document.getElementById('search_field').removeChild(cachedLinks);
+    }
+
     load_adv_search();
 
     const form = document.getElementById('search_form');

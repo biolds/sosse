@@ -26,6 +26,7 @@ class SearchForm(forms.Form):
                         widget=forms.TextInput(attrs={'autofocus': True}))
     l = forms.CharField(widget=forms.HiddenInput, initial='en', required=False)
     ps = forms.IntegerField(widget=forms.HiddenInput, initial=settings.SOSSE_DEFAULT_PAGE_SIZE, required=False)
+    c = forms.ChoiceField(widget=forms.HiddenInput, choices=(('', ''), ('1', '1')), required=False)
     s = forms.ChoiceField(initial='-rank', choices=SORT, required=False)
 
     def clean(self):
@@ -69,6 +70,7 @@ class SearchForm(forms.Form):
                     order_by = (order,)
         cleaned_data['order_by'] = order_by
 
+        cleaned_data['c'] = bool(cleaned_data['c'])
         return cleaned_data
 
 

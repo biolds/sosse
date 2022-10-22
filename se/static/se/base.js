@@ -6,6 +6,14 @@ function getLang() {
   }
 }
 
+function getCachedLinks() {
+  if (localStorage.getItem('sosseCachedLinks') === 'true') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function(event) {
     // Panel opening on menu buttons
     const buttons = document.getElementsByClassName('menu_button');

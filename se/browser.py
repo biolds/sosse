@@ -327,13 +327,17 @@ class SeleniumBrowser(Browser):
                 'value': cookie['value'],
                 'path': cookie['path'],
                 'secure': cookie['secure'],
-                'same_site': cookie['sameSite'],
-                'http_only': cookie['httpOnly']
             }
 
             expires = cookie.get('expiry')
             if expires:
                 c['expires'] = datetime.fromtimestamp(expires, pytz.utc)
+
+            if cookie.get('sameSite'):
+                c['same_site'] = cookie['sameSite']
+
+            if cookie.get('httpOnly'):
+                c['http_only'] = cookie['httpOnly']
 
             _cookies.append(c)
 

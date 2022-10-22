@@ -100,7 +100,7 @@ class DocumentAdmin(admin.ModelAdmin):
     fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
         'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
     readonly_fields = fields
-    ordering = ('url',)
+    ordering = ('-crawl_last',)
     actions = [crawl_now, reindex_now, convert_to_jpg]
 
     def has_add_permission(self, request, obj=None):
@@ -284,6 +284,10 @@ class CrawlPolicyForm(forms.ModelForm):
         if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM and cleaned_data['take_screenshots']:
             self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to take screenshots')
             self.add_error('take_screenshots', 'Browsing mode must be set to Chromium to take screenshots')
+
+        if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM and cleaned_data['script']:
+            self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to run a script')
+            self.add_error('script', 'Browsing mode must be set to Chromium to run a script')
         return cleaned_data
 
 
@@ -299,7 +303,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('url_regex', 'documents', 'condition', 'mimetype_regex', 'crawl_depth', 'keep_params')
         }),
         ('Browser', {
-            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'store_extern_links')
+            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'script', 'store_extern_links')
         }),
         ('Updates', {
             'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')

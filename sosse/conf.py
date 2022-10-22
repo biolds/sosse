@@ -3,6 +3,8 @@ import hashlib
 from collections import OrderedDict
 from configparser import ConfigParser
 
+from django.core.management.utils import get_random_secret_key
+
 
 CONF_FILE = '/etc/sosse/sosse.conf'
 
@@ -11,7 +13,7 @@ DEFAULTS = OrderedDict([
     ['common', OrderedDict([
         ['secret_key', {
             'var': 'SECRET_KEY',
-            'comment': 'SECURITY WARNING: keep the secret key used in production secret!',
+            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun "sosse-admin generate_secret" to create a new one',
             'default': 'CHANGE ME'
         }],
         ['debug', {
@@ -293,4 +295,7 @@ class Conf:
                 if opt.get('type', str) != str:
                     value = value.lower()
                 s += f'#{var}={value}\n'
+
+                if var == 'secret_key':
+                    s += 'secret_key = ' + get_random_secret_key() + '\n'
         return s

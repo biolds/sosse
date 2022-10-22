@@ -256,7 +256,6 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def init(cls):
-        from .models import CrawlPolicy
         options = Options()
         options.binary_location = "/usr/bin/chromium"
         options.add_argument('--user-agent=%s' % settings.SOSSE_USER_AGENT)
@@ -289,6 +288,8 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _get_page(cls):
+        from .models import CrawlPolicy
+
         # Wait for page being ready
         retry = settings.SOSSE_JS_STABLE_RETRY
         while retry > 0:
@@ -311,6 +312,11 @@ class SeleniumBrowser(Browser):
             previous_content = content
             sleep(settings.SOSSE_JS_STABLE_TIME)
 
+        crawl_policy = CrawlPolicy.get_from_url(cls.driver.current_url)
+        if crawl_policy.script:
+            cls.driver.execute_script(crawl_policy.script);
+
+        content = cls.driver.page_source
         page = Page(cls.driver.current_url,
                     content,
                     cls)

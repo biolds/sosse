@@ -1132,6 +1132,7 @@ class CrawlPolicy(models.Model):
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
     take_screenshots = models.BooleanField(default=False)
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
+    script = models.TextField(default='', help_text='Javascript code to execute after the page is loaded', blank=True)
     store_extern_links = models.BooleanField(default=False)
 
     recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')

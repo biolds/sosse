@@ -138,7 +138,7 @@ class DocumentAdmin(admin.ModelAdmin):
            form=AddToQueueForm(),
            title='Crawl a new URL'
         )
-        return response.TemplateResponse(request, 'se/add_to_queue.html', context)
+        return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
     def add_to_queue_confirm(self, request):
         if request.method != 'POST':

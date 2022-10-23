@@ -295,7 +295,7 @@ class CrawlPolicyForm(forms.ModelForm):
 class CrawlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
-    list_display = ('url_regex', 'condition', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
+    list_display = ('url_regex', 'docs', 'condition', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)
     readonly_fields = ('documents',)
     fieldsets = (
@@ -317,6 +317,12 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     def documents(obj):
         params = urlencode({'q': obj.url_regex})
         return format_html('<a href="{}">Matching documents</a>', reverse('admin:se_document_changelist') + '?' + params)
+
+    @staticmethod
+    def docs(obj):
+        count = Document.objects.filter(url__regex=obj.url_regex).count()
+        params = urlencode({'q': obj.url_regex})
+        return format_html('<a href="{}">{}</a>', reverse('admin:se_document_changelist') + '?' + params, count)
 
 
 @admin.register(DomainSetting)

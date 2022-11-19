@@ -13,7 +13,7 @@ from django.shortcuts import redirect, reverse
 from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
-from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie
+from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl
 from .utils import human_datetime
 
 
@@ -351,3 +351,10 @@ class CookieAdmin(admin.ModelAdmin):
         cookies = sorted(cookies, key=lambda x:x.name)
         _cookies = Cookie.objects.filter(id__in=[c.id for c in cookies])
         return _cookies, False
+
+
+@admin.register(ExcludedUrl)
+class ExcludedUrlAdmin(admin.ModelAdmin):
+    list_display = ('url',)
+    search_fields = ('url', 'domment')
+    ordering = ('url',)

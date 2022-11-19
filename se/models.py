@@ -403,6 +403,9 @@ class Document(models.Model):
 
     @staticmethod
     def queue(url, parent_policy, parent):
+        if ExcludedUrl.objects.filter(url=url).first():
+            return None
+
         crawl_policy = CrawlPolicy.get_from_url(url)
         crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.condition))
 
@@ -1250,3 +1253,8 @@ class SearchHistory(models.Model):
             SearchHistory.objects.create(querystring=qs,
                                          query=q,
                                          user=request.user)
+
+
+class ExcludedUrl(models.Model):
+    url = models.TextField(unique=True)
+    comment = models.TextField(blank=True, null=True)

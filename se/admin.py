@@ -74,11 +74,6 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 
 @admin.action(description='Crawl now')
 def crawl_now(modeladmin, request, queryset):
-    queryset.update(crawl_next=now())
-
-
-@admin.action(description='Force reindex now')
-def reindex_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
 
 
@@ -101,7 +96,7 @@ class DocumentAdmin(admin.ModelAdmin):
         'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
     readonly_fields = fields
     ordering = ('-crawl_last',)
-    actions = [crawl_now, reindex_now, convert_to_jpg]
+    actions = [crawl_now, convert_to_jpg]
 
     def has_add_permission(self, request, obj=None):
         return False

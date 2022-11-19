@@ -146,7 +146,7 @@ class DocumentAdmin(admin.ModelAdmin):
             title='Crawl a new URL'
         )
         if not form.is_valid():
-            return response.TemplateResponse(request, 'se/add_to_queue.html', context)
+            return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
         if request.POST.get('action') == 'Confirm':
             doc, created = Document.objects.get_or_create(url=form.cleaned_data['url'])
@@ -170,7 +170,7 @@ class DocumentAdmin(admin.ModelAdmin):
                 'recrawl_min': human_datetime(crawl_policy.recrawl_dt_min),
                 'recrawl_max': human_datetime(crawl_policy.recrawl_dt_max)
             })
-        return response.TemplateResponse(request, 'se/add_to_queue.html', context)
+        return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
     @staticmethod
     @admin.display(ordering='crawl_next')

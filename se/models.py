@@ -344,9 +344,6 @@ class Document(models.Model):
             self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
             self._index_log('remove accent', stats, verbose)
 
-            if crawl_policy.take_screenshots:
-                self.screenshot_index(links['links'], crawl_policy)
-
             Link.objects.filter(doc_from=self).delete()
             self._index_log('delete', stats, verbose)
 
@@ -355,6 +352,9 @@ class Document(models.Model):
             for link in links['links']:
                 link.save()
             self._index_log('bulk', stats, verbose)
+
+            if crawl_policy.take_screenshots:
+                self.screenshot_index(links['links'], crawl_policy)
         else:
             self.content = ''
             self.normalized_content = ''
@@ -403,6 +403,7 @@ class Document(models.Model):
                     int(loc['elemRight'] - loc['elemLeft']),
                     int(loc['elemBottom'] - loc['elemTop'])
                 )
+                link.save()
 
     def set_error(self, err):
         self.error = err

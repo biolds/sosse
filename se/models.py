@@ -76,13 +76,21 @@ def absolutize_url(url, p, keep_params, keep_anchors):
         return sanitize_url(p, keep_params, keep_anchors)
 
     url = urlparse(url)
+
+    if p.startswith('./'):
+        p = p[2:]
+
     if p.startswith('/'):
         new_path = p
     else:
         new_path = os.path.dirname(url.path)
-        new_path += '/' + p
+        if not new_path.endswith('/'):
+            new_path += '/'
 
-    url = url._replace(path=new_path)
+        new_path += p
+
+    # clear params: new params are already contained in new_path
+    url = url._replace(path=new_path, query='')
     return sanitize_url(url.geturl(), keep_params, keep_anchors)
 
 

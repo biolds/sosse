@@ -13,7 +13,7 @@ DEFAULTS = OrderedDict([
     ['common', OrderedDict([
         ['secret_key', {
             'var': 'SECRET_KEY',
-            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun "sosse-admin generate_secret" to create a new one',
+            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun "sosse-admin generate_secret" to create a new one\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key',
             'default': 'CHANGE ME'
         }],
         ['debug', {

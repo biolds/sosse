@@ -304,7 +304,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')
         }),
         ('Authentication', {
-            'fields': ('auth_login_url_re', 'auth_form_selector', 'auth_cookies'),
+            'fields': ('auth_login_url_re', 'auth_form_selector'),
         }),
     )
 

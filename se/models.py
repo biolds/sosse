@@ -1146,7 +1146,6 @@ class CrawlPolicy(models.Model):
 
     auth_login_url_re = models.TextField(null=True, blank=True, verbose_name='Login URL', help_text='A redirection to this URL will trigger authentication')
     auth_form_selector = models.TextField(null=True, blank=True, verbose_name='Form selector', help_text='CSS selector pointing to the authentication &lt;form&gt; element')
-    auth_cookies = models.TextField(blank=True, default='', verbose_name='Authentication cookie')
 
     class Meta:
         verbose_name_plural = 'crawl policies'

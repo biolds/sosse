@@ -556,7 +556,6 @@ class SeleniumBrowser(Browser):
         form.submit()
         crawl_logger.debug('submitting')
         cls._save_cookies(cls.driver.current_url)
-        crawl_logger.debug('got cookie %s' % crawl_policy.auth_cookies)
 
         if cls.driver.current_url != url:
             return cls.get(url)

@@ -287,9 +287,7 @@ class SeleniumBrowser(Browser):
                 pass
 
     @classmethod
-    def _get_page(cls):
-        from .models import CrawlPolicy
-
+    def _wait_for_ready(cls):
         # Wait for page being ready
         retry = settings.SOSSE_JS_STABLE_RETRY
         while retry > 0:
@@ -312,9 +310,15 @@ class SeleniumBrowser(Browser):
             previous_content = content
             sleep(settings.SOSSE_JS_STABLE_TIME)
 
+    @classmethod
+    def _get_page(cls):
+        from .models import CrawlPolicy
+        cls._wait_for_ready()
+
         crawl_policy = CrawlPolicy.get_from_url(cls.driver.current_url)
         if crawl_policy.script:
             cls.driver.execute_script(crawl_policy.script);
+            cls._wait_for_ready()
 
         content = cls.driver.page_source
         page = Page(cls.driver.current_url,
@@ -381,12 +385,6 @@ class SeleniumBrowser(Browser):
                 raise Exception(cookie)
 
     @classmethod
-    def _browser_get(cls, url):
-        cls._load_cookies(url)
-        cls.driver.get(url)
-        cls._save_cookies(url)
-
-    @classmethod
     @retry
     def get(cls, url):
         current_url = cls.driver.current_url
@@ -397,7 +395,8 @@ class SeleniumBrowser(Browser):
                 crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
             os.unlink(f)
 
-        cls._browser_get(url)
+        cls._load_cookies(url)
+        cls.driver.get(url)
 
         if ((current_url != url and cls.driver.current_url == current_url) or # If we got redirected to the url that was previously set in the browser
                 cls.driver.current_url == 'data:,'): # The url can be "data:," during a few milliseconds when the download starts
@@ -406,6 +405,7 @@ class SeleniumBrowser(Browser):
                 return page
 
         page = cls._get_page()
+        cls._save_cookies(url)
 
         if url != page.url:
             page.got_redirect = True

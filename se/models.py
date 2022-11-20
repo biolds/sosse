@@ -260,26 +260,28 @@ class Document(models.Model):
                     child_policy = CrawlPolicy.get_from_url(href_for_policy)
                     href = absolutize_url(self.url, href, child_policy.keep_params, False)
                     target = Document.queue(href, crawl_policy, self)
-                    link = None
-                    if target:
-                        link = Link(doc_from=self,
-                                    link_no=len(links['links']),
-                                    doc_to=target,
-                                    text=s,
-                                    pos=len(links['text']))
-                    elif crawl_policy.store_extern_links:
-                        href = elem.get('href').strip()
-                        href = absolutize_url(self.url, href, True, True)
-                        link = Link(doc_from=self,
-                                    link_no=len(links['links']),
-                                    text=s,
-                                    pos=len(links['text']),
-                                    extern_url=href)
 
-                    if link:
-                        if crawl_policy.take_screenshots:
-                            link.css_selector = self._build_selector(elem)
-                        links['links'].append(link)
+                    if target != self:
+                        link = None
+                        if target:
+                            link = Link(doc_from=self,
+                                        link_no=len(links['links']),
+                                        doc_to=target,
+                                        text=s,
+                                        pos=len(links['text']))
+                        elif crawl_policy.store_extern_links:
+                            href = elem.get('href').strip()
+                            href = absolutize_url(self.url, href, True, True)
+                            link = Link(doc_from=self,
+                                        link_no=len(links['links']),
+                                        text=s,
+                                        pos=len(links['text']),
+                                        extern_url=href)
+
+                        if link:
+                            if crawl_policy.take_screenshots:
+                                link.css_selector = self._build_selector(elem)
+                            links['links'].append(link)
 
             if s:
                 links['text'] += s

@@ -1016,10 +1016,11 @@ class Cookie(models.Model):
         (SAME_SITE_STRICT, SAME_SITE_STRICT),
         (SAME_SITE_NONE, SAME_SITE_NONE)
     )
-    domain = models.TextField()
+    domain = models.TextField(help_text='Domain name')
+    domain_cc = models.TextField(help_text='Domain name attribute from the cookie')
     inc_subdomain = models.BooleanField()
-    name = models.TextField()
-    value = models.TextField()
+    name = models.TextField(blank=True)
+    value = models.TextField(blank=True)
     path = models.TextField(default='/')
     expires = models.DateTimeField(null=True, blank=True)
     secure = models.BooleanField()
@@ -1027,7 +1028,7 @@ class Cookie(models.Model):
     http_only = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('domain', 'name', 'path')
+        unique_together = ('domain_cc', 'name', 'path')
 
     @classmethod
     def get_from_url(cls, url, queryset=None, expire=True):
@@ -1074,15 +1075,17 @@ class Cookie(models.Model):
     def set(cls, url, cookies):
         new_cookies = []
         parsed_url = urlparse(url)
-        domain = parsed_url.netloc
 
         for c in cookies:
             name = c.pop('name')
             path = c.pop('path', '') or ''
+            domain = parsed_url.netloc
+            domain_cc = parsed_url.netloc
 
             cookie_dom = c.pop('domain', None)
             inc_subdomain = False
             if cookie_dom:
+                domain_cc = cookie_dom
                 cookie_dom = cookie_dom.lstrip('.')
                 inc_subdomain = True
 
@@ -1097,11 +1100,10 @@ class Cookie(models.Model):
                 continue
 
             c['inc_subdomain'] = inc_subdomain
-            cookie, created = Cookie.objects.get_or_create(c, domain=domain, name=name, path=path)
+            c['domain'] = domain
+            cookie, created = Cookie.objects.update_or_create(domain_cc=domain_cc, path=path, name=name, defaults=c)
 
             if created:
-                value = c['value']
-                crawl_logger.debug('Created cookie %s/%s %s=%s', domain, path, name, value)
                 new_cookies.append(cookie)
         return new_cookies
 

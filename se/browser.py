@@ -120,7 +120,7 @@ class RequestBrowser(Browser):
         jar = requests.cookies.RequestsCookieJar()
 
         for c in Cookie.get_from_url(url):
-            jar.set(c.name, c.value, domain=c.domain)
+            jar.set(c.name, c.value, path=c.path, domain=c.domain_cc)
         return jar
 
     @classmethod
@@ -331,6 +331,7 @@ class SeleniumBrowser(Browser):
     def _save_cookies(cls, url):
         from .models import Cookie
         _cookies = []
+        crawl_logger.debug('got cookies %s' % cls.driver.get_cookies())
         for cookie in cls.driver.get_cookies():
             c = {
                 'name': cookie['name'],
@@ -348,6 +349,9 @@ class SeleniumBrowser(Browser):
 
             if cookie.get('httpOnly'):
                 c['http_only'] = cookie['httpOnly']
+
+            if cookie.get('domain'):
+                c['domain'] = cookie['domain']
 
             _cookies.append(c)
 
@@ -370,7 +374,7 @@ class SeleniumBrowser(Browser):
             cookie = {
                 'name': c.name,
                 'value': c.value,
-                'domain': c.domain,
+                'domain': c.domain_cc,
                 'path': c.path,
                 'secure': c.secure,
                 'httpOnly': c.http_only,
@@ -381,6 +385,7 @@ class SeleniumBrowser(Browser):
 
             try:
                 cls.driver.add_cookie(cookie)
+                crawl_logger.debug('loaded cookie %s' % cookie)
             except:
                 raise Exception(cookie)
 

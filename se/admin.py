@@ -335,17 +335,18 @@ class DomainSettingAdmin(admin.ModelAdmin):
 
 @admin.register(Cookie)
 class CookieAdmin(admin.ModelAdmin):
-    list_display = ('domain', 'path', 'name', 'value', 'expires')
-    search_fields = ('domain__domain', 'path')
+    list_display = ('domain', 'domain_cc', 'path', 'name', 'value', 'expires')
+    search_fields = ('domain', 'path')
+    ordering = ('domain', 'domain_cc', 'path', 'name')
     exclude = tuple()
 
     def get_search_results(self, request, queryset, search_term):
-        if not search_term:
-            return Cookie.objects.all(), False
-        cookies = Cookie.get_from_url(search_term, queryset, expire=False)
-        cookies = sorted(cookies, key=lambda x:x.name)
-        _cookies = Cookie.objects.filter(id__in=[c.id for c in cookies])
-        return _cookies, False
+        if search_term.startswith('http://') or search_term.startswith('https://'):
+            cookies = Cookie.get_from_url(search_term, queryset, expire=False)
+            cookies = sorted(cookies, key=lambda x:x.name)
+            _cookies = Cookie.objects.filter(id__in=[c.id for c in cookies])
+            return _cookies, False
+        return super().get_search_results(request, queryset, search_term)
 
 
 @admin.register(ExcludedUrl)

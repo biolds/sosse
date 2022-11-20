@@ -1,9 +1,7 @@
 echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
 
 apt update
-apt install python3-django/bullseye-backports python3-requests python3-bs4 python3-html5lib python3-psycopg2 python3-django-uwsgi python3-langdetect python3-pygal python3-magic python3-defusedxml python3-selenium libjs-jquery postgresql nginx uwsgi
-
-apt install chromium chromium-driver
+apt install python3-django/bullseye-backports python3-requests python3-bs4 python3-html5lib python3-psycopg2 python3-django-uwsgi python3-langdetect python3-pygal python3-magic python3-defusedxml python3-selenium libjs-jquery postgresql nginx uwsgi chromium chromium-driver
 
 su postgres -c "psql --command \"CREATE USER django WITH SUPERUSER PASSWORD 'password'\""
 su postgres -c "psql --command \"CREATE DATABASE django OWNER django\""

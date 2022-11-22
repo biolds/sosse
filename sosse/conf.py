@@ -301,5 +301,7 @@ class Conf:
                 s += f'#{var}={value}\n'
 
                 if var == 'secret_key':
-                    s += 'secret_key = ' + get_random_secret_key() + '\n'
+                    # Escape % to avoid value interpolation in the conf file
+                    # (https://docs.python.org/3/library/configparser.html#interpolation-of-values)
+                    s += 'secret_key = ' + get_random_secret_key().replace('%', '%%') + '\n'
         return s

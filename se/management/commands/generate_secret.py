@@ -8,4 +8,6 @@ class Command(BaseCommand):
     help = 'Generate a secret key to set in the configuration'
 
     def handle(self, *args, **options):
-        print(get_random_secret_key())
+        # Escape % to avoid value interpolation in the conf file
+        # (https://docs.python.org/3/library/configparser.html#interpolation-of-values)
+        print(get_random_secret_key().replace('%', '%%'))

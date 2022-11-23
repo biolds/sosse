@@ -10,15 +10,18 @@ setuptools:
 
 _deb:
 	dpkg-buildpackage -us -uc
-	mv /sosse*_amd64.deb /deb/
+	mv ../sosse*_amd64.deb /deb/
 
 deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
-	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb sosse-deb bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb registry.gitlab.com/biolds1/sosse/debian-pkg:latest bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
+
+docker_deb_push:
+	docker push registry.gitlab.com/biolds1/sosse/debian-pkg:latest
 
 docker_deb:
 	docker pull debian:bullseye
-	cd $(current_dir)/build/ && docker build --rm -t sosse-deb .
+	cd $(current_dir)/build/ && docker build --rm -t registry.gitlab.com/biolds1/sosse/debian-pkg:latest .
 
 docker:
 	docker pull debian:bullseye

@@ -1,5 +1,6 @@
 stages:
   - test
+  - build
 
 debian-unittest:
   image: debian:bullseye
@@ -18,3 +19,11 @@ debian-unittest:
     - python3 ./sosse-admin makemigrations
     - MIGRATION_COUNT2="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2"
+
+debian-pkg:
+  image: registry.gitlab.com/biolds1/sosse/debian-pkg:latest
+  stage: build
+  script:
+    - cd "$CI_PROJECT_DIR"
+    - mkdir /deb
+    - make _deb

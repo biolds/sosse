@@ -1,13 +1,13 @@
 from collections import OrderedDict
 import json
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote_plus
 
 from django.conf import settings
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
 from django.db import connection
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
@@ -179,6 +179,21 @@ def history(request):
     }
     context.update(get_pagination(request, paginated))
     return render(request, 'se/history.html', context)
+
+
+def opensearch(request):
+    context = {
+        'url': request.build_absolute_uri('/').rstrip('/')
+    }
+    return render(request, 'se/opensearch.xml', context, content_type='application/xml')
+
+
+def search_redirect(request):
+    context = {
+        'url': request.build_absolute_uri('/'),
+        'q': quote_plus(request.GET.get('q', ''))
+    }
+    return render(request, 'se/search_redirect.html', context)
 
 
 class SELoginView(LoginView):

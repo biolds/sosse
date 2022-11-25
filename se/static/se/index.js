@@ -4,8 +4,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     const langInput = document.getElementById('id_l');
     langInput.value = getLang();
 
-    const pageSize = document.getElementById('id_ps');
-    pageSize.value = getPageSize();
+    if (localStorage.getItem('sossePageSize')) {
+      const pageSize = document.getElementById('id_ps');
+      pageSize.value = getPageSize();
+    }
 
     const cachedLinks = document.getElementById('id_c');
     if (getCachedLinks()) {

@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
 
     const pageSize = document.getElementById('page_size');
-    pageSize.value = getPageSize();
+    pageSize.value = getPageSize({{ settings.SOSSE_DEFAULT_PAGE_SIZE }});
 
     const cachedLinks = document.getElementById('cached_links');
     cachedLinks.checked = getCachedLinks();

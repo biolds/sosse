@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.urls import path, re_path
-from se.views import favicon, history, prefs, search, word_stats, SELoginView
+from se.views import favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
 from se.atom import atom
 from se.screenshot import screenshot
 from se.stats import stats
@@ -26,6 +26,7 @@ from se.www import www
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', search, name='search'),
+    path('s/', search_redirect, name='search_redirect'),
     path('prefs/', prefs),
     path('stats/', stats),
     path('atom/', atom),
@@ -33,6 +34,7 @@ urlpatterns = [
     path('history/', history, name='history'),
     path('login/', SELoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('opensearch.xml', opensearch, name='opensearch'),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
     re_path(r'screenshot/(?P<url>.*)', screenshot, name='screenshot'),
     re_path(r'www/(?P<url>.*)', www, name='www'),

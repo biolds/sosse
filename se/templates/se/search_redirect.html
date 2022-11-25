@@ -1,0 +1,36 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
+<head>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="robots" content="NONE,NOARCHIVE">
+    <meta charset="utf-8">
+    {% if favicon %}
+        <link rel="icon" href="{{ favicon }}" />
+    {% else %}
+        <link rel="icon" href="{% static "se/logo.svg" %}" />
+    {% endif %}
+    <title>SOSSE</title>
+    <noscript>
+        <meta http-equiv="REFRESH" content="0;url=/?q={{ q|safe }}">
+    </noscript>
+    <script src="{% static 'se/base.js' %}"></script>
+    <script>
+        const currentParams = new URLSearchParams(window.location.search);
+        let url = '{{ url }}';
+
+        if (currentParams.get('q')) {
+          const searchParams = new URLSearchParams();
+          searchParams.append('l', getLang());
+          searchParams.append('ps', getPageSize());
+          searchParams.append('q', currentParams.get('q'));
+          if (getCachedLinks()) {
+            searchParams.append('c', '1');
+          }
+          url = '{{ url }}?' + searchParams.toString();
+        }
+        console.log('redirecting to', url);
+        window.location = url;
+    </script>
+</head>
+<body></body>
+</html>

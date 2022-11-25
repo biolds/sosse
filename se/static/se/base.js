@@ -14,6 +14,17 @@ function getCachedLinks() {
   }
 }
 
+function getPageSize(defaultPageSize) {
+  if (localStorage.getItem('sossePageSize')) {
+    return parseInt(localStorage.getItem('sossePageSize'));
+  } else {
+    if (!defaultPageSize) {
+        console.error('defaultPageSize is null');
+    }
+    return defaultPageSize;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function(event) {
     // Panel opening on menu buttons
     const buttons = document.getElementsByClassName('menu_button');

@@ -165,6 +165,17 @@ def favicon(request, favicon_id):
 
 
 def history(request):
+    if request.method == 'POST':
+        if 'del_all' in request.POST:
+            SearchHistory.objects.all().delete()
+        else:
+            for key, val in request.POST.items():
+                if key.startswith('del_'):
+                    key = int(key[4:])
+                    obj = SearchHistory.objects.filter(id=key).first()
+                    if obj:
+                        obj.delete()
+
     page_size = int(request.GET.get('ps', settings.SOSSE_DEFAULT_PAGE_SIZE))
     page_size = min(page_size, settings.SOSSE_MAX_PAGE_SIZE)
 
@@ -174,7 +185,7 @@ def history(request):
     paginated = paginator.get_page(page_number)
 
     context = {
-        'title': 'Search history',
+        'title': 'History',
         'paginated': paginated
     }
     context.update(get_pagination(request, paginated))

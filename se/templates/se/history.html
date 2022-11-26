@@ -1,11 +1,59 @@
 {% extends "se/base.html" %}
+{% load static %}
+
+{% block js %}
+function del_item(id) {
+    let msg = 'Are you sure you want to delete this entry ?';
+    if (id === 'all') {
+        msg = 'Are you sure you want to delete all entries in the history ?';
+    }
+    if (confirm(msg)) {
+        const form = document.getElementById('history_form');
+        const del = document.createElement('input');
+        del.setAttribute('name', `del_${id}`);
+        form.appendChild(del);
+        form.submit();
+    }
+    return false;
+}
+{% endblock %}
+
+{% block css %}
+    .del_button {
+        background-image: url('{% static "se/icon-trash.svg" %}');
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        margin: 0;
+    }
+    #del_all {
+        width: 115px;
+        padding-left: 25px;
+        background-position-x: 14px;
+        margin-left: 15px;
+        background-color: #fab;
+    }
+{% endblock %}
 
 {% block body %}
-    {% for e in paginated %}
-        <p>
-            {{ e.date }} · <a href="{% url 'search' %}?{{ e.querystring}}">{{ e.query }}</a>
-        </p>
-    {% endfor %}
+    <form id="history_form" method="POST">
+        {% csrf_token %}
+        {% if paginated.paginator.count %}
+            <div style="float: right">
+                {{ paginated.paginator.count }} element{{ paginated.paginator.count|pluralize }} in the history<input type="submit" class="del_button img_button" id="del_all" name="del_all" value="Delete all" onclick="return del_item('all')">
+            </div>
+        {% else %}
+            The search history is empty.
+        {% endif %}
+
+        {% for e in paginated %}
+            <p>
+                <input type="submit" title="Delete" class="del_button img_button" id="del_{{ e.id }}" name="del_{{ e.id }}" value="" onclick="return del_item({{ e.id }})">
+                {{ e.date }} ·
+                <a href="{% url 'search' %}?{{ e.querystring}}">{{ e.query }}</a>
+            </p>
+        {% endfor %}
+    </form>
 
     {% include 'se/pagination.html' %}
 {% endblock %}

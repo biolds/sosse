@@ -124,11 +124,20 @@ class RequestBrowser(Browser):
         return jar
 
     @classmethod
-    def _get_headers(cls):
-        return {
-            'User-Agent': settings.SOSSE_USER_AGENT,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+    def _requests_params(cls):
+        params = {
+            'headers': {
+                'User-Agent': settings.SOSSE_USER_AGENT,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            }
         }
+
+        if settings.SOSSE_PROXY:
+            params['proxies'] = {
+                'http': settings.SOSSE_PROXY,
+                'https': settings.SOSSE_PROXY
+            }
+        return params
 
     @classmethod
     def get(cls, url, raw=False, check_status=False):
@@ -141,7 +150,7 @@ class RequestBrowser(Browser):
             redirects -= 1
 
             cookies = cls._get_cookies(url)
-            r = requests.get(url, cookies=cookies, headers=cls._get_headers())
+            r = requests.get(url, cookies=cookies, **cls._requests_params())
             cls._set_cookies(url, r.cookies)
 
             if check_status:
@@ -201,7 +210,7 @@ class RequestBrowser(Browser):
                           data=payload,
                           cookies=cookies,
                           allow_redirects=False,
-                          headers=cls._get_headers())
+                          **cls._requests_params())
         cls._set_cookies(post_url, r.cookies)
 
         crawl_logger.debug('auth returned cookie: %s' % r.cookies)
@@ -218,7 +227,7 @@ class RequestBrowser(Browser):
         location = absolutize_url(r.url, location, True, False)
         crawl_logger.debug('got redirected to %s after authentication' % location)
         cookies = cls._get_cookies(location)
-        r = requests.get(location, cookies=cookies, headers=cls._get_headers())
+        r = requests.get(location, cookies=cookies, **cls._requests_params())
         cls._set_cookies(location, r.cookies)
         r.raise_for_status()
         crawl_logger.debug('content:\n%s' % r.content)
@@ -259,12 +268,15 @@ class SeleniumBrowser(Browser):
     def init(cls):
         options = Options()
         options.binary_location = "/usr/bin/chromium"
-        options.add_argument('--user-agent=%s' % settings.SOSSE_USER_AGENT)
-        options.add_argument('--start-maximized')
-        options.add_argument('--start-fullscreen')
-        options.add_argument('--window-size=%s,%s' % cls.screen_size())
 
         opts = shlex.split(settings.SOSSE_BROWSER_OPTIONS)
+
+        if settings.SOSSE_PROXY:
+            opts.append('--proxy-server=%s' % settings.SOSSE_PROXY.rstrip('/'))
+        opts.append('--user-agent=%s' % settings.SOSSE_USER_AGENT)
+        opts.append('--start-maximized')
+        opts.append('--start-fullscreen')
+        opts.append('--window-size=%s,%s' % cls.screen_size())
         for opt in opts:
             crawl_logger.info('Passing option %s', opt)
             options.add_argument(opt)

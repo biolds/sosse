@@ -137,6 +137,10 @@ DEFAULTS = OrderedDict([
             'comment': 'Number of crawlers running concurrently (default to the number of CPU available)',
             'default': ''
         }],
+        ['proxy', {
+            'comment': 'Url of the HTTP proxy server to use',
+            'default': ''
+        }],
         ['user_agent', {
             'comment': 'User agent used by crawlers',
             'default': 'SOSSE'

@@ -116,6 +116,9 @@ def get_documents(request, form, stats_call=False):
         order_by = form.cleaned_data['order_by']
         results = results.order_by(*order_by).distinct()
 
+    if not has_query:
+        results = Document.objects.none()
+
     return has_query, results, query
 
 

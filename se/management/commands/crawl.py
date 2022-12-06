@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
 
 from ...browser import Browser
-from ...models import CrawlerStats, Document, CrawlPolicy, WorkerStats, MINUTELY
+from ...models import CrawlerStats, Document, CrawlPolicy, MINUTELY, WorkerStats
 
 crawl_logger = logging.getLogger('crawler')
 
@@ -27,51 +27,54 @@ class Command(BaseCommand):
 
     @staticmethod
     def process(worker_no, options):
-        crawl_logger.info('Worker %i initializing' % worker_no)
-        connection.close()
-        connection.connect()
-
-        base_dir = settings.SOSSE_TMP_DL_DIR + '/' + str(worker_no)
-        if not os.path.isdir(base_dir):
-            os.makedirs(base_dir)
-        os.chdir(base_dir)
-
-        for f in os.listdir(base_dir):
-            os.unlink(f)
-
         try:
+            crawl_logger.info('Crawler %i initializing' % worker_no)
+            connection.close()
+            connection.connect()
+
+            base_dir = settings.SOSSE_TMP_DL_DIR + '/' + str(worker_no)
+            if not os.path.isdir(base_dir):
+                os.makedirs(base_dir)
+            os.chdir(base_dir)
+
+            for f in os.listdir(base_dir):
+                os.unlink(f)
+
             Browser.init()
+            crawl_logger.info('Crawler %i starting' % worker_no)
+            worker_stats = WorkerStats.get_worker(worker_no)
+
+            if worker_no == 0:
+                last = CrawlerStats.objects.filter(freq=MINUTELY).order_by('t').last()
+                if last:
+                    next_stat = last.t
+                else:
+                    next_stat = now()
+                next_stat += timedelta(minutes=1)
+
+                sleep_count = 0
+                while True:
+                    t = now()
+                    if next_stat < t:
+                        if worker_no == 0:
+                            CrawlerStats.create(t)
+                        next_stat = t + timedelta(minutes=1)
+
+                    if Document.crawl(worker_no):
+                        if sleep_count != 0:
+                            worker_stats.update_state(0)
+                        sleep_count = 0
+                    else:
+                        if sleep_count == 0:
+                            worker_stats.update_state(1)
+                        if sleep_count % 60 == 0:
+                            crawl_logger.debug('%s Idle...' % worker_no)
+                        sleep_count += 1
+                        sleep(1)
         except Exception:
             crawl_logger.error(format_exc())
             raise
 
-        crawl_logger.info('Worker %i starting' % worker_no)
-
-        if worker_no == 0:
-            last = CrawlerStats.objects.filter(freq=MINUTELY).order_by('t').last()
-            if last:
-                next_stat = last.t
-            else:
-                next_stat = now()
-            next_stat += timedelta(minutes=1)
-
-        sleep_count = 0
-        while True:
-            if worker_no == 0:
-                t = now()
-                if next_stat < t:
-                    CrawlerStats.create(t)
-                    next_stat = t + timedelta(minutes=1)
-
-            if Document.crawl(worker_no):
-                sleep_count = 0
-            else:
-                if sleep_count == 0:
-                    crawl_logger.warning('%s Idle...' % worker_no)
-                sleep_count += 1
-                if sleep_count == 60:
-                    sleep_count = 0
-                sleep(1)
 
     def handle(self, *args, **options):
         Document.objects.exclude(worker_no=None).update(worker_no=None)
@@ -84,6 +87,7 @@ class Command(BaseCommand):
         if worker_count is None:
             worker_count = cpu_count()
 
+        WorkerStats.objects.filter(worker_no__gte=worker_count).delete()
         crawl_logger.info('Starting %i crawlers' % worker_count)
 
         workers = []

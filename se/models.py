@@ -476,9 +476,9 @@ class Document(models.Model):
         if doc is None:
             return False
 
-        worker_stats, _ = WorkerStats.objects.get_or_create(defaults={'doc_processed': 0}, worker_no=worker_no)
+        worker_stats = WorkerStats.get_worker(worker_no)
 
-        crawl_logger.info('Worker:%i Queued:%i Indexed:%i Id:%i %s ...' % (worker_no,
+        crawl_logger.debug('Worker:%i Queued:%i Indexed:%i Id:%i %s ...' % (worker_no,
                                         Document.objects.filter(crawl_last__isnull=True).count(),
                                         Document.objects.filter(crawl_last__isnull=False).count(),
                                         doc.id, doc.url))
@@ -542,7 +542,7 @@ class Document(models.Model):
     def pick_queued(worker_no):
         while True:
             doc = Document.objects.filter(worker_no__isnull=True,
-                                          crawl_last__isnull=True).first()
+                                          crawl_last__isnull=True).order_by('id').first()
             if doc is None:
                 doc = Document.objects.filter(worker_no__isnull=True,
                                               crawl_last__isnull=False,
@@ -641,8 +641,26 @@ FREQUENCY = (
 
 
 class WorkerStats(models.Model):
-    doc_processed = models.PositiveIntegerField()
+    STATE = (
+        ('idle', 'Idle'),
+        ('running', 'Running'),
+    )
+
+    doc_processed = models.PositiveIntegerField(default=0)
     worker_no = models.IntegerField()
+    pid = models.PositiveIntegerField()
+    state = models.CharField(max_length=8, choices=STATE, default='idle')
+
+    @classmethod
+    def get_worker(cls, worker_no):
+        return cls.objects.update_or_create(worker_no=worker_no, defaults={'pid': os.getpid()})[0]
+
+    def update_state(self, sleep_count):
+        if sleep_count:
+            state = 'idle'
+        else:
+            state = 'running'
+        WorkerStats.objects.filter(worker_no=self.worker_no).update(state=state)
 
 
 class CrawlerStats(models.Model):

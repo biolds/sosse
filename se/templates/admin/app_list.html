@@ -19,6 +19,11 @@
             <td></td>
             <td></td>
           </tr>
+          <tr>
+            <th scope="row"><a href="{% url 'admin:crawl_status' %}">Crawl status</a></th>
+            <td></td>
+            <td></td>
+          </tr>
         {% endif %}
         {% for model in app.models %}
           <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">

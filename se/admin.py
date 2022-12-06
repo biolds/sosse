@@ -13,14 +13,33 @@ from django.shortcuts import redirect, reverse
 from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
-from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl
+from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
 from .utils import human_datetime
 
 
 class SEAdminSite(admin.AdminSite):
     def get_app_list(self, request):
-        # Reverse the order to make authentication appear last
-        return reversed(super().get_app_list(request))
+        MODELS_ORDER = (
+            ('se', ('CrawlPolicy', 'Document', 'DomainSetting', 'Cookie', 'ExcludedUrl', 'SearchEngine')),
+            ('auth', ('Group', 'User'))
+        )
+        _apps_list = super().get_app_list(request)
+        app_list = []
+
+        for app, models in MODELS_ORDER:
+            for dj_app in _apps_list:
+                if dj_app['app_label'] == app:
+                    app_list.append(dj_app)
+                    dj_models = dj_app['models']
+                    dj_app['models'] = []
+                    for model in models:
+                        for dj_model in dj_models:
+                            if dj_model['object_name'] == model:
+                                dj_app['models'].append(dj_model)
+                                break
+                        else:
+                            raise Exception('object_name not found %s' % model)
+        return app_list
 
 admin_site = SEAdminSite(name='admin')
 admin_site.enable_nav_sidebar = False
@@ -66,7 +85,9 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(crawl_next__isnull=False) | queryset.filter(crawl_last__isnull=True)
+            queue = Document.objects.filter(crawl_last__isnull=True).order_by('id')
+            queue = queue | Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next')
+            return queue
 
         if self.value() == 'no':
             return queryset.filter(crawl_next__isnull=True, crawl_last__isnull=False)
@@ -106,7 +127,8 @@ class DocumentAdmin(admin.ModelAdmin):
         return [
             path('<path:object_id>/do_action/', self.admin_site.admin_view(self.do_action), name='doaction'),
             path('queue/', self.admin_site.admin_view(self.add_to_queue), name='queue'),
-            path('queue_confirm/', self.admin_site.admin_view(self.add_to_queue_confirm), name='queue_confirm')
+            path('queue_confirm/', self.admin_site.admin_view(self.add_to_queue_confirm), name='queue_confirm'),
+            path('crawl_status/', self.admin_site.admin_view(self.crawl_status), name='crawl_status'),
         ] + urls
 
     def do_action(self, request, object_id):
@@ -171,6 +193,29 @@ class DocumentAdmin(admin.ModelAdmin):
                 'recrawl_max': human_datetime(crawl_policy.recrawl_dt_max)
             })
         return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
+
+    def crawl_status(self, request):
+        _now = now()
+        context = dict(
+            self.admin_site.each_context(request),
+            title='Crawlers status',
+            crawlers=WorkerStats.objects.order_by('worker_no'),
+            now=_now
+        )
+
+        QUEUE_SIZE = 10
+        queue = list(Document.objects.filter(crawl_last__isnull=True).order_by('id')[:QUEUE_SIZE])
+        if len(queue) < QUEUE_SIZE:
+            queue = queue + list(Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next')[:QUEUE_SIZE - len(queue)])
+
+        history = list(Document.objects.filter(crawl_last__isnull=False).order_by('-crawl_last')[:QUEUE_SIZE])
+        history.reverse()
+
+        context.update({
+            'queue': queue,
+            'history': history
+        })
+        return response.TemplateResponse(request, 'admin/crawl_status.html', context)
 
     @staticmethod
     @admin.display(ordering='crawl_next')

@@ -14,7 +14,7 @@ from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
 from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
-from .utils import human_datetime
+from .utils import human_datetime, human_dt
 
 
 class SEAdminSite(admin.AdminSite):
@@ -208,8 +208,14 @@ class DocumentAdmin(admin.ModelAdmin):
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next')[:QUEUE_SIZE - len(queue)])
 
+        for doc in queue:
+            doc.crawl_next_human = human_dt(doc.crawl_next, True)
+
         history = list(Document.objects.filter(crawl_last__isnull=False).order_by('-crawl_last')[:QUEUE_SIZE])
         history.reverse()
+
+        for doc in history:
+            doc.crawl_last_human = human_dt(doc.crawl_last, True)
 
         context.update({
             'queue': queue,

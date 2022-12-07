@@ -33,20 +33,18 @@
       <table id="result_list">
         <thead>
           <th><div class="text">Schedule</div></th>
+          <th><div class="text"></div></th>
           <th><div class="text">Url</div></th>
         </thead>
         <tbody>
           {% for doc in queue %}
             <tr>
-              <td>
-                <a href="{% url 'admin:se_document_change' doc.id %}">
-                  {% if doc.crawl_last is None or doc.crawl_next < now %}
-                    ASAP
-                  {% elif doc.crawl_next %}
-                    {{ doc.crawl_next }}
-                  {% endif %}
-                </a>
-              </td>
+              {% if doc.crawl_last is None or doc.crawl_next < now %}
+                <td>Pending</td><td></td>
+              {% elif doc.crawl_next %}
+                <td>{{ doc.crawl_next }}</td>
+                <td>{{ doc.crawl_next_human }}</td>
+              {% endif %}
               <td>
                 <a href="{% url 'admin:se_document_change' doc.id %}">
                   {{ doc.url }}
@@ -70,16 +68,14 @@
       <table id="result_list">
         <thead>
           <th><div class="text">Crawled at</div></th>
+          <th><div class="text"></div></th>
           <th><div class="text">Url</div></th>
         </thead>
         <tbody>
           {% for doc in history %}
             <tr>
-              <td>
-                <a href="{% url 'admin:se_document_change' doc.id %}">
-                  {{ doc.crawl_last }}
-                </a>
-              </td>
+              <td>{{ doc.crawl_last }}</td>
+              <td>{{ doc.crawl_last_human }}</td>
               <td>
                 <a href="{% url 'admin:se_document_change' doc.id %}">
                   {{ doc.url }}

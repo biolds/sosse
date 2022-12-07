@@ -129,6 +129,7 @@ class DocumentAdmin(admin.ModelAdmin):
             path('queue/', self.admin_site.admin_view(self.add_to_queue), name='queue'),
             path('queue_confirm/', self.admin_site.admin_view(self.add_to_queue_confirm), name='queue_confirm'),
             path('crawl_status/', self.admin_site.admin_view(self.crawl_status), name='crawl_status'),
+            path('crawl_status_content/', self.admin_site.admin_view(self.crawl_status_content), name='crawl_status_content'),
         ] + urls
 
     def do_action(self, request, object_id):
@@ -194,11 +195,11 @@ class DocumentAdmin(admin.ModelAdmin):
             })
         return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
-    def crawl_status(self, request):
+    def _crawl_status_context(self, request):
         _now = now()
         context = dict(
             self.admin_site.each_context(request),
-            title='Crawlers status',
+            title='Crawl status',
             crawlers=WorkerStats.objects.order_by('worker_no'),
             now=_now
         )
@@ -219,9 +220,18 @@ class DocumentAdmin(admin.ModelAdmin):
 
         context.update({
             'queue': queue,
-            'history': history
+            'history': history,
+            'settings': settings
         })
+        return context
+
+    def crawl_status(self, request):
+        context = self._crawl_status_context(request)
         return response.TemplateResponse(request, 'admin/crawl_status.html', context)
+
+    def crawl_status_content(self, request):
+        context = self._crawl_status_context(request)
+        return response.TemplateResponse(request, 'admin/crawl_status_content.html', context)
 
     @staticmethod
     @admin.display(ordering='crawl_next')

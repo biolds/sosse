@@ -131,6 +131,11 @@ DEFAULTS = OrderedDict([
             'default': True,
             'type': bool
         }],
+        ['crawl_status_autorefresh', {
+            'comment': 'Delay between crawl status page autorefresh (in seconds)',
+            'default': 5,
+            'type': int
+        }],
     ])],
     ['crawler', OrderedDict([
         ['crawler_count', {

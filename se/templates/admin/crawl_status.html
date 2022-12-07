@@ -1,92 +1,19 @@
 {% extends "admin/base.html" %}
+{% block js %}
+function refresh () {
+  fetch('{% url 'admin:crawl_status_content' %}').then(response => {
+    if (response.ok) {
+      response.text().then(content => {
+        const contentDiv = document.getElementById('content');
+        contentDiv.innerHTML = content;
+      });
+    }
+  });
+}
+
+setInterval(refresh, {{ settings.SOSSE_CRAWL_STATUS_AUTOREFRESH }} * 1000);
+{% endblock %}
+
 {% block content %}
-  <h4>Crawlers</h4>
-  {% if crawlers %}
-    <div class="results">
-      <table id="result_list">
-        <thead>
-          <th><div class="text">No</div></th>
-          <th><div class="text">PID</div></th>
-          <th><div class="text">State</div></th>
-        </thead>
-        <tbody>
-          {% for crawler in crawlers %}
-            <tr>
-                <td>{{ crawler.worker_no }}</td>
-                <td>{{ crawler.pid }}</td>
-                <td>{{ crawler.state }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    No crawlers running.
-  {% endif %}
-
-  <h4>
-    Queue
-    <a href="{% url 'admin:se_document_changelist' %}?is_queued=yes&o=8" style="font-size: 12px; vertical-align: bottom">View all</a>
-  </h4>
-  {% if queue %}
-    <div class="results">
-      <table id="result_list">
-        <thead>
-          <th><div class="text">Schedule</div></th>
-          <th><div class="text"></div></th>
-          <th><div class="text">Url</div></th>
-        </thead>
-        <tbody>
-          {% for doc in queue %}
-            <tr>
-              {% if doc.crawl_last is None or doc.crawl_next < now %}
-                <td>Pending</td><td></td>
-              {% elif doc.crawl_next %}
-                <td>{{ doc.crawl_next }}</td>
-                <td>{{ doc.crawl_next_human }}</td>
-              {% endif %}
-              <td>
-                <a href="{% url 'admin:se_document_change' doc.id %}">
-                  {{ doc.url }}
-                </a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    Empty queue.
-  {% endif %}
-
-  <h4>
-    History
-    <a href="{% url 'admin:se_document_changelist' %}?o=-7" style="font-size: 12px; vertical-align: bottom">View all</a>
-  </h4>
-  {% if history %}
-    <div class="results">
-      <table id="result_list">
-        <thead>
-          <th><div class="text">Crawled at</div></th>
-          <th><div class="text"></div></th>
-          <th><div class="text">Url</div></th>
-        </thead>
-        <tbody>
-          {% for doc in history %}
-            <tr>
-              <td>{{ doc.crawl_last }}</td>
-              <td>{{ doc.crawl_last_human }}</td>
-              <td>
-                <a href="{% url 'admin:se_document_change' doc.id %}">
-                  {{ doc.url }}
-                </a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    Empty history.
-  {% endif %}
+  {% include "admin/crawl_status_content.html" %}
 {% endblock %}

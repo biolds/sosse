@@ -167,12 +167,12 @@ def favicon(request, favicon_id):
 def history(request):
     if request.method == 'POST':
         if 'del_all' in request.POST:
-            SearchHistory.objects.all().delete()
+            SearchHistory.objects.filter(user=request.user).delete()
         else:
             for key, val in request.POST.items():
                 if key.startswith('del_'):
                     key = int(key[4:])
-                    obj = SearchHistory.objects.filter(id=key).first()
+                    obj = SearchHistory.objects.filter(id=key, user=request.user).first()
                     if obj:
                         obj.delete()
 

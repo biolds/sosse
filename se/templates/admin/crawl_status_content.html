@@ -37,7 +37,9 @@
       <tbody>
         {% for doc in queue %}
           <tr>
-            {% if doc.crawl_last is None or doc.crawl_next < now %}
+            {% if doc.worker_no is not None %}
+              <td>In progress</td><td></td>
+            {% elif doc.crawl_last is None or doc.crawl_next < now %}
               <td>Pending</td><td></td>
             {% elif doc.crawl_next %}
               <td>{{ doc.crawl_next }}</td>

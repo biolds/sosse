@@ -60,7 +60,9 @@ class Command(BaseCommand):
                             CrawlerStats.create(t)
                         next_stat = t + timedelta(minutes=1)
 
-                    if Document.crawl(worker_no):
+                    paused = WorkerStats.get_worker(worker_no).state == 'paused'
+
+                    if not paused and Document.crawl(worker_no):
                         if sleep_count != 0:
                             worker_stats.update_state(0)
                         sleep_count = 0

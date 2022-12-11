@@ -17,7 +17,16 @@
         {% endfor %}
       </tbody>
     </table>
-  </div>
+    <br/>
+    <form method="POST">
+      {% csrf_token %}
+      {% if pause %}
+        <input type="submit" name="pause" value="Pause">
+      {% else %}
+        <input type="submit" name="resume" value="Resume">
+      {% endif %}
+    </form>
+</div>
 {% else %}
   No crawlers running.
 {% endif %}

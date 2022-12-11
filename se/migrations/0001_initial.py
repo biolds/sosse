@@ -103,7 +103,7 @@ class Migration(migrations.Migration):
                 ('doc_processed', models.PositiveIntegerField(default=0)),
                 ('worker_no', models.IntegerField()),
                 ('pid', models.PositiveIntegerField()),
-                ('state', models.CharField(choices=[('idle', 'Idle'), ('running', 'Running')], default='idle', max_length=8)),
+                ('state', models.CharField(choices=[('idle', 'Idle'), ('running', 'Running'), ('paused', 'Paused')], default='idle', max_length=8)),
             ],
         ),
         migrations.CreateModel(

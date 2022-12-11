@@ -200,9 +200,10 @@ class DocumentAdmin(admin.ModelAdmin):
         context = dict(
             self.admin_site.each_context(request),
             title='Crawl status',
-            crawlers=WorkerStats.objects.order_by('worker_no'),
             now=_now
         )
+
+        crawlers = WorkerStats.objects.order_by('worker_no')
 
         QUEUE_SIZE = 10
         queue = list(Document.objects.filter(crawl_last__isnull=True).order_by('id')[:QUEUE_SIZE])
@@ -219,6 +220,8 @@ class DocumentAdmin(admin.ModelAdmin):
             doc.crawl_last_human = human_dt(doc.crawl_last, True)
 
         context.update({
+            'crawlers': crawlers,
+            'pause': crawlers.filter(state='paused').count() == 0,
             'queue': queue,
             'history': history,
             'settings': settings
@@ -226,6 +229,10 @@ class DocumentAdmin(admin.ModelAdmin):
         return context
 
     def crawl_status(self, request):
+        if request.method == 'POST' and 'pause' in request.POST:
+            WorkerStats.objects.update(state='paused')
+        if request.method == 'POST' and 'resume' in request.POST:
+            WorkerStats.objects.update(state='idle')
         context = self._crawl_status_context(request)
         return response.TemplateResponse(request, 'admin/crawl_status.html', context)
 

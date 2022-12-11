@@ -487,7 +487,7 @@ class Document(models.Model):
             # Loop until we stop redirecting
             crawl_policy = CrawlPolicy.get_from_url(doc.url)
             try:
-                worker_stats.doc_processed += 1
+                WorkerStats.objects.filter(id=worker_stats.id).update(doc_processed=models.F('doc_processed') + 1)
                 doc.worker_no = None
                 doc.crawl_last = now()
 
@@ -535,7 +535,6 @@ class Document(models.Model):
         if doc:
             doc.save()
 
-        worker_stats.save()
         return True
 
     @staticmethod
@@ -644,6 +643,7 @@ class WorkerStats(models.Model):
     STATE = (
         ('idle', 'Idle'),
         ('running', 'Running'),
+        ('paused', 'Paused'),
     )
 
     doc_processed = models.PositiveIntegerField(default=0)
@@ -660,7 +660,7 @@ class WorkerStats(models.Model):
             state = 'idle'
         else:
             state = 'running'
-        WorkerStats.objects.filter(worker_no=self.worker_no).update(state=state)
+        WorkerStats.objects.filter(worker_no=self.worker_no).exclude(state='paused').update(state=state)
 
 
 class CrawlerStats(models.Model):
@@ -676,7 +676,7 @@ class CrawlerStats(models.Model):
         CrawlerStats.objects.filter(t__lt=t - timedelta(days=365), freq=DAILY).delete()
 
         doc_processed = WorkerStats.objects.filter().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
-        WorkerStats.objects.filter().update(doc_processed=0)
+        WorkerStats.objects.update(doc_processed=0)
 
         doc_count = Document.objects.count()
         queued_url = Document.objects.filter(crawl_last__isnull=True).count() + Document.objects.filter(crawl_next__lte=now()).count()

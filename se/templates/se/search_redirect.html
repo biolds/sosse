@@ -15,19 +15,20 @@
     </noscript>
     <script src="{% static 'se/base.js' %}"></script>
     <script>
-        const currentParams = new URLSearchParams(window.location.search);
+        console.log('location', window.location.search.substr(1));
+        const currentParams = new URLSearchParams(window.location.search.substr(1));
         let url = '{{ url }}';
+        console.log('params', currentParams.toString());
 
-        if (currentParams.get('q')) {
-          const searchParams = new URLSearchParams();
-          searchParams.append('l', getLang());
-          searchParams.append('ps', getPageSize());
-          searchParams.append('q', currentParams.get('q'));
-          if (getCachedLinks()) {
-            searchParams.append('c', '1');
-          }
-          url = '{{ url }}?' + searchParams.toString();
+        currentParams.delete('l');
+        console.log('deleted, then', currentParams.toString());
+        currentParams.append('l', getLang());
+        currentParams.delete('ps');
+        currentParams.append('ps', getPageSize());
+        if (getCachedLinks()) {
+          currentParams.append('c', '1');
         }
+        url = '{{ url }}?' + currentParams.toString();
         console.log('redirecting to', url);
         window.location = url;
     </script>

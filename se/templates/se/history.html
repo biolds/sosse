@@ -50,7 +50,7 @@ function del_item(id) {
             <p>
                 <input type="submit" title="Delete" class="del_button img_button" id="del_{{ e.id }}" name="del_{{ e.id }}" value="" onclick="return del_item({{ e.id }})">
                 {{ e.date }} ·
-                <a href="{% url 'search' %}?{{ e.querystring}}">{{ e.query }}</a>
+                <a href="{% url 'search_redirect' %}?{{ e.querystring}}">{{ e.query }}</a>
             </p>
         {% endfor %}
     </form>

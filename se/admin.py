@@ -376,6 +376,11 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
         }),
     )
 
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.url_regex == '.*':
+            return False
+        return super().has_delete_permission(request, obj)
+
     @staticmethod
     def documents(obj):
         params = urlencode({'q': obj.url_regex})

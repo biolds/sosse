@@ -208,7 +208,7 @@ class DocumentAdmin(admin.ModelAdmin):
         QUEUE_SIZE = 10
         queue = list(Document.objects.filter(crawl_last__isnull=True).order_by('id')[:QUEUE_SIZE])
         if len(queue) < QUEUE_SIZE:
-            queue = queue + list(Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next')[:QUEUE_SIZE - len(queue)])
+            queue = queue + list(Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next' , 'id')[:QUEUE_SIZE - len(queue)])
 
         for doc in queue:
             doc.crawl_next_human = human_dt(doc.crawl_next, True)

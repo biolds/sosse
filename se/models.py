@@ -545,7 +545,7 @@ class Document(models.Model):
             if doc is None:
                 doc = Document.objects.filter(worker_no__isnull=True,
                                               crawl_last__isnull=False,
-                                              crawl_next__lte=now()).order_by('crawl_next').first()
+                                              crawl_next__lte=now()).order_by('crawl_next', 'id').first()
                 if doc is None:
                     return None
 

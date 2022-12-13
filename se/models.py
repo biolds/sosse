@@ -662,6 +662,24 @@ class WorkerStats(models.Model):
             state = 'running'
         WorkerStats.objects.filter(worker_no=self.worker_no).exclude(state='paused').update(state=state)
 
+    @classmethod
+    def live_state(cls):
+        workers = cls.objects.order_by('worker_no')
+        for w in workers:
+            args = []
+            if os.path.exists('/proc/%s/cmdline' % w.pid):
+                with open('/proc/%s/cmdline' % w.pid, 'br') as fd:
+                    args = fd.read().split(b'\0')
+
+            for i, arg in enumerate(args):
+                if i == len(args) - 1:
+                    continue
+                if arg.endswith(b'sosse-admin') and args[i + 1] == b'crawl':
+                    break
+            else:
+                w.pid = '-'
+                w.state = 'exited'
+        return workers
 
 class CrawlerStats(models.Model):
     t = models.DateTimeField()

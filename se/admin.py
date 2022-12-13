@@ -203,8 +203,6 @@ class DocumentAdmin(admin.ModelAdmin):
             now=_now
         )
 
-        crawlers = WorkerStats.objects.order_by('worker_no')
-
         QUEUE_SIZE = 10
         queue = list(Document.objects.filter(crawl_last__isnull=True).order_by('id')[:QUEUE_SIZE])
         if len(queue) < QUEUE_SIZE:
@@ -220,8 +218,8 @@ class DocumentAdmin(admin.ModelAdmin):
             doc.crawl_last_human = human_dt(doc.crawl_last, True)
 
         context.update({
-            'crawlers': crawlers,
-            'pause': crawlers.filter(state='paused').count() == 0,
+            'crawlers': WorkerStats.live_state(),
+            'pause': WorkerStats.objects.filter(state='paused').count() == 0,
             'queue': queue,
             'history': history,
             'settings': settings

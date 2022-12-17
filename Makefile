@@ -17,7 +17,7 @@ deb:
 
 docker_deb:
 	docker pull debian:bullseye
-	cd $(current_dir)/build/ && docker build --rm -t registry.gitlab.com/biolds1/sosse/debian-pkg:latest .
+	cd $(current_dir)/docker/debian-pkg/ && docker build --rm -t registry.gitlab.com/biolds1/sosse/debian-pkg:latest .
 
 docker_deb_push:
 	docker push registry.gitlab.com/biolds1/sosse/debian-pkg:latest

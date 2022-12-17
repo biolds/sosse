@@ -177,7 +177,7 @@ class DocumentAdmin(admin.ModelAdmin):
                 doc.crawl_next = now()
             doc.save()
             messages.success(request, 'URL was queued.')
-            return redirect(reverse('admin:se_document_changelist'))
+            return redirect(reverse('admin:crawl_status'))
 
         crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data['url'])
         context.update({
@@ -342,13 +342,13 @@ class CrawlPolicyForm(forms.ModelForm):
             if not required and cleaned_data.get(key) is not None:
                 self.add_error(key, 'This field must be null when using this recrawl mode')
 
-        if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM and cleaned_data['take_screenshots']:
-            self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to take screenshots')
-            self.add_error('take_screenshots', 'Browsing mode must be set to Chromium to take screenshots')
-
-        if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM and cleaned_data['script']:
-            self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to run a script')
-            self.add_error('script', 'Browsing mode must be set to Chromium to run a script')
+        if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM:
+            if cleaned_data['take_screenshots']:
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to take screenshots')
+                self.add_error('take_screenshots', 'Browsing mode must be set to Chromium to take screenshots')
+            elif cleaned_data['script']:
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to run a script')
+                self.add_error('script', 'Browsing mode must be set to Chromium to run a script')
         return cleaned_data
 
 

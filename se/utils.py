@@ -3,9 +3,7 @@ from datetime import timedelta
 from django.utils.timezone import now
 
 
-def plural(n, short):
-    if short:
-        return ''
+def plural(n):
     if n > 1:
         return 's'
     return ''

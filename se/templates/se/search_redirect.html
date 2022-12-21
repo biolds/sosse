@@ -21,10 +21,17 @@
         console.log('params', currentParams.toString());
 
         currentParams.delete('l');
-        console.log('deleted, then', currentParams.toString());
-        currentParams.append('l', getLang());
+        const lang = getLang();
+        if (lang) {
+          currentParams.append('l', lang);
+        }
+
         currentParams.delete('ps');
-        currentParams.append('ps', getPageSize());
+        const pageSize = getPageSize();
+        if (pageSize) {
+          currentParams.append('ps', pageSize);
+        }
+
         if (getCachedLinks()) {
           currentParams.append('c', '1');
         }

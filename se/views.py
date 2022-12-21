@@ -98,13 +98,14 @@ def search(request):
             continue
         sosse_langdetect_to_postgres[key] = val
 
-    for r in paginated:
-        if form.cleaned_data['c']:
-            r.link = r.get_absolute_url()
-            r.extra_link = r.url
-        else:
-            r.link = r.url
-            r.extra_link = r.get_absolute_url()
+    if paginated:
+        for r in paginated:
+            if form.cleaned_data['c']:
+                r.link = r.get_absolute_url()
+                r.extra_link = r.url
+            else:
+                r.link = r.url
+                r.extra_link = r.get_absolute_url()
 
     extra_link_txt = 'cached'
     if form.cleaned_data['c']:

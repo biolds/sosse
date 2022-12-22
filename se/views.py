@@ -201,7 +201,10 @@ def opensearch(request):
 
 
 def search_redirect(request):
-    context = {'url': request.build_absolute_uri('/')}
+    context = {
+        'url': request.build_absolute_uri('/'),
+        'q': quote_plus(request.GET.get('q', ''))
+    }
     return render(request, 'se/search_redirect.html', context)
 
 

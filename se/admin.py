@@ -6,6 +6,7 @@ from django import forms
 from django.db import models
 from django.conf import settings
 from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
@@ -38,8 +39,11 @@ class SEAdminSite(admin.AdminSite):
                                 dj_app['models'].append(dj_model)
                                 break
                         else:
-                            raise Exception('object_name not found %s' % model)
+                            # The model may not be available due to permission reasons
+                            if request.user.is_superuser:
+                                raise Exception('object_name not found %s' % model)
         return app_list
+
 
 admin_site = SEAdminSite(name='admin')
 admin_site.enable_nav_sidebar = False
@@ -93,12 +97,12 @@ class DocumentQueueFilter(admin.SimpleListFilter):
             return queryset.filter(crawl_next__isnull=True, crawl_last__isnull=False)
 
 
-@admin.action(description='Crawl now')
+@admin.action(description='Crawl now', permissions=['change'])
 def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
 
 
-@admin.action(description='Convert screens to jpeg')
+@admin.action(description='Convert screens to jpeg', permissions=['change'])
 def convert_to_jpg(modeladmin, request, queryset):
     for doc in queryset.all():
         if doc.screenshot_format == Document.SCREENSHOT_JPG or not doc.screenshot_file:
@@ -133,6 +137,9 @@ class DocumentAdmin(admin.ModelAdmin):
         ] + urls
 
     def do_action(self, request, object_id):
+        if not request.user.has_perm('se.change_document'):
+            raise PermissionDenied
+
         action_name = request.POST.get('action')
 
         for action in self.actions:
@@ -151,6 +158,8 @@ class DocumentAdmin(admin.ModelAdmin):
         return super().render_change_form(request, context, *args, **kwargs)
 
     def add_to_queue(self, request):
+        if not request.user.has_perm('se.add_document'):
+            raise PermissionDenied
         context = dict(
            self.admin_site.each_context(request),
            form=AddToQueueForm(),
@@ -159,6 +168,8 @@ class DocumentAdmin(admin.ModelAdmin):
         return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
     def add_to_queue_confirm(self, request):
+        if not request.user.has_perm('se.add_document'):
+            raise PermissionDenied
         if request.method != 'POST':
             redirect(reverse('admin:queue'))
 
@@ -227,14 +238,21 @@ class DocumentAdmin(admin.ModelAdmin):
         return context
 
     def crawl_status(self, request):
-        if request.method == 'POST' and 'pause' in request.POST:
-            WorkerStats.objects.update(state='paused')
-        if request.method == 'POST' and 'resume' in request.POST:
-            WorkerStats.objects.update(state='idle')
+        if not request.user.has_perm('se.view_crawlerstats'):
+            raise PermissionDenied
+        if request.method == 'POST':
+            if not request.user.has_perm('se.change_crawlerstats'):
+                raise PermissionDenied
+            if 'pause' in request.POST:
+                WorkerStats.objects.update(state='paused')
+            if 'resume' in request.POST:
+                WorkerStats.objects.update(state='idle')
         context = self._crawl_status_context(request)
         return response.TemplateResponse(request, 'admin/crawl_status.html', context)
 
     def crawl_status_content(self, request):
+        if not request.user.has_perm('se.view_crawlerstats'):
+            raise PermissionDenied
         context = self._crawl_status_context(request)
         return response.TemplateResponse(request, 'admin/crawl_status_content.html', context)
 

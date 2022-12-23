@@ -27,7 +27,10 @@ docker:
 	docker build -t biolds/sosse:latest .
 
 docker_run:
-	docker run -p 8005:80 biolds/sosse:latest
+	docker volume inspect sosse_postgres &>/dev/null || docker volume create sosse_postgres
+	docker volume inspect sosse_var &>/dev/null || docker volume create sosse_var
+	docker run -p 8005:80 --mount source=sosse_postgres,destination=/var/lib/postgresql \
+						--mount source=sosse_var,destination=/var/lib/sosse biolds/sosse:latest
 
 docker_push:
 	docker push biolds/sosse:latest

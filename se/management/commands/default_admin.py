@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if User.objects.count() != 0:
-            self.stdout.write('The database already has a user, skipping defualt user creation')
+            self.stdout.write('The database already has a user, skipping default user creation')
             sys.exit(0)
 
         user = User.objects.create(username='admin', is_superuser=True, is_staff=True, is_active=True)

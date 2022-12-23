@@ -14,6 +14,7 @@ from traceback import format_exc
 from urllib.parse import urlparse
 
 from bs4 import Doctype, Tag
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
@@ -713,11 +714,16 @@ class CrawlerStats(models.Model):
                                     freq=MINUTELY)
 
 
+def validate_search_url(value):
+    if '{searchTerms}' not in value:
+        raise ValidationError('This field must contain the search url with a {searchTerms} string parameter')
+
+
 class SearchEngine(models.Model):
     short_name = models.CharField(max_length=32, blank=True, default='')
     long_name = models.CharField(max_length=48, blank=True, default='')
     description = models.CharField(max_length=1024, blank=True, default='')
-    html_template = models.CharField(max_length=2048)
+    html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
 
     @classmethod

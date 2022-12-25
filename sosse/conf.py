@@ -59,10 +59,6 @@ DEFAULTS = OrderedDict([
         ['screenshots_dir', {
             'default': '/var/lib/sosse/screenshots/'
         }],
-        ['static_root', {
-            'var': 'STATIC_ROOT',
-            'default': '/var/lib/sosse/static/'
-        }],
         ['use_i18n', {
             'var': 'USE_I18N',
             'comment': 'See https://docs.djangoproject.com/en/3.2/ref/settings/#use-i18n',

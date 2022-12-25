@@ -118,7 +118,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
     fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
-        'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', 'content')
+        'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', '_content')
     readonly_fields = fields
     ordering = ('-crawl_last',)
     actions = [crawl_now, convert_to_jpg]
@@ -315,6 +315,12 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(ordering='url')
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
+
+    @staticmethod
+    def _content(obj):
+        if obj.redirect_url:
+            return 'Redirected to %s' % obj.redirect_url
+        return obj.content
 
     def delete_model(self, request, obj):
         obj.delete_screenshot()

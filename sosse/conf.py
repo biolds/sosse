@@ -204,6 +204,56 @@ DEFAULTS = OrderedDict([
 ])
 
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'timestamp': {
+            'format': '{asctime} {process} {levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'crawler_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/sosse/crawler.log',
+            'formatter': 'timestamp'
+        },
+        'webserver_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/sosse/webserver.log',
+            'formatter': 'timestamp'
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['webserver_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'web': {
+            'handlers': ['webserver_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'crawler': {
+            'handlers': ['crawler_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+
 class Conf:
     @classmethod
     def get(cls):
@@ -265,6 +315,10 @@ class Conf:
             except ValueError:
                 raise Exception('Configuration parsing error: invalid "crawler_count", must be an integer or empty: %s' % crawler_count)
 
+        if settings['DEBUG']:
+            LOGGING['loggers']['crawler']['level'] = 'DEBUG'
+            LOGGING['loggers']['web']['level'] = 'DEBUG'
+
         settings.update({
             'HASHING_ALGO': getattr(hashlib, hash_algo),
             'DATABASES': {
@@ -280,8 +334,10 @@ class Conf:
             'ALLOWED_HOSTS': [settings.pop('SOSSE_ALLOWED_HOST')],
             'DATA_UPLOAD_MAX_MEMORY_SIZE': settings.pop('SOSSE_DATA_UPLOAD_MAX_MEMORY_SIZE'),
             'DATA_UPLOAD_MAX_NUMBER_FIELDS': settings.pop('SOSSE_DATA_UPLOAD_MAX_NUMBER_FIELDS'),
-            'SOSSE_CRAWLER_COUNT': crawler_count
+            'SOSSE_CRAWLER_COUNT': crawler_count,
+            'LOGGING': LOGGING
         })
+
         return settings
 
     @classmethod

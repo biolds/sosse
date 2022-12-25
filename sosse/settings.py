@@ -80,50 +80,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'timestamp': {
-            'format': '{asctime} {process} {levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-        'crawler_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/sosse/crawler.log',
-            'formatter': 'timestamp'
-        },
-        'webserver_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/sosse/webserver.log',
-            'formatter': 'timestamp'
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['webserver_file'],
-            'propagate': True,
-        },
-        'crawler': {
-            'handlers': ['crawler_file'],
-            'level': 'INFO',
-            #'level': 'DEBUG',
-            'propagate': False,
-        },
-    },
-}
-
 SOSSE_LANGDETECT_TO_POSTGRES = {
     'ar': {
         'name': 'arabic',

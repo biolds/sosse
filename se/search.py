@@ -1,3 +1,4 @@
+import logging
 import re
 import uuid
 
@@ -9,6 +10,8 @@ from django.utils.html import escape
 
 from .models import Document, remove_accent
 
+
+logger = logging.getLogger('web')
 
 FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
 
@@ -106,6 +109,7 @@ def get_documents(request, form, stats_call=False):
         else:
             raise Exception('Query type %s not supported' % operator)
 
+        logger.debug('filter %s %s', ftype, qf)
         results = results.filter(qf)
 
     doc_lang = form.cleaned_data.get('doc_lang')

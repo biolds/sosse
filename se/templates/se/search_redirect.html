@@ -27,7 +27,7 @@
         }
 
         currentParams.delete('ps');
-        const pageSize = getPageSize();
+        const pageSize = getPageSize({{ settings.SOSSE_DEFAULT_PAGE_SIZE }});
         if (pageSize) {
           currentParams.append('ps', pageSize);
         }

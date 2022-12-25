@@ -807,7 +807,7 @@ class SearchEngine(models.Model):
     @classmethod
     def should_redirect(cls, query):
         for i, w in enumerate(query.split()):
-            if not w.startswith('!'):
+            if not w.startswith(settings.SOSSE_SEARCH_SHORTCUT):
                 continue
             try:
                 se = SearchEngine.objects.get(shortcut=w[1:])

@@ -46,6 +46,11 @@ DEFAULTS = OrderedDict([
             'default': False,
             'type': bool
         }],
+        ['search_shortcut', {
+            'comment': 'Special character used as search shortcut',
+            'default': '!',
+            'type': str
+        }],
         ['allowed_host', {
             'comment': 'FDQN of the webserver, "*" for any, see https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts',
             'default': '*'

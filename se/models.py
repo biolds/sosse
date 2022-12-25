@@ -5,7 +5,7 @@ import urllib.parse
 import unicodedata
 import logging
 
-from base64 import b64decode
+from base64 import b64encode, b64decode
 from datetime import date, datetime, timedelta
 from defusedxml import ElementTree
 from hashlib import md5
@@ -730,8 +730,8 @@ class CrawlerStats(models.Model):
 
 
 def validate_search_url(value):
-    if '{searchTerms}' not in value:
-        raise ValidationError('This field must contain the search url with a {searchTerms} string parameter')
+    if '{searchTerms}' not in value and '{searchTermsBase64}' not in value:
+        raise ValidationError('This field must contain the search url with a {searchTerms} or a {searchTermsBase64} string parameter')
 
 
 class SearchEngine(models.Model):
@@ -785,20 +785,43 @@ class SearchEngine(models.Model):
     def get_search_url(self, query):
         se_url = urllib.parse.urlsplit(self.html_template)
 
+        # In url path
         if '{searchTerms}' in se_url.path:
             query = urllib.parse.quote_plus(query)
             se_url_path = se_url.path.replace('{searchTerms}', query)
             se_url = se_url._replace(path=se_url_path)
             return urllib.parse.urlunsplit(se_url)
 
+        if '{searchTermsBase64}' in se_url.path:
+            query = urllib.parse.quote_plus(b64encode(query.encode('utf-8')).decode('utf-8'))
+            se_url_path = se_url.path.replace('{searchTermsBase64}', query)
+            se_url = se_url._replace(path=se_url_path)
+            return urllib.parse.urlunsplit(se_url)
+
+        # In url fragment (the part after #)
+        if '{searchTerms}' in se_url.fragment:
+            query = urllib.parse.quote_plus(query)
+            se_url_frag = se_url.fragment.replace('{searchTerms}', query)
+            se_url = se_url._replace(fragment=se_url_frag)
+            return urllib.parse.urlunsplit(se_url)
+
+        if '{searchTermsBase64}' in se_url.fragment:
+            se_url_frag = se_url.fragment.replace('{searchTermsBase64}', b64encode(query.encode('utf-8')).decode('utf-8'))
+            se_url = se_url._replace(fragment=se_url_frag)
+            return urllib.parse.urlunsplit(se_url)
+
+        # In url parameters
         se_params = urllib.parse.parse_qs(se_url.query)
         for key, val in se_params.items():
             val = val[0]
             if '{searchTerms}' in val:
                 se_params[key] = [val.replace('{searchTerms}', query)]
                 break
+            if '{searchTermsBase64}' in val:
+                se_params[key] = [val.replace('{searchTermsBase64}', b64encode(query.encode('utf-8')).decode('utf-8'))]
+                break
         else:
-            raise Exception('could not find {searchTerms} parameter')
+            raise Exception('could not find {searchTerms} or {searchTermsBase64} parameter')
 
         se_url_query = urllib.parse.urlencode(se_params, doseq=True)
         se_url = se_url._replace(query=se_url_query)

@@ -71,9 +71,10 @@ def get_context(ctx):
 
 
 def search(request):
-    results = None
+    results = []
     paginated = None
     q = None
+    has_query = False
 
     form = SearchForm(request.GET)
     if form.is_valid():
@@ -90,7 +91,8 @@ def search(request):
         paginated = paginator.get_page(page_number)
         paginated = add_headlines(paginated, query)
     else:
-        form = SearchForm()
+        form = SearchForm({})
+        form.is_valid()
 
     sosse_langdetect_to_postgres = OrderedDict()
     for key, val in sorted(settings.SOSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):

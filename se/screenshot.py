@@ -3,8 +3,10 @@ from django.shortcuts import render, reverse
 
 from .browser import SeleniumBrowser
 from .cached import get_document, get_context
+from .login import login_required
 
 
+@login_required
 def screenshot(request, url):
     # Keep the url with parameters
     url = request.META['REQUEST_URI'][12:]

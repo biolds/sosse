@@ -1,10 +1,12 @@
 from django.shortcuts import render, reverse
 from django.utils.html import format_html
 
-from .models import Link
 from .cached import get_document, get_context
+from .login import login_required
+from .models import Link
 
 
+@login_required
 def www(request, url):
     # Keep the url with parameters
     url = request.META['REQUEST_URI'][5:]

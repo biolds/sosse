@@ -41,6 +41,11 @@ DEFAULTS = OrderedDict([
         }]
     ])],
     ['webserver', OrderedDict([
+        ['anonymous_search', {
+            'comment': 'Anonymous users (users not logged in) can do searches',
+            'default': False,
+            'type': bool
+        }],
         ['allowed_host', {
             'comment': 'FDQN of the webserver, "*" for any, see https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts',
             'default': '*'

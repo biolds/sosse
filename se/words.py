@@ -2,8 +2,10 @@ from django.conf import settings
 from django.shortcuts import render, reverse
 
 from .cached import get_document, get_context
+from .login import login_required
 
 
+@login_required
 def words(request, url):
     url = request.META['REQUEST_URI'][7:]
     doc = get_document(url)

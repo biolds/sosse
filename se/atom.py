@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 
 from .forms import SearchForm
+from .login import login_required
 from .models import SearchEngine
 from .search import get_documents
 
@@ -25,6 +26,7 @@ def str_to_uuid(s):
     return s
 
 
+@login_required
 def atom(request):
     results = None
     q = None

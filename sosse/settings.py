@@ -60,6 +60,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sosse.wsgi.application'
 
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 

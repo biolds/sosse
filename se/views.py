@@ -12,6 +12,7 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from .forms import SearchForm
+from .login import login_required
 from .models import Document, FavIcon, SearchEngine, SearchHistory, remove_accent
 from .search import add_headlines, get_documents
 
@@ -70,6 +71,7 @@ def get_context(ctx):
     return ctx
 
 
+@login_required
 def search(request):
     results = []
     paginated = None
@@ -129,6 +131,7 @@ def search(request):
     return render(request, 'se/index.html', context)
 
 
+@login_required
 def word_stats(request):
     results = None
     form = SearchForm(request.GET)
@@ -153,6 +156,7 @@ def word_stats(request):
     return HttpResponse(results, content_type='application/json')
 
 
+@login_required
 def prefs(request):
     supported_langs = json.dumps(Document.get_supported_lang_dict())
     context = get_context({
@@ -162,11 +166,13 @@ def prefs(request):
     return render(request, 'se/prefs.html', context)
 
 
+@login_required
 def favicon(request, favicon_id):
     fav = get_object_or_404(FavIcon, id=favicon_id)
     return HttpResponse(fav.content, content_type=fav.mimetype)
 
 
+@login_required
 def history(request):
     if request.method == 'POST':
         if 'del_all' in request.POST:
@@ -195,6 +201,7 @@ def history(request):
     return render(request, 'se/history.html', context)
 
 
+@login_required
 def opensearch(request):
     context = {
         'url': request.build_absolute_uri('/').rstrip('/')
@@ -202,6 +209,7 @@ def opensearch(request):
     return render(request, 'se/opensearch.xml', context, content_type='application/xml')
 
 
+@login_required
 def search_redirect(request):
     context = {
         'url': request.build_absolute_uri('/'),

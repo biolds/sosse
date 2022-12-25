@@ -8,6 +8,7 @@ from django.utils.timezone import now
 from langdetect.detector_factory import PROFILES_DIRECTORY
 import pygal
 
+from .login import login_required
 from .models import CrawlerStats, Document, DAILY, MINUTELY
 from .views import get_context
 
@@ -131,6 +132,7 @@ def crawler_stats(pygal_config, pygal_style, freq):
     }
 
 
+@login_required
 def stats(request):
     if not request.user.is_staff and not request.user.is_superuser:
         return redirect(reverse('search'))

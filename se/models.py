@@ -301,6 +301,15 @@ class Document(models.Model):
                 elif links['text'][-1] != '\n':
                     links['text'] += '\n'
 
+    def _clear_content(self):
+        self.redirect_url = ''
+        self.content = ''
+        self.normalized_content = ''
+        self.title = ''
+        self.normalized_title = ''
+        self.delete_screenshot()
+        Link.objects.filter(doc_from=self).delete()
+
     def index(self, page, crawl_policy, verbose=False, force=False):
         n = now()
         stats = {'prev': n}
@@ -357,11 +366,7 @@ class Document(models.Model):
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)
         else:
-            self.content = ''
-            self.normalized_content = ''
-            self.title = ''
-            self.normalized_title = ''
-            Link.objects.filter(doc_from=self).delete()
+            self._clear_content()
 
         FavIcon.extract(self, page)
         self._index_log('favicon', stats, verbose)
@@ -519,6 +524,7 @@ class Document(models.Model):
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         crawl_logger.debug('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
                         doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
+                        doc._clear_content()
                         doc.redirect_url = page.url
                         doc.save()
                         doc = Document.pick_or_create(page.url, worker_no)
@@ -584,6 +590,15 @@ class Document(models.Model):
             pass
 
         return doc
+
+    def delete_screenshot(self):
+        if self.screenshot_file:
+            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.screenshot_file)
+
+            for i in range(self.screenshot_count):
+                filename = '%s_%s.%s' % (d, i, self.screenshot_format)
+                if os.path.exists(filename):
+                    os.unlink(filename)
 
 
 class Link(models.Model):

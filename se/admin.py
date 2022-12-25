@@ -316,22 +316,13 @@ class DocumentAdmin(admin.ModelAdmin):
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
 
-    def _delete_screenshot(self, obj):
-        if obj.screenshot_file:
-            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, obj.screenshot_file)
-
-            for i in range(obj.screenshot_count):
-                filename = '%s_%s.%s' % (d, i, obj.screenshot_format)
-                if os.path.exists(filename):
-                    os.unlink(filename)
-
     def delete_model(self, request, obj):
-        self._delete_screenshot(obj)
+        obj.delete_screenshot()
         return super().delete_model(request, obj)
 
     def delete_queryset(self, request, queryset):
         for obj in queryset.all():
-            self._delete_screenshot(obj)
+            obj.delete_screenshot()
         return super().delete_queryset(request, queryset)
 
 

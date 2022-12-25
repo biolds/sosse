@@ -57,6 +57,7 @@ def get_admin():
 @admin.register(SearchEngine)
 class SearchEngineAdmin(admin.ModelAdmin):
     list_display = ('short_name', 'shortcut')
+    search_fields = ('short_name', 'shortcut')
 
 
 class DocumentErrorFilter(admin.SimpleListFilter):

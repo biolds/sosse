@@ -131,6 +131,13 @@ def search(request):
     return render(request, 'se/index.html', context)
 
 
+def about(request):
+    context = get_context({
+        'title': 'About'
+    })
+    return render(request, 'se/about.html', context)
+
+
 @login_required
 def word_stats(request):
     results = None

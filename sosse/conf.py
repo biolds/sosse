@@ -46,6 +46,11 @@ DEFAULTS = OrderedDict([
             'default': False,
             'type': bool
         }],
+        ['rss_access_token', {
+            'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating\nThe token can be passed to HTTP reqeuests as an url parameter, for example "?token=<RSS access token>"\nSetting an empty string disables token access',
+            'default': '',
+            'type': str
+        }],
         ['search_shortcut', {
             'comment': 'Special character used as search shortcut',
             'default': '!',

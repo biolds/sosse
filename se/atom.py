@@ -2,6 +2,7 @@ from hashlib import md5
 from lxml.etree import Element, tostring
 
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.urls import reverse
@@ -26,10 +27,25 @@ def str_to_uuid(s):
     return s
 
 
-@login_required
+def atom_is_allowed(request):
+    if request.user.is_authenticated:
+        return True
+
+    if settings.SOSSE_ANONYMOUS_SEARCH:
+        return True
+
+    if settings.SOSSE_RSS_ACCESS_TOKEN:
+        if request.GET.get('token') == settings.SOSSE_RSS_ACCESS_TOKEN:
+            return True
+
+    return False
+
 def atom(request):
     results = None
     q = None
+
+    if not atom_is_allowed(request):
+        raise PermissionDenied
 
     form = SearchForm(request.GET)
     if form.is_valid():

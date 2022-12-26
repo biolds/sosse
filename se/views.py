@@ -7,9 +7,7 @@ from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
 from django.db import connection
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render, reverse
-from django.utils.html import format_html_join
-from django.utils.safestring import mark_safe
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import SearchForm
 from .login import login_required

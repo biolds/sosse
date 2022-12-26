@@ -15,6 +15,7 @@ logger = logging.getLogger('web')
 
 FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
 
+
 def get_documents(request, form, stats_call=False):
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
@@ -60,7 +61,7 @@ def get_documents(request, form, stats_call=False):
         if cont:
             continue
 
-        has_query=True
+        has_query = True
         ftype = f['ft']
         field = f['ff']
         operator = f['fo']

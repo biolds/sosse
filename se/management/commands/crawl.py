@@ -1,13 +1,13 @@
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from multiprocessing import cpu_count, Process
 from time import sleep
 from traceback import format_exc
 
 from django.conf import settings
 from django.db import connection
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.utils.timezone import now
 
 from ...browser import Browser
@@ -77,13 +77,12 @@ class Command(BaseCommand):
             crawl_logger.error(format_exc())
             raise
 
-
     def handle(self, *args, **options):
         Document.objects.exclude(worker_no=None).update(worker_no=None)
-        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER}) # mandatory default policy
+        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER})  # mandatory default policy
 
         for url in options['urls']:
-            doc = Document.queue(url, None, 0)
+            Document.queue(url, None, 0)
 
         worker_count = settings.SOSSE_CRAWLER_COUNT
         if worker_count is None:

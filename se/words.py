@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import render, reverse
 
 from .cached import get_document, get_context
@@ -28,4 +27,3 @@ def words(request, url):
         'lang': doc.lang_flag(True)
     })
     return render(request, 'se/words.html', context)
-

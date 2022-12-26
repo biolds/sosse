@@ -18,29 +18,29 @@ def www(request, url):
     links = Link.objects.filter(doc_from=doc).order_by('link_no')
     links_count = Link.objects.filter(doc_from=doc).count()
     link_no = 0
-    for l in doc.content.splitlines():
-        while link_no < links_count and links[link_no].pos < content_pos + len(l):
+    for line in doc.content.splitlines():
+        while link_no < links_count and links[link_no].pos < content_pos + len(line):
             link = links[link_no]
             link_pos = link.pos - content_pos
-            txt = l[:link_pos]
-            l = l[link_pos + len(link.text or ''):]
+            txt = line[:link_pos]
+            line = line[link_pos + len(link.text or ''):]
             content_pos += len(txt) + len(link.text or '')
 
             if link.doc_to:
                 content += format_html('{}<a href="{}">{}</a> · <a href="{}">🌍</a>',
-                                        txt,
-                                        link.doc_to.get_absolute_url(),
-                                        link.text,
-                                        link.doc_to.url)
+                                       txt,
+                                       link.doc_to.get_absolute_url(),
+                                       link.text,
+                                       link.doc_to.url)
             else:
                 content += format_html('{} [{}] · <a href="{}">🌍</a>',
-                                        txt,
-                                        link.text,
-                                        link.extern_url)
+                                       txt,
+                                       link.text,
+                                       link.extern_url)
             link_no += 1
 
-        content_pos += len(l) + 1 # +1 for the \n stripped by splitlines()
-        content += format_html('{}<br/>', l)
+        content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
+        content += format_html('{}<br/>', line)
 
     context = get_context(doc)
     context['content'] = content

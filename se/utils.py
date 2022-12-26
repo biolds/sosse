@@ -8,6 +8,7 @@ def plural(n):
         return 's'
     return ''
 
+
 def space(a, b):
     if a:
         a += ' '
@@ -29,9 +30,7 @@ def human_short_datetime(d):
 
     nbrs = [years, days, hours, minutes, seconds]
     units = ['y', 'd', 'h', 'm', 's']
-    count = 2
 
-    s = ''
     for i in range(len(nbrs) - 1):
         if nbrs[i]:
             return '%s%s' % (short_fmt(nbrs[i], units[i]).lstrip('0'), short_fmt(nbrs[i + 1], units[i + 1]))

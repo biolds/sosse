@@ -1,11 +1,7 @@
-from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.handlers.wsgi import WSGIRequest
-from django.db import models
 from django.test import TestCase
 from django.utils import timezone
-from requests import HTTPError
 
-from .browser import RequestBrowser, Page
 from .forms import SearchForm
 from .models import Document, Link
 from .search import add_headlines, get_documents
@@ -34,10 +30,10 @@ class SearchTest(TestCase):
                                         link_no=0)
 
         self.extern_link = Link.objects.create(doc_from=self.page,
-                                            text='extern site',
-                                            pos=0,
-                                            link_no=0,
-                                            extern_url='http://perdu.com')
+                                               text='extern site',
+                                               pos=0,
+                                               link_no=0,
+                                               extern_url='http://perdu.com')
 
     def tearDown(self):
         self.root.delete()

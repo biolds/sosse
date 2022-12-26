@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from .conf import Conf
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -131,10 +133,6 @@ SOSSE_LANGDETECT_TO_POSTGRES = {
     'it': {
         'name': 'italian',
         'flag': '🇮🇹'
-    },
-    'lt': {
-        'name': 'lithuanian',
-        'flag': '🇱🇹'
     },
     'ne': {
         'name': 'nepali',
@@ -312,5 +310,4 @@ SOSSE_LANGDETECT_TO_POSTGRES = {
     }
 }
 
-from .conf import Conf
 globals().update(Conf.get())

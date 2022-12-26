@@ -20,6 +20,15 @@ debian-unittest:
     - MIGRATION_COUNT2="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2"
 
+static_checks:
+  image: debian:bullseye
+  stage: test
+  script:
+    - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
+    - apt update && apt upgrade -y
+    - 'apt install -y $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g") flake8'
+    - flake8 --ignore=E501,W503,W504 --exclude=migrations
+
 debian-pkg:
   image: registry.gitlab.com/biolds1/sosse/debian-pkg:latest
   stage: build

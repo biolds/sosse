@@ -37,11 +37,11 @@ class CrawlerTest(TestCase):
     def setUp(self):
         RequestBrowser.init()
         self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
-                                                    condition=CrawlPolicy.CRAWL_NEVER,
-                                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+                                                      condition=CrawlPolicy.CRAWL_NEVER,
+                                                      default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
-                                                   condition=CrawlPolicy.CRAWL_ALL,
-                                                   default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+                                                       condition=CrawlPolicy.CRAWL_ALL,
+                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
         self.fake_next2 = datetime(2000, 1, 1, 3, tzinfo=timezone.utc)
@@ -84,10 +84,8 @@ class CrawlerTest(TestCase):
             'http://127.0.0.2/': 'No 2  <a href="http://127.0.0.2/">No 2 Link2</a>',
         })
         self._crawl()
-        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS + [
-                mock.call('http://127.0.0.1/page1/'),
-            ],
-            RequestBrowser.call_args_list)
+        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS + [mock.call('http://127.0.0.1/page1/')],
+                        RequestBrowser.call_args_list)
 
         self.assertEqual(Document.objects.count(), 2)
         docs = Document.objects.order_by('id')
@@ -120,18 +118,17 @@ class CrawlerTest(TestCase):
         self.crawl_policy.save()
 
         CrawlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
-                                 condition=CrawlPolicy.CRAWL_ON_DEPTH,
-                                 default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+                                   condition=CrawlPolicy.CRAWL_ON_DEPTH,
+                                   default_browse_mode=DomainSetting.BROWSE_REQUESTS)
         self._crawl()
 
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS + [
-                mock.call('http://127.0.0.1/page1/'),
-                mock.call('http://127.0.0.2/robots.txt', check_status=True),
-                mock.call('http://127.0.0.2/'),
-                mock.call('http://127.0.0.2/favicon.ico', raw=True, check_status=True),
-                mock.call('http://127.0.0.2/page1/')
-            ],
-            RequestBrowser.call_args_list)
+            mock.call('http://127.0.0.1/page1/'),
+            mock.call('http://127.0.0.2/robots.txt', check_status=True),
+            mock.call('http://127.0.0.2/'),
+            mock.call('http://127.0.0.2/favicon.ico', raw=True, check_status=True),
+            mock.call('http://127.0.0.2/page1/')
+        ], RequestBrowser.call_args_list)
 
         self.assertEqual(Document.objects.count(), 4)
         docs = Document.objects.order_by('id')
@@ -177,7 +174,7 @@ class CrawlerTest(TestCase):
         CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', condition=CrawlPolicy.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
-                       RequestBrowser.call_args_list)
+                        RequestBrowser.call_args_list)
 
         self.assertEqual(Document.objects.count(), 1)
         docs = Document.objects.order_by('id')

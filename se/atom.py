@@ -3,12 +3,10 @@ from lxml.etree import Element, tostring
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.urls import reverse
 
 from .forms import SearchForm
-from .login import login_required
 from .models import SearchEngine
 from .search import get_documents
 
@@ -39,6 +37,7 @@ def atom_is_allowed(request):
             return True
 
     return False
+
 
 def atom(request):
     results = None

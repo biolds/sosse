@@ -6,15 +6,15 @@ from .models import Cookie
 class SearchTest(TestCase):
     def setUp(self):
         self.cookie = Cookie.objects.create(domain='test.com',
-                                             name='test_name',
-                                             value='test_value',
-                                             inc_subdomain=False,
-                                             secure=False)
+                                            name='test_name',
+                                            value='test_value',
+                                            inc_subdomain=False,
+                                            secure=False)
         self.cookie_sub = Cookie.objects.create(domain='test2.com',
-                                             name='test2_name',
-                                             value='test2_value',
-                                             inc_subdomain=True,
-                                             secure=False)
+                                                name='test2_name',
+                                                value='test2_value',
+                                                inc_subdomain=True,
+                                                secure=False)
         self.cookie_secure = Cookie.objects.create(domain='test3.com',
                                                    name='test3_name',
                                                    value='test3_value',

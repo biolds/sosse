@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pytz
@@ -14,7 +13,6 @@ from django.conf import settings
 import requests
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 
 
@@ -141,8 +139,7 @@ class RequestBrowser(Browser):
 
     @classmethod
     def get(cls, url, raw=False, check_status=False):
-        from .models import absolutize_url, CrawlPolicy
-        got_redirect = False
+        from .models import absolutize_url
         page = None
         did_redirect = False
         redirects = 256
@@ -243,7 +240,7 @@ def retry(f):
                 r = f(*args, **kwargs)
                 crawl_logger.debug('%s succeeded' % f)
                 return r
-            except WebDriverException as e:
+            except WebDriverException:
                 exc = traceback.format_exc()
                 crawl_logger.error('%s failed' % f)
                 crawl_logger.error('Selenium returned an exception:\n%s' % exc)
@@ -258,6 +255,7 @@ def retry(f):
                 count += 1
                 crawl_logger.error('Retrying (%i / %i)' % (count, settings.SOSSE_BROWSER_CRASH_RETRY))
     return _retry
+
 
 class SeleniumBrowser(Browser):
     driver = None
@@ -329,7 +327,7 @@ class SeleniumBrowser(Browser):
 
         crawl_policy = CrawlPolicy.get_from_url(cls.driver.current_url)
         if crawl_policy.script:
-            cls.driver.execute_script(crawl_policy.script);
+            cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready()
 
         content = cls.driver.page_source
@@ -398,7 +396,7 @@ class SeleniumBrowser(Browser):
             try:
                 cls.driver.add_cookie(cookie)
                 crawl_logger.debug('loaded cookie %s' % cookie)
-            except:
+            except:  # noqa
                 raise Exception(cookie)
 
     @classmethod
@@ -415,8 +413,8 @@ class SeleniumBrowser(Browser):
         cls._load_cookies(url)
         cls.driver.get(url)
 
-        if ((current_url != url and cls.driver.current_url == current_url) or # If we got redirected to the url that was previously set in the browser
-                cls.driver.current_url == 'data:,'): # The url can be "data:," during a few milliseconds when the download starts
+        if ((current_url != url and cls.driver.current_url == current_url)  # If we got redirected to the url that was previously set in the browser
+                or cls.driver.current_url == 'data:,'):  # The url can be "data:," during a few milliseconds when the download starts
             page = cls._handle_download(url)
             if page:
                 return page
@@ -439,7 +437,7 @@ class SeleniumBrowser(Browser):
             sleep(settings.SOSSE_DL_CHECK_TIME)
             retry -= 1
         else:
-            if len(os.listdir('.')) == 0: # redo the check in case SOSSE_DL_CHECK_RETRY == 0
+            if len(os.listdir('.')) == 0:  # redo the check in case SOSSE_DL_CHECK_RETRY == 0
                 crawl_logger.debug('no download has started')
                 return
 
@@ -484,7 +482,7 @@ class SeleniumBrowser(Browser):
 
         width, height = cls.screen_size()
         cls.driver.set_window_rect(0, 0, *cls.screen_size())
-        cls.driver.execute_script('document.body.style.overflow = "hidden"');
+        cls.driver.execute_script('document.body.style.overflow = "hidden"')
         doc_height = cls.driver.execute_script('''
             const body = document.body;
             const html = document.documentElement;

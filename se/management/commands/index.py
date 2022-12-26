@@ -17,7 +17,7 @@ class Command(BaseCommand):
         parser.add_argument('urls', nargs='+', type=str)
 
     def handle(self, *args, **options):
-        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER}) # mandatory default policy
+        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER})  # mandatory default policy
         Document.objects.update(worker_no=None)
         Browser.init()
 

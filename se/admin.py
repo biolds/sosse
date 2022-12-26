@@ -1,9 +1,6 @@
-import os
-
 from urllib.parse import urlencode
 
 from django import forms
-from django.db import models
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
@@ -118,8 +115,9 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
     search_fields = ['url__regex', 'title__regex']
-    fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status', 'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt',
-        'crawl_recurse', 'robotstxt_rejected', 'mimetype', 'lang', '_content')
+    fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
+              'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt', 'crawl_recurse',
+              'robotstxt_rejected', 'mimetype', 'lang', '_content')
     readonly_fields = fields
     ordering = ('-crawl_last',)
     actions = [crawl_now, convert_to_jpg]
@@ -162,9 +160,9 @@ class DocumentAdmin(admin.ModelAdmin):
         if not request.user.has_perm('se.add_document'):
             raise PermissionDenied
         context = dict(
-           self.admin_site.each_context(request),
-           form=AddToQueueForm(),
-           title='Crawl a new URL'
+            self.admin_site.each_context(request),
+            form=AddToQueueForm(),
+            title='Crawl a new URL'
         )
         return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
@@ -218,7 +216,8 @@ class DocumentAdmin(admin.ModelAdmin):
         QUEUE_SIZE = 10
         queue = list(Document.objects.filter(crawl_last__isnull=True).order_by('id')[:QUEUE_SIZE])
         if len(queue) < QUEUE_SIZE:
-            queue = queue + list(Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next' , 'id')[:QUEUE_SIZE - len(queue)])
+            queue = queue + list(Document.objects.filter(crawl_last__isnull=False,
+                                                         crawl_next__isnull=False).order_by('crawl_next', 'id')[:QUEUE_SIZE - len(queue)])
 
         for doc in queue:
             doc.crawl_next_human = human_dt(doc.crawl_next, True)
@@ -343,7 +342,6 @@ class CrawlPolicyForm(forms.ModelForm):
         exclude = tuple()
 
     def clean(self):
-        errors = {}
         cleaned_data = super().clean()
 
         keys_required = {
@@ -430,7 +428,7 @@ class CookieAdmin(admin.ModelAdmin):
     def get_search_results(self, request, queryset, search_term):
         if search_term.startswith('http://') or search_term.startswith('https://'):
             cookies = Cookie.get_from_url(search_term, queryset, expire=False)
-            cookies = sorted(cookies, key=lambda x:x.name)
+            cookies = sorted(cookies, key=lambda x: x.name)
             _cookies = Cookie.objects.filter(id__in=[c.id for c in cookies])
             return _cookies, False
         return super().get_search_results(request, queryset, search_term)

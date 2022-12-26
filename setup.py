@@ -25,13 +25,13 @@ setup(
     author_email="laurent_defert@yahoo.fr",
     description="Open Source Search Engine",
     keywords="search engine",
-    url="https://github.com/biolds/sosse",
+    url="https://gitlab.com/biolds1/sosse",
     scripts=['sosse-admin'],
-    #project_urls={
-    #    "Bug Tracker": "https://bugs.example.com/HelloWorld/",
-    #    "Documentation": "https://docs.example.com/HelloWorld/",
-    #    "Source Code": "https://code.example.com/HelloWorld/",
-    #},
+    project_urls={
+        "Bug Tracker": "https://gitlab.com/biolds1/sosse/-/issues",
+        # "Documentation": "https://docs.example.com/HelloWorld/",
+        "Source Code": "https://gitlab.com/biolds1/sosse",
+    },
     classifiers=[
         "License :: OSI Approved :: GNU Affero General Public License v3"
     ]

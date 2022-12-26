@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import get_object_or_404, reverse
 from django.utils.html import format_html
 from urllib.parse import unquote

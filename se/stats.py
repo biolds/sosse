@@ -62,9 +62,9 @@ def datetime_graph(pygal_config, pygal_style, freq, data, col, _now):
         cls = pygal.DateLine
 
     g = cls(pygal_config, style=pygal_style, disable_xml_declaration=True,
-                                     truncate_label=-1, show_legend=False, fill=True,
-                                     x_value_formatter=lambda dt: dt.strftime(format_str),
-                                     x_title=x_title, range=(0, None))
+            truncate_label=-1, show_legend=False, fill=True,
+            x_value_formatter=lambda dt: dt.strftime(format_str),
+            x_title=x_title, range=(0, None))
     g.x_labels = x_labels
     stats_max = data.aggregate(m=models.Max(col)).get('m', 0) or 0
     factor, unit = get_unit(stats_max)
@@ -210,7 +210,7 @@ def stats(request):
         'db_size': filesizeformat(db_size),
         'doc_size': 0 if doc_count == 0 else filesizeformat(db_size / doc_count),
         'lang_recognizable': len(os.listdir(PROFILES_DIRECTORY)),
-        'lang_parsable': [l.title() for l in sorted(Document.get_supported_langs())],
+        'lang_parsable': [lang.title() for lang in sorted(Document.get_supported_langs())],
         'lang_chart': lang_chart,
         'hdd_pie': hdd_pie.render(),
     })

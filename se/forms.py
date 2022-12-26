@@ -20,11 +20,12 @@ SORT = (
     ('-url', 'Url descending'),
 )
 
+
 class SearchForm(forms.Form):
     q = forms.CharField(label='Search',
                         required=False,
                         widget=forms.TextInput(attrs={'autofocus': True}))
-    l = forms.CharField(widget=forms.HiddenInput, initial='en', required=False)
+    l = forms.CharField(widget=forms.HiddenInput, initial='en', required=False)  # noqa
     ps = forms.IntegerField(widget=forms.HiddenInput, initial=settings.SOSSE_DEFAULT_PAGE_SIZE, required=False)
     c = forms.ChoiceField(widget=forms.HiddenInput, choices=(('', ''), ('1', '1')), required=False)
     s = forms.ChoiceField(initial='-rank', choices=SORT, required=False)

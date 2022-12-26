@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import urllib.parse
@@ -6,7 +5,7 @@ import unicodedata
 import logging
 
 from base64 import b64encode, b64decode
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from defusedxml import ElementTree
 from hashlib import md5
 from time import sleep
@@ -18,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchVector, SearchVectorField
+from django.contrib.postgres.search import SearchVectorField
 from django.db import connection, models
 from django.http import QueryDict
 from django.shortcuts import reverse
@@ -358,7 +357,7 @@ class Document(models.Model):
             self._index_log('delete', stats, verbose)
 
             # The bulk request triggers a deadlock
-            #Link.objects.bulk_create(links['links'])
+            # Link.objects.bulk_create(links['links'])
             for link in links['links']:
                 link.save()
             self._index_log('bulk', stats, verbose)
@@ -380,7 +379,7 @@ class Document(models.Model):
             crawl_logger.debug('Converting %s to %s' % (src, dst))
 
             img = Image.open(src)
-            img = img.convert('RGB') # Remove alpha channel from the png
+            img = img.convert('RGB')  # Remove alpha channel from the png
             img.save(dst, 'jpeg')
             os.unlink(src)
 
@@ -485,9 +484,9 @@ class Document(models.Model):
         worker_stats = WorkerStats.get_worker(worker_no)
 
         crawl_logger.debug('Worker:%i Queued:%i Indexed:%i Id:%i %s ...' % (worker_no,
-                                        Document.objects.filter(crawl_last__isnull=True).count(),
-                                        Document.objects.filter(crawl_last__isnull=False).count(),
-                                        doc.id, doc.url))
+                           Document.objects.filter(crawl_last__isnull=True).count(),
+                           Document.objects.filter(crawl_last__isnull=False).count(),
+                           doc.id, doc.url))
 
         while True:
             # Loop until we stop redirecting
@@ -532,7 +531,7 @@ class Document(models.Model):
                             break
                 else:
                     break
-            except Exception as e:
+            except Exception as e:  # noqa
                 doc.set_error(format_exc())
                 doc._schedule_next(True, crawl_policy)
                 doc.save()
@@ -647,6 +646,7 @@ class AuthField(models.Model):
     class Meta:
         verbose_name = 'authentication field'
 
+
 MINUTELY = 'M'
 DAILY = 'D'
 FREQUENCY = (
@@ -696,6 +696,7 @@ class WorkerStats(models.Model):
                 w.pid = '-'
                 w.state = 'exited'
         return workers
+
 
 class CrawlerStats(models.Model):
     t = models.DateTimeField()
@@ -1033,7 +1034,6 @@ class DomainSetting(models.Model):
         else:
             self.robots_status = DomainSetting.ROBOTS_LOADED
 
-
     def robots_authorized(self, url):
         if self.ignore_robots:
             return True
@@ -1065,7 +1065,7 @@ class DomainSetting(models.Model):
             if not pattern:
                 continue
             if re.match(pattern, url):
-               if len(pattern) > disallow_length:
+                if len(pattern) > disallow_length:
                     return True
 
         return False
@@ -1081,9 +1081,6 @@ class DomainSetting(models.Model):
         return DomainSetting.objects.get_or_create(domain=domain,
                                                    defaults={'browse_mode': default_browse_mode})[0]
 
-
-#raise Exception('cookies %s' % cls.driver.get_cookies())
-#Exception: cookies [{'domain': '192.168.114.4', 'expiry': 1665435006, 'httpOnly': True, 'name': '_csrf', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '3RvQQKj9SUin0J2pPihCVzB9AOI6MTY2NTM0ODYwNjA1NDYwMzY0NQ'}, {'domain': '192.168.114.4', 'httpOnly': True, 'name': 'i_like_gitea', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': 'c68de9bc3cbe58be'}]
 
 class Cookie(models.Model):
     TLDS = PublicSuffixList().tlds
@@ -1271,7 +1268,7 @@ class CrawlPolicy(models.Model):
                 crawl_logger.debug('may auth %s / %s' % (page.url, self.auth_login_url_re))
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
-                        re.search(self.auth_login_url_re, page.url) :
+                        re.search(self.auth_login_url_re, page.url):
                     crawl_logger.debug('doing auth for %s' % url)
                     new_page = page.browser.try_auth(page, url, self)
                     new_page.got_redirect = True
@@ -1281,7 +1278,7 @@ class CrawlPolicy(models.Model):
                         page = browser.get(url)
                     else:
                         page = new_page
-            except:
+            except:  # noqa
                 raise Exception('Authentication failed')
 
         if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:

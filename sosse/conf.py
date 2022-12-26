@@ -312,7 +312,7 @@ class Conf:
                 fake_hash = b(b'')
                 if hasattr(fake_hash, 'hexdigest'):
                     algos.append(a)
-            except:
+            except TypeError:
                 pass
         if hash_algo not in algos:
             raise Exception('Configuration parsing error: invalid hashing_algo value "%s", must be one of %s' % (hash_algo, ', '.join(sorted(algos))))

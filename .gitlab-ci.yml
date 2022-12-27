@@ -34,7 +34,11 @@ static_checks:
 debian-pkg:
   image: registry.gitlab.com/biolds1/sosse/debian-pkg:latest
   stage: build
+  artifacts:
+    paths:
+      - deb/*.deb
   script:
     - cd "$CI_PROJECT_DIR"
     - mkdir /deb
     - make _deb
+    - mv /deb .

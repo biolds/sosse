@@ -316,7 +316,7 @@ class Document(models.Model):
                     links['text'] += '\n'
 
     def _clear_content(self):
-        self.redirect_url = ''
+        self.redirect_url = None
         self.content = ''
         self.normalized_content = ''
         self.title = ''

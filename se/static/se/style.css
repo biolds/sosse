@@ -2,7 +2,11 @@ body {
     margin: 0;
 }
 li {
-    list-style-type: square;
+    list-style-type: none;
+    padding: 5px;
+}
+li:nth-of-type(2n + 1) {
+    background-color: #eee;
 }
 #top_bar {
     border-style: solid;

@@ -250,6 +250,21 @@ class Document(models.Model):
             selector = self._build_selector(elem.parent) + selector
         return selector
 
+    def _get_elem_text(self, elem, recurse=False):
+        s = ''
+        if elem.name is None:
+            s = getattr(elem, 'string', '') or ''
+            s = s.strip(' \t\n\r')
+
+        if (elem.name == 'a' or recurse) and hasattr(elem, 'children'):
+            for child in elem.children:
+                _s = self._get_elem_text(child, True)
+                if _s:
+                    if s:
+                        s += ' '
+                    s += _s
+        return s
+
     def _dom_walk(self, elem, crawl_policy, links):
         if isinstance(elem, Doctype):
             return
@@ -257,9 +272,7 @@ class Document(models.Model):
         if elem.name in ('[document]', 'title', 'script', 'style'):
             return
 
-        s = getattr(elem, 'string', None)
-        if s is not None:
-            s = s.strip(' \t\n\r')
+        s = self._get_elem_text(elem)
 
         # Keep the link if it has text, or if we take screenshots
         if elem.name in (None, 'a') and (s or crawl_policy.take_screenshots):

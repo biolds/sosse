@@ -136,6 +136,7 @@ class DocumentAdmin(admin.ModelAdmin):
     readonly_fields = fields
     ordering = ('-crawl_last',)
     actions = [crawl_now, convert_to_jpg]
+    list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
 
     def has_add_permission(self, request, obj=None):
         return False

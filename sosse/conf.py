@@ -157,6 +157,11 @@ DEFAULTS = OrderedDict([
             'default': True,
             'type': bool
         }],
+        ['admin_page_size', {
+            'comment': 'Number of items by list in the amdinistration pages',
+            'default': 100,
+            'type': int
+        }],
         ['crawl_status_autorefresh', {
             'comment': 'Delay between crawl status page autorefresh (in seconds)',
             'default': 5,

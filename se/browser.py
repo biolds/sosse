@@ -579,7 +579,7 @@ class SeleniumBrowser(Browser):
         for f in crawl_policy.authfield_set.values('key', 'value'):
             elem = cls._find_elements_by_selector(form, 'input[name="%s"]' % f['key'])
             if len(elem) != 1:
-                raise Exception('Found %s multiple input element when trying to set auth field %s' % (len(elem), f['key']))
+                raise Exception('Found %s input element when trying to set auth field %s' % (len(elem), f['key']))
             elem[0].send_keys(f['value'])
             crawl_logger.debug('settings %s = %s on %s' % (f['key'], f['value'], elem[0]))
 

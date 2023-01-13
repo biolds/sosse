@@ -115,6 +115,11 @@ def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
 
 
+@admin.action(description='Remove from crawl queue', permissions=['change'])
+def remove_from_crawl_queue(modeladmin, request, queryset):
+    queryset.update(crawl_next=None)
+
+
 @admin.action(description='Convert screens to jpeg', permissions=['change'])
 def convert_to_jpg(modeladmin, request, queryset):
     for doc in queryset.all():
@@ -135,7 +140,7 @@ class DocumentAdmin(admin.ModelAdmin):
               'robotstxt_rejected', 'mimetype', 'lang', '_content')
     readonly_fields = fields
     ordering = ('-crawl_last',)
-    actions = [crawl_now, convert_to_jpg]
+    actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
 
     def has_add_permission(self, request, obj=None):

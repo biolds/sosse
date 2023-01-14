@@ -1050,12 +1050,14 @@ class DomainSetting(models.Model):
         self.robots_allow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_ALLOW])
         self.robots_disallow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
 
-    def _load_robotstxt(self):
+    def _load_robotstxt(self, url):
         crawl_logger.debug('loading robots txt')
         self.robots_ua_hash = self.ua_hash()
+        scheme, _ = url.split(':', 1)
+        robots_url = '%s://%s/robots.txt' % (scheme, self.domain)
 
         try:
-            page = RequestBrowser.get('http://%s/robots.txt' % self.domain, check_status=True)
+            page = RequestBrowser.get(robots_url, check_status=True)
             self._parse_robotstxt(page.content)
         except requests.HTTPError:
             self.robots_status = DomainSetting.ROBOTS_EMPTY
@@ -1070,7 +1072,7 @@ class DomainSetting(models.Model):
             return True
 
         if self.robots_status == DomainSetting.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:
-            self._load_robotstxt()
+            self._load_robotstxt(url)
             self.save()
 
         if self.robots_status == DomainSetting.ROBOTS_EMPTY:

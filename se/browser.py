@@ -150,6 +150,8 @@ class RequestBrowser(Browser):
                 'http': settings.SOSSE_PROXY,
                 'https': settings.SOSSE_PROXY
             }
+        if settings.SOSSE_REQUESTS_TIMEOUT:
+            params['timeout'] = settings.SOSSE_REQUESTS_TIMEOUT
         return params
 
     @classmethod

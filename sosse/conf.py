@@ -181,6 +181,11 @@ DEFAULTS = OrderedDict([
             'comment': 'User agent used by crawlers',
             'default': 'SOSSE'
         }],
+        ['requests_timeout', {
+            'comment': 'Timeout when retrieving pages with Requests (no timeout if 0)',
+            'default': 10,
+            'type': int
+        }],
         ['fail_over_lang', {
             'comment': 'Language used to parse web pages when the original language could not be detected',
             'default': 'english'

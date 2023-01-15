@@ -163,14 +163,18 @@ class RequestBrowser(Browser):
         while redirects > 0:
             redirects -= 1
 
+            crawl_logger.debug('%s: get cookie' % url)
             cookies = cls._get_cookies(url)
+            crawl_logger.debug('%s: http get %s %s -' % (url, cookies, cls._requests_params()))
             r = requests.get(url, cookies=cookies, **cls._requests_params())
+            crawl_logger.debug('%s: set cookies' % url)
             cls._set_cookies(url, r.cookies)
 
             if check_status:
                 r.raise_for_status()
 
             if len(r.history):
+                crawl_logger.debug('%s: redirected' % url)
                 did_redirect = True
 
             page = cls._page_from_request(r, raw)
@@ -187,8 +191,10 @@ class RequestBrowser(Browser):
 
                     url = absolutize_url(url, dest)
                     did_redirect = True
+                    crawl_logger.debug('%s: html redirected' % url)
                     break
             else:
+                crawl_logger.debug('%s: get done' % url)
                 break
 
         page.got_redirect = did_redirect

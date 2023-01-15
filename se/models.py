@@ -1051,18 +1051,20 @@ class DomainSetting(models.Model):
         self.robots_disallow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
 
     def _load_robotstxt(self, url):
-        crawl_logger.debug('loading robots txt')
         self.robots_ua_hash = self.ua_hash()
         scheme, _ = url.split(':', 1)
         robots_url = '%s://%s/robots.txt' % (scheme, self.domain)
+        crawl_logger.debug('%s: downloading %s' % (self.domain, robots_url))
 
         try:
             page = RequestBrowser.get(robots_url, check_status=True)
+            crawl_logger.debug('%s: loading %s' % (self.domain, robots_url))
             self._parse_robotstxt(page.content)
         except requests.HTTPError:
             self.robots_status = DomainSetting.ROBOTS_EMPTY
         else:
             self.robots_status = DomainSetting.ROBOTS_LOADED
+        crawl_logger.debug('%s: robots.txt %s' % (self.domain, self.robots_status))
 
     def robots_authorized(self, url):
         if self.ignore_robots:
@@ -1076,6 +1078,7 @@ class DomainSetting(models.Model):
             self.save()
 
         if self.robots_status == DomainSetting.ROBOTS_EMPTY:
+            crawl_logger.debug('%s: robots.txt is empty' % self.domain)
             return True
 
         url = urlparse(url).path
@@ -1085,10 +1088,11 @@ class DomainSetting(models.Model):
             if not pattern:
                 continue
             if re.match(pattern, url):
-                crawl_logger.debug('%s matched robots disallow: %s' % (url, pattern))
+                crawl_logger.debug('%s: matched robots.txt disallow: %s' % (url, pattern))
                 disallow_length = max(disallow_length or 0, len(pattern))
 
         if disallow_length is None:
+            crawl_logger.debug('%s: robots.txt authorized' % url)
             return True
 
         for pattern in self.robots_allow.split('\n'):
@@ -1096,8 +1100,10 @@ class DomainSetting(models.Model):
                 continue
             if re.match(pattern, url):
                 if len(pattern) > disallow_length:
+                    crawl_logger.debug('%s: robots.txt authorized by allow rule' % url)
                     return True
 
+        crawl_logger.debug('%s: robots.txt denied' % url)
         return False
 
     @classmethod

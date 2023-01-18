@@ -19,19 +19,6 @@
     <filter
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
-       id="filter1390"
-       x="-0.054399578"
-       width="1.1087992"
-       y="-0.061737558"
-       height="1.1234751">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.16643582"
-         id="feGaussianBlur1392" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       style="color-interpolation-filters:sRGB"
        id="filter1942"
        x="-0.050227918"
        width="1.1004558"
@@ -58,9 +45,9 @@
      inkscape:document-rotation="0"
      showgrid="false"
      units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="1010"
-     inkscape:window-x="0"
+     inkscape:window-width="1342"
+     inkscape:window-height="768"
+     inkscape:window-x="24"
      inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
@@ -191,10 +178,5 @@
          cy="3.25"
          r="0.25" />
     </g>
-    <path
-       id="path851"
-       style="opacity:1;fill:#ffffff;stroke-width:0.264583;filter:url(#filter1390)"
-       d="M 8.1191077,0.68979792 C 3.2607377,1.8814178 2.0216833,4.2037163 0.76783311,8.2070401 0.96297371,5.221866 2.0982825,3.4784584 2.9447217,2.602888 3.9439193,1.5693019 5.8100759,0.55082224 8.1191077,0.68979792 Z"
-       sodipodi:nodetypes="ccsc" />
   </g>
 </svg>

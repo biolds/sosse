@@ -99,6 +99,10 @@ function add_new_adv_search() {
     new_adv_search.innerHTML = template.innerHTML;
     for (let i = 0; i < new_adv_search.children.length; i++) {
         const child = new_adv_search.children[i];
+        if (child.tagName === 'LABEL') {
+            child.setAttribute('for', 'fc' + adv_search_lines);
+            continue;
+        }
         if (['INPUT', 'SELECT'].indexOf(child.tagName) === -1) {
             continue;
         }
@@ -107,6 +111,10 @@ function add_new_adv_search() {
         }
         const name = child.getAttribute('name');
         child.setAttribute('name', name + adv_search_lines);
+
+        if (child.getAttribute('type') == 'checkbox') {
+            child.setAttribute('id', name + adv_search_lines);
+        }
     }
 
     const dyn_buttons = new_adv_search.getElementsByClassName('dyn_button');

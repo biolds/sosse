@@ -13,6 +13,9 @@
     {% if doc.crawl_first %}
         <li>First successfully crawled on {{ doc.crawl_first }}</li>
     {% endif %}
+    {% if doc.mimetype %}
+        <li>Mimetype {{ doc.mimetype }}</li>
+    {% endif %}
     {% if doc.crawl_depth is not None %}
         <li>Page depth is {{ doc.crawl_depth }}</li>
     {% endif %}

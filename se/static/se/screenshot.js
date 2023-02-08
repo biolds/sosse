@@ -1,13 +1,13 @@
-let width, height, images, links;
+let images, links;
 
 function resize() {
     // width with implicit margin
     const w_width = document.body.getBoundingClientRect().width + 8;
-    const ratio = w_width / width;
+    const ratio = w_width / screen_width;
 
     for (let i = 0; i < images.length; i++) {
         const img = images[i];
-        img.style.width = `${width * ratio}px`;
+        img.style.width = `${screen_width * ratio}px`;
     }
 
     for (let i = 0; i < links.length; i++) {
@@ -23,9 +23,6 @@ function resize() {
 document.addEventListener("DOMContentLoaded", function(event) {
     links = document.querySelectorAll('#screenshots > a');
     images = document.querySelectorAll('#screenshots > img');
-    const elemRect = images[0].getBoundingClientRect();
-    width = elemRect.width;
-    height = elemRect.height;
 
     window.addEventListener('resize', function() {
         resize();

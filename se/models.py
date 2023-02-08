@@ -151,6 +151,7 @@ class Document(models.Model):
     screenshot_file = models.CharField(max_length=4096, blank=True, null=True)
     screenshot_count = models.PositiveIntegerField(blank=True, null=True)
     screenshot_format = models.CharField(max_length=3, choices=SCREENSHOT_FORMAT)
+    screenshot_size = models.CharField(max_length=16)
 
     # Crawling info
     crawl_first = models.DateTimeField(blank=True, null=True, verbose_name='Crawled first')
@@ -417,6 +418,7 @@ class Document(models.Model):
         self.screenshot_file = filename
         self.screenshot_count = img_count
         self.screenshot_format = crawl_policy.screenshot_format
+        self.screenshot_size = '%sx%s' % SeleniumBrowser.screen_size()
 
         if crawl_policy.screenshot_format == Document.SCREENSHOT_JPG:
             self.convert_to_jpg()

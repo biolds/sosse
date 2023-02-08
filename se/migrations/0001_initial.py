@@ -150,6 +150,7 @@ class Migration(migrations.Migration):
                 ('redirect_url', models.TextField(blank=True, null=True)),
                 ('screenshot_file', models.CharField(blank=True, max_length=4096, null=True)),
                 ('screenshot_count', models.PositiveIntegerField(blank=True, null=True)),
+                ('screenshot_size', models.CharField(max_length=16)),
                 ('screenshot_format', models.CharField(choices=[('png', 'png'), ('jpg', 'jpg')], max_length=3)),
                 ('crawl_first', models.DateTimeField(blank=True, null=True, verbose_name='Crawled first')),
                 ('crawl_last', models.DateTimeField(blank=True, null=True, verbose_name='Crawled last')),

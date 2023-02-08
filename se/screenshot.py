@@ -32,6 +32,7 @@ def screenshot(request, url):
     context = get_context(doc)
     context.update({
         'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
+        'screenshot_size': doc.screenshot_size.split('x'),
         'screenshot_format': doc.screenshot_format,
         'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
         'other_links': [{

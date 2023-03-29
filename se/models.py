@@ -1282,6 +1282,11 @@ class CrawlPolicy(models.Model):
         return f'「{self.url_regex}」'
 
     @staticmethod
+    def create_default():
+        # mandatory default policy
+        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER})
+
+    @staticmethod
     def get_from_url(url):
         return CrawlPolicy.objects.extra(where=['%s ~ url_regex'], params=[url]).annotate(
             url_regex_len=models.functions.Length('url_regex')

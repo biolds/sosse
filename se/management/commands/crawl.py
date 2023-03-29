@@ -94,7 +94,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.exclude(worker_no=None).update(worker_no=None)
-        CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER})  # mandatory default policy
+        CrawlPolicy.create_default()
 
         for url in options['urls']:
             Document.queue(url, None, 0)

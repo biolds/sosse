@@ -287,6 +287,10 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def init(cls):
+        # force the cwd in case it's not called from the worker
+        if not os.getcwd().startswith(settings.SOSSE_TMP_DL_DIR + '/'):
+            os.chdir(settings.SOSSE_TMP_DL_DIR)
+
         options = Options()
         options.binary_location = "/usr/bin/chromium"
 
@@ -431,7 +435,8 @@ class SeleniumBrowser(Browser):
         for f in os.listdir('.'):
             if f != 'core':
                 crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
-            os.unlink(f)
+            if os.path.isfile(f):
+                os.unlink(f)
 
         cls._load_cookies(url)
         cls.driver.get(url)
@@ -481,7 +486,8 @@ class SeleniumBrowser(Browser):
 
         # Remove all files in case multiple were downloaded
         for f in os.listdir('.'):
-            os.unlink(f)
+            if os.path.isfile(f):
+                os.unlink(f)
         return page
 
     @classmethod

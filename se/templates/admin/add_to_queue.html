@@ -43,7 +43,7 @@
                 {% endif %}
             </ul>
             <p>
-                <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ url }}">Create a new policy</a>
+                <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ url|urlencode }}">Create a new policy</a>
             </p>
 
             <p>

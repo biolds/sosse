@@ -17,7 +17,8 @@ from django.shortcuts import get_object_or_404, reverse
 from django.utils.html import format_html
 from urllib.parse import unquote
 
-from .models import Document, CrawlPolicy
+from .models import Document, CrawlPolicy, sanitize_url
+from .utils import reverse_no_escape
 
 
 def get_document(url):
@@ -26,8 +27,7 @@ def get_document(url):
     if url[0] != '/':
         url = '/' + url
     url = scheme + '/' + url
-    url = unquote(url)
-    url = unquote(url)
+    url = sanitize_url(url, True, True)
     return get_object_or_404(Document, url=url)
 
 

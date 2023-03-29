@@ -21,7 +21,7 @@ import traceback
 from datetime import datetime
 from hashlib import md5
 from time import sleep
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -36,7 +36,8 @@ crawl_logger = logging.getLogger('crawler')
 
 class Page:
     def __init__(self, url, content, browser):
-        self.url = url
+        from .models import sanitize_url
+        self.url = sanitize_url(url, True, True)
         self.content = content
         self.got_redirect = False
         self.title = None
@@ -59,8 +60,6 @@ class Page:
         for a in self.get_soup().find_all('a'):
             if a.get('href'):
                 u = absolutize_url(self.url, a.get('href').strip(), keep_params, False)
-                if '#' in u:
-                    raise Exception('aaa %s %s %s' % (u, self.url, a.get('href')))
                 yield u
 
 
@@ -95,8 +94,7 @@ class RequestBrowser(Browser):
                 # Binary file
                 pass
 
-        url = unquote(r.url)
-        page = Page(url,
+        page = Page(r.url,
                     content,
                     cls)
         parsed = page.get_soup()
@@ -324,6 +322,11 @@ class SeleniumBrowser(Browser):
                 pass
 
     @classmethod
+    def _current_url(cls):
+        from .models import sanitize_url
+        return sanitize_url(cls.driver.current_url, True, True)
+
+    @classmethod
     def _wait_for_ready(cls):
         # Wait for page being ready
         retry = settings.SOSSE_JS_STABLE_RETRY
@@ -352,13 +355,14 @@ class SeleniumBrowser(Browser):
         from .models import CrawlPolicy
         cls._wait_for_ready()
 
-        crawl_policy = CrawlPolicy.get_from_url(cls.driver.current_url)
+        current_url = cls._current_url()
+        crawl_policy = CrawlPolicy.get_from_url(current_url)
         if crawl_policy.script:
             cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready()
 
         content = cls.driver.page_source
-        page = Page(cls.driver.current_url,
+        page = Page(current_url,
                     content,
                     cls)
         page.title = cls.driver.title
@@ -397,12 +401,13 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _load_cookies(cls, url):
+        from se.models import sanitize_url
         from .models import Cookie
 
         # Cookies can only be set to the same domain,
         # so first we navigate to the correct location
-        current_url = urlparse(cls.driver.current_url)
-        target_url = urlparse(url)
+        current_url = urlparse(cls._current_url())
+        target_url = urlparse(sanitize_url(url, True, True))
         if current_url.netloc != target_url.netloc:
             cls.driver.get(url)
 
@@ -599,9 +604,10 @@ class SeleniumBrowser(Browser):
 
         form.submit()
         crawl_logger.debug('submitting')
-        cls._save_cookies(cls.driver.current_url)
+        current_url = cls._current_url()
+        cls._save_cookies(current_url)
 
-        if cls.driver.current_url != url:
+        if current_url != url:
             return cls.get(url)
 
         return cls._get_page()

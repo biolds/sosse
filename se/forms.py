@@ -13,13 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import re
-
 from django import forms
 from django.conf import settings
-from django.core.exceptions import ValidationError
 
-from .models import Document
+from .models import Document, sanitize_url, validate_url
 
 
 SORT = (
@@ -95,7 +92,6 @@ class AddToQueueForm(forms.Form):
     url.widget.attrs.update({'style': 'width: 100%'})
 
     def clean_url(self):
-        value = self.cleaned_data['url']
-        if not re.match(r'https?://[a-zA-Z0-9_-][a-zA-Z0-9\_\-\.]*/', value):
-            raise ValidationError('Please put a valid URL')
+        value = sanitize_url(self.cleaned_data['url'], True, True)
+        validate_url(value)
         return value

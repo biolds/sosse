@@ -25,7 +25,7 @@ from defusedxml import ElementTree
 from hashlib import md5
 from time import sleep
 from traceback import format_exc
-from urllib.parse import urlparse
+from urllib.parse import quote, quote_plus, unquote, unquote_plus, urlparse
 
 from bs4 import Doctype, Tag
 from django.core.exceptions import ValidationError
@@ -61,6 +61,22 @@ def sanitize_url(url, keep_params, keep_anchors):
             url = url.split('#', 1)[0]
 
     url = urlparse(url)
+
+    # normalize percent-encoding
+    _path = unquote(url.path)
+    url = url._replace(path=quote(_path))
+
+    _query = unquote_plus(url.query)
+    url = url._replace(query=quote_plus(_query, safe='&='))
+
+    # normalize punycode
+    try:
+        url.netloc.encode('ascii')
+    except UnicodeEncodeError:
+        try:
+            url = url._replace(netloc=url.netloc.encode('idna').decode())
+        except:  # noqa: E722
+            pass
 
     if url.path == '':
         url = url._replace(path='/')
@@ -120,6 +136,12 @@ class RegConfigField(models.Field):
         return 'regconfig'
 
 
+def validate_url(url):
+    URL_REGEXP = r'https?://[a-zA-Z0-9_-][a-zA-Z0-9\_\-\.]*/[a-zA-Z0-9\_\.\-\~\/\?\&\=\%]*$'
+    if not re.match(URL_REGEXP, url):
+        raise ValidationError('URL must match the regular expression: %s' % URL_REGEXP)
+
+
 class Document(models.Model):
     SCREENSHOT_PNG = 'png'
     SCREENSHOT_JPG = 'jpg'
@@ -129,7 +151,7 @@ class Document(models.Model):
     )
 
     # Document info
-    url = models.TextField(unique=True)
+    url = models.TextField(unique=True, validators=[validate_url])
 
     normalized_url = models.TextField()
     title = models.TextField()
@@ -1147,6 +1169,9 @@ class Cookie(models.Model):
 
     @classmethod
     def get_from_url(cls, url, queryset=None, expire=True):
+        if not url.startswith('http:') and not url.startswith('https:'):
+            return []
+
         parsed_url = urlparse(url)
         domain = parsed_url.hostname
         url_path = parsed_url.path

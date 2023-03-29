@@ -8,13 +8,14 @@ debian-unittest:
   script:
     - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
     - apt update && apt upgrade -y
-    - 'apt install -y $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
+    - 'apt install -y sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
     - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
     - su postgres -c "psql --command \"CREATE DATABASE sosse OWNER sosse\""
-    - mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi
-    - python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
-    - python3 ./sosse-admin test -v3
+    - mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
+    - chown www-data:www-data /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
+    - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
+    - sudo -u www-data python3 ./sosse-admin test -v3
     - MIGRATION_COUNT="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - python3 ./sosse-admin makemigrations
     - MIGRATION_COUNT2="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"

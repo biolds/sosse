@@ -135,7 +135,7 @@ class Migration(migrations.Migration):
             name='Document',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('url', models.TextField(unique=True)),
+                ('url', models.TextField(unique=True, validators=[se.models.validate_url])),
                 ('normalized_url', models.TextField()),
                 ('title', models.TextField()),
                 ('normalized_title', models.TextField()),

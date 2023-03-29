@@ -15,7 +15,6 @@
 
 from django.shortcuts import get_object_or_404, reverse
 from django.utils.html import format_html
-from urllib.parse import unquote
 
 from .models import Document, CrawlPolicy, sanitize_url
 from .utils import reverse_no_escape
@@ -45,6 +44,7 @@ def get_context(doc):
     return {
         'crawl_policy': crawl_policy,
         'doc': doc,
+        'www_redirect_url': doc.redirect_url and reverse_no_escape('www', args=[doc.redirect_url]),
         'head_title': title,
         'title': page_title,
         'favicon': favicon

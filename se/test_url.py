@@ -16,6 +16,7 @@
 from django.test import TestCase
 
 from .models import absolutize_url
+from .utils import reverse_no_escape
 
 
 class UrlTest(TestCase):
@@ -35,3 +36,8 @@ class UrlTest(TestCase):
 
     def test_params(self):
         self.assertEqual(absolutize_url('http://127.0.0.1/index.html?f=1', './page.html?g=3', True, True), 'http://127.0.0.1/page.html?g=3')
+
+    def test_reverse_no_escape(self):
+        self.assertEqual(reverse_no_escape('www', ['a']), '/www/a')
+        self.assertEqual(reverse_no_escape('www', ['%20']), '/www/%20')
+        self.assertEqual(reverse_no_escape('www', ['?a=b']), '/www/?a=b')

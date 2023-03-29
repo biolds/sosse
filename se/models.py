@@ -35,7 +35,6 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import connection, models
 from django.http import QueryDict
-from django.shortcuts import reverse
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
@@ -45,6 +44,7 @@ from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
 from .browser import RequestBrowser, SeleniumBrowser
+from .utils import reverse_no_escape
 
 DetectorFactory.seed = 0
 
@@ -192,9 +192,9 @@ class Document(models.Model):
 
     def get_absolute_url(self):
         if self.screenshot_file:
-            return reverse('screenshot', args=(self.url,))
+            return reverse_no_escape('screenshot', args=(self.url,))
         else:
-            return reverse('www', args=(self.url,))
+            return reverse_no_escape('www', args=(self.url,))
 
     @classmethod
     def get_supported_langs(cls):

@@ -24,6 +24,7 @@ from django.urls import reverse
 from .forms import SearchForm
 from .models import SearchEngine
 from .search import get_documents
+from .utils import reverse_no_escape
 
 
 def elem(tag, text, **attr):
@@ -102,7 +103,7 @@ def atom(request):
             if cached_page == '0':
                 url = doc.url
             else:
-                url = base_url + reverse('www', args=[doc.url])
+                url = base_url + reverse_no_escape('www', args=[doc.url])
             entry.append(elem('link', None, href=url))
             entry.append(elem('id', str_to_uuid(url)))
             entry.append(elem('updated', getattr(doc, key).isoformat()))

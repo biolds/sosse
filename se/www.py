@@ -13,12 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.shortcuts import render, reverse
+from django.shortcuts import render
 from django.utils.html import format_html
 
 from .cached import get_document, get_context
 from .login import login_required
 from .models import Link
+from .utils import reverse_no_escape
 
 
 @login_required
@@ -45,12 +46,12 @@ def www(request, url):
                 content += format_html('{}<a href="{}">{}</a> · <a href="{}">🌍</a>',
                                        txt,
                                        link.doc_to.get_absolute_url(),
-                                       link.text,
+                                       link.text or '<no text link>',
                                        link.doc_to.url)
             else:
                 content += format_html('{} [{}] · <a href="{}">🌍</a>',
                                        txt,
-                                       link.text,
+                                       link.text or '<no text link>',
                                        link.extern_url)
             link_no += 1
 
@@ -62,10 +63,10 @@ def www(request, url):
 
     if doc.screenshot_file:
         context['other_links'] = [{
-            'href': reverse('screenshot', args=[url]),
+            'href': reverse_no_escape('screenshot', args=[url]),
             'text': 'Screenshot'
         }, {
-            'href': reverse('words', args=[url]),
+            'href': reverse_no_escape('words', args=[url]),
             'text': 'Words weight',
         }]
     return render(request, 'se/www.html', context)

@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.shortcuts import render, reverse
+from django.shortcuts import render
 
 from .cached import get_document, get_context
 from .login import login_required
+from .utils import reverse_no_escape
 
 
 @login_required
@@ -32,10 +33,10 @@ def words(request, url):
 
     context.update({
         'other_links': [{
-            'href': reverse('www', args=[url]),
+            'href': reverse_no_escape('www', args=[url]),
             'text': 'Cached page',
         }, {
-            'href': reverse('screenshot', args=[url]),
+            'href': reverse_no_escape('screenshot', args=[url]),
             'text': 'Screenshot'
         }],
         'words': words,

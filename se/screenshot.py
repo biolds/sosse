@@ -14,11 +14,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.shortcuts import render, reverse
+from django.shortcuts import render
 
 from .browser import SeleniumBrowser
 from .cached import get_document, get_context
 from .login import login_required
+from .utils import reverse_no_escape
 
 
 @login_required
@@ -36,10 +37,10 @@ def screenshot(request, url):
         'screenshot_format': doc.screenshot_format,
         'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
         'other_links': [{
-            'href': reverse('www', args=[url]),
+            'href': reverse_no_escape('www', args=[url]),
             'text': 'Cached page',
         }, {
-            'href': reverse('words', args=[url]),
+            'href': reverse_no_escape('words', args=[url]),
             'text': 'Words weight',
         }],
         'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),

@@ -15,6 +15,8 @@
 
 from datetime import timedelta
 
+from django.shortcuts import reverse
+from django.utils.html import mark_safe
 from django.utils.timezone import now
 
 
@@ -97,3 +99,14 @@ def human_dt(d, short=False):
         dt_str = human_datetime(dt, short)
         return 'in ' + dt_str
     return 'now'
+
+
+def reverse_no_escape(url, args):
+    assert isinstance(args, (list, tuple))
+    assert len(args) == 1
+    arg = args[0]
+
+    # unquote since Django's reverse will quote
+    url = reverse(url, args=[''])
+    url = mark_safe(url + arg)
+    return url

@@ -794,6 +794,9 @@ class SearchEngine(models.Model):
     html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
 
+    def __str__(self):
+        return self.short_name
+
     @classmethod
     def parse_odf(cls, content):
         root = ElementTree.fromstring(content)
@@ -882,17 +885,30 @@ class SearchEngine(models.Model):
 
     @classmethod
     def should_redirect(cls, query):
+        se = None
         for i, w in enumerate(query.split()):
-            if not w.startswith(settings.SOSSE_SEARCH_SHORTCUT):
+            if not w.startswith(settings.SOSSE_SEARCH_SHORTCUT_CHAR):
                 continue
 
-            se = SearchEngine.objects.filter(shortcut=w[1:]).first()
+            se_str = w[len(settings.SOSSE_SEARCH_SHORTCUT_CHAR):]
+            if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and se_str == settings.SOSSE_SOSSE_SHORTCUT:
+                return
+
+            se = SearchEngine.objects.filter(shortcut=se_str).first()
             if se is None:
                 continue
 
             q = query.split()
             del q[i]
-            return se.get_search_url(' '.join(q))
+            query = ' '.join(q)
+            break
+        else:
+            # Follow the default redirect if a query was provided
+            if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and query.strip():
+                se = SearchEngine.objects.filter(short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT).first()
+
+        if se:
+            return se.get_search_url(query)
 
 
 class FavIcon(models.Model):

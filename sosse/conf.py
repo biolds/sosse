@@ -64,12 +64,18 @@ DEFAULTS = OrderedDict([
         ['rss_access_token', {
             'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating\nThe token can be passed to HTTP reqeuests as an url parameter, for example "?token=<RSS access token>"\nSetting an empty string disables token access',
             'default': '',
-            'type': str
         }],
-        ['search_shortcut', {
+        ['search_shortcut_char', {
             'comment': 'Special character used as search shortcut',
             'default': '!',
-            'type': str
+        }],
+        ['default_search_redirect', {
+            'comment': 'Default search engine to use\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise (case sensitive)',
+            'default': '',
+        }],
+        ['sosse_shortcut', {
+            'comment': 'In case the default_shortcut is not empty this defines which shortcut searches SOSSE',
+            'default': '',
         }],
         ['allowed_host', {
             'comment': 'FDQN of the webserver, "*" for any, see https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts',

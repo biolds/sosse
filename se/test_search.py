@@ -14,11 +14,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from .forms import SearchForm
-from .models import Document, Link
+from .models import Document, Link, SearchEngine
 from .search import add_headlines, get_documents
 
 
@@ -178,3 +178,38 @@ class SearchTest(TestCase):
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
         self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Télé</span>')
+
+
+class ShortcutTest(TestCase):
+    def setUp(self):
+        SearchEngine.objects.create(short_name='fake', shortcut='f', html_template=self._search_url('{searchTerms}'))
+        SearchEngine.objects.create(short_name='fake2', shortcut='g', html_template=self._search_url('{searchTerms}', 'test2.com'))
+
+    def _search_url(self, term, se='test.com'):
+        return 'http://%s/?q=%s' % (se, term)
+
+    def test_10_search(self):
+        self.assertEqual(SearchEngine.should_redirect('test'), None)
+        self.assertEqual(SearchEngine.should_redirect('!f test'), self._search_url('test'))
+        self.assertEqual(SearchEngine.should_redirect('!g test'), self._search_url('test', 'test2.com'))
+
+    @override_settings(SOSSE_SEARCH_SHORTCUT_CHAR='+')
+    def test_20_custom_shortcut(self):
+        self.assertEqual(SearchEngine.should_redirect('!f test'), None)
+        self.assertEqual(SearchEngine.should_redirect('+f test'), self._search_url('test'))
+        self.assertEqual(SearchEngine.should_redirect('+g test'), self._search_url('test', 'test2.com'))
+
+    @override_settings(SOSSE_DEFAULT_SEARCH_REDIRECT='fake')
+    def test_30_custom_default(self):
+        self.assertEqual(SearchEngine.should_redirect('test'), self._search_url('test'))
+        self.assertEqual(SearchEngine.should_redirect('!f test'), self._search_url('test'))
+        self.assertEqual(SearchEngine.should_redirect('!g test'), self._search_url('test', 'test2.com'))
+        self.assertEqual(SearchEngine.should_redirect(''), None)
+        self.assertEqual(SearchEngine.should_redirect(' '), None)
+
+    @override_settings(SOSSE_DEFAULT_SEARCH_REDIRECT='fake', SOSSE_SOSSE_SHORTCUT='s')
+    def test_40_sosse_shortcut(self):
+        self.assertEqual(SearchEngine.should_redirect('test'), self._search_url('test'))
+        self.assertEqual(SearchEngine.should_redirect('!f test'), self._search_url('test'))
+        self.assertEqual(SearchEngine.should_redirect('!g test'), self._search_url('test', 'test2.com'))
+        self.assertEqual(SearchEngine.should_redirect('!s test'), None)

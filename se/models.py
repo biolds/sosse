@@ -885,14 +885,14 @@ class SearchEngine(models.Model):
         for i, w in enumerate(query.split()):
             if not w.startswith(settings.SOSSE_SEARCH_SHORTCUT):
                 continue
-            try:
-                se = SearchEngine.objects.get(shortcut=w[1:])
 
-                q = query.split()
-                del q[i]
-                return se.get_search_url(' '.join(q))
-            except SearchEngine.DoesNotExist:
-                pass
+            se = SearchEngine.objects.filter(shortcut=w[1:]).first()
+            if se is None:
+                continue
+
+            q = query.split()
+            del q[i]
+            return se.get_search_url(' '.join(q))
 
 
 class FavIcon(models.Model):

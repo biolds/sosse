@@ -62,7 +62,7 @@ DEFAULTS = OrderedDict([
             'type': bool
         }],
         ['rss_access_token', {
-            'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating\nThe token can be passed to HTTP reqeuests as an url parameter, for example "?token=<RSS access token>"\nSetting an empty string disables token access',
+            'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating\nThe token can be passed to HTTP requests as an url parameter, for example "?token=<RSS access token>"\nSetting an empty string disables token access',
             'default': '',
         }],
         ['search_shortcut_char', {
@@ -197,7 +197,7 @@ DEFAULTS = OrderedDict([
             'default': 'english'
         }],
         ['hashing_algo', {
-            'comment': 'Hashing algorithms used to define if the content of a pae has changed',
+            'comment': 'Hashing algorithms used to define if the content of a page has changed',
             'default': 'md5'
         }],
         ['screenshots_size', {
@@ -209,7 +209,7 @@ DEFAULTS = OrderedDict([
             'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
         }],
         ['js_stable_time', {
-            'comment': 'When loading a page in a browser, it is processed after the page stays unchanged for <js_stable_time> seconds',
+            'comment': 'When loading a page in a browser, wait <js_stable_time> seconds before checking the DOM stays unchanged',
             'default': 0.1,
             'type': float
         }],

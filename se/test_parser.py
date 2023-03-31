@@ -91,9 +91,18 @@ LINKS = ({
     'link': 'http://test.com/test#test/',
     'expected_output': 'http://test.com/test',
 }, {
-    'descr': 'url parameter with sharp',
-    'link': 'http://test.com/test?a=test#test',
-    'expected_output': 'http://test.com/test?a=test',
+    'descr': 'no trailing slash hostname',
+    'link': 'http://test.com',
+    'expected_output': 'http://test.com/',
+}, {
+    'descr': 'trailing slash hostname',
+    'link': 'http://test.com/',
+}, {
+    'descr': 'no trailing slash path',
+    'link': 'http://test.com/test',
+}, {
+    'descr': 'trailing slash path',
+    'link': 'http://test.com/test/',
 })
 
 FAKE_PAGE = '''

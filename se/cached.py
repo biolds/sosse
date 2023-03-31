@@ -13,14 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from urllib.parse import unquote, urlparse
+
 from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
 from .models import Document, CrawlPolicy, sanitize_url
-from .utils import reverse_no_escape
+from .utils import url_beautify, reverse_no_escape
 
 
-def get_document(request):
+def url_from_request(request):
     # Keep the url with parameters
     url = request.META['REQUEST_URI'].split('/', 2)[-1]
 
@@ -29,13 +31,22 @@ def get_document(request):
     if url[0] != '/':
         url = '/' + url
     url = scheme + '/' + url
-    url = sanitize_url(url, True, True)
+
+    url = urlparse(url)
+    url = url._replace(netloc=unquote(url.netloc))
+    url = url.geturl()
+    return sanitize_url(url, True, True)
+
+
+def get_document(request):
+    url = url_from_request(request)
     return Document.objects.filter(url=url).first()
 
 
 def get_context(doc):
     crawl_policy = CrawlPolicy.get_from_url(doc.url)
-    title = doc.title or doc.url
+    beautified_url = url_beautify(doc.url)
+    title = doc.title or beautified_url
     page_title = None
     favicon = None
     if doc.favicon and not doc.favicon.missing:
@@ -50,14 +61,18 @@ def get_context(doc):
         'www_redirect_url': doc.redirect_url and reverse_no_escape('www', args=[doc.redirect_url]),
         'head_title': title,
         'title': page_title,
+        'beautified_url': beautified_url,
         'favicon': favicon
     }
 
 
-def unknown_url_view(request, url):
+def unknown_url_view(request):
+    url = url_from_request(request)
+    beautified_url = url_beautify(url)
     context = {
         'url': url,
-        'title': url,
+        'title': beautified_url,
+        'beautified_url': beautified_url,
         'crawl_policy': CrawlPolicy.get_from_url(url),
     }
     return render(request, 'se/unknown_url.html', context)

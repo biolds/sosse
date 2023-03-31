@@ -44,7 +44,7 @@ from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
 from .browser import RequestBrowser, SeleniumBrowser
-from .utils import reverse_no_escape
+from .utils import reverse_no_escape, url_beautify
 
 DetectorFactory.seed = 0
 
@@ -376,7 +376,8 @@ class Document(models.Model):
         self.content_hash = content_hash
         self._index_log('queuing links', stats, verbose)
 
-        self.normalized_url = page.url.split('://', 1)[1].replace('/', ' ')
+        normalized_url = url_beautify(page.url)
+        self.normalized_url = normalized_url.split('://', 1)[1].replace('/', ' ')
         self.mimetype = magic_from_buffer(page.content, mime=True)
 
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):

@@ -16,7 +16,7 @@
 from django.test import TestCase
 
 from .models import absolutize_url
-from .utils import reverse_no_escape
+from .utils import reverse_no_escape, url_beautify
 
 
 class UrlTest(TestCase):
@@ -41,3 +41,14 @@ class UrlTest(TestCase):
         self.assertEqual(reverse_no_escape('www', ['a']), '/www/a')
         self.assertEqual(reverse_no_escape('www', ['%20']), '/www/%20')
         self.assertEqual(reverse_no_escape('www', ['?a=b']), '/www/?a=b')
+
+
+class UrlBeautifyTest(TestCase):
+    def test_beautify(self):
+        URLS = (
+            ('http://xn--z7x.com/', 'http://猫.com/'),
+            ('http://test.com/%E7%8C%AB', 'http://test.com/猫'),
+        )
+
+        for a, b in URLS:
+            self.assertEqual(url_beautify(a), b)

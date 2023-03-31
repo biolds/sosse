@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import timedelta
+from urllib.parse import unquote, unquote_plus, urlparse
 
 from django.shortcuts import reverse
 from django.utils.html import mark_safe
@@ -110,3 +111,12 @@ def reverse_no_escape(url, args):
     url = reverse(url, args=[''])
     url = mark_safe(url + arg)
     return url
+
+
+def url_beautify(url):
+    url = urlparse(url)
+    _netloc = url.netloc.encode().decode('idna')
+    _path = unquote(url.path)
+    _query = unquote_plus(url.query)
+    url = url._replace(netloc=_netloc, path=_path, query=_query)
+    return url.geturl()

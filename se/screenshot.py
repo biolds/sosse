@@ -26,7 +26,7 @@ from .utils import reverse_no_escape
 def screenshot(request, url):
     doc = get_document(request)
     if doc is None:
-        return unknown_url_view(request, url)
+        return unknown_url_view(request)
 
     base_dir, filename = SeleniumBrowser.screenshot_name(doc.url)
 

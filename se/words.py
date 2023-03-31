@@ -24,7 +24,7 @@ from .utils import reverse_no_escape
 def words(request, url):
     doc = get_document(request)
     if doc is None:
-        return unknown_url_view(request, url)
+        return unknown_url_view(request)
 
     context = get_context(doc)
     words = []

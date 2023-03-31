@@ -26,7 +26,7 @@ from .utils import reverse_no_escape
 def www(request, url):
     doc = get_document(request)
     if doc is None:
-        return unknown_url_view(request, url)
+        return unknown_url_view(request)
 
     content = format_html('')
     content_pos = 0

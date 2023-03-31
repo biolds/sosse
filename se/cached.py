@@ -20,7 +20,10 @@ from .models import Document, CrawlPolicy, sanitize_url
 from .utils import reverse_no_escape
 
 
-def get_document(url):
+def get_document(request):
+    # Keep the url with parameters
+    url = request.META['REQUEST_URI'].split('/', 2)[-1]
+
     # re-establish double //
     scheme, url = url.split('/', 1)
     if url[0] != '/':

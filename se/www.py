@@ -24,9 +24,7 @@ from .utils import reverse_no_escape
 
 @login_required
 def www(request, url):
-    # Keep the url with parameters
-    url = request.META['REQUEST_URI'][5:]
-    doc = get_document(url)
+    doc = get_document(request)
     if doc is None:
         return unknown_url_view(request, url)
 

@@ -15,7 +15,7 @@
 
 from django.shortcuts import render
 
-from .cached import get_document, get_context
+from .cached import get_document, get_context, unknown_url_view
 from .login import login_required
 from .utils import reverse_no_escape
 
@@ -24,6 +24,9 @@ from .utils import reverse_no_escape
 def words(request, url):
     url = request.META['REQUEST_URI'][7:]
     doc = get_document(url)
+    if doc is None:
+        return unknown_url_view(request, url)
+
     context = get_context(doc)
     words = []
     for w in doc.vector.split():

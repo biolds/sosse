@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.shortcuts import get_object_or_404, reverse
+from django.shortcuts import reverse, render
 from django.utils.html import format_html
 
 from .models import Document, CrawlPolicy, sanitize_url
@@ -27,7 +27,7 @@ def get_document(url):
         url = '/' + url
     url = scheme + '/' + url
     url = sanitize_url(url, True, True)
-    return get_object_or_404(Document, url=url)
+    return Document.objects.filter(url=url).first()
 
 
 def get_context(doc):
@@ -49,3 +49,12 @@ def get_context(doc):
         'title': page_title,
         'favicon': favicon
     }
+
+
+def unknown_url_view(request, url):
+    context = {
+        'url': url,
+        'title': url,
+        'crawl_policy': CrawlPolicy.get_from_url(url),
+    }
+    return render(request, 'se/unknown_url.html', context)

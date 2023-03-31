@@ -16,7 +16,7 @@
 from django.shortcuts import render
 from django.utils.html import format_html
 
-from .cached import get_document, get_context
+from .cached import get_document, get_context, unknown_url_view
 from .login import login_required
 from .models import Link
 from .utils import reverse_no_escape
@@ -27,6 +27,8 @@ def www(request, url):
     # Keep the url with parameters
     url = request.META['REQUEST_URI'][5:]
     doc = get_document(url)
+    if doc is None:
+        return unknown_url_view(request, url)
 
     content = format_html('')
     content_pos = 0

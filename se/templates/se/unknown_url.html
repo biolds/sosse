@@ -1,0 +1,21 @@
+{% extends "se/base.html" %}
+{% block body %}
+<h5>Source page <a href="{{ url }}">{{ url }} 🌍</a></h5>
+<ul>
+  <li>This page is unknown</li>
+  <li>This page follows the policy
+    {% if 'se.view_crawlpolicy' in perms %}
+      <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy.url_regex }}</a>
+    {% else %}
+      {{ crawl_policy.url_regex }}
+    {% endif %}
+  </li>
+  {% if 'se.add_document' in perms %}
+    <form method="post" action="{% url 'admin:queue_confirm' %}">
+      {% csrf_token %}
+      <input type="hidden" name="url" value="{{ url }}">
+      <input type="submit" name="action" value="Add to the crawl queue" style="margin-top: 16px">
+    </form>
+  {% endif %}
+</ul>
+{% endblock %}

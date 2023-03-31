@@ -164,7 +164,7 @@ DEFAULTS = OrderedDict([
             'type': bool
         }],
         ['admin_page_size', {
-            'comment': 'Number of items by list in the amdinistration pages',
+            'comment': 'Number of items by list in the administration pages',
             'default': 100,
             'type': int
         }],

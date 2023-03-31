@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.shortcuts import reverse, render
+from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
 from .models import Document, CrawlPolicy, sanitize_url
@@ -61,3 +61,10 @@ def unknown_url_view(request, url):
         'crawl_policy': CrawlPolicy.get_from_url(url),
     }
     return render(request, 'se/unknown_url.html', context)
+
+
+def cache_redirect(request, url):
+    doc = get_document(request)
+    if doc:
+        return redirect(doc.get_absolute_url())
+    return unknown_url_view(request, url)

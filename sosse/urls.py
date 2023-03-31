@@ -33,6 +33,7 @@ from django.contrib.auth.views import LogoutView
 from django.urls import path, re_path
 from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
 from se.atom import atom
+from se.cached import cache_redirect
 from se.screenshot import screenshot
 from se.stats import stats
 from se.words import words
@@ -54,5 +55,6 @@ urlpatterns = [
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
     re_path(r'screenshot/(?P<url>.*)', screenshot, name='screenshot'),
     re_path(r'www/(?P<url>.*)', www, name='www'),
-    re_path(r'words/(?P<url>.*)', words, name='words')
+    re_path(r'words/(?P<url>.*)', words, name='words'),
+    re_path(r'cache/(?P<url>.*)', cache_redirect, name='cache'),
 ]

@@ -67,27 +67,27 @@ class Command(BaseCommand):
                     next_stat = now()
                 next_stat += timedelta(minutes=1)
 
-                sleep_count = 0
-                while True:
+            sleep_count = 0
+            while True:
+                if worker_no == 0:
                     t = now()
                     if next_stat < t:
-                        if worker_no == 0:
-                            CrawlerStats.create(t)
+                        CrawlerStats.create(t)
                         next_stat = t + timedelta(minutes=1)
 
-                    paused = WorkerStats.get_worker(worker_no).state == 'paused'
+                paused = WorkerStats.get_worker(worker_no).state == 'paused'
 
-                    if not paused and Document.crawl(worker_no):
-                        if sleep_count != 0:
-                            worker_stats.update_state(0)
-                        sleep_count = 0
-                    else:
-                        if sleep_count == 0:
-                            worker_stats.update_state(1)
-                        if sleep_count % 60 == 0:
-                            crawl_logger.debug('%s Idle...' % worker_no)
-                        sleep_count += 1
-                        sleep(1)
+                if not paused and Document.crawl(worker_no):
+                    if sleep_count != 0:
+                        worker_stats.update_state(0)
+                    sleep_count = 0
+                else:
+                    if sleep_count == 0:
+                        worker_stats.update_state(1)
+                    if sleep_count % 60 == 0:
+                        crawl_logger.debug('%s Idle...' % worker_no)
+                    sleep_count += 1
+                    sleep(1)
         except Exception:
             crawl_logger.error(format_exc())
             raise

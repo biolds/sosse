@@ -636,5 +636,16 @@
       "html_template": "https://cyberchef.org/#input={searchTermsBase64}",
       "shortcut": "cc"
     }
+  },
+  {
+    "model": "se.searchengine",
+    "pk": 66,
+    "fields": {
+      "short_name": "Jotoba",
+      "long_name": "Jotoba",
+      "description": "Japanese dictionary search",
+      "html_template": "https://jotoba.de/search?s={searchTerms}",
+      "shortcut": "jotoba"
+    }
   }
 ]

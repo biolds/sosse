@@ -586,17 +586,6 @@
     "model": "se.searchengine",
     "pk": 61,
     "fields": {
-      "short_name": "Wiktionary (en)",
-      "long_name": "Wiktionary (en)",
-      "description": "Wiktionary (en)",
-      "html_template": "https://en.wiktionary.org/w/index.php?title=Special:Search&search={searchTerms}",
-      "shortcut": "wten"
-    }
-  },
-  {
-    "model": "se.searchengine",
-    "pk": 62,
-    "fields": {
       "short_name": "Wiktionnaire (fr)",
       "long_name": "Wiktionnaire (fr)",
       "description": "Wiktionnaire (fr)",
@@ -606,7 +595,7 @@
   },
   {
     "model": "se.searchengine",
-    "pk": 63,
+    "pk": 62,
     "fields": {
       "short_name": "Twitch",
       "long_name": "",
@@ -617,7 +606,7 @@
   },
   {
     "model": "se.searchengine",
-    "pk": 64,
+    "pk": 63,
     "fields": {
       "short_name": "Twitter",
       "long_name": "Twitter",
@@ -628,7 +617,7 @@
   },
   {
     "model": "se.searchengine",
-    "pk": 65,
+    "pk": 64,
     "fields": {
       "short_name": "WolframAlpha",
       "long_name": "",
@@ -639,7 +628,7 @@
   },
   {
     "model": "se.searchengine",
-    "pk": 66,
+    "pk": 65,
     "fields": {
       "short_name": "CyberChef",
       "long_name": "",

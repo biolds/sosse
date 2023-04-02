@@ -1270,6 +1270,9 @@ class Cookie(models.Model):
 
             c['inc_subdomain'] = inc_subdomain
             c['domain'] = domain
+
+            if not c.get('same_site'):
+                c['same_site'] = Cookie._meta.get_field('same_site').default
             cookie, created = Cookie.objects.update_or_create(domain_cc=domain_cc, path=path, name=name, defaults=c)
 
             if created:

@@ -148,6 +148,7 @@ class Migration(migrations.Migration):
                 ('mimetype', models.CharField(blank=True, max_length=64, null=True)),
                 ('robotstxt_rejected', models.BooleanField(default=False, verbose_name='Rejected by robots.txt')),
                 ('redirect_url', models.TextField(blank=True, null=True)),
+                ('too_many_redirects', models.BooleanField(default=False)),
                 ('screenshot_file', models.CharField(blank=True, max_length=4096, null=True)),
                 ('screenshot_count', models.PositiveIntegerField(blank=True, null=True)),
                 ('screenshot_size', models.CharField(max_length=16)),

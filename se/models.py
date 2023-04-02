@@ -169,6 +169,7 @@ class Document(models.Model):
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
+    too_many_redirects = models.BooleanField(default=False)
 
     screenshot_file = models.CharField(max_length=4096, blank=True, null=True)
     screenshot_count = models.PositiveIntegerField(blank=True, null=True)
@@ -543,6 +544,7 @@ class Document(models.Model):
                            Document.objects.filter(crawl_last__isnull=False).count(),
                            doc.id, doc.url))
 
+        redirects = 0
         while True:
             # Loop until we stop redirecting
             crawl_policy = CrawlPolicy.get_from_url(doc.url)
@@ -576,10 +578,17 @@ class Document(models.Model):
                     else:
                         if not page.got_redirect:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
-                        crawl_logger.debug('%i redirect %s -> %s' % (worker_no, doc.url, page.url))
+                        redirects += 1
+                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, redirects))
                         doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
                         doc._clear_content()
                         doc.redirect_url = page.url
+
+                        if redirects > settings.SOSSE_MAX_REDIRECTS:
+                            doc.too_many_redirects = True
+                            crawl_logger.debug('max redirects (%i) reached, skipping page %s' % (settings.SOSSE_MAX_REDIRECTS, doc.redirect_url))
+                            break
+
                         doc.save()
                         doc = Document.pick_or_create(page.url, worker_no)
                         if doc is None:

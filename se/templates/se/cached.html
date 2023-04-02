@@ -40,6 +40,9 @@
     {% if doc.redirect_url %}
         <li>This page redirects to <a href="{{ www_redirect_url }}">{{ doc.redirect_url }}</a> · <a href="{{ doc.redirect_url }}">🌍</a></li>
     {% endif %}
+    {% if doc.too_many_redirects %}
+        <li>Redirection was not followed, because the crawler was redirected too many times</li>
+    {% endif %}
     <li><a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Pages linking here</a></li>
     <li><a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from this page</a></li>
 </ul>

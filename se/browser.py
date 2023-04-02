@@ -165,29 +165,34 @@ class RequestBrowser(Browser):
     @classmethod
     def get(cls, url, raw=False, check_status=False):
         Browser.init()
+        REDIRECT_CODE = (301, 302, 307, 308)
 
         from .models import absolutize_url
         page = None
         did_redirect = False
-        redirects = 256
-        while redirects > 0:
-            redirects -= 1
 
-            crawl_logger.debug('%s: get cookie' % url)
-            cookies = cls._get_cookies(url)
-            crawl_logger.debug('%s: http get %s %s -' % (url, cookies, cls._requests_params()))
-            r = requests.get(url, cookies=cookies, **cls._requests_params())
-            crawl_logger.debug('%s: set cookies' % url)
-            cls._set_cookies(url, r.cookies)
+        crawl_logger.debug('%s: get cookie' % url)
+        cookies = cls._get_cookies(url)
+        crawl_logger.debug('%s: http get %s %s -' % (url, cookies, cls._requests_params()))
+        r = requests.get(url, cookies=cookies, allow_redirects=False, **cls._requests_params())
+        crawl_logger.debug('%s: set cookies' % url)
+        cls._set_cookies(url, r.cookies)
 
-            if check_status:
-                r.raise_for_status()
+        if check_status:
+            r.raise_for_status()
 
-            if len(r.history):
-                crawl_logger.debug('%s: redirected' % url)
-                did_redirect = True
+        if r.status_code in REDIRECT_CODE:
+            crawl_logger.debug('%s: redirected' % url)
+            did_redirect = True
+            dest = r.headers.get('location')
+            url = absolutize_url(url, dest, True, False)
+            crawl_logger.debug('got redirected to %s' % url)
+            if not url:
+                raise Exception('Got a %s code without a location header' % r.status_code)
 
-            page = cls._page_from_request(r, raw)
+        page = cls._page_from_request(r, raw)
+
+        if r.status_code not in REDIRECT_CODE:
             for meta in page.get_soup().find_all('meta'):
                 if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
                     # handle redirect
@@ -199,15 +204,15 @@ class RequestBrowser(Browser):
                     if dest.startswith('url='):
                         dest = dest[4:]
 
-                    url = absolutize_url(url, dest)
+                    url = absolutize_url(url, dest, True, False)
                     did_redirect = True
                     crawl_logger.debug('%s: html redirected' % url)
-                    break
-            else:
-                crawl_logger.debug('%s: get done' % url)
-                break
 
-        page.got_redirect = did_redirect
+        crawl_logger.debug('%s: get done' % url)
+
+        if did_redirect:
+            page.url = url
+            page.got_redirect = did_redirect
         return page
 
     @classmethod

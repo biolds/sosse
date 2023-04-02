@@ -236,6 +236,11 @@ DEFAULTS = OrderedDict([
             'default': 2,
             'type': int
         }],
+        ['max_redirects', {
+            'comment': 'Maximum numbers of redirect before aborting\n(this is accurate when using Requests only,\nsome redirects may be missed on Chromium)',
+            'default': 5,
+            'type': int
+        }],
         ['browser_idle_exit_time', {
             'comment': 'Close the browser when the crawler is idle for <browser_idle_exit_time> seconds',
             'default': 5,

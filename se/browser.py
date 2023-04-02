@@ -64,15 +64,25 @@ class Page:
 
 
 class Browser:
+    inited = False
+
     @classmethod
     def init(cls):
+        if cls.inited:
+            return
+        crawl_logger.debug('Browser init')
         RequestBrowser.init()
         SeleniumBrowser.init()
+        cls.inited = True
 
     @classmethod
     def destroy(cls):
+        if not cls.inited:
+            return
+        crawl_logger.debug('Browser destroy')
         RequestBrowser.destroy()
         SeleniumBrowser.destroy()
+        cls.inited = False
 
 
 class RequestBrowser(Browser):
@@ -154,6 +164,8 @@ class RequestBrowser(Browser):
 
     @classmethod
     def get(cls, url, raw=False, check_status=False):
+        Browser.init()
+
         from .models import absolutize_url
         page = None
         did_redirect = False
@@ -201,6 +213,8 @@ class RequestBrowser(Browser):
     @classmethod
     def try_auth(cls, page, url, crawl_policy):
         from .models import absolutize_url
+
+        Browser.init()
 
         parsed = page.get_soup()
         form = parsed.select(crawl_policy.auth_form_selector)
@@ -282,6 +296,7 @@ class SeleniumBrowser(Browser):
     driver = None
     cookie_loaded = []
     COOKIE_LOADED_SIZE = 1024
+    first_init = True
 
     @classmethod
     def init(cls):
@@ -300,10 +315,13 @@ class SeleniumBrowser(Browser):
         opts.append('--start-maximized')
         opts.append('--start-fullscreen')
         opts.append('--window-size=%s,%s' % cls.screen_size())
+
         for opt in opts:
-            crawl_logger.info('Passing option %s', opt)
+            if cls.first_init:
+                crawl_logger.info('Passing option %s', opt)
             options.add_argument(opt)
 
+        cls.first_init = False
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.delete_all_cookies()
 
@@ -437,6 +455,8 @@ class SeleniumBrowser(Browser):
     @classmethod
     @retry
     def get(cls, url):
+        Browser.init()
+
         current_url = cls.driver.current_url
 
         # Clear the download dir
@@ -593,6 +613,8 @@ class SeleniumBrowser(Browser):
     @classmethod
     @retry
     def try_auth(cls, page, url, crawl_policy):
+        Browser.init()
+
         form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
 
         if len(form) == 0:

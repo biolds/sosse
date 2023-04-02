@@ -55,7 +55,6 @@ class Command(BaseCommand):
             for f in os.listdir(base_dir):
                 os.unlink(f)
 
-            Browser.init()
             crawl_logger.info('Crawler %i starting' % worker_no)
 
             if worker_no == 0:
@@ -82,6 +81,8 @@ class Command(BaseCommand):
                     if sleep_count % 60 == 0:
                         crawl_logger.debug('%s %s...' % (worker_no, worker_stats.state.title()))
                     sleep_count += 1
+                    if sleep_count > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
+                        Browser.destroy()
                     sleep(1)
                 else:
                     sleep_count = 0

@@ -236,6 +236,11 @@ DEFAULTS = OrderedDict([
             'default': 2,
             'type': int
         }],
+        ['browser_idle_exit_time', {
+            'comment': 'Close the browser when the crawler is idle for <browser_idle_exit_time> seconds',
+            'default': 5,
+            'type': int
+        }],
         ['browser_crash_sleep', {
             'comment': 'Sleep <browser_crash_sleep> seconsds before retrying after the browser crashed',
             'default': 1.0,

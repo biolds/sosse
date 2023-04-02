@@ -37,7 +37,15 @@ def get_documents(request, form, stats_call=False):
     results = Document.objects.all()
     has_query = False
 
-    q = remove_accent(form.cleaned_data['q'])
+    q = form.cleaned_data['q']
+
+    if settings.SOSSE_SEARCH_STRIP:
+        if q.startswith(settings.SOSSE_SEARCH_STRIP):
+            q = q[len(settings.SOSSE_SEARCH_STRIP):]
+        if q.endswith(settings.SOSSE_SEARCH_STRIP):
+            q = q[:-len(settings.SOSSE_SEARCH_STRIP)]
+
+    q = remove_accent(q)
     query = None
     if q:
         has_query = True

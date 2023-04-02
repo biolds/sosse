@@ -168,6 +168,10 @@ DEFAULTS = OrderedDict([
             'default': 100,
             'type': int
         }],
+        ['search_strip', {
+            'comment': 'Removes this string from search queries',
+            'default': '',
+        }],
         ['crawl_status_autorefresh', {
             'comment': 'Delay between crawl status page autorefresh (in seconds)',
             'default': 5,

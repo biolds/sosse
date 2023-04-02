@@ -535,6 +535,8 @@ class Document(models.Model):
             return False
 
         worker_stats = WorkerStats.get_worker(worker_no)
+        if worker_stats.state != 'running':
+            worker_stats.update_state('running')
 
         crawl_logger.debug('Worker:%i Queued:%i Indexed:%i Id:%i %s ...' % (worker_no,
                            Document.objects.filter(crawl_last__isnull=True).count(),
@@ -589,6 +591,11 @@ class Document(models.Model):
                 doc._schedule_next(True, crawl_policy)
                 doc.save()
                 crawl_logger.error(format_exc())
+                break
+
+            worker_stats.refresh_from_db()
+            if worker_stats.state == 'paused':
+                doc.worker_no = None
                 break
 
         if doc:
@@ -724,11 +731,7 @@ class WorkerStats(models.Model):
     def get_worker(cls, worker_no):
         return cls.objects.update_or_create(worker_no=worker_no, defaults={'pid': os.getpid()})[0]
 
-    def update_state(self, sleep_count):
-        if sleep_count:
-            state = 'idle'
-        else:
-            state = 'running'
+    def update_state(self, state):
         WorkerStats.objects.filter(worker_no=self.worker_no).exclude(state='paused').update(state=state)
 
     @classmethod

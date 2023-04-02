@@ -267,7 +267,7 @@ class DocumentAdmin(admin.ModelAdmin):
             if 'pause' in request.POST:
                 WorkerStats.objects.update(state='paused')
             if 'resume' in request.POST:
-                WorkerStats.objects.update(state='idle')
+                WorkerStats.objects.update(state='running')
         context = self._crawl_status_context(request)
         return response.TemplateResponse(request, 'admin/crawl_status.html', context)
 

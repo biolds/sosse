@@ -57,7 +57,6 @@ class Command(BaseCommand):
 
             Browser.init()
             crawl_logger.info('Crawler %i starting' % worker_no)
-            worker_stats = WorkerStats.get_worker(worker_no)
 
             if worker_no == 0:
                 last = CrawlerStats.objects.filter(freq=MINUTELY).order_by('t').last()
@@ -75,19 +74,18 @@ class Command(BaseCommand):
                         CrawlerStats.create(t)
                         next_stat = t + timedelta(minutes=1)
 
-                paused = WorkerStats.get_worker(worker_no).state == 'paused'
+                worker_stats = WorkerStats.get_worker(worker_no)
 
-                if not paused and Document.crawl(worker_no):
-                    if sleep_count != 0:
-                        worker_stats.update_state(0)
-                    sleep_count = 0
-                else:
-                    if sleep_count == 0:
-                        worker_stats.update_state(1)
+                if worker_stats.state == 'paused' or not Document.crawl(worker_no):
+                    if worker_stats.state == 'running':
+                        worker_stats.update_state('idle')
                     if sleep_count % 60 == 0:
-                        crawl_logger.debug('%s Idle...' % worker_no)
+                        crawl_logger.debug('%s %s...' % (worker_no, worker_stats.state.title()))
                     sleep_count += 1
                     sleep(1)
+                else:
+                    sleep_count = 0
+
         except Exception:
             crawl_logger.error(format_exc())
             raise

@@ -407,10 +407,13 @@ class SeleniumBrowser(Browser):
         # Cookies can only be set to the same domain,
         # so first we navigate to the correct location
         current_url = urlparse(cls._current_url())
-        target_url = urlparse(sanitize_url(url, True, True))
+        dest = sanitize_url(url, True, True)
+        target_url = urlparse(dest)
         if current_url.netloc != target_url.netloc:
-            cls.driver.get(url)
+            crawl_logger.debug('navigate for cookie to %s' % dest)
+            cls.driver.get(dest)
 
+        crawl_logger.debug('clearing cookies')
         cls.driver.delete_all_cookies()
         for c in Cookie.get_from_url(url):
             cookie = {
@@ -443,16 +446,21 @@ class SeleniumBrowser(Browser):
             if os.path.isfile(f):
                 os.unlink(f)
 
+        crawl_logger.debug('loading cookies')
         cls._load_cookies(url)
+        crawl_logger.debug('driver get')
         cls.driver.get(url)
 
         if ((current_url != url and cls.driver.current_url == current_url)  # If we got redirected to the url that was previously set in the browser
                 or cls.driver.current_url == 'data:,'):  # The url can be "data:," during a few milliseconds when the download starts
+            crawl_logger.debug('download starting')
             page = cls._handle_download(url)
             if page:
                 return page
 
+        crawl_logger.debug('page get')
         page = cls._get_page()
+        crawl_logger.debug('save cookies')
         cls._save_cookies(url)
 
         if url != page.url:

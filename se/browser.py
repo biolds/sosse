@@ -34,12 +34,19 @@ from selenium.webdriver.chrome.options import Options
 crawl_logger = logging.getLogger('crawler')
 
 
+class AuthElemFailed(Exception):
+    def __init__(self, page, *args, **kwargs):
+        self.page = page
+        super().__init__(*args, **kwargs)
+
+
 class Page:
     def __init__(self, url, content, browser):
         from .models import sanitize_url
         self.url = sanitize_url(url, True, True)
         self.content = content
         self.got_redirect = False
+        self.redirect_target = None
         self.title = None
         self.soup = None
         self.browser = browser
@@ -211,7 +218,7 @@ class RequestBrowser(Browser):
         crawl_logger.debug('%s: get done' % url)
 
         if did_redirect:
-            page.url = url
+            page.redirect_target = url
             page.got_redirect = did_redirect
         return page
 
@@ -225,10 +232,10 @@ class RequestBrowser(Browser):
         form = parsed.select(crawl_policy.auth_form_selector)
 
         if len(form) == 0:
-            raise Exception('Could not find element with CSS selector: %s' % crawl_policy.auth_form_selector)
+            raise AuthElemFailed(page, 'Could not find element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
         if len(form) > 1:
-            raise Exception('Found multiple element with CSS selector: %s' % crawl_policy.auth_form_selector)
+            raise AuthElemFailed(page, 'Found multiple element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
         form = form[0]
         payload = {}
@@ -490,6 +497,7 @@ class SeleniumBrowser(Browser):
 
         if url != page.url:
             page.got_redirect = True
+            page.redirect_target = url
 
         return page
 
@@ -623,10 +631,10 @@ class SeleniumBrowser(Browser):
         form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
 
         if len(form) == 0:
-            raise Exception('Could not find auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
+            raise AuthElemFailed(page, 'Could not find auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
         if len(form) > 1:
-            raise Exception('Found multiple auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
+            raise AuthElemFailed(page, 'Found multiple auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
 
         crawl_logger.debug('form found')
         form = form[0]

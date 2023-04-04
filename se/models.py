@@ -43,7 +43,7 @@ from PIL import Image
 from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
-from .browser import RequestBrowser, SeleniumBrowser
+from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser
 from .utils import reverse_no_escape, url_beautify
 
 DetectorFactory.seed = 0
@@ -569,7 +569,14 @@ class Document(models.Model):
                     else:
                         doc.robotstxt_rejected = False
 
-                    page = crawl_policy.url_get(domain_setting, doc.url)
+                    try:
+                        page = crawl_policy.url_get(domain_setting, doc.url)
+                    except AuthElemFailed as e:
+                        doc.content = e.page.content
+                        doc._schedule_next(True, crawl_policy)
+                        doc.set_error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
+                        crawl_logger.error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
+                        break
 
                     if page.url == doc.url:
                         doc.index(page, crawl_policy)
@@ -579,10 +586,10 @@ class Document(models.Model):
                         if not page.got_redirect:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         redirects += 1
-                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, redirects))
+                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.redirect_target, redirects))
                         doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
                         doc._clear_content()
-                        doc.redirect_url = page.url
+                        doc.redirect_url = page.redirect_url
 
                         if redirects > settings.SOSSE_MAX_REDIRECTS:
                             doc.too_many_redirects = True
@@ -1365,6 +1372,7 @@ class CrawlPolicy(models.Model):
         if page.got_redirect:
             # The request was redirected, check if we need auth
             try:
+                page = browser.get(page.redirect_target)
                 crawl_logger.debug('may auth %s / %s' % (page.url, self.auth_login_url_re))
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
@@ -1378,7 +1386,9 @@ class CrawlPolicy(models.Model):
                         page = browser.get(url)
                     else:
                         page = new_page
-            except:  # noqa
+            except Exception as e:  # noqa
+                if isinstance(e, AuthElemFailed):
+                    raise
                 raise Exception('Authentication failed')
 
         if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:

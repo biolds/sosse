@@ -467,13 +467,18 @@ class SeleniumBrowser(Browser):
         current_url = urlparse(cls._current_url())
         dest = sanitize_url(url, True, True)
         target_url = urlparse(dest)
+        cookies = Cookie.get_from_url(dest)
+        if len(cookies) == 0:
+            crawl_logger.debug('no cookie to load for %s' % dest)
+            return
+
         if current_url.netloc != target_url.netloc:
             crawl_logger.debug('navigate for cookie to %s' % dest)
             cls.driver.get(dest)
 
         crawl_logger.debug('clearing cookies')
         cls.driver.delete_all_cookies()
-        for c in Cookie.get_from_url(url):
+        for c in cookies:
             cookie = {
                 'name': c.name,
                 'value': c.value,

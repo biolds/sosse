@@ -377,8 +377,9 @@ class Document(models.Model):
         self.content_hash = content_hash
         self._index_log('queuing links', stats, verbose)
 
-        normalized_url = url_beautify(page.url)
-        self.normalized_url = normalized_url.split('://', 1)[1].replace('/', ' ').strip()
+        beautified_url = url_beautify(page.url)
+        normalized_url = beautified_url.split('://', 1)[1].replace('/', ' ').strip()
+        self.normalized_url = remove_accent(normalized_url)
         self.mimetype = magic_from_buffer(page.content, mime=True)
 
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):
@@ -387,8 +388,13 @@ class Document(models.Model):
 
         if self.mimetype.startswith('text/'):
             parsed = page.get_soup()
-            self.title = page.title or self.url
+            if page.title:
+                self.title = page.title
+            else:
+                self.title = beautified_url
+
             self.normalized_title = remove_accent(self.title)
+
             self._index_log('get soup', stats, verbose)
 
             links = {

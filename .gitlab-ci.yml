@@ -18,6 +18,7 @@ debian-unittest:
     - mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
     - chown www-data:www-data /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
     - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
+    - ./test_app.sh
     - sudo -u www-data python3 ./sosse-admin test -v3
     - python3 ./sosse-admin makemigrations
 

@@ -378,7 +378,7 @@ class Document(models.Model):
         self._index_log('queuing links', stats, verbose)
 
         normalized_url = url_beautify(page.url)
-        self.normalized_url = normalized_url.split('://', 1)[1].replace('/', ' ')
+        self.normalized_url = normalized_url.split('://', 1)[1].replace('/', ' ').strip()
         self.mimetype = magic_from_buffer(page.content, mime=True)
 
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):

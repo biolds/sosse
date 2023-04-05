@@ -40,13 +40,16 @@ class AuthElemFailed(Exception):
         super().__init__(*args, **kwargs)
 
 
+class TooManyRedirectsException(Exception):
+    pass
+
+
 class Page:
     def __init__(self, url, content, browser):
         from .models import sanitize_url
         self.url = sanitize_url(url, True, True)
         self.content = content
-        self.got_redirect = False
-        self.redirect_target = None
+        self.redirect_count = 0
         self.title = None
         self.soup = None
         self.browser = browser
@@ -176,30 +179,33 @@ class RequestBrowser(Browser):
 
         from .models import absolutize_url
         page = None
-        did_redirect = False
+        redirect_count = 0
 
-        crawl_logger.debug('%s: get cookie' % url)
-        cookies = cls._get_cookies(url)
-        crawl_logger.debug('%s: http get %s %s -' % (url, cookies, cls._requests_params()))
-        r = requests.get(url, cookies=cookies, allow_redirects=False, **cls._requests_params())
-        crawl_logger.debug('%s: set cookies' % url)
-        cls._set_cookies(url, r.cookies)
+        while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
+            crawl_logger.debug('%s: get cookie' % url)
+            cookies = cls._get_cookies(url)
+            crawl_logger.debug('%s: http get %s %s -' % (url, cookies, cls._requests_params()))
+            r = requests.get(url, cookies=cookies, allow_redirects=False, **cls._requests_params())
+            crawl_logger.debug('%s: set cookies' % url)
+            cls._set_cookies(url, r.cookies)
 
-        if check_status:
-            r.raise_for_status()
+            if check_status:
+                r.raise_for_status()
 
-        if r.status_code in REDIRECT_CODE:
-            crawl_logger.debug('%s: redirected' % url)
-            did_redirect = True
-            dest = r.headers.get('location')
-            url = absolutize_url(url, dest, True, False)
-            crawl_logger.debug('got redirected to %s' % url)
-            if not url:
-                raise Exception('Got a %s code without a location header' % r.status_code)
+            if r.status_code in REDIRECT_CODE:
+                crawl_logger.debug('%s: redirected' % url)
+                redirect_count += 1
+                dest = r.headers.get('location')
+                url = absolutize_url(url, dest, True, False)
+                crawl_logger.debug('got redirected to %s' % url)
+                if not url:
+                    raise Exception('Got a %s code without a location header' % r.status_code)
 
-        page = cls._page_from_request(r, raw)
+                continue
 
-        if r.status_code not in REDIRECT_CODE:
+            page = cls._page_from_request(r, raw)
+
+            # Check for an HTML / meta redirect
             for meta in page.get_soup().find_all('meta'):
                 if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
                     # handle redirect
@@ -212,14 +218,15 @@ class RequestBrowser(Browser):
                         dest = dest[4:]
 
                     url = absolutize_url(url, dest, True, False)
-                    did_redirect = True
+                    redirect_count += 1
                     crawl_logger.debug('%s: html redirected' % url)
+                    continue
+            break
 
-        crawl_logger.debug('%s: get done' % url)
+        if redirect_count > settings.SOSSE_MAX_REDIRECTS:
+            raise TooManyRedirectsException()
 
-        if did_redirect:
-            page.redirect_target = url
-            page.got_redirect = did_redirect
+        page.redirect_count = redirect_count
         return page
 
     @classmethod
@@ -314,7 +321,7 @@ class SeleniumBrowser(Browser):
     def init(cls):
         # force the cwd in case it's not called from the worker
         if not os.getcwd().startswith(settings.SOSSE_TMP_DL_DIR + '/'):
-            os.chdir(settings.SOSSE_TMP_DL_DIR)
+            os.chdir(settings.SOSSE_TMP_DL_DIR + '/0')
 
         options = Options()
         options.binary_location = "/usr/bin/chromium"
@@ -357,45 +364,66 @@ class SeleniumBrowser(Browser):
         return sanitize_url(cls.driver.current_url, True, True)
 
     @classmethod
-    def _wait_for_ready(cls):
-        # Wait for page being ready
-        retry = settings.SOSSE_JS_STABLE_RETRY
-        while retry > 0:
-            retry -= 1
-            if cls.driver.execute_script('return document.readyState;') == 'complete':
+    def _wait_for_ready(cls, url):
+        redirect_count = 0
+        while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
+            # Wait for page being ready
+            retry = settings.SOSSE_JS_STABLE_RETRY
+            while retry > 0 and cls.driver.current_url == url:
+                retry -= 1
+                if cls.driver.execute_script('return document.readyState;') == 'complete':
+                    break
+
+            if cls.driver.current_url != url:
+                redirect_count += 1
+                url = cls.driver.current_url
+                continue
+            else:
                 break
 
-        # Wait for page content to be stable
-        retry = settings.SOSSE_JS_STABLE_RETRY
-        previous_content = None
-        content = None
+            # Wait for page content to be stable
+            retry = settings.SOSSE_JS_STABLE_RETRY
+            previous_content = None
+            content = None
 
-        while retry > 0:
-            retry -= 1
+            while retry > 0 and cls.driver.current_url == url:
+                retry -= 1
+                content = cls.driver.page_source
 
-            content = cls.driver.page_source
+                if content == previous_content:
+                    break
+                previous_content = content
+                sleep(settings.SOSSE_JS_STABLE_TIME)
 
-            if content == previous_content:
+            if cls.driver.current_url != url:
+                redirect_count += 1
+                url = cls.driver.current_url
+                continue
+            else:
                 break
-            previous_content = content
-            sleep(settings.SOSSE_JS_STABLE_TIME)
+
+        if redirect_count > settings.SOSSE_MAX_REDIRECTS:
+            raise TooManyRedirectsException()
+
+        return redirect_count
 
     @classmethod
-    def _get_page(cls):
+    def _get_page(cls, url):
         from .models import CrawlPolicy
-        cls._wait_for_ready()
+        redirect_count = cls._wait_for_ready(url)
 
         current_url = cls._current_url()
         crawl_policy = CrawlPolicy.get_from_url(current_url)
-        if crawl_policy.script:
+        if crawl_policy and crawl_policy.script:
             cls.driver.execute_script(crawl_policy.script)
-            cls._wait_for_ready()
+            cls._wait_for_ready(url)
 
         content = cls.driver.page_source
         page = Page(current_url,
                     content,
                     cls)
         page.title = cls.driver.title
+        page.redirect_count = redirect_count
         return page
 
     @classmethod
@@ -490,14 +518,9 @@ class SeleniumBrowser(Browser):
                 return page
 
         crawl_logger.debug('page get')
-        page = cls._get_page()
+        page = cls._get_page(url)
         crawl_logger.debug('save cookies')
         cls._save_cookies(url)
-
-        if url != page.url:
-            page.got_redirect = True
-            page.redirect_target = url
-
         return page
 
     @classmethod
@@ -652,4 +675,4 @@ class SeleniumBrowser(Browser):
         if current_url != url:
             return cls.get(url)
 
-        return cls._get_page()
+        return cls._get_page(url)

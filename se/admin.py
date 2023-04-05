@@ -137,7 +137,7 @@ class DocumentAdmin(admin.ModelAdmin):
     search_fields = ['url__regex', 'title__regex']
     fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
               'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt', 'crawl_recurse',
-              'robotstxt_rejected', 'mimetype', 'lang', '_content')
+              'robotstxt_rejected', 'too_many_redirects', 'mimetype', 'lang', '_content')
     readonly_fields = fields
     ordering = ('-crawl_last',)
     actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg]

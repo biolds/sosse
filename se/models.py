@@ -43,7 +43,7 @@ from PIL import Image
 from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
-from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser
+from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser, TooManyRedirectsException
 from .utils import reverse_no_escape, url_beautify
 
 DetectorFactory.seed = 0
@@ -354,6 +354,7 @@ class Document(models.Model):
 
     def _clear_content(self):
         self.redirect_url = None
+        self.too_many_redirects = False
         self.content = ''
         self.normalized_content = ''
         self.title = ''
@@ -583,15 +584,19 @@ class Document(models.Model):
                         doc.set_error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         crawl_logger.error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         break
+                    except TooManyRedirectsException:
+                        doc._schedule_next(False, crawl_policy)
+                        doc.too_many_redirects = True
+                        crawl_logger.debug(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached, skipping page {doc.url}')
+                        break
 
                     if page.url == doc.url:
                         doc.index(page, crawl_policy)
                         doc.set_error('')
                         break
                     else:
-                        if not page.got_redirect:
+                        if not page.redirect_count:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
-                        redirects += 1
                         crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.redirect_target, redirects))
                         doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
                         doc._clear_content()
@@ -1375,10 +1380,9 @@ class CrawlPolicy(models.Model):
 
         page = browser.get(url)
 
-        if page.got_redirect:
+        if page.redirect_count:
             # The request was redirected, check if we need auth
             try:
-                page = browser.get(page.redirect_target)
                 crawl_logger.debug('may auth %s / %s' % (page.url, self.auth_login_url_re))
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \

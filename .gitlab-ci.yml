@@ -11,7 +11,7 @@ debian-unittest:
   script:
     - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
     - apt update && apt upgrade -y
-    - 'apt install -y sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
+    - 'apt install -y git sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
     - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
     - su postgres -c "psql --command \"CREATE DATABASE sosse OWNER sosse\""

@@ -3,11 +3,12 @@ SERVER_DIR=/tmp/testserver
 
 test -d $SERVER_DIR && echo "Test server already exists" >&2 && exit 1
 
-mkdir $SERVER_DIR
-django-admin startproject testserver $SERVER_DIR
-cd $SERVER_DIR
+cd /tmp
+git clone --depth=1 https://gitlab.com/biolds1/httpbin.git $SERVER_DIR
+
+cd $SERVER_DIR/httpbin
 python3 manage.py migrate
-echo "ALLOWED_HOSTS = ['*']" >> $SERVER_DIR/testserver/settings.py
+python3 manage.py shell -c "from django.contrib.auth.models import User ; u = User.objects.create(username='admin', is_superuser=True, is_staff=True) ; u.set_password('admin') ; u.save()"
 
 if [ "$GITLAB_CI" == "" ]
 then
@@ -16,7 +17,7 @@ then
 Description=TestServer
 
 [Service]
-ExecStart=/usr/bin/python3 $SERVER_DIR/manage.py runserver 0.0.0.0:8000
+ExecStart=/usr/bin/python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000
 WorkingDirectory=$SERVER_DIR
 Restart=always
 RestartSec=10
@@ -29,5 +30,5 @@ EOF
     systemctl enable django-test.service
     systemctl restart django-test.service
 else
-    /usr/bin/python3 $SERVER_DIR/manage.py runserver 0.0.0.0:8000 &
+    /usr/bin/python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000 &
 fi

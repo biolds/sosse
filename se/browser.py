@@ -473,9 +473,8 @@ class SeleniumBrowser(Browser):
 
         # Clear the download dir
         for f in os.listdir('.'):
-            if f != 'core':
-                crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
             if os.path.isfile(f):
+                crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
                 os.unlink(f)
 
         crawl_logger.debug('loading cookies')

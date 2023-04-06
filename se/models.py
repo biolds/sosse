@@ -551,7 +551,6 @@ class Document(models.Model):
                            Document.objects.filter(crawl_last__isnull=False).count(),
                            doc.id, doc.url))
 
-        redirects = 0
         while True:
             # Loop until we stop redirecting
             crawl_policy = CrawlPolicy.get_from_url(doc.url)
@@ -601,12 +600,6 @@ class Document(models.Model):
                         doc._schedule_next(doc.url != page.url, crawl_policy)
                         doc._clear_content()
                         doc.redirect_url = page.url
-
-                        if redirects > settings.SOSSE_MAX_REDIRECTS:
-                            doc.too_many_redirects = True
-                            crawl_logger.debug('max redirects (%i) reached, skipping page %s' % (settings.SOSSE_MAX_REDIRECTS, doc.redirect_url))
-                            break
-
                         doc.save()
                         doc = Document.pick_or_create(page.url, worker_no)
                         if doc is None:

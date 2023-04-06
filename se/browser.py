@@ -500,7 +500,7 @@ class SeleniumBrowser(Browser):
                 cls.driver.add_cookie(cookie)
                 crawl_logger.debug('loaded cookie %s' % cookie)
             except:  # noqa
-                raise Exception(cookie)
+                raise Exception('%s\n%s' % (cookie, cls.driver.current_url))
 
     @classmethod
     @retry

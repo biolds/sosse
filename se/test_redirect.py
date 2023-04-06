@@ -25,6 +25,9 @@ class RedirectTest:
     def setUp(self):
         Browser.init()
 
+    def tearDown(self):
+        Browser.destroy()
+
     def test_10_no_redirect(self):
         page = self.BROWSER.get(TEST_SERVER_URL)
         self.assertEqual(page.url, TEST_SERVER_URL)

@@ -125,6 +125,7 @@ class RequestBrowser(Browser):
     def _set_cookies(cls, url, cookies):
         from .models import Cookie
         _cookies = []
+
         for cookie in cookies:
             expires = cookie.expires
             if expires:
@@ -142,8 +143,7 @@ class RequestBrowser(Browser):
             }
             _cookies.append(c)
 
-        if _cookies:
-            Cookie.set(url, _cookies)
+        Cookie.set(url, _cookies)
 
     @classmethod
     def _get_cookies(cls, url):
@@ -151,15 +151,24 @@ class RequestBrowser(Browser):
         jar = requests.cookies.RequestsCookieJar()
 
         for c in Cookie.get_from_url(url):
-            jar.set(c.name, c.value, path=c.path, domain=c.domain_cc)
+            expires = None
+            if c.expires:
+                expires = int(c.expires.strftime('%s'))
+
+            rest = {'SameSite': c.same_site}
+            if c.http_only:
+                rest['HttpOnly'] = c.http_only,
+            jar.set(c.name, c.value, path=c.path, domain=c.domain, expires=expires, secure=c.secure, rest=rest)
+        crawl_logger.debug('loading cookies for %s: %s', url, jar)
         return jar
 
     @classmethod
     def _requests_params(cls):
         params = {
+            'allow_redirects': False,
             'headers': {
                 'User-Agent': settings.SOSSE_USER_AGENT,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             }
         }
 
@@ -173,6 +182,19 @@ class RequestBrowser(Browser):
         return params
 
     @classmethod
+    def _requests_query(cls, method, url, **kwargs):
+        jar = cls._get_cookies(url)
+        crawl_logger.debug('from the jar: %s', jar)
+        s = requests.Session()
+        s.cookies = jar
+
+        func = getattr(s, method)
+        r = func(url, **cls._requests_params(), **kwargs)
+        crawl_logger.debug('after request jar: %s', s.cookies)
+        cls._set_cookies(url, s.cookies)
+        return r
+
+    @classmethod
     def get(cls, url, raw=False, check_status=False):
         Browser.init()
         REDIRECT_CODE = (301, 302, 307, 308)
@@ -182,12 +204,7 @@ class RequestBrowser(Browser):
         redirect_count = 0
 
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
-            crawl_logger.debug('%s: get cookie' % url)
-            cookies = cls._get_cookies(url)
-            crawl_logger.debug('%s: http get %s %s -' % (url, cookies, cls._requests_params()))
-            r = requests.get(url, cookies=cookies, allow_redirects=False, **cls._requests_params())
-            crawl_logger.debug('%s: set cookies' % url)
-            cls._set_cookies(url, r.cookies)
+            r = cls._requests_query('get', url)
 
             if check_status:
                 r.raise_for_status()
@@ -254,19 +271,13 @@ class RequestBrowser(Browser):
             payload[f['key']] = f['value']
 
         post_url = form.get('action')
-        post_url = absolutize_url(page.url, post_url, True, False)
-        cookies = cls._get_cookies(post_url)
-        crawl_logger.debug('authenticating to %s with %s (cookie: %s)' % (post_url, payload, cookies))
-        r = requests.post(post_url,
-                          data=payload,
-                          cookies=cookies,
-                          allow_redirects=False,
-                          **cls._requests_params())
-        cls._set_cookies(post_url, r.cookies)
+        if post_url:
+            post_url = absolutize_url(page.url, post_url, True, False)
+        else:
+            post_url = page.url
 
-        crawl_logger.debug('auth returned cookie: %s' % r.cookies)
-        crawl_policy.save()
-
+        crawl_logger.debug('authenticating to %s with %s', post_url, payload)
+        r = cls._requests_query('post', post_url, data=payload)
         if r.status_code != 302:
             crawl_logger.debug('no redirect after auth')
             return cls._page_from_request(r)
@@ -277,13 +288,7 @@ class RequestBrowser(Browser):
 
         location = absolutize_url(r.url, location, True, False)
         crawl_logger.debug('got redirected to %s after authentication' % location)
-        cookies = cls._get_cookies(location)
-        r = requests.get(location, cookies=cookies, **cls._requests_params())
-        cls._set_cookies(location, r.cookies)
-        r.raise_for_status()
-        crawl_logger.debug('content:\n%s' % r.content)
-        crawl_logger.debug('authentication done')
-        return cls._page_from_request(r)
+        return cls.get(location)
 
 
 def retry(f):
@@ -454,8 +459,7 @@ class SeleniumBrowser(Browser):
 
             _cookies.append(c)
 
-        if _cookies:
-            Cookie.set(url, _cookies)
+        Cookie.set(url, _cookies)
 
     @classmethod
     def _load_cookies(cls, url):
@@ -482,15 +486,16 @@ class SeleniumBrowser(Browser):
             cookie = {
                 'name': c.name,
                 'value': c.value,
-                'domain': c.domain_cc,
                 'path': c.path,
                 'secure': c.secure,
-                'httpOnly': c.http_only,
                 'sameSite': c.same_site,
             }
+            if c.domain_cc:
+                cookie['domain'] = c.domain_cc
             if c.expires:
                 cookie['expiry'] = int(c.expires.strftime('%s'))
-
+            if c.http_only:
+                cookie['httpOnly'] = c.http_only
             try:
                 cls.driver.add_cookie(cookie)
                 crawl_logger.debug('loaded cookie %s' % cookie)

@@ -597,10 +597,10 @@ class Document(models.Model):
                     else:
                         if not page.redirect_count:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
-                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.redirect_target, redirects))
-                        doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
+                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, page.redirect_count))
+                        doc._schedule_next(doc.url != page.url, crawl_policy)
                         doc._clear_content()
-                        doc.redirect_url = page.redirect_url
+                        doc.redirect_url = page.url
 
                         if redirects > settings.SOSSE_MAX_REDIRECTS:
                             doc.too_many_redirects = True
@@ -1201,18 +1201,18 @@ class Cookie(models.Model):
         (SAME_SITE_NONE, SAME_SITE_NONE)
     )
     domain = models.TextField(help_text='Domain name')
-    domain_cc = models.TextField(help_text='Domain name attribute from the cookie')
+    domain_cc = models.TextField(help_text='Domain name attribute from the cookie', null=True, blank=True)
     inc_subdomain = models.BooleanField()
     name = models.TextField(blank=True)
     value = models.TextField(blank=True)
     path = models.TextField(default='/')
     expires = models.DateTimeField(null=True, blank=True)
     secure = models.BooleanField()
-    same_site = models.CharField(max_length=6, choices=SAME_SITE, default=SAME_SITE_STRICT)
+    same_site = models.CharField(max_length=6, choices=SAME_SITE, default=SAME_SITE_LAX)
     http_only = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('domain_cc', 'name', 'path')
+        unique_together = ('domain', 'name', 'path')
 
     @classmethod
     def get_from_url(cls, url, queryset=None, expire=True):
@@ -1260,14 +1260,16 @@ class Cookie(models.Model):
 
     @classmethod
     def set(cls, url, cookies):
+        crawl_logger.debug('saving cookies for %s: %s', url, cookies)
         new_cookies = []
         parsed_url = urlparse(url)
+        set_cookies = [c['name'] for c in cookies]
 
         for c in cookies:
             name = c.pop('name')
             path = c.pop('path', '') or ''
-            domain = parsed_url.netloc
-            domain_cc = parsed_url.netloc
+            domain = parsed_url.hostname
+            domain_cc = None
 
             cookie_dom = c.pop('domain', None)
             inc_subdomain = False
@@ -1288,13 +1290,21 @@ class Cookie(models.Model):
 
             c['inc_subdomain'] = inc_subdomain
             c['domain'] = domain
+            c['domain_cc'] = domain_cc
 
             if not c.get('same_site'):
                 c['same_site'] = Cookie._meta.get_field('same_site').default
-            cookie, created = Cookie.objects.update_or_create(domain_cc=domain_cc, path=path, name=name, defaults=c)
+            cookie, created = Cookie.objects.update_or_create(domain=domain, path=path, name=name, defaults=c)
 
             if created:
                 new_cookies.append(cookie)
+
+        # delete missing cookies
+        current = cls.get_from_url(url)
+        for c in current:
+            if c.name not in set_cookies:
+                crawl_logger.debug('%s not in %s', c.name, set_cookies)
+                c.delete()
         return new_cookies
 
 
@@ -1389,7 +1399,6 @@ class CrawlPolicy(models.Model):
                         re.search(self.auth_login_url_re, page.url):
                     crawl_logger.debug('doing auth for %s' % url)
                     new_page = page.browser.try_auth(page, url, self)
-                    new_page.got_redirect = True
 
                     if new_page.url != url:
                         crawl_logger.debug('reopening %s after auth' % url)

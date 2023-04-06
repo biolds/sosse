@@ -169,18 +169,18 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('domain', models.TextField(help_text='Domain name')),
-                ('domain_cc', models.TextField(help_text='Domain name attribute from the cookie')),
+                ('domain_cc', models.TextField(blank=True, help_text='Domain name attribute from the cookie', null=True)),
                 ('inc_subdomain', models.BooleanField()),
                 ('name', models.TextField(blank=True)),
                 ('value', models.TextField(blank=True)),
                 ('path', models.TextField(default='/')),
                 ('expires', models.DateTimeField(blank=True, null=True)),
                 ('secure', models.BooleanField()),
-                ('same_site', models.CharField(choices=[('Lax', 'Lax'), ('Strict', 'Strict'), ('None', 'None')], default='Strict', max_length=6)),
+                ('same_site', models.CharField(choices=[('Lax', 'Lax'), ('Strict', 'Strict'), ('None', 'None')], default='Lax', max_length=6)),
                 ('http_only', models.BooleanField(default=False)),
             ],
             options={
-                'unique_together': {('domain_cc', 'name', 'path')},
+                'unique_together': {('domain', 'name', 'path')},
             },
         ),
         migrations.CreateModel(

@@ -61,6 +61,14 @@ class SearchForm(forms.Form):
         if doc_lang in settings.SOSSE_LANGDETECT_TO_POSTGRES:
             cleaned_data['doc_lang'] = doc_lang
 
+        if settings.SOSSE_SEARCH_STRIP:
+            q = cleaned_data['q']
+            if q.startswith(settings.SOSSE_SEARCH_STRIP):
+                q = q[len(settings.SOSSE_SEARCH_STRIP):]
+            if q.endswith(settings.SOSSE_SEARCH_STRIP):
+                q = q[:-len(settings.SOSSE_SEARCH_STRIP)]
+            cleaned_data['q'] = q
+
         if cleaned_data['q']:
             order_by = ('-rank', 'title')
         else:

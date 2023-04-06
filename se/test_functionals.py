@@ -25,10 +25,12 @@ TEST_SERVER_PASS = 'admin'
 
 
 class FunctionalTest:
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         Browser.init()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         Browser.destroy()
 
     def _crawl(self):
@@ -191,11 +193,11 @@ class FunctionalTest:
         self.assertEqual(Link.objects.count(), 0)
 
 
-class RequestsFunctionalTest(TestCase, FunctionalTest):
+class RequestsFunctionalTest(FunctionalTest, TestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
     BROWSER_CLASS = RequestBrowser
 
 
-class SeleniumFunctionalTest(TestCase, FunctionalTest):
+class SeleniumFunctionalTest(FunctionalTest, TestCase):
     BROWSE_MODE = DomainSetting.BROWSE_SELENIUM
     BROWSER_CLASS = SeleniumBrowser

@@ -19,7 +19,7 @@ from unittest import mock
 from django.test import TestCase
 from requests import HTTPError
 
-from .browser import RequestBrowser, Page
+from .browser import Page
 from .models import Document, DomainSetting, Link, CrawlPolicy
 
 
@@ -50,7 +50,6 @@ class CrawlerTest(TestCase):
     ]
 
     def setUp(self):
-        RequestBrowser.init()
         self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
                                                       condition=CrawlPolicy.CRAWL_NEVER,
                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS)

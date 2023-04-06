@@ -22,10 +22,12 @@ TEST_SERVER_URL = 'http://127.0.0.1:8000/'
 
 
 class RedirectTest:
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         Browser.init()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         Browser.destroy()
 
     def test_10_no_redirect(self):
@@ -41,7 +43,7 @@ class RedirectTest:
         self.assertIn('"url": "http://127.0.0.1:8000/get"', page.content)
 
 
-class RequestsRedirectTest(TestCase, RedirectTest):
+class RequestsRedirectTest(RedirectTest, TestCase):
     BROWSER = RequestBrowser
 
     def test_30_five_redirects(self):
@@ -55,5 +57,5 @@ class RequestsRedirectTest(TestCase, RedirectTest):
             self.BROWSER.get(TEST_SERVER_URL + 'redirect/6')
 
 
-class SeleniumRedirectTest(TestCase, RedirectTest):
+class SeleniumRedirectTest(RedirectTest, TestCase):
     BROWSER = SeleniumBrowser

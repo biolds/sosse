@@ -20,7 +20,7 @@ import base64
 
 from django.test import TestCase
 
-from se.browser import SeleniumBrowser, Page
+from se.browser import Browser, SeleniumBrowser, Page
 from se.models import CrawlPolicy
 
 
@@ -117,9 +117,14 @@ FAKE_PAGE = '''
 
 
 class PageTest(TestCase):
-    def setUp(self):
-        SeleniumBrowser.init()
+    @classmethod
+    def setUpClass(cls):
+        Browser.init()
         CrawlPolicy.create_default()
+
+    @classmethod
+    def tearDownClass(cls):
+        Browser.destroy()
 
     def test_10_beautifulsoup(self):
         page = Page('', FAKE_PAGE, None)

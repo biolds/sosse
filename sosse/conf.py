@@ -236,6 +236,11 @@ DEFAULTS = OrderedDict([
             'default': 2,
             'type': int
         }],
+        ['max_file_size', {
+            'comment': 'Maximum file size to index (in kb)',
+            'default': 500,
+            'type': int
+        }],
         ['max_redirects', {
             'comment': 'Maximum numbers of redirect before aborting\n(this is accurate when using Requests only,\nsome redirects may be missed on Chromium)',
             'default': 5,

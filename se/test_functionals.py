@@ -15,7 +15,7 @@
 
 from django.test import TestCase
 
-from .browser import Browser, RequestBrowser, SeleniumBrowser
+from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
 from .models import AuthField, Cookie, CrawlPolicy, Document, DomainSetting, Link
 
 
@@ -191,6 +191,14 @@ class FunctionalTest:
         self.assertRegex(cookies[1]['value'], '[a-z0-9]+')
 
         self.assertEqual(Link.objects.count(), 0)
+
+    def test_60_file_too_big(self):
+        FILE_SIZE = 500 * 1024
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download?filesize=%i' % FILE_SIZE)
+        self.assertEqual(len(page.content), FILE_SIZE)
+
+        with self.assertRaises(SkipIndexing):
+            self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download?filesize=%i' % (FILE_SIZE + 1))
 
 
 class RequestsFunctionalTest(FunctionalTest, TestCase):

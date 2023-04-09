@@ -15,7 +15,7 @@
 
 from django.test import TestCase
 
-from .browser import Browser, RequestBrowser, SeleniumBrowser, TooManyRedirectsException
+from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
 
 
 TEST_SERVER_URL = 'http://127.0.0.1:8000/'
@@ -53,7 +53,7 @@ class RequestsRedirectTest(RedirectTest, TestCase):
         self.assertIn('"url": "http://127.0.0.1:8000/get"', page.content)
 
     def test_40_max_redirect(self):
-        with self.assertRaises(TooManyRedirectsException):
+        with self.assertRaises(SkipIndexing):
             self.BROWSER.get(TEST_SERVER_URL + 'redirect/6')
 
 

@@ -40,7 +40,7 @@ class AuthElemFailed(Exception):
         super().__init__(*args, **kwargs)
 
 
-class TooManyRedirectsException(Exception):
+class SkipIndexing(Exception):
     pass
 
 
@@ -106,7 +106,7 @@ class RequestBrowser(Browser):
 
     @classmethod
     def _page_from_request(cls, r, raw=False):
-        content = r.content
+        content = r._content
         if not raw:
             try:
                 content = content.decode('utf-8')
@@ -165,6 +165,7 @@ class RequestBrowser(Browser):
     @classmethod
     def _requests_params(cls):
         params = {
+            'stream': True,
             'allow_redirects': False,
             'headers': {
                 'User-Agent': settings.SOSSE_USER_AGENT,
@@ -190,8 +191,26 @@ class RequestBrowser(Browser):
 
         func = getattr(s, method)
         r = func(url, **cls._requests_params(), **kwargs)
-        crawl_logger.debug('after request jar: %s', s.cookies)
         cls._set_cookies(url, s.cookies)
+
+        content_lenght = int(r.headers.get('content-length', 0))
+        if content_lenght / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+            r.close()
+            raise SkipIndexing(f'{url}: file size is too big ({content_lenght} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+
+        content = b''
+        while len(content) / 1024 < settings.SOSSE_MAX_FILE_SIZE:
+            _content = r.raw.read(1024)
+            if not _content:
+                break
+            content += _content
+        r.close()
+
+        if len(content) / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+            raise SkipIndexing(f'{url}: file size is too big ({len(content)} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+
+        r._content = content
+        crawl_logger.debug('after request jar: %s', s.cookies)
         return r
 
     @classmethod
@@ -241,7 +260,7 @@ class RequestBrowser(Browser):
             break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
-            raise TooManyRedirectsException()
+            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached, skipping page {url}')
 
         page.redirect_count = redirect_count
         return page
@@ -408,7 +427,7 @@ class SeleniumBrowser(Browser):
                 break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
-            raise TooManyRedirectsException()
+            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached, skipping page {url}')
 
         return redirect_count
 
@@ -548,17 +567,31 @@ class SeleniumBrowser(Browser):
                 return
 
         crawl_logger.debug('Download in progress: %s' % os.listdir('.'))
-        sizes = [os.stat(f).st_size for f in os.listdir('.')]
+        filename = os.listdir('.')[0]
+        size = os.stat(filename).st_size
         while True:
             sleep(0.1)
-            _sizes = [os.stat(f).st_size for f in os.listdir('.')]
-            if sizes == _sizes:
+            try:
+                _size = os.stat(filename).st_size
+            except FileNotFoundError:
+                # when the download is finished the file is renamed
                 break
-            sizes = _sizes
+            if size == _size:
+                break
+            size = _size
+
+            if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+                SeleniumBrowser.destroy()  # cancel the download
+                raise SkipIndexing(f'{url}: file size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
 
         crawl_logger.debug('Download done: %s' % os.listdir('.'))
-        with open(os.listdir('.')[0], 'rb') as f:
-            content = f.read(1024 * 1024)
+
+        filename = os.listdir('.')[0]
+        size = os.stat(filename).st_size
+        if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+            raise SkipIndexing(f'{url}: file size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+        with open(filename, 'rb') as f:
+            content = f.read()
 
         page = Page(url, content, cls)
 

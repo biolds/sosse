@@ -43,7 +43,7 @@ from PIL import Image
 from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
-from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser, TooManyRedirectsException
+from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser, SkipIndexing
 from .utils import reverse_no_escape, url_beautify
 
 DetectorFactory.seed = 0
@@ -583,10 +583,9 @@ class Document(models.Model):
                         doc.set_error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         crawl_logger.error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         break
-                    except TooManyRedirectsException:
+                    except SkipIndexing as e:
                         doc._schedule_next(False, crawl_policy)
-                        doc.too_many_redirects = True
-                        crawl_logger.debug(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached, skipping page {doc.url}')
+                        crawl_logger.debug(e.args[0])
                         break
 
                     if page.url == doc.url:

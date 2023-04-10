@@ -193,10 +193,10 @@ class RequestBrowser(Browser):
         r = func(url, **cls._requests_params(), **kwargs)
         cls._set_cookies(url, s.cookies)
 
-        content_lenght = int(r.headers.get('content-length', 0))
-        if content_lenght / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+        content_length = int(r.headers.get('content-length', 0))
+        if content_length / 1024 > settings.SOSSE_MAX_FILE_SIZE:
             r.close()
-            raise SkipIndexing(f'document size is too big ({content_lenght} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise SkipIndexing(f'document size is too big ({content_length} / {settings.SOSSE_MAX_FILE_SIZE}k)')
 
         content = b''
         while len(content) / 1024 < settings.SOSSE_MAX_FILE_SIZE:

@@ -59,6 +59,8 @@ debian-pkg:
       - deb/*.deb
   script:
     - cd "$CI_PROJECT_DIR"
+    - echo "SOSSE_VERSION_TAG = '$CI_COMMIT_TAG'" >> sosse/settings.py
+    - echo "SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'" >> sosse/settings.py
     - mkdir /deb
     - make _deb
     - mv /deb .

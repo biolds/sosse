@@ -11,5 +11,9 @@
         You can download a copy of its source code on <a href="https://gitlab.com/biolds1/sosse">Gitlab</a>.
     </p>
 
-    Copyright 2022-2023 Laurent Defert.
+    SOSSE {{ settings.SOSSE_VERSION_TAG }}
+    {% if settings.SOSSE_VERSION_TAG != 'dev' %}
+        ({{ settings.SOSSE_VERSION_COMMIT }})
+    {% endif %}
+    - Copyright 2022-2023 Laurent Defert.
 {% endblock %}

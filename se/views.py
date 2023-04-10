@@ -146,7 +146,8 @@ def search(request):
 
 def about(request):
     context = get_context({
-        'title': 'About'
+        'title': 'About',
+        'settings': settings,
     })
     return render(request, 'se/about.html', context)
 

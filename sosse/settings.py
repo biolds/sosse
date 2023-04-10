@@ -326,3 +326,6 @@ SOSSE_LANGDETECT_TO_POSTGRES = {
 }
 
 globals().update(Conf.get())
+
+SOSSE_VERSION_TAG = 'dev'
+SOSSE_VERSION_COMMIT = ''

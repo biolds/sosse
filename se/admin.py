@@ -234,27 +234,41 @@ class DocumentAdmin(admin.ModelAdmin):
             now=_now
         )
 
-        QUEUE_SIZE = 10
+        queue_new_count = Document.objects.filter(crawl_last__isnull=True).count()
+        queue_sched_count = Document.objects.filter(crawl_last__isnull=False,
+                                                    crawl_next__isnull=False).count()
+
+        QUEUE_SIZE = 7
         queue = list(Document.objects.filter(crawl_last__isnull=True).order_by('id')[:QUEUE_SIZE])
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(Document.objects.filter(crawl_last__isnull=False,
                                                          crawl_next__isnull=False).order_by('crawl_next', 'id')[:QUEUE_SIZE - len(queue)])
+            for doc in queue:
+                doc.pending = True
 
-        for doc in queue:
-            doc.crawl_next_human = human_dt(doc.crawl_next, True)
+        queue.reverse()
 
         history = list(Document.objects.filter(crawl_last__isnull=False).order_by('-crawl_last')[:QUEUE_SIZE])
-        history.reverse()
 
-        for doc in history:
-            doc.crawl_last_human = human_dt(doc.crawl_last, True)
+        for doc in queue:
+            if doc in history:
+                history.remove(doc)
+
+        queue = queue + history
+
+        for doc in queue:
+            if doc.crawl_next:
+                doc.crawl_next_human = human_dt(doc.crawl_next, True)
+            if doc.crawl_last:
+                doc.crawl_last_human = human_dt(doc.crawl_last, True)
 
         context.update({
             'crawlers': WorkerStats.live_state(),
             'pause': WorkerStats.objects.filter(state='paused').count() == 0,
             'queue': queue,
-            'history': history,
-            'settings': settings
+            'settings': settings,
+            'queue_new_count': queue_new_count,
+            'queue_sched_count': queue_sched_count,
         })
         return context
 

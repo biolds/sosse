@@ -585,7 +585,8 @@ class Document(models.Model):
                         break
                     except SkipIndexing as e:
                         doc._schedule_next(False, crawl_policy)
-                        crawl_logger.debug(e.args[0])
+                        doc.set_error(e.args[0])
+                        crawl_logger.debug(f'{doc.url}: {e.args[0]}')
                         break
 
                     if page.url == doc.url:

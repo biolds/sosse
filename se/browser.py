@@ -196,7 +196,7 @@ class RequestBrowser(Browser):
         content_lenght = int(r.headers.get('content-length', 0))
         if content_lenght / 1024 > settings.SOSSE_MAX_FILE_SIZE:
             r.close()
-            raise SkipIndexing(f'{url}: file size is too big ({content_lenght} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise SkipIndexing(f'document size is too big ({content_lenght} / {settings.SOSSE_MAX_FILE_SIZE}k)')
 
         content = b''
         while len(content) / 1024 < settings.SOSSE_MAX_FILE_SIZE:
@@ -207,7 +207,7 @@ class RequestBrowser(Browser):
         r.close()
 
         if len(content) / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-            raise SkipIndexing(f'{url}: file size is too big ({len(content)} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise SkipIndexing(f'document size is too big ({len(content)} / {settings.SOSSE_MAX_FILE_SIZE}k)')
 
         r._content = content
         crawl_logger.debug('after request jar: %s', s.cookies)
@@ -260,7 +260,7 @@ class RequestBrowser(Browser):
             break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
-            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached, skipping page {url}')
+            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached')
 
         page.redirect_count = redirect_count
         return page
@@ -427,7 +427,7 @@ class SeleniumBrowser(Browser):
                 break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
-            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached, skipping page {url}')
+            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached')
 
         return redirect_count
 
@@ -582,14 +582,14 @@ class SeleniumBrowser(Browser):
 
             if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
                 SeleniumBrowser.destroy()  # cancel the download
-                raise SkipIndexing(f'{url}: file size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+                raise SkipIndexing(f'document size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
 
         crawl_logger.debug('Download done: %s' % os.listdir('.'))
 
         filename = os.listdir('.')[0]
         size = os.stat(filename).st_size
         if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-            raise SkipIndexing(f'{url}: file size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise SkipIndexing(f'document size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
         with open(filename, 'rb') as f:
             content = f.read()
 

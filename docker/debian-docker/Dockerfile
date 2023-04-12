@@ -20,14 +20,17 @@ RUN ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
 
 WORKDIR /
 USER postgres
+RUN echo "listen_addresses='127.0.0.1'" >> /etc/postgresql/13/main/postgresql.conf
 RUN /etc/init.d/postgresql start && \
     psql --command "CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse';" && \
-    createdb -O sosse sosse
+    createdb -O sosse sosse && \
+    /etc/init.d/postgresql stop
 
 USER root
 RUN /etc/init.d/postgresql start && \
     sosse-admin migrate && \
-    sosse-admin default_admin
+    sosse-admin default_admin && \
+    /etc/init.d/postgresql stop
 
 RUN echo '#!/bin/bash -x \n \
 /etc/init.d/postgresql start \n \

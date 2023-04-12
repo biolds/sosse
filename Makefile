@@ -15,18 +15,22 @@ deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb registry.gitlab.com/biolds1/sosse/debian-pkg:latest bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
 
-docker_deb_test:
+docker_debian:
 	docker pull debian:bullseye
-	cd $(current_dir)/docker/debian-pkg-test/ && docker build --rm -t biolds/sosse:deb-test .
+	cd $(current_dir)/docker/debian-docker/ && docker build --rm -t biolds/sosse:debian .
 
-docker_deb_test_push:
+docker_debian_test:
+	docker pull debian:bullseye
+	cd $(current_dir)/docker/debian-test/ && docker build --rm -t biolds/sosse:deb-test .
+
+docker_debian_test_push:
 	docker push biolds/sosse:deb-test
 
-docker_deb:
+docker_debian_pkg:
 	docker pull debian:bullseye
 	cd $(current_dir)/docker/debian-pkg/ && docker build --rm -t registry.gitlab.com/biolds1/sosse/debian-pkg:latest .
 
-docker_deb_push:
+docker_debian_pkg_push:
 	docker push registry.gitlab.com/biolds1/sosse/debian-pkg:latest
 
 docker:

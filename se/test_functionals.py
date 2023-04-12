@@ -202,11 +202,11 @@ class FunctionalTest:
 
     def test_80_file_too_big(self):
         FILE_SIZE = 500 * 1024
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download?filesize=%i' % FILE_SIZE)
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
         self.assertEqual(len(page.content), FILE_SIZE)
 
         with self.assertRaises(SkipIndexing):
-            self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download?filesize=%i' % (FILE_SIZE + 1))
+            self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
 
 
 class RequestsFunctionalTest(FunctionalTest, TestCase):

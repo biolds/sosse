@@ -5,44 +5,31 @@ stages:
 debian-unittest:
   image: biolds/sosse:deb-test
   stage: test
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     paths:
       - se/migrations/*.py
+      - htmlcov/*
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
   script:
-    - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
-    - apt update && apt upgrade -y
-    - apt purge -y sosse
-    - 'apt install -y python3-coverage git sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
-    - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
-    - su postgres -c "psql --command \"CREATE DATABASE sosse OWNER sosse\""
-    - mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads/0
-    - chown -R www-data:www-data /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
-    - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
-    - ./test_app.sh
-    - export TMP=/tmp
+    - mkdir -p /var/lib/sosse/downloads/0 && chown -R www-data:www-data /var/lib/sosse/downloads
+    - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
+    - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=0.3/" > /etc/sosse/sosse.conf
     - sudo -u www-data python3-coverage run --source se,sosse ./sosse-admin test -v3 --failfast
     - python3 ./sosse-admin makemigrations
     - python3-coverage report
     - python3-coverage html
+    - python3-coverage xml
 
 migrations:
   image: biolds/sosse:deb-test
   stage: test
   script:
-    - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
-    - apt update && apt upgrade -y
-    - apt purge -y sosse
-    - 'apt install -y sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
-    - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
-    - su postgres -c "psql --command \"CREATE DATABASE sosse OWNER sosse\""
-    - mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
-    - chown www-data:www-data /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
     - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
     - MIGRATION_COUNT="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - python3 ./sosse-admin makemigrations
@@ -53,9 +40,6 @@ static_checks:
   image: biolds/sosse:deb-test
   stage: test
   script:
-    - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
-    - apt update && apt upgrade -y
-    - 'apt install -y $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g") flake8'
     - flake8 --ignore=E501,W503,W504 --exclude=migrations
     - 'for f in $(find -name \*.py|grep -v /__init__\.py$) ; do grep -q "^# Copyright" "$f" || echo "File $f does not have a copyright header" ; done'
     - 'for f in $(find -name \*.py|grep -v /__init__\.py$) ; do grep -q "^# Copyright" "$f" || exit 1 ; done'
@@ -68,6 +52,7 @@ debian-pkg:
       - deb/*.deb
   script:
     - cd "$CI_PROJECT_DIR"
+    - rm -rf htmlcov
     - echo "SOSSE_VERSION_TAG = '$CI_COMMIT_TAG'" >> sosse/settings.py
     - echo "SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'" >> sosse/settings.py
     - mkdir /deb

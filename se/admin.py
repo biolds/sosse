@@ -19,6 +19,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
@@ -113,6 +114,7 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 @admin.action(description='Crawl now', permissions=['change'])
 def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
+    return redirect(reverse('admin:crawl_status'))
 
 
 @admin.action(description='Remove from crawl queue', permissions=['change'])
@@ -169,8 +171,10 @@ class DocumentAdmin(admin.ModelAdmin):
             raise Exception('Action %s not support' % action)
 
         queryset = self.get_queryset(request).filter(id=object_id)
-        action(self, request, queryset)
+        r = action(self, request, queryset)
         messages.success(request, 'Done.')
+        if isinstance(r, HttpResponse):
+            return r
         return redirect(reverse('admin:se_document_change', args=(object_id,)))
 
     def render_change_form(self, request, context, *args, **kwargs):

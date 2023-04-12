@@ -2,7 +2,12 @@
 {% block content %}
     <form method="post" action="{% url 'admin:queue_confirm' %}">
         {% csrf_token %}
-        {{ form }}
+        {{ form.url.errors }}
+        {{ form.url.label_tag }} {{ form.url }}
+        {% if form.url.help_text %}
+            <p class="help">{{ form.url.help_text|safe }}</p>
+        {% endif %}
+
         {% if crawl_policy %}
             <input type="submit" name="action" value="Refresh">
 
@@ -15,6 +20,8 @@
                     {% if crawl_policy.crawl_depth > 1 %}
                         <li>The crawler will recurse {{ crawl_policy.crawl_depth }} time{{ crawl_policy.crawl_depth|pluralize:'s' }} into URL when matching policies "Depending on depth"</li>
                     {% endif %}
+                {% elif crawl_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH %}
+                    <li>The crawler will recurse into linked pages depending on depth</li>
                 {% else %}
                     <li>Only this URL will be crawled</li>
                 {% endif %}
@@ -46,6 +53,14 @@
                 <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ url|urlencode }}">Create a new policy</a>
             </p>
 
+            {% if crawl_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH %}
+                {{ form.crawl_depth.errors }}
+                {{ form.crawl_depth.label_tag }} {{ form.crawl_depth }}
+                {% if form.crawl_depth.help_text %}
+                    <small><p class="help">{{ form.crawl_depth.help_text|safe }}</p></small>
+                {% endif %}
+            {% endif %}
+            <input type="hidden" name="confirmation" value="1">
             <p>
                 <input type="submit" name="action" value="Confirm">
             </p>

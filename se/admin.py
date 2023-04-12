@@ -203,19 +203,26 @@ class DocumentAdmin(admin.ModelAdmin):
             return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
         if request.POST.get('action') == 'Confirm':
-            doc, created = Document.objects.get_or_create(url=form.cleaned_data['url'])
+            crawl_recurse = form.cleaned_data.get('crawl_depth') or 0
+            doc, created = Document.objects.get_or_create(url=form.cleaned_data['url'], defaults={'crawl_recurse': crawl_recurse})
             if not created:
                 doc.crawl_next = now()
+                if crawl_recurse:
+                    doc.crawl_recurse = crawl_recurse
+
             doc.save()
             messages.success(request, 'URL was queued.')
             return redirect(reverse('admin:crawl_status'))
 
         crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data['url'])
+        form = AddToQueueForm(request.POST, initial={'crawl_depth': crawl_policy.crawl_depth})
+        form.is_valid()
         context.update({
             'crawl_policy': crawl_policy,
             'url': form.cleaned_data['url'],
             'CrawlPolicy': CrawlPolicy,
             'DomainSetting': DomainSetting,
+            'form': form
         })
         if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
             context['recrawl_every'] = human_datetime(crawl_policy.recrawl_dt_min)

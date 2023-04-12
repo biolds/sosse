@@ -38,7 +38,6 @@ from django.http import QueryDict
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
-from magic import from_buffer as magic_from_buffer
 from PIL import Image
 from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
@@ -384,6 +383,7 @@ class Document(models.Model):
         beautified_url = url_beautify(page.url)
         normalized_url = beautified_url.split('://', 1)[1].replace('/', ' ').strip()
         self.normalized_url = remove_accent(normalized_url)
+        from magic import from_buffer as magic_from_buffer
         self.mimetype = magic_from_buffer(page.content, mime=True)
 
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):
@@ -972,6 +972,7 @@ class FavIcon(models.Model):
                 favicon.missing = False
             else:
                 page = RequestBrowser.get(url, raw=True, check_status=True)
+                from magic import from_buffer as magic_from_buffer
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)
                 if favicon.mimetype.startswith('image/'):
                     favicon.content = page.content

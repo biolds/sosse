@@ -373,12 +373,12 @@ class SeleniumBrowser(Browser):
             # Ignore errors in case the browser crashed
             try:
                 cls.driver.close()
-            except WebDriverException:
+            except:  # noqa
                 pass
 
             try:
                 cls.driver.quit()
-            except WebDriverException:
+            except:  # noqa
                 pass
 
     @classmethod

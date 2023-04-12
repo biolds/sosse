@@ -8,11 +8,15 @@ debian-unittest:
   artifacts:
     paths:
       - se/migrations/*.py
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
   script:
     - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
     - apt update && apt upgrade -y
     - apt purge -y sosse
-    - 'apt install -y git sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
+    - 'apt install -y python3-coverage git sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
     - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
     - su postgres -c "psql --command \"CREATE DATABASE sosse OWNER sosse\""
@@ -20,8 +24,11 @@ debian-unittest:
     - chown -R www-data:www-data /var/log/sosse /var/log/uwsgi /var/lib/sosse/downloads
     - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
     - ./test_app.sh
-    - sudo -u www-data python3 ./sosse-admin test -v3 --failfast
+    - export TMP=/tmp
+    - sudo -u www-data python3-coverage run --source se,sosse ./sosse-admin test -v3 --failfast
     - python3 ./sosse-admin makemigrations
+    - python3-coverage report
+    - python3-coverage html
 
 migrations:
   image: biolds/sosse:deb-test

@@ -11,8 +11,6 @@ RUN apt install -y python3-django/bullseye-backports sosse && \
         apt-get clean autoclean && \
         apt-get autoremove --yes && \
         rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
-ADD sosse_0.1.0-1_amd64.deb /root
-RUN dpkg -i /root/sosse_0.1.0-1_amd64.deb
 
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*

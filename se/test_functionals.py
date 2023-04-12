@@ -84,7 +84,15 @@ class FunctionalTest:
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
         self.assertIn('"user-agent": "SOSSE"', page.content)
 
-    def test_30_cookies(self):
+    def test_30_gzip(self):
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'gzip')
+        self.assertIn('"deflated": true', page.content)
+
+    def test_40_deflate(self):
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'deflate')
+        self.assertIn('"deflated": true', page.content)
+
+    def test_50_cookies(self):
         CrawlPolicy.objects.create(url_regex='.*',
                                    mimetype_regex='.*',
                                    condition=CrawlPolicy.CRAWL_NEVER,
@@ -107,8 +115,8 @@ class FunctionalTest:
         self.assertEqual(cookie.same_site, 'Lax')
         self.assertFalse(cookie.secure)
 
-    def test_40_cookie_delete(self):
-        self.test_30_cookies()
+    def test_60_cookie_delete(self):
+        self.test_50_cookies()
 
         Document.queue(TEST_SERVER_URL + 'cookies/delete?test_key', None, None)
         self._crawl()
@@ -119,7 +127,7 @@ class FunctionalTest:
         self.assertEqual(Document.objects.count(), 3)
         self.assertEqual(Cookie.objects.count(), 0)
 
-    def test_50_authentication(self):
+    def test_70_authentication(self):
         CrawlPolicy.objects.create(url_regex='.*',
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
@@ -192,7 +200,7 @@ class FunctionalTest:
 
         self.assertEqual(Link.objects.count(), 0)
 
-    def test_60_file_too_big(self):
+    def test_80_file_too_big(self):
         FILE_SIZE = 500 * 1024
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download?filesize=%i' % FILE_SIZE)
         self.assertEqual(len(page.content), FILE_SIZE)

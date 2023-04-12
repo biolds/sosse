@@ -199,11 +199,10 @@ class RequestBrowser(Browser):
             raise SkipIndexing(f'document size is too big ({content_length} / {settings.SOSSE_MAX_FILE_SIZE}k)')
 
         content = b''
-        while len(content) / 1024 < settings.SOSSE_MAX_FILE_SIZE:
-            _content = r.raw.read(1024)
-            if not _content:
+        for chunk in r.iter_content(chunk_size=1024):
+            content += chunk
+            if len(content) / 1024 >= settings.SOSSE_MAX_FILE_SIZE:
                 break
-            content += _content
         r.close()
 
         if len(content) / 1024 > settings.SOSSE_MAX_FILE_SIZE:

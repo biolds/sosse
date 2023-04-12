@@ -3,7 +3,7 @@ stages:
   - build
 
 debian-unittest:
-  image: debian:bullseye
+  image: biolds/sosse:deb-test
   stage: test
   artifacts:
     paths:
@@ -11,6 +11,7 @@ debian-unittest:
   script:
     - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
     - apt update && apt upgrade -y
+    - apt purge -y sosse
     - 'apt install -y git sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
     - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
@@ -23,11 +24,12 @@ debian-unittest:
     - python3 ./sosse-admin makemigrations
 
 migrations:
-  image: debian:bullseye
+  image: biolds/sosse:deb-test
   stage: test
   script:
     - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
     - apt update && apt upgrade -y
+    - apt purge -y sosse
     - 'apt install -y sudo $(grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django[^,]*,#python3-django/bullseye-backports#g" -e "s/,//g")'
     - /etc/init.d/postgresql start
     - su postgres -c "psql --command \"CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse'\""
@@ -41,7 +43,7 @@ migrations:
     - test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2"
 
 static_checks:
-  image: debian:bullseye
+  image: biolds/sosse:deb-test
   stage: test
   script:
     - echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list

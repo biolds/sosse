@@ -14,6 +14,28 @@ function refresh () {
 setInterval(refresh, {{ settings.SOSSE_CRAWL_STATUS_AUTOREFRESH }} * 1000);
 {% endblock %}
 
+{% block css %}
+#result_list th:nth-child(1), #result_list td:nth-child(1) {
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 0;
+  width: 70%;
+  text-overflow: ellipsis;
+}
+
+#result_list tr.running {
+  background-color: #d9fabe;
+}
+
+#result_list tr.pending:nth-child(2n) {
+  background-color: #ecffdc;
+}
+
+#result_list tr.pending:nth-child(2n+1) {
+  background-color: #dceecd;
+}
+{% endblock %}
+
 {% block content %}
   {% include "admin/crawl_status_content.html" %}
 {% endblock %}

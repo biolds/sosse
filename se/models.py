@@ -191,6 +191,9 @@ class Document(models.Model):
     class Meta:
         indexes = [GinIndex(fields=(('vector',)))]
 
+    def __str__(self):
+        return self.url
+
     def get_absolute_url(self):
         if self.screenshot_file:
             return reverse_no_escape('screenshot', args=(self.url,))

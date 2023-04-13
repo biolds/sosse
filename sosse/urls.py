@@ -53,8 +53,8 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('opensearch.xml', opensearch, name='opensearch'),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
-    re_path(r'screenshot/(?P<url>.*)', screenshot, name='screenshot'),
-    re_path(r'www/(?P<url>.*)', www, name='www'),
-    re_path(r'words/(?P<url>.*)', words, name='words'),
-    re_path(r'cache/(?P<url>.*)', cache_redirect, name='cache'),
+    re_path(r'screenshot/.*', screenshot, name='screenshot'),
+    re_path(r'www/.*', www, name='www'),
+    re_path(r'words/.*', words, name='words'),
+    re_path(r'cache/.*', cache_redirect, name='cache'),
 ]

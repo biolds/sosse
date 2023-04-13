@@ -23,7 +23,7 @@ from .utils import reverse_no_escape
 
 
 @login_required
-def www(request, url):
+def www(request):
     doc = get_document(request)
     if doc is None:
         return unknown_url_view(request)
@@ -63,10 +63,10 @@ def www(request, url):
 
     if doc.screenshot_file:
         context['other_links'] = [{
-            'href': reverse_no_escape('screenshot', args=[url]),
+            'href': reverse_no_escape('screenshot', args=[doc.url]),
             'text': 'Screenshot'
         }, {
-            'href': reverse_no_escape('words', args=[url]),
+            'href': reverse_no_escape('words', args=[doc.url]),
             'text': 'Words weight',
         }]
     return render(request, 'se/www.html', context)

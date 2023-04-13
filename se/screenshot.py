@@ -23,7 +23,7 @@ from .utils import reverse_no_escape
 
 
 @login_required
-def screenshot(request, url):
+def screenshot(request):
     doc = get_document(request)
     if doc is None:
         return unknown_url_view(request)
@@ -37,10 +37,10 @@ def screenshot(request, url):
         'screenshot_format': doc.screenshot_format,
         'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
         'other_links': [{
-            'href': reverse_no_escape('www', args=[url]),
+            'href': reverse_no_escape('www', args=[doc.url]),
             'text': 'Cached page',
         }, {
-            'href': reverse_no_escape('words', args=[url]),
+            'href': reverse_no_escape('words', args=[doc.url]),
             'text': 'Words weight',
         }],
         'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),

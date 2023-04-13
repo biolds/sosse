@@ -78,8 +78,9 @@ def unknown_url_view(request):
     return render(request, 'se/unknown_url.html', context)
 
 
-def cache_redirect(request, url):
+def cache_redirect(request):
     doc = get_document(request)
     if doc:
         return redirect(doc.get_absolute_url())
+    url = url_from_request(request)
     return unknown_url_view(request, url)

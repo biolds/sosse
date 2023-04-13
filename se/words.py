@@ -21,7 +21,7 @@ from .utils import reverse_no_escape
 
 
 @login_required
-def words(request, url):
+def words(request):
     doc = get_document(request)
     if doc is None:
         return unknown_url_view(request)
@@ -35,10 +35,10 @@ def words(request, url):
 
     context.update({
         'other_links': [{
-            'href': reverse_no_escape('www', args=[url]),
+            'href': reverse_no_escape('www', args=[doc.url]),
             'text': 'Cached page',
         }, {
-            'href': reverse_no_escape('screenshot', args=[url]),
+            'href': reverse_no_escape('screenshot', args=[doc.url]),
             'text': 'Screenshot'
         }],
         'words': words,

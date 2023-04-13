@@ -108,7 +108,7 @@ def reverse_no_escape(url, args):
     arg = args[0]
 
     # unquote since Django's reverse will quote
-    url = reverse(url, args=[''])
+    url = reverse(url)
     url = mark_safe(url + arg)
     return url
 

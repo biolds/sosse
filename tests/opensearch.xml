@@ -1,0 +1,8 @@
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+<ShortName>Twitter</ShortName>
+<Description>Twitter Search</Description>
+<Url type="text/html" method="get" template="https://twitter.com/search?q={searchTerms}"/>
+<Image width="16" height="16">https://abs.twimg.com/favicons/favicon.ico</Image>
+<InputEncoding>UTF-8</InputEncoding>
+<moz:SearchForm>https://twitter.com/search-home</moz:SearchForm>
+</OpenSearchDescription>

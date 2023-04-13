@@ -569,7 +569,7 @@ class SeleniumBrowser(Browser):
         filename = os.listdir('.')[0]
         size = os.stat(filename).st_size
         while True:
-            sleep(0.1)
+            sleep(settings.SOSSE_DL_CHECK_TIME)
             try:
                 _size = os.stat(filename).st_size
             except FileNotFoundError:

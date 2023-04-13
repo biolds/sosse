@@ -7,6 +7,8 @@
     {% endif %}
     {% if doc.crawl_next %}
         <li>Next crawl is scheduled for {{ doc.crawl_next }}</li>
+    {% elif not doc.crawl_last %}
+        <li>This page will be crawled when a worker is available</li>
     {% else %}
         <li>No crawl is scheduled</li>
     {% endif %}
@@ -24,9 +26,9 @@
     {% endif %}
     <li>This page follows the policy
         {% if 'se.view_crawlpolicy' in perms %}
-            <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy.url_regex }}</a>
+            <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>
         {% else %}
-            {{ crawl_policy.url_regex }}
+            {{ crawl_policy }}
         {% endif %}
     </li>
     {% if other_links %}

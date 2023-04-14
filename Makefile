@@ -33,8 +33,14 @@ docker_debian_pkg:
 docker_debian_pkg_push:
 	docker push registry.gitlab.com/biolds1/sosse/debian-pkg:latest
 
-docker:
+docker_pip_base:
 	docker pull debian:bullseye
+	cd $(current_dir)/docker/pip-base/ && docker build --rm -t biolds/sosse:pip-base .
+
+docker_pip_base_push:
+	docker push biolds/sosse:pip-base
+
+docker:
 	docker build -t biolds/sosse:latest .
 
 docker_run:

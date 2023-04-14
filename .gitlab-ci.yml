@@ -32,6 +32,16 @@ debian-unittest:
     - python3-coverage html
     - python3-coverage xml
 
+pip:
+  image: biolds/sosse:pip-base
+  stage: test
+  script:
+    - pip install -r requirements.txt
+    - python3 setup.py install
+    - mkdir /var/log/sosse/
+    - sosse-admin check
+    - sosse-admin default_conf > /dev/null
+
 migrations:
   image: biolds/sosse:deb-test
   stage: test

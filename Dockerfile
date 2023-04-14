@@ -1,19 +1,14 @@
-FROM debian:bullseye
-
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get install -y git python3-pip python3-dev build-essential postgresql libpq-dev libmagic1 nginx chromium chromium-driver uwsgi uwsgi-plugin-python3
-
+FROM biolds/sosse:pip-base
 RUN mkdir /root/sosse
 WORKDIR /root/sosse
 ADD requirements.txt .
 ADD setup.py .
 ADD sosse-admin .
-RUN pip install -r requirements.txt && pip cache purge
-RUN python3 setup.py install
 ADD se.json .
 ADD se/ se/
 ADD sosse/ sosse/
+RUN pip install -r requirements.txt && pip cache purge
+RUN python3 setup.py install
 RUN mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN sed -e 's/^#db_pass.*/db_pass=sosse/' -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox/' -i /etc/sosse/sosse.conf

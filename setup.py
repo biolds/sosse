@@ -38,7 +38,7 @@ setup(
     # metadata to display on PyPI
     author="Laurent Defert",
     author_email="laurent_defert@yahoo.fr",
-    description="Open Source Search Engine",
+    description="Selenium Open Source Search Engine",
     keywords="search engine",
     url="https://gitlab.com/biolds1/sosse",
     scripts=['sosse-admin'],

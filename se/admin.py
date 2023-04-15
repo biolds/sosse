@@ -434,6 +434,11 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
         }),
     )
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.url_regex == '.*':
+            return self.readonly_fields + ('url_regex',)
+        return self.readonly_fields
+
     def has_delete_permission(self, request, obj=None):
         if obj and obj.url_regex == '.*':
             return False

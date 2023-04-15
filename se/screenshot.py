@@ -38,7 +38,7 @@ def screenshot(request):
         'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
         'other_links': [{
             'href': reverse_no_escape('www', args=[doc.url]),
-            'text': 'Cached page',
+            'text': 'Text version',
         }, {
             'href': reverse_no_escape('words', args=[doc.url]),
             'text': 'Words weight',

@@ -18,7 +18,7 @@ debian-unittest:
     - /etc/init.d/postgresql start
     - mkdir -p /var/lib/sosse/screenshots/ /var/lib/sosse/downloads/0 && chown -R www-data:www-data /var/lib/sosse/
     - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=0.5/" > /etc/sosse/sosse.conf
+    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
     - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin test -v3 --failfast
     - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin load_se tests/opensearch.xml
     - mkdir /usr/share/sosse/

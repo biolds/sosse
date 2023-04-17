@@ -15,6 +15,21 @@ deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb registry.gitlab.com/biolds1/sosse/debian-pkg:latest bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
 
+docker_doc:
+	docker pull debian:bullseye
+	cd $(current_dir)/docker/doc/ && docker build --rm -t biolds/sosse:doc .
+
+docker_doc_push:
+	docker pull debian:bullseye
+	docker push biolds/sosse:doc
+
+_build_doc:
+	. /opt/sosse-doc/bin/activate ; make -C doc html
+
+build_doc:
+	mkdir -p doc/build/
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc/build:/sosse/doc/build biolds/sosse:doc bash -c 'cd /sosse && make _build_doc'
+
 docker_debian:
 	docker pull debian:bullseye
 	cd $(current_dir)/docker/debian-docker/ && docker build --rm -t biolds/sosse:debian .

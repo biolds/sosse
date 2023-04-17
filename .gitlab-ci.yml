@@ -75,3 +75,12 @@ debian-pkg:
     - mkdir /deb
     - make _deb
     - mv /deb .
+
+doc:
+  image: biolds/sosse:doc
+  stage: build
+  artifacts:
+    paths:
+      - doc/build/*
+  script:
+    - make _build_doc

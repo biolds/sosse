@@ -20,6 +20,8 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+import os
+import sys
 
 project = 'SOSSE'
 copyright = '2023, Laurent Defert'
@@ -29,7 +31,9 @@ release = '0.9'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+sys.path.append(os.path.abspath('_extensions'))
+extensions = ['code_blocks']
+test_code_output = 'code_blocks.json'
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -39,3 +43,6 @@ exclude_patterns = []
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+html_logo = '../../se/static/se/logo.svg'
+html_favicon = '../../se/static/se/logo.svg'
+html_css_files = ['style.css']

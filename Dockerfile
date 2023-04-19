@@ -17,7 +17,7 @@ ADD debian/sosse.conf /etc/nginx/sites-enabled/default
 WORKDIR /
 USER postgres
 RUN /etc/init.d/postgresql start && \
-    psql --command "CREATE USER sosse WITH SUPERUSER PASSWORD 'sosse';" && \
+    psql --command "CREATE USER sosse WITH PASSWORD 'sosse';" && \
     createdb -O sosse sosse
 
 USER root

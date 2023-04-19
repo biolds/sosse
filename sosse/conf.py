@@ -29,7 +29,7 @@ DEFAULTS = OrderedDict([
     ['common', OrderedDict([
         ['secret_key', {
             'var': 'SECRET_KEY',
-            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun "sosse-admin generate_secret" to create a new one\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key',
+            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun ``sosse-admin generate_secret`` to create a new one\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key',
             'default': 'CHANGE ME'
         }],
         ['debug', {
@@ -39,21 +39,26 @@ DEFAULTS = OrderedDict([
             'default': False
         }],
         ['db_name', {
-            'comment': 'Postgresql connection parameters',
+            'comment': 'PostgreSQL connection parameters',
+            'doc': 'PostgreSQL database name',
             'default': 'sosse'
         }],
         ['db_user', {
-            'default': 'sosse'
+            'default': 'sosse',
+            'doc': 'PostgreSQL username',
         }],
         ['db_pass', {
-            'default': 'CHANGE ME'
+            'default': 'CHANGE ME',
+            'doc': 'PostgreSQL password',
         }],
         ['db_host', {
-            'default': '127.0.0.1'
+            'default': '127.0.0.1',
+            'doc': 'PostgreSQL hostname or IP address',
         }],
         ['db_port', {
             'default': 5432,
-            'type': int
+            'type': int,
+            'doc': 'PostgreSQL port',
         }]
     ])],
     ['webserver', OrderedDict([
@@ -140,12 +145,12 @@ DEFAULTS = OrderedDict([
             'type': int
         }],
         ['data_upload_max_memory_size', {
-            'comment': 'https://docs.djangoproject.com/en/4.1/ref/settings/#data-upload-max-memory-size',
+            'comment': 'https://docs.djangoproject.com/en/3.2/ref/settings/#data-upload-max-memory-size',
             'default': 2621440,
             'type': int
         }],
         ['data_upload_max_number_fields', {
-            'comment': 'https://docs.djangoproject.com/en/4.1/ref/settings/#data-upload-max-number-fields',
+            'comment': 'https://docs.djangoproject.com/en/3.2/ref/settings/#data-upload-max-number-fields',
             'default': 1000,
             'type': int
         }],
@@ -210,16 +215,16 @@ DEFAULTS = OrderedDict([
             'default': '1920x1080'
         }],
         ['browser_options', {
-            'comment': "Options passed to Chromium's command line\nYou may need to add --no-sandbox to run the crawler in a virtualized container.",
+            'comment': "Options passed to Chromium's command line\nYou may need to add ``--no-sandbox`` to run the crawler in a virtualized container.",
             'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
         }],
         ['js_stable_time', {
-            'comment': 'When loading a page in a browser, wait <js_stable_time> seconds before checking the DOM stays unchanged',
+            'comment': 'When loading a page in a browser, wait ``js_stable_time`` seconds before checking the DOM stays unchanged',
             'default': 0.1,
             'type': float
         }],
         ['js_stable_retry', {
-            'comment': 'Check at most <js_stable_retry> times for the page to stay unchanged before processing',
+            'comment': 'Check at most ``js_stable_retry`` times for the page to stay unchanged before processing',
             'default': 100,
             'type': int
         }],
@@ -228,12 +233,12 @@ DEFAULTS = OrderedDict([
             'default': '/var/lib/sosse/downloads'
         }],
         ['dl_check_time', {
-            'comment': 'Download detection will every <dl_check_time> seconds for a started download',
+            'comment': 'Download detection will every ``dl_check_time`` seconds for a started download',
             'default': 0.1,
             'type': float
         }],
         ['dl_check_retry', {
-            'comment': 'Download detection will retry <dl_check_retry> times for a started download',
+            'comment': 'Download detection will retry ``dl_check_retry`` times for a started download',
             'default': 2,
             'type': int
         }],
@@ -248,17 +253,17 @@ DEFAULTS = OrderedDict([
             'type': int
         }],
         ['browser_idle_exit_time', {
-            'comment': 'Close the browser when the crawler is idle for <browser_idle_exit_time> seconds',
+            'comment': 'Close the browser when the crawler is idle for ``browser_idle_exit_time`` seconds',
             'default': 5,
             'type': int
         }],
         ['browser_crash_sleep', {
-            'comment': 'Sleep <browser_crash_sleep> seconsds before retrying after the browser crashed',
+            'comment': 'Sleep ``browser_crash_sleep`` seconsds before retrying after the browser crashed',
             'default': 1.0,
             'type': float
         }],
         ['browser_crash_retry', {
-            'comment': 'Retry <browser_crash_retry> time to index the page on browser crashes',
+            'comment': 'Retry ``browser_crash_retry`` time to index the page on browser crashes',
             'default': 1,
             'type': int
         }],

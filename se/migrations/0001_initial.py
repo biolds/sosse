@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
                 ('take_screenshots', models.BooleanField(default=True)),
                 ('screenshot_format', models.CharField(choices=[('png', 'png'), ('jpg', 'jpg')], default='jpg', max_length=3)),
                 ('script', models.TextField(blank=True, default='', help_text='Javascript code to execute after the page is loaded')),
-                ('store_extern_links', models.BooleanField(default=False)),
+                ('store_extern_links', models.BooleanField(default=False, help_text='Store links to non-indexed pages')),
                 ('recrawl_mode', models.CharField(choices=[('none', 'Once'), ('constant', 'Constant time'), ('adaptive', 'Adaptive')], default='adaptive', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged', max_length=8, verbose_name='Crawl frequency')),
                 ('recrawl_dt_min', models.DurationField(blank=True, default=datetime.timedelta(days=1), help_text='Min. time before recrawling a page', null=True)),
                 ('recrawl_dt_max', models.DurationField(blank=True, default=datetime.timedelta(days=365), help_text='Max. time before recrawling a page', null=True)),
@@ -89,6 +89,9 @@ class Migration(migrations.Migration):
                 ('url', models.TextField(unique=True)),
                 ('comment', models.TextField(blank=True, null=True)),
             ],
+            options={
+                'verbose_name': 'Excluded URL',
+            },
         ),
         migrations.CreateModel(
             name='FavIcon',

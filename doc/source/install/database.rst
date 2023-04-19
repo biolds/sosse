@@ -1,0 +1,29 @@
+Database connection parameters can be changed in the ``/etc/sosse/sosse.conf`` file, you can find more information about each variable in the :doc:`../config_file`).
+
+Database creation
+"""""""""""""""""
+
+The PostgreSQL database can be created with the commands:
+
+.. code-block:: shell
+
+    su - postgres -c "psql --command=\"CREATE USER sosse WITH PASSWORD 'CHANGE ME';\""
+    su - postgres -c "psql --command=\"CREATE DATABASE sosse OWNER sosse;\""
+
+Replace ``sosse`` by an appropriate username and password, and set them in the ``/etc/sosse/sosse.conf`` configuration file.
+
+Database schema
+"""""""""""""""
+
+The initial database data can be injected with the following commands:
+
+.. code-block:: shell
+
+   sosse-admin migrate
+   sosse-admin update_se
+
+A default ``admin`` user with password ``admin`` can be created with:
+
+.. code-block:: shell
+
+   sosse-admin default_admin

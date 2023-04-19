@@ -771,6 +771,10 @@ class WorkerStats(models.Model):
             for i, arg in enumerate(args):
                 if i == len(args) - 1:
                     continue
+                # Debian install
+                if arg == b'sosse.sosse_admin' and args[i + 1] == b'crawl':
+                    break
+                # Pip install
                 if arg.endswith(b'sosse-admin') and args[i + 1] == b'crawl':
                     break
             else:
@@ -1344,7 +1348,7 @@ class CrawlPolicy(models.Model):
     take_screenshots = models.BooleanField(default=True)
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
     script = models.TextField(default='', help_text='Javascript code to execute after the page is loaded', blank=True)
-    store_extern_links = models.BooleanField(default=False)
+    store_extern_links = models.BooleanField(default=False, help_text='Store links to non-indexed pages')
 
     recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')
     recrawl_dt_min = models.DurationField(blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(days=1))
@@ -1477,3 +1481,6 @@ class SearchHistory(models.Model):
 class ExcludedUrl(models.Model):
     url = models.TextField(unique=True)
     comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Excluded URL'

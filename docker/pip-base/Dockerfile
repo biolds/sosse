@@ -1,4 +1,8 @@
 FROM debian:bullseye
+ARG APT_PROXY=
+RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
+RUN cat /etc/apt/apt.conf.d/proxy.conf
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y git python3-pip python3-dev python3-virtualenv python3-venv build-essential postgresql libpq-dev libmagic1 nginx chromium chromium-driver uwsgi uwsgi-plugin-python3
+RUN apt-get install -y sudo python3-pip python3-dev python3-venv build-essential postgresql libpq-dev libmagic1 nginx chromium chromium-driver fonts-noto
+RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf

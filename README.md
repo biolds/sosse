@@ -1,4 +1,13 @@
-echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
+SOSSE (Selenium Open Source Search Engine) is a search engine and crawler written in Python, distributed under the [GNU-AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).
+
+It's main few features are:
+- Browser based crawling: the crawler can use [Google Chromium](https://www.chromium.org/Home) and [Selenium](https://www.selenium.dev/)
+ndex pages that use Javascript. [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used for faster crawling
+- Low resources requirements: SOSSE is entirely written in Python and uses [PostreSGL](https://www.postgresql.org/) for data storage
+- Offline cache: SOSSE can take screenshots of crawled pages and make them browsable offline
+- Authentication: the crawlers can submit authentication forms with provided credentials
+- Bang searches: shortcuts search queries can be used to redirect to external search engines
+- Search history: users can authenticate to have their search query history saved
 
 apt update
 apt install python3-django/bullseye-backports python3-requests python3-bs4 python3-html5lib python3-psycopg2 python3-django-uwsgi python3-langdetect python3-pygal python3-magic python3-defusedxml python3-selenium libjs-jquery postgresql nginx uwsgi chromium chromium-driver

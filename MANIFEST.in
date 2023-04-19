@@ -1,0 +1,4 @@
+include se/static/se/*
+include se/templates/admin/*
+include se/templates/se/*
+include sosse/search_engines.json

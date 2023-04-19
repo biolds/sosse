@@ -1,0 +1,120 @@
+Pip install
+===========
+
+Dependencies
+------------
+
+Before installing SOSSE, you'll need to manually install the following softwares:
+
+- a web server supporting `WSGI <https://wsgi.readthedocs.io/en/latest/learn.html>`_ (the steps below explains how to setup `Nginx <https://nginx.org/>`_)
+- a WSGI server (the steps below explains how to setup `uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_)
+- `PostgreSQL <https://www.postgresql.org/>`_
+- `Google Chromium <https://www.chromium.org/Home>`_
+- `ChromeDriver <https://chromedriver.chromium.org/>`_
+
+Package install
+---------------
+
+The installation can be done with the command:
+
+.. code-block:: shell
+
+    pip install sosse
+
+Default Configuration
+---------------------
+
+The default configuration and directories can be created with the commands:
+
+.. code-block:: shell
+
+   mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots
+   touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
+   chown -R www-data:www-data /run/sosse /var/lib/sosse /var/log/sosse
+   mkdir /etc/sosse
+   sosse-admin default_conf > /etc/sosse/sosse.conf
+
+Static files
+------------
+
+Static files will be copied to their target location with the following command.
+
+.. code-block:: shell
+
+   sosse-admin collectstatic --noinput --clear
+
+Database setup
+--------------
+
+.. include:: database.rst
+
+WSGI server
+-----------
+
+You can install a WSGI server of your choice. If you wish to install `uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_, you can do:
+
+.. code-block:: shell
+
+   pip install uwsgi
+
+And write the following config files:
+
+.. code-block:: shell
+
+   nano /etc/sosse/uwsgi.ini
+
+.. literalinclude:: ../../../debian/uwsgi.ini
+
+.. code-block:: shell
+
+   nano /etc/sosse/uwsgi.params
+
+.. literalinclude:: ../../../debian/uwsgi.params
+
+After that, the server can be run in the background with:
+
+.. code-block:: shell
+
+   mkdir /var/log/uwsgi
+   chown www-data:www-data /var/log/uwsgi
+   uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/uwsgi/sosse.log &
+
+File permissions
+----------------
+
+It's advised to restrict the permissions of the configuration files:
+
+.. code-block:: shell
+
+   chown -R root:www-data /etc/sosse
+   chmod 750 /etc/sosse/
+   chmod 640 /etc/sosse/*
+
+Web server
+----------
+
+A web server like `Nginx <https://nginx.org/>`_ is required to relay requests to the WSGI server.
+It's configuration should be done as follows:
+
+.. code-block:: shell
+
+   nano /etc/nginx/sites-available/sosse.conf
+
+.. literalinclude:: ../../../debian/sosse.conf
+
+Then it should be enabled, and `Nginx <https://nginx.org/>`_ started:
+
+.. code-block:: shell
+
+   rm -f /etc/nginx/sites-enabled/default
+   ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
+   nginx -g 'daemon on; master_process on;'
+
+Crawlers
+--------
+
+Crawlers can now be started in the background with the command:
+
+.. code-block:: shell
+
+   sudo -u www-data sosse-admin crawl &

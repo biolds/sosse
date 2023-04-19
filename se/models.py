@@ -1366,7 +1366,7 @@ class CrawlPolicy(models.Model):
     @staticmethod
     def create_default():
         # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_NEVER})
+        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_ALL})
         return policy
 
     @staticmethod

@@ -2,6 +2,10 @@ stages:
   - test
   - build
 
+before_script:
+  - echo 'sudo --preserve-env=PYTHONPATH -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
+  - chmod 755 /tmp/sudo_sosse
+
 debian-unittest:
   image: biolds/sosse:deb-test
   stage: test
@@ -18,38 +22,42 @@ debian-unittest:
     - /etc/init.d/postgresql start
     - mkdir -p /var/lib/sosse/screenshots/ /var/lib/sosse/downloads/0 && chown -R www-data:www-data /var/lib/sosse/
     - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin test -v3 --failfast
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin load_se tests/opensearch.xml
+    - export PYTHONPATH="$CI_PROJECT_DIR"
+    - /tmp/sudo_sosse default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
+    - /tmp/sudo_sosse test -v3 --failfast
+    - /tmp/sudo_sosse load_se tests/opensearch.xml
     - mkdir /usr/share/sosse/
     - cp se.json /usr/share/sosse/
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin update_se
-    - sudo -u www-data ./sosse-admin shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()'
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin default_admin
-    - sudo -u www-data python3-coverage run -a --source se,sosse ./sosse-admin generate_secret
-    - python3 ./sosse-admin makemigrations
+    - /tmp/sudo_sosse update_se
+    - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()'
+    - /tmp/sudo_sosse default_admin
+    - /tmp/sudo_sosse generate_secret
+    - python3 ./sosse/sosse_admin.py makemigrations
     - python3-coverage report
     - python3-coverage html
     - python3-coverage xml
 
-pip:
+setuptools:
   image: biolds/sosse:pip-base
-  stage: test
+  artifacts:
+    paths:
+      - dist/*
+  stage: build
   script:
-    - pip install -r requirements.txt
-    - python3 setup.py install
-    - mkdir /var/log/sosse/
-    - sosse-admin check
-    - sosse-admin default_conf > /dev/null
+    - echo "SOSSE_VERSION_TAG = '$CI_COMMIT_TAG'" >> sosse/settings.py
+    - echo "SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'" >> sosse/settings.py
+    - make _setuptools
+    - make _setuptools_test
 
 migrations:
   image: biolds/sosse:deb-test
   stage: test
   script:
     - /etc/init.d/postgresql start
-    - sudo -u www-data python3 ./sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
+    - export PYTHONPATH="$CI_PROJECT_DIR"
+    - /tmp/sudo_sosse default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
     - MIGRATION_COUNT="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
-    - python3 ./sosse-admin makemigrations
+    - python3 ./sosse/sosse_admin.py makemigrations
     - MIGRATION_COUNT2="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2"
 

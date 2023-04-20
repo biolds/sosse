@@ -2,13 +2,12 @@ FROM biolds/sosse:pip-base
 RUN mkdir /root/sosse
 WORKDIR /root/sosse
 ADD requirements.txt .
-ADD setup.py .
-ADD sosse-admin .
+ADD pyproject.toml .
+ADD MANIFEST.in .
 ADD se.json .
 ADD se/ se/
 ADD sosse/ sosse/
-RUN pip install -r requirements.txt && pip cache purge
-RUN python3 setup.py install
+RUN pip install ./ && pip cache purge
 RUN mkdir -p /etc/sosse /var/log/sosse /var/log/uwsgi
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN sed -e 's/^#db_pass.*/db_pass=sosse/' -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox/' -i /etc/sosse/sosse.conf

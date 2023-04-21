@@ -47,6 +47,8 @@ case "$1" in
     touch /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/crawler.log /var/log/sosse/uwsgi.log /var/log/sosse/webserver.log
     chown -R www-data:www-data /var/log/sosse/
     sosse-admin collectstatic --noinput --clear
+    sosse-admin migrate 2>&1 > /dev/null ||:
+    sosse-admin update_se 2>&1 > /dev/null ||:
   ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)

@@ -14,13 +14,15 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import os
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from ...models import SearchEngine
 
 
-SE_FILE = '/usr/share/sosse/se.json'
+SE_FILE = 'sosse/search_engines.json'
 
 
 class Command(BaseCommand):
@@ -28,7 +30,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         count = 0
-        for se in json.load(open(SE_FILE)):
+
+        se_file = os.path.join(settings.BASE_DIR, SE_FILE)
+        for se in json.load(open(se_file)):
             assert se['model'] == 'se.searchengine'
             se = se['fields']
             short_name = se.pop('short_name')

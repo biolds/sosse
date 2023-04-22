@@ -26,8 +26,6 @@ debian-unittest:
     - /tmp/sudo_sosse default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
     - /tmp/sudo_sosse test -v3 --failfast
     - /tmp/sudo_sosse load_se tests/opensearch.xml
-    - mkdir /usr/share/sosse/
-    - cp se.json /usr/share/sosse/
     - /tmp/sudo_sosse update_se
     - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()'
     - /tmp/sudo_sosse default_admin

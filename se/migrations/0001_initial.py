@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
             name='SearchEngine',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(blank=True, default='', max_length=32)),
+                ('short_name', models.CharField(unique=True, blank=True, default='', max_length=32)),
                 ('long_name', models.CharField(blank=True, default='', max_length=48)),
                 ('description', models.CharField(blank=True, default='', max_length=1024)),
                 ('html_template', models.CharField(max_length=2048, validators=[se.models.validate_search_url])),

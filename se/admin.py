@@ -455,6 +455,13 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
         params = urlencode({'q': obj.url_regex})
         return format_html('<a href="{}">{}</a>', reverse('admin:se_document_changelist') + '?' + params, count)
 
+    def get_search_results(self, request, queryset, search_term):
+        if search_term.startswith('http://') or search_term.startswith('https://'):
+            policy = CrawlPolicy.get_from_url(search_term, queryset)
+            policies = CrawlPolicy.objects.filter(id=policy.id)
+            return policies, False
+        return super().get_search_results(request, queryset, search_term)
+
 
 @admin.register(DomainSetting)
 class DomainSettingAdmin(admin.ModelAdmin):

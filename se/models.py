@@ -1372,10 +1372,16 @@ class CrawlPolicy(models.Model):
         return policy
 
     @staticmethod
-    def get_from_url(url):
-        return CrawlPolicy.objects.extra(where=['%s ~ url_regex'], params=[url]).annotate(
+    def get_from_url(url, queryset=None):
+        if queryset is None:
+            queryset = CrawlPolicy.objects.all()
+        policy = queryset.extra(where=['%s ~ url_regex'], params=[url]).annotate(
             url_regex_len=models.functions.Length('url_regex')
         ).order_by('-url_regex_len').first()
+
+        if policy is None:
+            return CrawlPolicy.create_default()
+        return policy
 
     def url_get(self, domain_setting, url):
         if self.default_browse_mode == DomainSetting.BROWSE_DETECT:

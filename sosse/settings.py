@@ -75,6 +75,8 @@ TEMPLATES = [
     },
 ]
 
+TEST_RUNNER = 'sosse.test_runner.SuiteRunner'
+
 WSGI_APPLICATION = 'sosse.wsgi.application'
 
 LOGIN_URL = '/login/'

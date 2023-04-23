@@ -614,6 +614,8 @@ class Document(models.Model):
                 doc._schedule_next(True, crawl_policy)
                 doc.save()
                 crawl_logger.error(format_exc())
+                if getattr(settings, 'TEST_MODE', False):
+                    raise
                 break
 
             worker_stats.refresh_from_db()

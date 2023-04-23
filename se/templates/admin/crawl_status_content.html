@@ -65,7 +65,7 @@
       </thead>
       <tbody>
         {% for doc in queue %}
-          <tr {% if not doc.pending %}class="{% if doc.worker_no is not None %}running{% elif not doc.crawl_last or doc.crawl_next < now %}pending{% endif %}"{% endif %}>
+          <tr {% if doc.pending %}class="{% if doc.worker_no is not None %}running{% elif doc.crawl_last is None or doc.crawl_next < now %}pending{% endif %}"{% endif %}>
             <td>
               <a href="{% url 'admin:se_document_change' doc.id %}">
                 {{ doc.url }}
@@ -75,7 +75,7 @@
                <td>In progress</td>
             {% elif doc.crawl_last is None or doc.crawl_next < now %}
                <td>Pending</td>
-            {% elif doc.crawl_next and not doc.pending %}
+            {% elif doc.crawl_next and doc.pending %}
               <td title="{{ doc.crawl_next }}">{{ doc.crawl_next_human }}</td>
             {% else %}
               <td></td>

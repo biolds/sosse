@@ -52,10 +52,12 @@ class CrawlerTest(TestCase):
     def setUp(self):
         self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
                                                       condition=CrawlPolicy.CRAWL_NEVER,
-                                                      default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+                                                      default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+                                                      take_screenshots=False)
         self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
                                                        condition=CrawlPolicy.CRAWL_ALL,
-                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+                                                       take_screenshots=False)
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
         self.fake_next2 = datetime(2000, 1, 1, 3, tzinfo=timezone.utc)
@@ -133,7 +135,8 @@ class CrawlerTest(TestCase):
 
         CrawlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
                                    condition=CrawlPolicy.CRAWL_ON_DEPTH,
-                                   default_browse_mode=DomainSetting.BROWSE_REQUESTS)
+                                   default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+                                   take_screenshots=False)
         self._crawl()
 
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS + [

@@ -41,7 +41,8 @@ class FunctionalTest:
         CrawlPolicy.objects.create(url_regex='.*',
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE)
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL, None, None)
         self._crawl()
@@ -97,7 +98,8 @@ class FunctionalTest:
                                    mimetype_regex='.*',
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE)
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   take_screenshots=False)
         Document.queue(TEST_SERVER_URL + 'cookies/set?test_key=test_value', None, None)
         self._crawl()
 
@@ -131,11 +133,13 @@ class FunctionalTest:
         CrawlPolicy.objects.create(url_regex='.*',
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE)
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   take_screenshots=False)
         policy = CrawlPolicy.objects.create(url_regex='^%s.*' % TEST_SERVER_URL,
                                             condition=CrawlPolicy.CRAWL_NEVER,
                                             recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                             default_browse_mode=self.BROWSE_MODE,
+                                            take_screenshots=False,
                                             auth_login_url_re='%sadmin/login/.*' % TEST_SERVER_URL,
                                             auth_form_selector='#login-form')
         AuthField.objects.create(key='username', value=TEST_SERVER_USER, crawl_policy=policy)

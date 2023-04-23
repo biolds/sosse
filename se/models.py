@@ -1343,8 +1343,8 @@ class CrawlPolicy(models.Model):
     crawl_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
     keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
 
-    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_DETECT, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
-    take_screenshots = models.BooleanField(default=False)
+    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_SELENIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
+    take_screenshots = models.BooleanField(default=True)
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
     script = models.TextField(default='', help_text='Javascript code to execute after the page is loaded', blank=True)
     store_extern_links = models.BooleanField(default=False)
@@ -1366,7 +1366,7 @@ class CrawlPolicy(models.Model):
     @staticmethod
     def create_default():
         # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='.*', defaults={'condition': CrawlPolicy.CRAWL_ALL})
+        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='.*')
         return policy
 
     @staticmethod

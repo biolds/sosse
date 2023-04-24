@@ -1017,13 +1017,11 @@ class DomainSetting(models.Model):
     ROBOTS_UNKNOWN = 'unknown'
     ROBOTS_EMPTY = 'empty'
     ROBOTS_LOADED = 'loaded'
-    ROBOTS_IGNORE = 'ignore'
 
     ROBOTS_STATUS = [
         (ROBOTS_UNKNOWN, 'Unknown'),
         (ROBOTS_EMPTY, 'Empty'),
-        (ROBOTS_LOADED, 'Loaded'),
-        (ROBOTS_IGNORE, 'Ignore')
+        (ROBOTS_LOADED, 'Loaded')
     ]
 
     ROBOTS_TXT_USER_AGENT = 'user-agent'
@@ -1138,9 +1136,6 @@ class DomainSetting(models.Model):
 
     def robots_authorized(self, url):
         if self.ignore_robots:
-            return True
-
-        if self.robots_status == DomainSetting.ROBOTS_IGNORE:
             return True
 
         if self.robots_status == DomainSetting.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:

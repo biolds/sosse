@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('browse_mode', models.CharField(choices=[('detect', 'Detect'), ('selenium', 'Chromium'), ('requests', 'Python Requests')], default='detect', max_length=10)),
                 ('domain', models.TextField(unique=True)),
-                ('robots_status', models.CharField(choices=[('unknown', 'Unknown'), ('empty', 'Empty'), ('loaded', 'Loaded'), ('ignore', 'Ignore')], default='unknown', max_length=10, verbose_name='robots.txt status')),
+                ('robots_status', models.CharField(choices=[('unknown', 'Unknown'), ('empty', 'Empty'), ('loaded', 'Loaded')], default='unknown', max_length=10, verbose_name='robots.txt status')),
                 ('robots_ua_hash', models.CharField(blank=True, default='', max_length=32)),
                 ('robots_allow', models.TextField(blank=True, default='', verbose_name='robots.txt allow rules')),
                 ('robots_disallow', models.TextField(blank=True, default='', verbose_name='robots.txt disallow rules')),

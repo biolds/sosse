@@ -222,7 +222,6 @@ def history(request):
     return render(request, 'se/history.html', context)
 
 
-@login_required
 def opensearch(request):
     context = {
         'url': request.build_absolute_uri('/').rstrip('/')

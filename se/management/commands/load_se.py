@@ -20,10 +20,19 @@ from ...models import SearchEngine
 
 
 class Command(BaseCommand):
-    help = 'Load a search engine definition from an OpenSearch xml file'
+    help = 'Loads a search engine definition from an OpenSearch Description formatted XML file.'
+    doc = '''Loads a :doc:`user/shortcuts` from an `OpenSearch Description <https://developer.mozilla.org/en-US/docs/Web/OpenSearch>`_ formatted XML file.
+
+    Most search engines provide such a file, defined in the HTML of their web page.
+    It can be found inside a ``<link>`` element below the ``<head>`` tag, for example `Brave Search <https://search.brave.com/>`_ defines it as:
+
+    .. code-block:: html
+
+       <link rel="search" type="application/opensearchdescription+xml" title="Brave Search" href="https://cdn.search.brave.com/opensearch.xml">
+    '''
 
     def add_arguments(self, parser):
-        parser.add_argument('url', nargs=1, type=str)
+        parser.add_argument('url', nargs=1, type=str, help='OpenSearch Description formatted XML file.')
 
     def handle(self, *args, **options):
         SearchEngine.parse_xml_file(options['url'][0])

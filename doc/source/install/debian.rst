@@ -59,4 +59,5 @@ After installing the package, the Nginx site needs to be enabled with:
 Next steps
 ----------
 
-You can then follow the :doc:`../administration` pages, and continue with the configuration.
+Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and the password ``admin``.
+For more information about the setup, you can follow the :doc:`../administration` pages to get more information about the configuration.

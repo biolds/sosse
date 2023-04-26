@@ -1,4 +1,14 @@
 | *Keywords* |
+| Login
+|  | Open Browser | http://127.0.0.1/ | browser=Firefox |  options=add_argument("--headless")
+#|  | Open Browser | http://127.0.0.1/ | browser=Chrome | options=add_argument("--no-sandbox");add_argument("--headless");add_argument('--enable-precise-memory-info');add_argument('--disable-default-apps')
+|  | Set Window Size | 1024 | 768
+|  | Set Screenshot Directory | screenshots/
+|  | Input Text | id=id_username | admin
+|  | Input Text | id=id_password | admin
+|  | Click Element | xpath=//form[@id='login-form']//input[@type='submit']
+
+
 | Hilight | [Arguments] | @{kwargs}
 |  | Wait Until element Is Visible | @{kwargs}
 |  | ${elem}= | Get WebElement | @{kwargs}

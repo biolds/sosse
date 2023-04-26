@@ -1,22 +1,13 @@
 User documentation
 ==================
 
-.. image:: ../../tests/robotframework/screenshots/search.png
-   :class: sosse-screenshot
-   :scale: 50%
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
-Making searches
----------------
-
-Keywords, operators...
-
-Bang searches
--------------
-
-Preferences
------------
-
-History
--------
-
-
+   user/search.rst
+   user/shortcuts.rst
+   user/preferences.rst
+   user/statistics.rst
+   user/history.rst
+   user/cached.rst

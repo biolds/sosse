@@ -1,18 +1,12 @@
 | *Settings* |
 | Library | SeleniumLibrary
+| Library | Process
 | Resource | common.robot
 
 | *Test Cases* |
 | Login
-#|  | Open Browser | http://127.0.0.1/ | browser=Chrome | options=add_argument("--no-sandbox");add_argument("--headless");add_argument('--enable-precise-memory-info');add_argument('--disable-default-apps')
-|  | Open Browser | http://127.0.0.1/ | browser=Firefox |  options=add_argument("--headless")
-|  | Set Window Size | 1024 | 768
-|  | Set Screenshot Directory | screenshots/
+|  | Login
 |  | Capture Element Screenshot | id=user_menu_button | user_menu_button.png
-|  | Input Text | id=id_username | admin
-|  | Input Text | id=id_password | admin
-|  | Click Element | xpath=//form[@id='login-form']//input[@type='submit']
-|  | Capture Page Screenshot | search.png
 |  | Capture Element Screenshot | id=conf_menu_button | conf_menu_button.png
 |  | Click Element | id=conf_menu_button
 |  | Click Link | Administration
@@ -93,3 +87,41 @@
 |  | Should Be Equal As Numbers | ${dom_count} | 1
 |  | Click Link | 127.0.0.1
 |  | Capture Page Screenshot | domain_setting.png
+
+| Cookies
+|  | ${cmd}= | Run Process | ../../sosse-admin | loaddata | tests/cookies.json | shell=True
+|  | Log | ${cmd.stdout}
+|  | Log | ${cmd.stderr}
+|  | Go To | http://127.0.0.1/admin/se/cookie/
+|  | Wait Until Element Is Visible | id=result_list
+|  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
+|  | Should Be Equal As Numbers | ${dom_count} | 3
+|  | Capture Page Screenshot | cookies_list.png
+
+| Excluded URLs
+|  | Go To | http://127.0.0.1/admin/se/excludedurl/add/
+|  | Wait Until Element Is Visible | id=footer
+|  | Capture Page Screenshot | excluded_url.png
+
+| Search Engine
+|  | Go To | http://127.0.0.1/admin/se/searchengine/
+|  | Wait Until Element Is Visible | id=result_list
+|  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
+|  | Should Not Be Equal As Numbers | ${dom_count} | 0
+|  | Wait Until Element Is Visible | id=footer
+|  | Capture Page Screenshot | search_engines_list.png
+|  | Click Link | Brave
+|  | Wait Until Page Contains | Long name
+|  | Capture Page Screenshot | search_engine.png
+
+| Authentication
+|  | Go To | http://127.0.0.1/admin/auth/user/
+|  | Wait Until Element Is Visible | id=result_list
+|  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
+|  | Should Be Equal As Numbers | ${dom_count} | 1
+|  | Click Link | admin
+|  | Wait Until Page Contains | Important dates
+|  | Capture Page Screenshot | user_management.png
+
+| Close the browser
+|  | Close All Browsers

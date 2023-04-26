@@ -13,8 +13,9 @@ SOSSE's documentation!
    install.rst
    administration.rst
    config_file.rst
+   cli.rst
    user_doc.rst
-
+   screenshots.rst
 
 Indices and tables
 ==================

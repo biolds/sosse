@@ -29,7 +29,7 @@ DEFAULTS = OrderedDict([
     ['common', OrderedDict([
         ['secret_key', {
             'var': 'SECRET_KEY',
-            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun ``sosse-admin generate_secret`` to create a new one\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key',
+            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun ``sosse-admin generate_secret`` to create a new one.\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key',
             'default': 'CHANGE ME'
         }],
         ['debug', {
@@ -39,52 +39,52 @@ DEFAULTS = OrderedDict([
             'default': False
         }],
         ['db_name', {
-            'comment': 'PostgreSQL connection parameters',
-            'doc': 'PostgreSQL database name',
+            'comment': 'PostgreSQL connection parameters.',
+            'doc': 'PostgreSQL database name.',
             'default': 'sosse'
         }],
         ['db_user', {
             'default': 'sosse',
-            'doc': 'PostgreSQL username',
+            'doc': 'PostgreSQL username.',
         }],
         ['db_pass', {
             'default': 'CHANGE ME',
-            'doc': 'PostgreSQL password',
+            'doc': 'PostgreSQL password.',
         }],
         ['db_host', {
             'default': '127.0.0.1',
-            'doc': 'PostgreSQL hostname or IP address',
+            'doc': 'PostgreSQL hostname or IP address.',
         }],
         ['db_port', {
             'default': 5432,
             'type': int,
-            'doc': 'PostgreSQL port',
+            'doc': 'PostgreSQL port.',
         }]
     ])],
     ['webserver', OrderedDict([
         ['anonymous_search', {
-            'comment': 'Anonymous users (users not logged in) can do searches',
+            'comment': 'Anonymous users (users not logged in) can do searches.',
             'default': False,
             'type': bool
         }],
         ['rss_access_token', {
-            'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating\nThe token can be passed to HTTP requests as an url parameter, for example "?token=<RSS access token>"\nSetting an empty string disables token access',
+            'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating.\nThe token can be passed to HTTP requests as an url parameter, for example ``?token=<RSS access token>``.\nSetting an empty string disables token access.',
             'default': '',
         }],
         ['search_shortcut_char', {
-            'comment': 'Special character used as search shortcut',
+            'comment': 'Special character used as search shortcut.',
             'default': '!',
         }],
         ['default_search_redirect', {
-            'comment': 'Default search engine to use\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise (case sensitive)',
+            'comment': 'Default search engine to use.\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise (case sensitive).',
             'default': '',
         }],
         ['sosse_shortcut', {
-            'comment': 'In case the default_shortcut is not empty this defines which shortcut searches SOSSE',
+            'comment': 'In case the default_shortcut is not empty this defines which shortcut searches SOSSE.',
             'default': '',
         }],
         ['allowed_host', {
-            'comment': 'FDQN of the webserver, "*" for any, see https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts',
+            'comment': 'FDQN of the webserver, "*" for any.\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts',
             'default': '*'
         }],
         ['static_url', {
@@ -125,7 +125,7 @@ DEFAULTS = OrderedDict([
         }],
         ['use_tz', {
             'var': 'USE_TZ',
-            'comment': 'https://docs.djangoproject.com/en/3.2/ref/settings/#use-tz',
+            'comment': 'See https://docs.djangoproject.com/en/3.2/ref/settings/#use-tz',
             'default': True,
             'type': bool
         }],
@@ -135,135 +135,135 @@ DEFAULTS = OrderedDict([
             'default': 'UTC'
         }],
         ['default_page_size', {
-            'comment': 'Default result count returned',
+            'comment': 'Default result count returned.',
             'default': 20,
             'type': int
         }],
         ['max_page_size', {
-            'comment': 'Maximum user-defined result count',
+            'comment': 'Maximum user-defined result count.',
             'default': 200,
             'type': int
         }],
         ['data_upload_max_memory_size', {
-            'comment': 'https://docs.djangoproject.com/en/3.2/ref/settings/#data-upload-max-memory-size',
+            'comment': 'See https://docs.djangoproject.com/en/3.2/ref/settings/#data-upload-max-memory-size',
             'default': 2621440,
             'type': int
         }],
         ['data_upload_max_number_fields', {
-            'comment': 'https://docs.djangoproject.com/en/3.2/ref/settings/#data-upload-max-number-fields',
+            'comment': 'See https://docs.djangoproject.com/en/3.2/ref/settings/#data-upload-max-number-fields',
             'default': 1000,
             'type': int
         }],
         ['atom_feed_size', {
-            'comment': 'Size of Atom feeds',
+            'comment': 'Size of Atom feeds.',
             'default': 200,
             'type': int
         }],
         ['exclude_not_indexed', {
-            'comment': 'Exclude page queued for indexing, but not yet indexed from search results',
+            'comment': 'Exclude page queued for indexing, but not yet indexed from search results.',
             'default': True,
             'type': bool
         }],
         ['exclude_redirect', {
-            'comment': 'Exclude page redirection from search results',
+            'comment': 'Exclude page redirection from search results.',
             'default': True,
             'type': bool
         }],
         ['admin_page_size', {
-            'comment': 'Number of items by list in the administration pages',
+            'comment': 'Number of items by list in the administration pages.',
             'default': 100,
             'type': int
         }],
         ['search_strip', {
-            'comment': 'Removes this string from search queries',
+            'comment': 'Removes this string from search queries.',
             'default': '',
         }],
         ['crawl_status_autorefresh', {
-            'comment': 'Delay between crawl status page autorefresh (in seconds)',
+            'comment': 'Delay between crawl status page autorefresh (in seconds).',
             'default': 5,
             'type': int
         }],
     ])],
     ['crawler', OrderedDict([
         ['crawler_count', {
-            'comment': 'Number of crawlers running concurrently (default to the number of CPU available)',
+            'comment': 'Number of crawlers running concurrently (default to the number of CPU available).',
             'default': ''
         }],
         ['proxy', {
-            'comment': 'Url of the HTTP proxy server to use',
+            'comment': 'Url of the HTTP proxy server to use.',
             'default': ''
         }],
         ['user_agent', {
-            'comment': 'User agent used by crawlers',
+            'comment': 'User agent used by crawlers.',
             'default': 'SOSSE'
         }],
         ['requests_timeout', {
-            'comment': 'Timeout when retrieving pages with Requests (no timeout if 0)',
+            'comment': 'Timeout when retrieving pages with Requests (no timeout if 0).',
             'default': 10,
             'type': int
         }],
         ['fail_over_lang', {
-            'comment': 'Language used to parse web pages when the original language could not be detected',
+            'comment': 'Language used to parse web pages when the original language could not be detected.',
             'default': 'english'
         }],
         ['hashing_algo', {
-            'comment': 'Hashing algorithms used to define if the content of a page has changed',
+            'comment': 'Hashing algorithms used to define if the content of a page has changed.',
             'default': 'md5'
         }],
         ['screenshots_size', {
-            'comment': 'Resolution of the browser used to take screenshots',
+            'comment': 'Resolution of the browser used to take screenshots.',
             'default': '1920x1080'
         }],
         ['browser_options', {
-            'comment': "Options passed to Chromium's command line\nYou may need to add ``--no-sandbox`` to run the crawler in a virtualized container.",
+            'comment': "Options passed to Chromium's command line.\nYou may need to add ``--no-sandbox`` to run the crawler in a virtualized container.",
             'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
         }],
         ['js_stable_time', {
-            'comment': 'When loading a page in a browser, wait ``js_stable_time`` seconds before checking the DOM stays unchanged',
+            'comment': 'When loading a page in a browser, wait ``js_stable_time`` seconds before checking the DOM stays unchanged.',
             'default': 0.1,
             'type': float
         }],
         ['js_stable_retry', {
-            'comment': 'Check at most ``js_stable_retry`` times for the page to stay unchanged before processing',
+            'comment': 'Check at most ``js_stable_retry`` times for the page to stay unchanged before processing.',
             'default': 100,
             'type': int
         }],
         ['tmp_dl_dir', {
-            'comment': 'Base directory where files are temporarily downloaded',
+            'comment': 'Base directory where files are temporarily downloaded.',
             'default': '/var/lib/sosse/downloads'
         }],
         ['dl_check_time', {
-            'comment': 'Download detection will every ``dl_check_time`` seconds for a started download',
+            'comment': 'Download detection will every ``dl_check_time`` seconds for a started download.',
             'default': 0.1,
             'type': float
         }],
         ['dl_check_retry', {
-            'comment': 'Download detection will retry ``dl_check_retry`` times for a started download',
+            'comment': 'Download detection will retry ``dl_check_retry`` times for a started download.',
             'default': 2,
             'type': int
         }],
         ['max_file_size', {
-            'comment': 'Maximum file size to index (in kb)',
+            'comment': 'Maximum file size to index (in kb).',
             'default': 500,
             'type': int
         }],
         ['max_redirects', {
-            'comment': 'Maximum numbers of redirect before aborting\n(this is accurate when using Requests only,\nsome redirects may be missed on Chromium)',
+            'comment': 'Maximum numbers of redirect before aborting.\n(this is accurate when using Requests only,\nsome redirects may be missed on Chromium)',
             'default': 5,
             'type': int
         }],
         ['browser_idle_exit_time', {
-            'comment': 'Close the browser when the crawler is idle for ``browser_idle_exit_time`` seconds',
+            'comment': 'Close the browser when the crawler is idle for ``browser_idle_exit_time`` seconds.',
             'default': 5,
             'type': int
         }],
         ['browser_crash_sleep', {
-            'comment': 'Sleep ``browser_crash_sleep`` seconsds before retrying after the browser crashed',
+            'comment': 'Sleep ``browser_crash_sleep`` seconsds before retrying after the browser crashed.',
             'default': 1.0,
             'type': float
         }],
         ['browser_crash_retry', {
-            'comment': 'Retry ``browser_crash_retry`` time to index the page on browser crashes',
+            'comment': 'Retry ``browser_crash_retry`` time to index the page on browser crashes.',
             'default': 1,
             'type': int
         }],

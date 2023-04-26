@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from argparse import ArgumentParser
+
+from django.core.management import get_commands, load_command_class
 from django.core.management.base import BaseCommand
 
 from sosse.conf import DEFAULTS as DEFAULT_CONF
@@ -26,10 +29,10 @@ SECTIONS = [
 
 
 class Command(BaseCommand):
-    help = 'Generate dynamic documentation'
+    help = 'Displays code-defined documentation on stdout.'
 
     def add_arguments(self, parser):
-        parser.add_argument('component', choices=['conf'])
+        parser.add_argument('component', choices=['conf', 'cli'], help='"conf" for the configuration file,\n"cli" for the CLI')
 
     def handle(self, *args, **options):
         if options['component'] == 'conf':
@@ -43,7 +46,7 @@ class Command(BaseCommand):
                 for name, conf in DEFAULT_CONF[section].items():
                     print('.. _conf_option_%s:' % name)
                     print()
-                    print('.. option:: %s' % name)
+                    print('.. describe:: %s' % name)
                     print()
                     default = conf.get('default')
                     if default is None or default == '':
@@ -52,9 +55,42 @@ class Command(BaseCommand):
                     print()
                     comment = conf.get('doc') or conf.get('comment', '')
                     comment = '\n'.join('   ' + line.strip() for line in comment.splitlines())
+                    comment = comment.replace('\n   See ', '\n\n   See ')
                     if comment:
                         print(comment)
-                        print('.. raw:: html')
-                        print()
+                    print('.. raw:: html')
+                    print()
                     print('   <br/>')
                     print()
+        elif options['component'] == 'cli':
+            has_content = False
+            for cmd, mod in sorted(get_commands().items(), key=lambda x: x[0]):
+                if mod != 'se':
+                    continue
+                has_content = True
+                klass = load_command_class('se', cmd)
+                parser = ArgumentParser()
+                klass.add_arguments(parser)
+
+                print('.. _cli_%s:' % cmd)
+                print()
+                print('.. describe:: %s:' % cmd)
+
+                txt = getattr(klass, 'doc', klass.help)
+                txt = [''] + [line[4:] if line.startswith(' ' * 4) else line for line in txt.splitlines()] + ['']
+                txt = '\n   '.join(txt)
+                print(txt)
+
+                print('.. code-block:: text')
+                print()
+                usage = [''] + parser.format_help().splitlines()
+                usage = '\n   '.join(usage)
+                usage = usage.replace('sosse_admin.py', 'sosse-admin %s' % cmd)
+                print(usage)
+
+                print('.. raw:: html')
+                print()
+                print('   <br/>')
+                print()
+            if not has_content:
+                raise Exception('Failed')

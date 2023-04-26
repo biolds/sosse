@@ -1,5 +1,5 @@
-Crawler setup
-=============
+Administration
+==============
 
 .. toctree::
    :maxdepth: 2
@@ -14,3 +14,6 @@ Crawler setup
    documents.rst
    domain_settings.rst
    cookies.rst
+   excluded_urls.rst
+   search_engines.rst
+   permissions.rst

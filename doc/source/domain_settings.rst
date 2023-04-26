@@ -1,7 +1,7 @@
-Domain settings
+Domain Settings
 ===============
 
-Domain level parameters can be reached from the :doc:`../admin_ui`, by clicking on ``Documents``.
+Domain level parameters can be reached from the :doc:`../admin_ui`, by clicking on ``Domain settings``.
 
 .. image:: ../../tests/robotframework/screenshots/domain_setting.png
    :class: sosse-screenshot
@@ -16,6 +16,8 @@ When the policy's :ref:`Default browse mode <default_browse_params>` is set to `
 domain define which browsing method to use. When its value is ``Detect``, the browsing mode is detected the next time the page
 is accessed, and this option is switched to either ``Chromium`` or ``Python Requests``.
 
+.. _domain_ignore_robots:
+
 Ignore robots
 """""""""""""
 
@@ -28,3 +30,10 @@ Robots.txt status
 One of:
 
 * ``Unknown``: the file has not been processed yet
+* ``Empty``: there is no ``robots.txt`` or it's empty
+* ``Loaded``: the file has been successfully loaded
+
+Robots.txt allow/disallow rules
+"""""""""""""""""""""""""""""""
+
+This contains the rules relevant to the crawlers :ref:`User Agent <conf_option_user_agent>`.

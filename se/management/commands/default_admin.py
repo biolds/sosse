@@ -20,7 +20,7 @@ from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
-    help = 'Create an admin superuser with admin password'
+    help = 'Creates a default ``admin`` superuser with ``admin`` password,\ndoes nothing if at least one user already exists in the database.'
 
     def handle(self, *args, **options):
         if User.objects.count() != 0:

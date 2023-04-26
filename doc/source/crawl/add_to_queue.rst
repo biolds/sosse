@@ -1,5 +1,5 @@
-Adding URL to the crawl queue
-=============================
+Adding URLs to the crawl queue
+==============================
 
 In the :doc:`../admin_ui`, by clicking ``Crawl a new URL`` you can queue an URL that will be crawled when a worker is available.
 

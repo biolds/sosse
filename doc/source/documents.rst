@@ -1,13 +1,13 @@
 Documents
 =========
 
-The list of all indexed documents can be reached from the :doc:`../admin_ui`, by clicking on ``Documents``.
+The list of all indexed documents can be reached from the :doc:`../admin_ui`, by clicking on ``Documents``. Regular expressions can be used in the search bar to match URLs or page titles.
 
 .. image:: ../../tests/robotframework/screenshots/documents_list.png
    :class: sosse-screenshot
    :scale: 50%
 
-The document page contains fields about the crawl status of the page.
+The document page contains fields about the crawl status of the page:
 
 Status
 """"""
@@ -28,6 +28,12 @@ Recursion remaining
 """""""""""""""""""
 
 The number of recursion level remaining, when the matching policy crawls :ref:`Depending on depth <crawl_depth_params>`.
+
+Rejected by robots.txt
+""""""""""""""""""""""
+
+This indicates if the URL was not crawled due to a ``robots.txt`` rule. If necessary the ``robots.txt`` can be ignored in
+the :ref:`Domain settings <domain_ignore_robots>`.
 
 Too many redirects
 """"""""""""""""""

@@ -26,7 +26,8 @@ SE_FILE = 'sosse/search_engines.json'
 
 
 class Command(BaseCommand):
-    help = 'Update Search engine shortcuts'
+    help = 'Updates Search engine shortcuts.'
+    doc = 'This updates :doc:`user/shortcuts` in the database based on their definition in the source code.'
 
     def handle(self, *args, **options):
         count = 0

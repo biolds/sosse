@@ -118,3 +118,9 @@ Crawlers can now be started in the background with the command:
 .. code-block:: shell
 
    sudo -u www-data sosse-admin crawl &
+
+Next steps
+----------
+
+Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and the password ``admin``.
+For more information about the setup, you can follow the :doc:`../administration` pages to get more information about the configuration.

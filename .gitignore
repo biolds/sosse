@@ -1,3 +1,4 @@
-docker/debian-test/requirements.txt
+doc/source/cli_generated.rst
 doc/source/config_file_generated.rst
 doc/code_blocks.json
+docker/debian-test/requirements.txt

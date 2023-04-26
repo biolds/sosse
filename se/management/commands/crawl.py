@@ -32,13 +32,14 @@ crawl_logger = logging.getLogger('crawler')
 
 
 class Command(BaseCommand):
-    help = 'Crawl web pages'
+    help = 'Crawl web pages.'
+    doc = '''This command starts one or multiple crawlers, depending on the :ref:`crawler count <conf_option_crawler_count>` option set in the :doc:`configuration file <config_file>`.'''
 
     def __del__(self):
         Browser.destroy()
 
     def add_arguments(self, parser):
-        parser.add_argument('urls', nargs='*', type=str)
+        parser.add_argument('urls', nargs='*', type=str, help='Optionnal list of URLs to add to the crawler queue.')
 
     @staticmethod
     def process(worker_no, options):

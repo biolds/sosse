@@ -41,6 +41,8 @@ deb:
 
 _build_doc:
 	. /opt/sosse-doc/bin/activate ; make -C doc linkcheck html SPHINXOPTS="-W"
+	jq . < doc/code_blocks.json > /tmp/code_blocks.json
+	mv /tmp/code_blocks.json doc/code_blocks.json
 
 build_doc:
 	mkdir -p doc/build/

@@ -13,7 +13,7 @@ Crawl policies define which pages are indexed and how they are indexed. The poli
 When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to handle the link.
 The policy with the longest ``URL regex`` matching is selected. On last resort, the default policy ``.*`` is selected.
 
-You can see which policy would match by typing the URL in the search bar of the ``Crawl policies pages``, or in the ``Crawl a new URL`` page (see :doc:`add_to_queue`).
+You can see which policy would match by typing an URL in the search bar of the ``Crawl policies pages``, or in the ``Crawl a new URL`` page (see :doc:`add_to_queue`).
 
 Indexing decision
 -----------------
@@ -77,7 +77,7 @@ Default browse mode
 
 Can be one of:
 
-* ``Detect``: the first time a domain is accessed, it is crawled with both Chromium and Python Requests. If the text content varies, it is assumed that the website is dynamic and Chromium will be used for subsequent crawling of ages in this domain. If the text content is the same, Python Request will be used since it is faster.
+* ``Detect``: the first time a domain is accessed, it is crawled with both Chromium and Python Requests. If the text content varies, it is assumed that the website is dynamic and Chromium will be used for subsequent crawling of pages in this domain. If the text content is the same, Python Request will be used since it is faster.
 * ``Chromium``: Chromium is used.
 * ``Python Requests``: Python Requests is used.
 
@@ -96,7 +96,7 @@ Format of the image JPG or PNG.
 Script
 """"""
 
-Javascript code to be executed in the pages context when they have finished loading. This can be used to handle authentication, validate forms, ...
+Javascript code to be executed in the context of the web pages they have finished loading. This can be used to handle authentication, validate forms, ...
 
 Updates
 -------

@@ -33,6 +33,8 @@ unit_tests:
     - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()'
     - /tmp/sudo_sosse default_admin
     - /tmp/sudo_sosse generate_secret
+    - /tmp/sudo_sosse extract_doc cli > /dev/null
+    - /tmp/sudo_sosse extract_doc conf > /dev/null
     - python3 ./sosse/sosse_admin.py makemigrations
     - python3-coverage report
     - python3-coverage html
@@ -83,6 +85,7 @@ doc_gen:
       - doc/source/*_generated.rst
   script:
     - ./sosse-admin extract_doc conf > doc/source/config_file_generated.rst
+    - ./sosse-admin extract_doc cli > doc/source/cli_generated.rst
 
 doc_code_extract:
   image: biolds/sosse:doc

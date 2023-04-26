@@ -18,7 +18,8 @@ from django.core.management.utils import get_random_secret_key
 
 
 class Command(BaseCommand):
-    help = 'Generate a secret key to set in the configuration'
+    help = 'Generates a secret key to set in the configuration.'
+    doc = 'Generates a secret key that can be used in the :ref:`Configuration file <conf_option_secret_key>`.'
 
     def handle(self, *args, **options):
         # Escape % to avoid value interpolation in the conf file

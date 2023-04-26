@@ -3,10 +3,10 @@
     "model": "se.searchengine",
     "pk": 1,
     "fields": {
-      "short_name": "DuckDuckGo HTML",
-      "long_name": "DuckDuckGo Search (HTML, non-JS)",
-      "description": "Search DuckDuckGo (HTML)",
-      "html_template": "https://html.duckduckgo.com/html/?q={searchTerms}",
+      "short_name": "DuckDuckGo",
+      "long_name": "DuckDuckGo Search",
+      "description": "Search DuckDuckGo",
+      "html_template": "https://duckduckgo.com/?q={searchTerms}",
       "shortcut": ""
     }
   },

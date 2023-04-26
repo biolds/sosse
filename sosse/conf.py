@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import hashlib
+import sys
 
 from collections import OrderedDict
 from configparser import ConfigParser
@@ -328,7 +329,14 @@ class Conf:
 
         # Read the real conf
         conf = ConfigParser()
-        conf.read(CONF_FILE)
+        try:
+            conf.read_file(open(CONF_FILE), CONF_FILE)
+        except FileNotFoundError:
+            if 'default_conf' in sys.argv:
+                print('WARNING: Configuration file %s is missing' % CONF_FILE, file=sys.stderr)
+                return settings
+            raise
+
         for section in conf.sections():
             if section not in DEFAULTS:
                 raise Exception('Invalid section "%s"' % section)

@@ -2,9 +2,8 @@ TMP ?= /tmp
 current_dir = $(shell pwd)
 
 .PHONY: _pip_pkg pip_pkg _pip_pkg_push pip_pkg_push _deb \
-	deb docker_doc docker_doc_push _build_doc build_doc docker_debian docker_debian_test \
-	docker_debian_test_push docker_debian_pkg docker_debian_pkg_push docker_pip_base docker_pip_base_push \
-	docker docker_run docker_push doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
+	deb docker_run docker_build docker_push _build_doc build_doc \
+	doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
 	pip_pkg_check _pip_pkg_check _pip_functional_tests _pip_pkg_functional_tests _deb_pkg_functional_tests \
     _common_pip_functional_tests _rf_functional_tests functional_tests
 
@@ -38,14 +37,7 @@ _deb:
 
 deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
-	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb registry.gitlab.com/biolds1/sosse/debian-pkg:latest bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
-
-docker_doc:
-	docker pull debian:bullseye
-	cd $(current_dir)/docker/doc/ && docker build --rm -t biolds/sosse:doc .
-
-docker_doc_push:
-	docker push biolds/sosse:doc
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb biolds/sosse:debian-pkg bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
 
 _build_doc:
 	. /opt/sosse-doc/bin/activate ; make -C doc linkcheck html SPHINXOPTS="-W"
@@ -54,34 +46,6 @@ build_doc:
 	mkdir -p doc/build/
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc/build:/sosse/doc/build biolds/sosse:doc bash -c 'cd /sosse && make _build_doc'
 
-docker_debian:
-	docker pull debian:bullseye
-	cd $(current_dir)/docker/debian-docker/ && docker build --rm -t biolds/sosse:debian .
-
-docker_debian_test:
-	docker pull debian:bullseye
-	cp tests/robotframework/requirements.txt docker/debian-test/
-	cd $(current_dir)/docker/debian-test/ && docker build --rm -t biolds/sosse:deb-test .
-
-docker_debian_test_push:
-	docker push biolds/sosse:deb-test
-
-docker_debian_pkg:
-	docker pull debian:bullseye
-	cd $(current_dir)/docker/debian-pkg/ && docker build --rm -t registry.gitlab.com/biolds1/sosse/debian-pkg:latest .
-
-docker_debian_pkg_push:
-	docker push registry.gitlab.com/biolds1/sosse/debian-pkg:latest
-
-docker_pip_base:
-	docker pull debian:bullseye
-	cd $(current_dir)/docker/pip-base/ && docker build --rm -t biolds/sosse:pip-base .
-
-docker_pip_base_push:
-	docker push biolds/sosse:pip-base
-
-docker:
-	docker build -t biolds/sosse:latest .
 
 docker_run:
 	docker volume inspect sosse_postgres &>/dev/null || docker volume create sosse_postgres
@@ -90,7 +54,12 @@ docker_run:
 						--mount source=sosse_var,destination=/var/lib/sosse biolds/sosse:latest
 
 docker_push:
+	$(MAKE) -C docker push
 	docker push biolds/sosse:latest
+
+docker_build:
+	$(MAKE) -C docker build
+	docker build --build-arg APT_PROXY=$(APT_PROXY) --build-arg PIP_INDEX_URL=$(PIP_INDEX_URL) --build-arg PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST) -t biolds/sosse:latest .
 
 _doc_test_debian:
 	cp doc/code_blocks.json /tmp/code_blocks.json

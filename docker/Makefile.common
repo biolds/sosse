@@ -1,0 +1,12 @@
+DOCKER_NAME=$(shell pwd | sed -e s_^.*/__)
+
+.PHONY: _build push
+
+push:
+	docker push biolds/sosse:$(DOCKER_NAME)
+
+_build:
+	docker build --build-arg APT_PROXY=$(APT_PROXY) --build-arg PIP_INDEX_URL=$(PIP_INDEX_URL) --build-arg PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST) -t biolds/sosse:$(DOCKER_NAME) .
+
+%:
+	$(MAKE) -f ../Makefile.common _$@

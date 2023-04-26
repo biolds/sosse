@@ -1,7 +1,11 @@
 FROM debian:bullseye
-
+ARG APT_PROXY=
+ARG PIP_INDEX_URL=
+ARG PIP_TRUSTED_HOST=
+RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
 RUN apt update
 RUN apt upgrade -y
 RUN apt install -y virtualenv
 RUN virtualenv /opt/sosse-doc
 RUN . /opt/sosse-doc/bin/activate && pip install sphinx
+RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf

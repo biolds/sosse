@@ -1,4 +1,6 @@
 FROM biolds/sosse:pip-base
+ARG PIP_INDEX_URL=
+ARG PIP_TRUSTED_HOST=
 RUN mkdir /root/sosse
 WORKDIR /root/sosse
 ADD requirements.txt .

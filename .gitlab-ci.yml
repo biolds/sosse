@@ -10,7 +10,7 @@ before_script:
   - test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
 
 unit_tests:
-  image: biolds/sosse:deb-test
+  image: biolds/sosse:debian-test
   stage: test
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
@@ -56,7 +56,7 @@ functional_tests:
     - test "$(cat /tmp/ret_code)" -eq 0
 
 migrations:
-  image: biolds/sosse:deb-test
+  image: biolds/sosse:debian-test
   stage: test
   script:
     - /etc/init.d/postgresql start
@@ -68,7 +68,7 @@ migrations:
     - test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2"
 
 static_checks:
-  image: biolds/sosse:deb-test
+  image: biolds/sosse:debian-test
   stage: test
   script:
     - flake8 --ignore=E501,W503,W504 --exclude=migrations
@@ -76,7 +76,7 @@ static_checks:
     - 'for f in $(find -name \*.py|grep -v /__init__\.py$) ; do grep -q "^# Copyright" "$f" || exit 1 ; done'
 
 doc_gen:
-  image: biolds/sosse:deb-test
+  image: biolds/sosse:debian-test
   stage: test
   artifacts:
     paths:
@@ -126,7 +126,8 @@ pip_pkg:
     - make _pip_pkg
 
 debian_pkg:
-  image: registry.gitlab.com/biolds1/sosse/debian-pkg:latest
+  image: biolds/sosse:debian-pkg
+  #image: registry.gitlab.com/biolds1/sosse/debian-pkg:latest
   stage: build
   needs:
     - doc

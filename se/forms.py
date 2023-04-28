@@ -28,8 +28,8 @@ SORT = (
     ('-crawl_last', 'Last crawled descending'),
     ('title', 'Title ascending'),
     ('-title', 'Title descending'),
-    ('url', 'Url ascending'),
-    ('-url', 'Url descending'),
+    ('url', 'URL ascending'),
+    ('-url', 'URL descending'),
 )
 
 

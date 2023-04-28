@@ -22,6 +22,8 @@ Results by page
 
 The number of search result displayed in one page.
 
+.. _pref_principal_link:
+
 Search result principal links point to cache
 --------------------------------------------
 

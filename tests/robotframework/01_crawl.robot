@@ -27,6 +27,8 @@
 |  | Page Should Not Contain | exited
 |  | Wait Until Page Contains | 4 documents to be recrawled | 2min
 |  | Page Should Contain | idle
+|  | Reload Page
+|  | Wait Until Page Contains | Crawl status
 |  | Scroll Element Into View | id=result_list
 |  | Capture Page Screenshot | crawl_status.png
 

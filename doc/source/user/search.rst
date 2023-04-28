@@ -5,18 +5,95 @@ Searches
    :class: sosse-screenshot
    :scale: 50%
 
-.. _user_making_searches:
-
 Making searches
 ---------------
 
-Keywords, operators...
+SOSSE uses `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ to perform keyword based searches.
+This makes the search bar behave like most search engine websites:
 
-Results description
--------------------
+- Typing multiple space-separated keywords returns pages containing all of them.
+- Separating search terms with ``OR`` returns pages containing one of them.
+- Keywords enclosed in double-quotes match consecutive words.
+- Using ``-`` in front of a search term removes matching pages from the result list.
+- Parenthesis can be used to make complex queries and prioritize operators.
 
-RSS
----
+More search options are available when clicking on ``Params``:
+
+.. image:: ../../../tests/robotframework/screenshots/extended_search.png
+   :class: sosse-screenshot
+   :scale: 50%
+
+These perform exact text match as opposed to the search bar that has natural-language processing features (word stemming, diactric removal, ...).
+Any number of extra filter can be added using the |plus_button| button. Each field in the filter is:
+
+.. |plus_button| image:: ../../../tests/robotframework/screenshots/extended_search_plus_button.png
+   :class: sosse-inline-screenshot
+
+Function of the filter
+""""""""""""""""""""""
+
+- ``Keep``: pages matching the filter are displayed in the results
+- ``Exclude``: pages matching the filter are removed from the results
+
+Field
+"""""
+
+This defines against which field the keyword is matched:
+
+- ``Document``: this matches against the ``Content``, the ``Title`` or the ``URL``
+- ``Content``: the text content of the page
+- ``Title``: the title of the page
+- ``URL``: the URL of the page
+- ``Mimetype``: the mimetype of the document
+- ``Links to url``: returns documents containing links which target URLs matching the keyword
+- ``Links to text``: returns documents containing links which text (the text of the link, not the text of the target document) matching the keyword
+- ``Linked by url``: returns documents which are the target of the links of URLs matching the keyword
+- ``Linked by text``: returns documents which are pointed by links whose text match the keyword
+
+Operator
+""""""""
+
+This defines how the keyword is matched against the field:
+
+- ``Containing``: this matches when the keyword is contained inside the field.
+- ``Equal to``: this matches when the keyword is exactly to entire field.
+- ``Matching Regexp``: matching is done using Posix regular expressions (see `PostgreSQL documention <https://www.postgresql.org/docs/current/functions-matching.html#POSIX-SYNTAX-DETAILS>`_ for details)
+
+Results
+-------
+
+.. image:: ../../../tests/robotframework/screenshots/search_result.png
+   :class: sosse-screenshot
+   :scale: 50%
+
+From top to bottom, left to right, the elements displayed are:
+
+- the favicon of the page
+- the title of the page, or its URL if it has no title
+- the URL
+- the score of the page for the provided search keywords from 0.0 to 1.0
+- the language of the page
+- the ``cached`` link to the cached version, or ``source`` link to the original page (depending on the :ref:`related option <pref_principal_link>`)
 
 Word stats
 ----------
+
+Clicking on the |stats_button| button, shows the top 100 most frequent words (after stemming) in the result webpages:
+
+.. |stats_button| image:: ../../../tests/robotframework/screenshots/stats_button.png
+   :class: sosse-inline-screenshot
+
+.. image:: ../../../tests/robotframework/screenshots/word_stats.png
+   :class: sosse-screenshot
+   :scale: 50%
+
+Atom
+----
+
+The |atom_button| button, gives access to `Atom feeds <https://en.wikipedia.org/wiki/Atom_rss>`_ for the current search terms:
+
+.. |atom_button| image:: ../../../tests/robotframework/screenshots/atom_button.png
+   :class: sosse-inline-screenshot
+
+- ``Atom results feed`` has entries with links to the original website
+- ``Atom cached feed`` has entries with links to the cached website

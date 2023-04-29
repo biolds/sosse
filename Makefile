@@ -107,7 +107,7 @@ _pip_pkg_functional_tests:
 _common_pip_functional_tests:
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'sosse-admin default_conf' /tmp/code_blocks.json
-	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.browser_options=.*/browser_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -i /tmp/code_blocks.json # add --no-sandbox to chromium's command line
+	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.browser_options=.*/browser_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.crawler_count=.*/crawler_count=1/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -i /tmp/code_blocks.json # add --no-sandbox to chromium's command line
 
 _deb_pkg_functional_tests:
 	echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
@@ -120,12 +120,15 @@ _deb_pkg_functional_tests:
 	sed -e 's#apt install -y python3-django/bullseye-backports sosse#apt install -y python3-django/bullseye-backports sudo; dpkg -i deb/*.deb ; /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
 	sed -e 's/^.browser_options=.*/browser_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox/' -i /etc/sosse/sosse.conf # add --no-sandbox to chromium's command line
-	sed -e "s#^.browser_crash_retry=.*#browser_crash_retry=3#" -e 's/^.debug=.*/debug=true/' -i /etc/sosse/sosse.conf
+	sed -e 's/^.browser_crash_retry=.*/browser_crash_retry=3/' -i /etc/sosse/sosse.conf
+	sed -e 's/^.debug=.*/debug=true/' -i /etc/sosse/sosse.conf
+	sed -e 's/^.crawler_count=.*/crawler_count=1/' -i /etc/sosse/sosse.conf
 	/etc/init.d/nginx start
 	bash -c 'uwsgi --uid www-data --gid www-data --plugin python3 --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log & sudo -u www-data sosse-admin crawl &'
 	bash ./tests/docker_run.sh docker/pip-test/Dockerfile
 
 _rf_functional_tests:
+	cat /etc/sosse/sosse.conf
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
 	cd ./tests/robotframework && /rf-venv/bin/robot --exitonerror --exitonfailure *_*.robot

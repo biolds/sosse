@@ -630,17 +630,6 @@
     "model": "se.searchengine",
     "pk": 65,
     "fields": {
-      "short_name": "CyberChef",
-      "long_name": "",
-      "description": "",
-      "html_template": "https://cyberchef.org/#input={searchTermsBase64}",
-      "shortcut": "cc"
-    }
-  },
-  {
-    "model": "se.searchengine",
-    "pk": 66,
-    "fields": {
       "short_name": "Jotoba",
       "long_name": "Jotoba",
       "description": "Japanese dictionary search",

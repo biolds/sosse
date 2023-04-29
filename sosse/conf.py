@@ -67,8 +67,8 @@ DEFAULTS = OrderedDict([
             'default': False,
             'type': bool
         }],
-        ['rss_access_token', {
-            'comment': 'When anonymous search are disabled a token can be used to access RSS feeds without authenticating.\nThe token can be passed to HTTP requests as an url parameter, for example ``?token=<RSS access token>``.\nSetting an empty string disables token access.',
+        ['atom_access_token', {
+            'comment': 'When anonymous search are disabled a token can be used to access Atom feeds without authenticating.\nThe token can be passed to HTTP requests as an url parameter, for example ``?token=<Atom access token>``.\nSetting an empty string disables token access.',
             'default': '',
         }],
         ['search_shortcut_char', {

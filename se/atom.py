@@ -48,8 +48,8 @@ def atom_is_allowed(request):
     if settings.SOSSE_ANONYMOUS_SEARCH:
         return True
 
-    if settings.SOSSE_RSS_ACCESS_TOKEN:
-        if request.GET.get('token') == settings.SOSSE_RSS_ACCESS_TOKEN:
+    if settings.SOSSE_ATOM_ACCESS_TOKEN:
+        if request.GET.get('token') == settings.SOSSE_ATOM_ACCESS_TOKEN:
             return True
 
     return False

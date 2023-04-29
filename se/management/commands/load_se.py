@@ -32,7 +32,7 @@ class Command(BaseCommand):
     '''
 
     def add_arguments(self, parser):
-        parser.add_argument('url', nargs=1, type=str, help='OpenSearch Description formatted XML file.')
+        parser.add_argument('opensearch_file', nargs=1, type=str, help='OpenSearch Description formatted XML file.')
 
     def handle(self, *args, **options):
-        SearchEngine.parse_xml_file(options['url'][0])
+        SearchEngine.parse_xml_file(options['opensearch_file'][0])

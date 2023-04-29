@@ -1,6 +1,18 @@
-![Gitlab code coverage](https://img.shields.io/gitlab/pipeline-coverage/biolds1/sosse?branch=main&style=flat-square)
-![Gitlab pipeline status](https://img.shields.io/gitlab/pipeline-status/biolds1/sosse?branch=main&style=flat-square)
-![GitLab](https://img.shields.io/gitlab/license/biolds1/sosse?style=flat-square)
+<p>
+  <img src="https://raw.githubusercontent.com/biolds/sosse/main/se/static/se/logo.svg" width="64" align="right">
+  <a href="https://gitlab.com/biolds1/sosse/" alt="Gitlab code coverage">
+    <img src="https://img.shields.io/gitlab/pipeline-coverage/biolds1/sosse?branch=main&style=flat-square">
+  </a>
+  <a href="https://gitlab.com/biolds1/sosse/-/pipelines" alt="Gitlab pipeline status">
+    <img src="https://img.shields.io/gitlab/pipeline-status/biolds1/sosse?branch=main&style=flat-square">
+  </a>
+  <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License">
+    <img src="https://img.shields.io/gitlab/license/biolds1/sosse?style=flat-square">
+  </a>
+  <a href="https://sosse.readthedocs.io/en/latest/" alt="Documentation">
+    <img src="https://img.shields.io/readthedocs/sosse?style=flat-square">
+  </a>
+</p>
 
 SOSSE 🦦
 =======

@@ -29,7 +29,7 @@ Screenshots
    :class: sosse-screenshot
    :scale: 50%
 
-   :doc:`Realtime crawling status <crawl/status>`
+   :doc:`Real-time crawling status <crawl/status>`
 
 .. figure:: ../../tests/robotframework/screenshots/crawl_policy_decision_no_hilight.png
    :class: sosse-screenshot

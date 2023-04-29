@@ -131,7 +131,7 @@ _rf_functional_tests:
 	cat /etc/sosse/sosse.conf
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
-	cd ./tests/robotframework && /rf-venv/bin/robot --exitonerror --exitonfailure *_*.robot
+	cd ./tests/robotframework && /rf-venv/bin/robot --exitonerror --exitonfailure tests/
 
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'

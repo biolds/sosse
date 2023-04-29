@@ -9,7 +9,7 @@ Making searches
 ---------------
 
 SOSSE uses `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ to perform keyword based searches.
-This makes the search bar behave like most search engine websites:
+This makes the search bar behave like most search engine websites 🦡:
 
 - Typing multiple space-separated keywords returns pages containing all of them.
 - Separating search terms with ``OR`` returns pages containing one of them.
@@ -87,8 +87,8 @@ Clicking on the |stats_button| button, shows the top 100 most frequent words (af
    :class: sosse-screenshot
    :scale: 50%
 
-Atom
-----
+Atom feeds
+----------
 
 The |atom_button| button, gives access to `Atom feeds <https://en.wikipedia.org/wiki/Atom_rss>`_ for the current search terms:
 
@@ -97,3 +97,6 @@ The |atom_button| button, gives access to `Atom feeds <https://en.wikipedia.org/
 
 - ``Atom results feed`` has entries with links to the original website
 - ``Atom cached feed`` has entries with links to the cached website
+
+In case :ref:`anonymous searches <conf_option_anonymous_search>` are disabled, a :ref:`token <conf_option_atom_access_token>` can be defined to access
+the Atom feed without authenticating. This is done by appending a ``token=<Atom access token>`` parameter to the Atom feeds URL.

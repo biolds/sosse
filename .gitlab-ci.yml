@@ -35,6 +35,7 @@ unit_tests:
     - /tmp/sudo_sosse generate_secret
     - /tmp/sudo_sosse extract_doc cli > /dev/null
     - /tmp/sudo_sosse extract_doc conf > /dev/null
+    - /tmp/sudo_sosse extract_doc se > /dev/null
     - python3 ./sosse/sosse_admin.py makemigrations
     - python3-coverage report
     - python3-coverage html
@@ -83,9 +84,11 @@ doc_gen:
   artifacts:
     paths:
       - doc/source/*_generated.rst
+      - doc/source/*/*_generated.rst
   script:
     - ./sosse-admin extract_doc conf > doc/source/config_file_generated.rst
     - ./sosse-admin extract_doc cli > doc/source/cli_generated.rst
+    - ./sosse-admin extract_doc se > doc/source/user/shortcut_list_generated.rst
 
 doc_code_extract:
   image: biolds/sosse:doc
@@ -96,7 +99,7 @@ doc_code_extract:
     paths:
       - doc/code_blocks.json
   script:
-    - sed -e 's/|[^|]*| //g' -e 's/^.. image::.*//' -i $(find doc -name \*.rst)
+    - sed -e 's/|[^|]*| //g' -e 's/^.. \(image\|figure\)::.*//' -i $(find doc -name \*.rst)
     - make _build_doc
 
 doc:

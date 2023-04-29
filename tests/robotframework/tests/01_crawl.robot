@@ -1,11 +1,9 @@
 | *Settings* |
 | Library | SeleniumLibrary
-| Library | Process
 | Resource | common.robot
 
 | *Test Cases* |
-| Login
-|  | Login
+| Admin UI access
 |  | Capture Element Screenshot | id=user_menu_button | user_menu_button.png
 |  | Capture Element Screenshot | id=conf_menu_button | conf_menu_button.png
 |  | Click Element | id=conf_menu_button
@@ -29,7 +27,7 @@
 |  | Page Should Contain | idle
 |  | Reload Page
 |  | Wait Until Page Contains | Crawl status
-|  | Scroll Element Into View | id=result_list
+|  | Scroll To Bottom
 |  | Capture Page Screenshot | crawl_status.png
 
 | Crawl policies
@@ -37,8 +35,9 @@
 |  | Wait Until Element Is Visible | id=result_list
 |  | Capture Page Screenshot | crawl_policy_list.png
 |  | Click Element | xpath=//table[@id='result_list']//a[.='.*']
-|  | Hilight | //fieldset[1]
 |  | Scroll To Elem | //fieldset[1]
+|  | Capture Page Screenshot | crawl_policy_decision_no_hilight.png
+|  | Hilight | //fieldset[1]
 |  | Capture Page Screenshot | crawl_policy_decision.png
 
 |  | Reload Page
@@ -91,9 +90,7 @@
 |  | Capture Page Screenshot | domain_setting.png
 
 | Cookies
-|  | ${cmd}= | Run Process | ../../sosse-admin | loaddata | tests/cookies.json | shell=True
-|  | Log | ${cmd.stdout}
-|  | Log | ${cmd.stderr}
+|  | Run Keyword And Ignore Error | Run Command | ../../sosse-admin | loaddata | tests/cookies.json | shell=True
 |  | Go To | http://127.0.0.1/admin/se/cookie/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
@@ -124,6 +121,3 @@
 |  | Click Link | admin
 |  | Wait Until Page Contains | Important dates
 |  | Capture Page Screenshot | user_management.png
-
-| Close the browser
-|  | Close All Browsers

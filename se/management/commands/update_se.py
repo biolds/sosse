@@ -20,6 +20,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from ...models import SearchEngine
+from ...admin import ConflictingSearchEngineFilter
 
 
 SE_FILE = 'sosse/search_engines.json'
@@ -47,3 +48,10 @@ class Command(BaseCommand):
             count += int(created)
 
         self.stdout.write('%i new search engines added' % count)
+        conflicts = ConflictingSearchEngineFilter.conflicts(SearchEngine.objects.all())
+
+        if len(conflicts):
+            conflicts = conflicts.values_list('shortcut', flat=True).order_by('shortcut')
+            sc = ', '.join([settings.SOSSE_SEARCH_SHORTCUT_CHAR + c for c in conflicts])
+            print('WARNING: %s shortcuts are in conflict: %s' % (len(conflicts), sc))
+            exit(1)

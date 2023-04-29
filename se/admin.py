@@ -19,6 +19,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.http import HttpResponse
 from django.urls import path
 from django.utils.html import format_html
@@ -40,13 +41,13 @@ class SEAdminSite(admin.AdminSite):
         _apps_list = super().get_app_list(request)
         app_list = []
 
-        for app, models in MODELS_ORDER:
+        for app, _models in MODELS_ORDER:
             for dj_app in _apps_list:
                 if dj_app['app_label'] == app:
                     app_list.append(dj_app)
                     dj_models = dj_app['models']
                     dj_app['models'] = []
-                    for model in models:
+                    for model in _models:
                         for dj_model in dj_models:
                             if dj_model['object_name'] == model:
                                 dj_app['models'].append(dj_model)
@@ -67,10 +68,32 @@ def get_admin():
     return admin_site
 
 
+class ConflictingSearchEngineFilter(admin.SimpleListFilter):
+    title = 'conflicting'
+    parameter_name = 'conflict'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Conflicting'),
+        )
+
+    @staticmethod
+    def conflicts(queryset):
+        return SearchEngine.objects.values('shortcut').annotate(shortcut_count=models.Count('shortcut')).filter(shortcut_count__gt=1)
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            conflicts = self.conflicts(queryset).values_list('shortcut')
+            return queryset.filter(shortcut__in=conflicts)
+
+        return queryset
+
+
 @admin.register(SearchEngine)
 class SearchEngineAdmin(admin.ModelAdmin):
     list_display = ('short_name', 'shortcut')
     search_fields = ('short_name', 'shortcut')
+    list_filter = (ConflictingSearchEngineFilter,)
 
 
 class DocumentErrorFilter(admin.SimpleListFilter):

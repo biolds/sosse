@@ -249,10 +249,9 @@
                 <a href="{{ r.link }}" class="res-url">
                     {{ r.url }}
                 </a>
-                <div class="res-rank">/ {{ r.rank|floatformat:"1" }}</div>
-                <div class="res-rank">{{ r.lang_flag }}</div>
-                <div class="res-rank">{{ r.id }}</div>
-                <div class="res-rank"><a href="{{ r.extra_link }}">{{ extra_link_txt }}</a></div>
+                <div class="res-rank"> · {{ r.rank|floatformat:"1" }}</div>
+                <div class="res-rank"> · {{ r.lang_flag }}</div>
+                <div class="res-rank"> · <a href="{{ r.extra_link }}">{{ extra_link_txt }}</a></div>
                 <br/>
                 <a href="{{ r.link }}" class="res-headline">{{ r.headline }}</a>
             </div>

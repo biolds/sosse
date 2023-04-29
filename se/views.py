@@ -15,6 +15,7 @@
 
 from collections import OrderedDict
 import json
+from random import choice
 from urllib.parse import urlparse, parse_qs, quote_plus
 
 from django.conf import settings
@@ -28,6 +29,9 @@ from .forms import SearchForm
 from .login import login_required
 from .models import Document, FavIcon, SearchEngine, SearchHistory, remove_accent
 from .search import add_headlines, get_documents
+
+
+ANIMALS = '🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿'
 
 
 def human_nb(nb):
@@ -78,8 +82,14 @@ def get_pagination(request, paginated):
 
 
 def get_context(ctx):
+    animal = ''
+    while not animal:
+        # choice sometimes returns an empty string for an unknown reason
+        animal = choice(ANIMALS)
+
     ctx.update({
         'settings': settings,
+        'animal': animal,
     })
     return ctx
 

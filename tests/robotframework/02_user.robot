@@ -8,7 +8,7 @@
 |  | Login
 |  | Input Text | id_q | website
 |  | Click Button | search_button
-|  | Wait Until Page Contains | 4 results
+|  | Wait Until Page Contains | 4 sites found
 |  | ${res_count}= | Get Element Count | xpath=//div[@class='res']
 |  | Should Be Equal As Numbers | ${res_count} | 4
 |  | Capture Page Screenshot | search.png

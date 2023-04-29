@@ -204,11 +204,13 @@
     {% if has_query %}
         {% if results_count == '0' %}
             <div>
-                No result
+                <div style="display: inline; font-size: 24px;">{{ animal }}</div>
+                No result {{ animal }}
             </div>
         {% else %}
             <div>
-                {{ results_count }} result{{ results|pluralize:"s" }}
+                <div style="display: inline; font-size: 24px;">{{ animal }}</div>
+                {{ results_count }} site{{ results|pluralize:"s" }} found
             </div>
         {% endif %}
         <div class="menu" id="stats_menu">

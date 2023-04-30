@@ -38,9 +38,9 @@ You can try the latest version with Docker:
 docker run -p 8005:80 biolds/sosse:latest
 ```
 
-Default user is ``admin``, with password ``admin``.
+Connect to port 8005, and log in with user ``admin``, with password ``admin``.
 
-You can also find alternative installation methods in the [documentation](https://sosse.readthedocs.io/en/stable/install.html).
+To persist Docker data, or find alternative installation methods, please check the [documentation](https://sosse.readthedocs.io/en/stable/install.html).
 
 Keep in touch
 =============

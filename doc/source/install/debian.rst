@@ -5,6 +5,7 @@ SOSSE can be installed using the official Debian repository. To do so, first imp
 
 .. code-block:: shell
 
+   apt update
    apt install -y curl gpg
    mkdir -p /etc/keyrings/
    curl http://piggledy.org/repo/apt/debian/public.gpg.key | gpg --dearmor > /etc/keyrings/piggledy.gpg

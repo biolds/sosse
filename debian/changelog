@@ -1,5 +1,5 @@
-sosse (0.1.0-1) unstable; urgency=medium
+sosse (1.0.0-1) bullseye; urgency=medium
 
   * Initial package
 
- -- Laurent DEFERT <laurent_defert@yahoo.fr>  Tue, 14 Jul 2020 17:23:14 -0400
+ -- Laurent Defert <laurent_defert@yahoo.fr>  Sun, 30 Apr 2023 11:34:19 -0400

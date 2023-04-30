@@ -128,8 +128,8 @@ pip_pkg:
     - functional_tests
     - static_checks
   script:
-    - echo "SOSSE_VERSION_TAG = '$CI_COMMIT_TAG'" >> sosse/settings.py
-    - echo "SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'" >> sosse/settings.py
+    - sed -e "s/^SOSSE_VERSION_TAG = .*/SOSSE_VERSION_TAG = '${CI_COMMIT_TAG/v/}'/" -i sosse/settings.py
+    - sed -e "s/^SOSSE_VERSION_COMMIT = .*/SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'/" -i sosse/settings.py
     - make _pip_pkg
 
 debian_pkg:
@@ -148,8 +148,8 @@ debian_pkg:
   script:
     - cd "$CI_PROJECT_DIR"
     - rm -rf htmlcov
-    - echo "SOSSE_VERSION_TAG = '$CI_COMMIT_TAG'" >> sosse/settings.py
-    - echo "SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'" >> sosse/settings.py
+    - sed -e "s/^SOSSE_VERSION_TAG = .*/SOSSE_VERSION_TAG = '${CI_COMMIT_TAG/v/}'/" -i sosse/settings.py
+    - sed -e "s/^SOSSE_VERSION_COMMIT = .*/SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'/" -i sosse/settings.py
     - mkdir /deb
     - make _deb
     - mv /deb .

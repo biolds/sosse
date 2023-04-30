@@ -43,6 +43,10 @@ case "$1" in
     #dbc_generate_include_perms="0660"
     #dbc_go webpy-example $@ || true
 
+    mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots
+    touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
+    chown www-data:www-data /run/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
+
     test -e /etc/sosse/sosse.conf || sosse-admin default_conf > /etc/sosse/sosse.conf
     chmod 750 /etc/sosse/
     chmod 640 /etc/sosse/*

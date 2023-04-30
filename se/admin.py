@@ -277,8 +277,8 @@ class DocumentAdmin(admin.ModelAdmin):
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(Document.objects.filter(crawl_last__isnull=False,
                                                          crawl_next__isnull=False).order_by('crawl_next', 'id')[:QUEUE_SIZE - len(queue)])
-            for doc in queue:
-                doc.pending = True
+        for doc in queue:
+            doc.pending = True
 
         queue.reverse()
 

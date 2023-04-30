@@ -1,8 +1,7 @@
-div.sphinxsidebarwrapper p.logo {
-    text-align: left;
-}
-img.logo {
+.sidebar-logo {
     width: 75px;
+    text-align: left;
+    margin: 0;
 }
 img.sosse-screenshot {
     box-shadow: 0px 0px 4px 4px #eee;

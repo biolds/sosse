@@ -7,5 +7,5 @@ RUN apt update
 RUN apt upgrade -y
 RUN apt install -y virtualenv jq curl
 RUN virtualenv /opt/sosse-doc
-RUN . /opt/sosse-doc/bin/activate && pip install sphinx
+RUN . /opt/sosse-doc/bin/activate && pip install sphinx furo
 RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf

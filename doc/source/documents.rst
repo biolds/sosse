@@ -14,6 +14,8 @@ Status
 
 Shows if the document triggered an error during its last crawl.
 
+.. _document_error:
+
 Error
 """""
 

@@ -96,7 +96,21 @@ Format of the image JPG or PNG.
 Script
 """"""
 
-Javascript code to be executed in the context of the web pages they have finished loading. This can be used to handle authentication, validate forms, ...
+Javascript code to be executed in the context of the web pages when they have finished loading. This can be used to handle authentication, validate forms, remove headers, ...
+
+For example, the following script could be used to click on a `GDPR <https://en.wikipedia.org/wiki/General_Data_Protection_Regulation>`_ compliance ``I agree`` button:
+
+.. code-block:: javascript
+
+   const BUTTON_TEXT = "I agree";
+   const XPATH_PATTERN = `//*[text()="${BUTTON_TEXT}"]`;
+   const button = document.evaluate(XPATH_PATTERN, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+
+   if (button && button.singleNodeValue) {
+       button.singleNodeValue.click();
+   }
+
+In case the script triggers an error, further processing of the page is aborted and the error message is stored in the :ref:`document error field <document_error>`. It can be useful to use a tool such as `Tamperonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
 
 Updates
 -------

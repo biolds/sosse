@@ -32,8 +32,13 @@ release = '1.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 sys.path.append(os.path.abspath('_extensions'))
-extensions = ['code_blocks']
+extensions = ['code_blocks', 'myst_parser']
 test_code_output = 'code_blocks.json'
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 templates_path = ['_templates']
 exclude_patterns = []

@@ -1,7 +1,9 @@
+doc/code_blocks.json
+doc/source/CHANGELOG.md
 doc/source/cli_generated.rst
 doc/source/config_file_generated.rst
 doc/source/user/shortcut_list_generated.rst
-doc/code_blocks.json
+docker/doc/requirements.txt
 docker/debian-test/requirements.txt
 docker/pip-release/uwsgi.*
 docker/pip-release/sosse.conf

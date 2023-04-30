@@ -85,10 +85,12 @@ doc_gen:
     paths:
       - doc/source/*_generated.rst
       - doc/source/*/*_generated.rst
+      - doc/source/CHANGELOG.md
   script:
     - ./sosse-admin extract_doc conf > doc/source/config_file_generated.rst
     - ./sosse-admin extract_doc cli > doc/source/cli_generated.rst
     - ./sosse-admin extract_doc se > doc/source/user/shortcut_list_generated.rst
+    - ./doc/build_changelog.sh > doc/source/CHANGELOG.md
 
 doc_code_extract:
   image: biolds/sosse:doc
@@ -153,6 +155,19 @@ debian_pkg:
     - mkdir /deb
     - make _deb
     - mv /deb .
+
+changelog:
+  image: biolds/sosse:debian-test
+  stage: build
+  needs: []
+  artifacts:
+    paths:
+      - CHANGELOG.md
+  script:
+    - 'last_ver="$(git tag -l | sort -V | tail -n 1 | sed -e "s/^v//")"'
+    - 'new_ver="${last_ver%.*}.$((${last_ver/*./} + 1))"'
+    - 'curl -X GET -H "PRIVATE-TOKEN: $GITLAB_REST_API_CHANGELOG" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/changelog?version=$new_ver" | jq -r .notes | tee /tmp/new'
+    - cat /tmp/new CHANGELOG.md > new.md && mv new.md CHANGELOG.md
 
 doc_test_debian:
   image: debian:bullseye

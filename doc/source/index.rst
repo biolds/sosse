@@ -16,6 +16,7 @@ SOSSE's documentation!
    cli.rst
    user_doc.rst
    screenshots.rst
+   CHANGELOG.md
 
 Indices and tables
 ==================

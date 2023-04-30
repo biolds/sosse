@@ -1,3 +1,4 @@
 python-gitlab
 requests
 furo
+myst-parser

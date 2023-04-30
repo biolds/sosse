@@ -6,11 +6,11 @@
   <a href="https://gitlab.com/biolds1/sosse/-/pipelines" alt="Gitlab pipeline status">
     <img src="https://img.shields.io/gitlab/pipeline-status/biolds1/sosse?branch=main&style=flat-square">
   </a>
-  <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License">
-    <img src="https://img.shields.io/gitlab/license/biolds1/sosse?style=flat-square">
-  </a>
   <a href="https://sosse.readthedocs.io/en/latest/" alt="Documentation">
     <img src="https://img.shields.io/readthedocs/sosse?style=flat-square">
+  </a>
+  <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License">
+    <img src="https://img.shields.io/gitlab/license/biolds1/sosse?style=flat-square">
   </a>
 </p>
 
@@ -25,4 +25,24 @@ SOSSE main features are:
 - 🖼 Offline cache: SOSSE can take screenshots of crawled pages and make them browsable offline
 - 🔓 Authentication: the crawlers can submit authentication forms with provided credentials
 - 🔗 Search engines shortcuts: shortcuts search queries can be used to redirect to external search engines (sometime called "bang" searches)
-- 🔖 Search history: users can authenticate to log their search query history
+- 🔖 Search history: users can authenticate to log their search query history privately
+
+See the [documentation](https://sosse.readthedocs.io/en/latest/) and [screenshots](https://sosse.readthedocs.io/en/latest/).
+
+Try it out
+==========
+
+You can try the latest version with Docker:
+
+```
+docker run -p 8005:80 biolds/sosse:latest
+```
+
+Default user is ``admin``, with password ``admin``.
+
+You can also find alternative installation methods in the [documentation](https://sosse.readthedocs.io/en/latest/install.html).
+
+Keep in touch
+=============
+
+Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help and share ideas!

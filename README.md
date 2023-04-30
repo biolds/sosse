@@ -6,7 +6,7 @@
   <a href="https://gitlab.com/biolds1/sosse/-/pipelines" alt="Gitlab pipeline status">
     <img src="https://img.shields.io/gitlab/pipeline-status/biolds1/sosse?branch=main&style=flat-square">
   </a>
-  <a href="https://sosse.readthedocs.io/en/latest/" alt="Documentation">
+  <a href="https://sosse.readthedocs.io/en/stable/" alt="Documentation">
     <img src="https://img.shields.io/readthedocs/sosse?style=flat-square">
   </a>
   <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License">
@@ -27,7 +27,7 @@ SOSSE main features are:
 - 🔗 Search engines shortcuts: shortcuts search queries can be used to redirect to external search engines (sometime called "bang" searches)
 - 🔖 Search history: users can authenticate to log their search query history privately
 
-See the [documentation](https://sosse.readthedocs.io/en/latest/) and [screenshots](https://sosse.readthedocs.io/en/latest/).
+See the [documentation](https://sosse.readthedocs.io/en/stable/) and [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
 
 Try it out
 ==========
@@ -40,7 +40,7 @@ docker run -p 8005:80 biolds/sosse:latest
 
 Default user is ``admin``, with password ``admin``.
 
-You can also find alternative installation methods in the [documentation](https://sosse.readthedocs.io/en/latest/install.html).
+You can also find alternative installation methods in the [documentation](https://sosse.readthedocs.io/en/stable/install.html).
 
 Keep in touch
 =============

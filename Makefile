@@ -29,7 +29,7 @@ _pip_pkg_push:
 	/venv/bin/twine upload --verbose dist/*
 
 pip_pkg_push:
-	docker run --rm -v $(current_dir):/sosse:ro -ti biolds/sosse:pip-base bash -c 'cd /sosse && make _pip_pkg_push'
+	docker run --rm -v $(current_dir):/sosse:ro -ti biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_pkg_push'
 
 _deb:
 	dpkg-buildpackage -us -uc

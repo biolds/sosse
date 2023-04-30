@@ -102,6 +102,24 @@ doc_code_extract:
     - sed -e 's/|[^|]*| //g' -e 's/^.. \(image\|figure\)::.*//' -i $(find doc -name \*.rst)
     - make _build_doc
 
+github-sync:
+  image: debian:bullseye
+  stage: test
+  variables:
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
+  only:
+    variables:
+      - $GITHUB_SYNC_KEY
+  script:
+    - mkdir -p ~/.ssh/
+    - echo "$GITHUB_SYNC_KEY" | base64 -d > ~/.ssh/id_rsa
+    - cp tests/github-known_hosts ~/.ssh/known_hosts
+    - chmod 600 ~/.ssh/id_rsa
+    - apt update && apt install -y git
+    - git remote add github git@github.com:biolds/sosse.git || true
+    - git push --mirror github
+
 doc:
   image: biolds/sosse:doc
   stage: doc

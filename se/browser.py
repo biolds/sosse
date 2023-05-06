@@ -647,7 +647,13 @@ class SeleniumBrowser(Browser):
     @classmethod
     def scroll_to_page(cls, page_no):
         _, height = cls.screen_size()
-        cls.driver.execute_script('window.scroll(0, %s)' % (page_no * height))
+        height *= page_no
+        cls.driver.execute_script('''
+            window.scroll(0, %s);
+            [...document.querySelectorAll('*')].filter(x => x.clientHeight < x.scrollHeight).forEach(e => {
+                e.scroll({left: 0, top: %s, behavior: 'instant'});
+            });
+        ''' % (height, height))
 
     @classmethod
     def get_link_pos_abs(cls, selector):

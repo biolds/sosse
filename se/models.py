@@ -291,7 +291,7 @@ class Document(models.Model):
                     s += _s
         return s
 
-    def _dom_walk(self, elem, crawl_policy, links):
+    def _dom_walk(self, elem, crawl_policy, links, base_url):
         if isinstance(elem, Doctype):
             return
 
@@ -310,9 +310,9 @@ class Document(models.Model):
                 if href and not href.startswith('data:'):
                     href = href.strip()
 
-                    href_for_policy = absolutize_url(self.url, href, True, True)
+                    href_for_policy = absolutize_url(base_url, href, True, True)
                     child_policy = CrawlPolicy.get_from_url(href_for_policy)
-                    href = absolutize_url(self.url, href, child_policy.keep_params, False)
+                    href = absolutize_url(base_url, href, child_policy.keep_params, False)
                     target = Document.queue(href, crawl_policy, self)
 
                     if target != self:
@@ -325,7 +325,7 @@ class Document(models.Model):
                                         pos=len(links['text']))
                         elif crawl_policy.store_extern_links:
                             href = elem.get('href').strip()
-                            href = absolutize_url(self.url, href, True, True)
+                            href = absolutize_url(base_url, href, True, True)
                             link = Link(doc_from=self,
                                         link_no=len(links['links']),
                                         text=s,
@@ -345,7 +345,7 @@ class Document(models.Model):
 
         if hasattr(elem, 'children'):
             for child in elem.children:
-                self._dom_walk(child, crawl_policy, links)
+                self._dom_walk(child, crawl_policy, links, base_url)
 
         if elem.name in ('div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
             if links['text']:
@@ -397,6 +397,10 @@ class Document(models.Model):
             else:
                 self.title = beautified_url
 
+            base_url = self.url
+            if parsed.head.base and parsed.head.base.get('href'):
+                base_url = absolutize_url(self.url, parsed.head.base.get('href'), False, False)
+
             self.normalized_title = remove_accent(self.title)
 
             self._index_log('get soup', stats, verbose)
@@ -406,7 +410,7 @@ class Document(models.Model):
                 'text': ''
             }
             for elem in parsed.children:
-                self._dom_walk(elem, crawl_policy, links)
+                self._dom_walk(elem, crawl_policy, links, base_url)
             text = links['text']
 
             self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)

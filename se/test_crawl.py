@@ -308,3 +308,26 @@ class CrawlerTest(TestCase):
         self.assertEqual(doc.crawl_last, self.fake_next2)
         self.assertEqual(doc.crawl_next, self.fake_next3)
         self.assertEqual(doc.crawl_dt, timedelta(hours=3))
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_008_base_header(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': '''
+                <html>
+                    <head><base href="/base/" /></head>
+                    <body>
+                        <a href="test">base test</a>
+                    </body>
+                </html>
+                ''',
+            'http://127.0.0.1/base/test': 'test page'
+        })
+
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 2)
+        doc1, doc2 = Document.objects.order_by('id')
+        self.assertEqual(doc1.url, 'http://127.0.0.1/')
+        self.assertEqual(doc1.content, 'base test')
+        self.assertEqual(doc2.url, 'http://127.0.0.1/base/test')
+        self.assertEqual(doc2.content, 'test page')

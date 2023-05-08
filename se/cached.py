@@ -58,7 +58,7 @@ def get_context(doc):
     return {
         'crawl_policy': crawl_policy,
         'doc': doc,
-        'www_redirect_url': doc.redirect_url and reverse_no_escape('www', args=[doc.redirect_url]),
+        'www_redirect_url': doc.redirect_url and reverse_no_escape('cache', args=[doc.redirect_url]),
         'head_title': title,
         'title': page_title,
         'beautified_url': beautified_url,

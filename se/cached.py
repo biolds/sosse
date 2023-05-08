@@ -15,6 +15,7 @@
 
 from urllib.parse import unquote, urlparse
 
+from django.conf import settings
 from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
@@ -36,6 +37,15 @@ def url_from_request(request):
     url = url._replace(netloc=unquote(url.netloc))
     url = url.geturl()
     return sanitize_url(url, True, True)
+
+
+def get_cached_doc(request, view_name):
+    doc = get_document(request)
+    if doc is None:
+        return unknown_url_view(request)
+    if settings.SOSSE_CACHE_FOLLOWS_REDIRECT and doc.redirect_url:
+        return redirect(reverse_no_escape(view_name, args=[doc.redirect_url]))
+    return doc
 
 
 def get_document(request):

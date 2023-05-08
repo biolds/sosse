@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.html import format_html
 
-from .cached import get_document, get_context, unknown_url_view
+from .cached import get_cached_doc, get_context
 from .login import login_required
 from .models import Link
 from .utils import reverse_no_escape
@@ -24,9 +25,9 @@ from .utils import reverse_no_escape
 
 @login_required
 def www(request):
-    doc = get_document(request)
-    if doc is None:
-        return unknown_url_view(request)
+    doc = get_cached_doc(request, 'www')
+    if isinstance(doc, HttpResponse):
+        return doc
 
     content = format_html('')
     content_pos = 0

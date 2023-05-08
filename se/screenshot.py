@@ -14,19 +14,20 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from .browser import SeleniumBrowser
-from .cached import get_document, get_context, unknown_url_view
+from .cached import get_cached_doc, get_context
 from .login import login_required
 from .utils import reverse_no_escape
 
 
 @login_required
 def screenshot(request):
-    doc = get_document(request)
-    if doc is None:
-        return unknown_url_view(request)
+    doc = get_cached_doc(request, 'screenshot')
+    if isinstance(doc, HttpResponse):
+        return doc
 
     base_dir, filename = SeleniumBrowser.screenshot_name(doc.url)
 

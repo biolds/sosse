@@ -194,7 +194,7 @@ class Document(models.Model):
         return self.url
 
     def get_absolute_url(self):
-        if self.screenshot_file:
+        if self.screenshot_file or self.redirect_url:
             return reverse_no_escape('screenshot', args=(self.url,))
         else:
             return reverse_no_escape('www', args=(self.url,))

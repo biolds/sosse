@@ -169,6 +169,11 @@ DEFAULTS = OrderedDict([
             'default': True,
             'type': bool
         }],
+        ['cache_follows_redirect', {
+            'comment': 'Accessing a cached page of an url that redirected automatically follows the redirection.',
+            'default': True,
+            'type': bool
+        }],
         ['admin_page_size', {
             'comment': 'Number of items by list in the administration pages.',
             'default': 100,

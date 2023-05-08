@@ -29,7 +29,7 @@ from django.template import defaultfilters, response
 
 from .forms import AddToQueueForm
 from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
-from .utils import human_datetime, human_dt
+from .utils import human_datetime, human_dt, reverse_no_escape
 
 
 class SEAdminSite(admin.AdminSite):
@@ -388,7 +388,8 @@ class DocumentAdmin(admin.ModelAdmin):
     @staticmethod
     def _content(obj):
         if obj.redirect_url:
-            return 'Redirected to %s' % obj.redirect_url
+            url = reverse_no_escape('cache', args=[obj.redirect_url])
+            return format_html('Redirected to <a href="{}">{}</a>', url, obj.redirect_url)
         return obj.content
 
     def delete_model(self, request, obj):

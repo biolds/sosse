@@ -188,6 +188,11 @@ DEFAULTS = OrderedDict([
             'default': 5,
             'type': int
         }],
+        ['browsable_home', {
+            'comment': 'Display entry point documents on the homepage.',
+            'default': False,
+            'type': bool
+        }],
     ])],
     ['crawler', OrderedDict([
         ['crawler_count', {

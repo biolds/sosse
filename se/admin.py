@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from copy import copy
 from urllib.parse import urlencode
 
 from django import forms
@@ -158,12 +159,13 @@ def convert_to_jpg(modeladmin, request, queryset):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
-    list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter,)
+    list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage')
     search_fields = ['url__regex', 'title__regex']
-    fields = ('url', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
+    fields = ['url', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
               'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt', 'crawl_recurse',
-              'robotstxt_rejected', 'too_many_redirects', 'mimetype', 'lang', '_content')
-    readonly_fields = fields
+              'robotstxt_rejected', 'too_many_redirects', 'mimetype', 'lang', '_content']
+    readonly_fields = copy(fields)
+    readonly_fields.remove('show_on_homepage')
     ordering = ('-crawl_last',)
     actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
@@ -199,6 +201,12 @@ class DocumentAdmin(admin.ModelAdmin):
         if isinstance(r, HttpResponse):
             return r
         return redirect(reverse('admin:se_document_change', args=(object_id,)))
+
+    def get_fields(self, request, obj=None):
+        fields = copy(super().get_fields(request, obj))
+        if not settings.SOSSE_BROWSABLE_HOME:
+            fields.remove('show_on_homepage')
+        return fields
 
     def render_change_form(self, request, context, *args, **kwargs):
         context['actions'] = self.get_action_choices(request)
@@ -237,6 +245,7 @@ class DocumentAdmin(admin.ModelAdmin):
                 if crawl_recurse:
                     doc.crawl_recurse = crawl_recurse
 
+            doc.show_on_homepage = True
             doc.save()
             messages.success(request, 'URL was queued.')
             return redirect(reverse('admin:crawl_status'))

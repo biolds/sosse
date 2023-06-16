@@ -41,3 +41,10 @@ Too many redirects
 """"""""""""""""""
 
 Indicates if the page was not crawled due to too many redirection. The limit can be set in the :ref:`configuration file <conf_option_max_redirects>`.
+
+.. _document_show_on_homepage:
+
+Show on homepage
+""""""""""""""""
+
+When the :ref:`browsable home option <conf_option_browsable_home>` is enabled, this parameter can switch availability of the document from the homepage. (See :doc:`archive`)

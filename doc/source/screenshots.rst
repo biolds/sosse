@@ -36,3 +36,9 @@ Screenshots
    :scale: 50%
 
    :doc:`Crawl Policies setup <crawl/policies>`
+
+.. figure:: ../../tests/robotframework/screenshots/browsable_home.png
+   :class: sosse-screenshot
+   :scale: 50%
+
+   :doc:`Archive browsing <archive>`

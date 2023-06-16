@@ -138,6 +138,10 @@ def search(request):
     if form.cleaned_data['c']:
         extra_link_txt = 'source'
 
+    home_entries = None
+    if not has_query and settings.SOSSE_BROWSABLE_HOME:
+        home_entries = Document.objects.filter(show_on_homepage=True).order_by('title')
+
     context = get_context({
         'hide_title': True,
         'form': form,
@@ -145,6 +149,7 @@ def search(request):
         'results_count': human_nb(len(results)),
         'paginated': paginated,
         'has_query': has_query,
+        'home_entries': home_entries,
         'q': q,
         'title': q,
         'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres,

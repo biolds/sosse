@@ -1,0 +1,18 @@
+{% load static %}
+<div id="home-grid">
+    {% for r in home_entries %}
+        <a href="{{ r.get_absolute_url }}">
+            <div class="res res-home">
+                <div class="res-home-icon">
+                    {% if r.favicon and not r.favicon.missing %}
+                        <img src="{% url 'favicon' r.favicon.id %}" alt="icon">
+                    {% else %}
+                        <img src="{% static "se/logo.svg" %}" alt="icon">
+                    {% endif %}
+                </div>
+                <h3 class="res-title">{{ r.title }}</h3>
+                <div class="res-home-fade-text"></div>
+            </div>
+        </a>
+    {% endfor %}
+</div>

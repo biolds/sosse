@@ -61,3 +61,12 @@
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]
 |  | Capture Page Screenshot | cache_screenshot.png
+
+| Browsable home
+|  | [Tags] | browsable_home
+|  | Run Command | ../../sosse-admin | loaddata | tests/robotframework/home_favicon.json | shell=True
+|  | Run Command | ../../sosse-admin | loaddata | tests/robotframework/home_docs.json | shell=True
+|  | Run Command | sed | -e | s/^#browsable_home.*/browsable_home\=true/ | -i | /etc/sosse/sosse.conf
+|  | Run Command | killall | -s | HUP | uwsgi
+|  | Go To | http://127.0.0.1/
+|  | Capture Page Screenshot | browsable_home.png

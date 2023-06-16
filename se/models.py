@@ -183,6 +183,8 @@ class Document(models.Model):
     crawl_recurse = models.PositiveIntegerField(default=0, verbose_name='Recursion remaining')
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
+    show_on_homepage = models.BooleanField(default=False, help_text='Display this document on the homepage')
+
     worker_no = models.PositiveIntegerField(blank=True, null=True)
 
     supported_langs = None

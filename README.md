@@ -22,7 +22,7 @@ SOSSE (Selenium Open Source Search Engine) is a search engine and crawler writte
 SOSSE main features are:
 - 🌍 Browser based crawling: the crawler can use [Google Chromium](https://www.chromium.org/Home) and [Selenium](https://www.selenium.dev/) to index pages that use Javascript. [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used for faster crawling
 - 🏖 Low resources requirements: SOSSE is entirely written in Python and uses [PostgreSQL](https://www.postgresql.org/) for data storage
-- 🖼 Offline cache: SOSSE can take screenshots of crawled pages and make them browsable offline
+- 🖼 Offline browsing: SOSSE can take screenshots of crawled pages and create archives suitable for offline browsing
 - 🔓 Authentication: the crawlers can submit authentication forms with provided credentials
 - 🔗 Search engines shortcuts: shortcuts search queries can be used to redirect to external search engines (sometime called "bang" searches)
 - 🔖 Search history: users can authenticate to log their search query history privately
@@ -38,7 +38,7 @@ You can try the latest version with Docker:
 docker run -p 8005:80 biolds/sosse:latest
 ```
 
-Connect to port 8005, and log in with user ``admin``, with password ``admin``.
+Connect to port 8005, and log in with user ``admin``, password ``admin``.
 
 To persist Docker data, or find alternative installation methods, please check the [documentation](https://sosse.readthedocs.io/en/stable/install.html).
 

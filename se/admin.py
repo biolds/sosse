@@ -386,6 +386,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
 
     @staticmethod
+    @admin.display(description='Content')
     def _content(obj):
         if obj.redirect_url:
             url = reverse_no_escape('cache', args=[obj.redirect_url])

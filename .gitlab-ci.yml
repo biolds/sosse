@@ -170,7 +170,7 @@ changelog:
     - cat /tmp/new CHANGELOG.md > new.md && mv new.md CHANGELOG.md
 
 doc_test_debian:
-  image: debian:bullseye
+  image: debian:bookworm
   stage: build_check
   needs:
     - doc_code_extract
@@ -180,17 +180,17 @@ doc_test_debian:
     - make _doc_test_debian
 
 doc_test_pip:
-  image: debian:bullseye
+  image: debian:bookworm
   stage: build_check
   needs:
     - doc_code_extract
   script:
     - apt update
-    - apt install -y make jq postgresql nginx chromium python3-pip
+    - apt install -y make jq
     - make _doc_test_pip
 
 debian_pkg_check:
-  image: debian:bullseye
+  image: debian:bookworm
   stage: build_check
   artifacts:
     when: always
@@ -203,7 +203,7 @@ debian_pkg_check:
     - debian_pkg
   script:
     - apt update
-    - apt install -y jq make
+    - apt install -y jq make virtualenv
     - make _deb_pkg_functional_tests
     - (make _rf_functional_tests ; echo -n $? > /tmp/ret_code) || true
     - mv /var/log/sosse log

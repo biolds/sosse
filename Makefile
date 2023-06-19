@@ -41,13 +41,15 @@ deb:
 
 _build_doc:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
+	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian.rst
+	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip.rst
 	. /opt/sosse-doc/bin/activate ; make -C doc linkcheck html SPHINXOPTS="-W"
 	jq . < doc/code_blocks.json > /tmp/code_blocks.json
 	mv /tmp/code_blocks.json doc/code_blocks.json
 
 build_doc:
 	mkdir -p doc/build/
-	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc/build:/sosse/doc/build biolds/sosse:doc bash -c 'cd /sosse && make _build_doc'
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc:/sosse/doc biolds/sosse:doc bash -c 'cd /sosse && make _build_doc'
 
 
 docker_run:
@@ -60,13 +62,13 @@ docker_release_push:
 	docker push biolds/sosse:latest
 
 docker_release_build:
-	docker pull debian:bullseye
+	docker pull debian:bookworm
 	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
 
 docker_git_build:
-	docker pull debian:bullseye
+	docker pull debian:bookworm
 	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	docker build --build-arg APT_PROXY=$(APT_PROXY) --build-arg PIP_INDEX_URL=$(PIP_INDEX_URL) --build-arg PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST) -t biolds/sosse:git .
 
@@ -78,21 +80,21 @@ docker_build:
 
 _doc_test_debian:
 	cp doc/code_blocks.json /tmp/code_blocks.json
-	grep -q 'apt install -y python3-django/bullseye-backports sosse' /tmp/code_blocks.json
-	sed -e 's#apt install -y python3-django/bullseye-backports sosse#apt install -y python3-django/bullseye-backports sosse; /etc/init.d/nginx start \& /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
+	grep -q 'apt install -y sosse' /tmp/code_blocks.json
+	sed -e 's#apt install -y sosse#apt install -y sosse; /etc/init.d/nginx start \& /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
 
 doc_test_debian:
-	docker run -v $(current_dir):/sosse:ro debian:bullseye bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
+	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
 
 _doc_test_pip:
-	apt install -y chromium chromium-driver postgresql nginx python3-dev libpq-dev
+	apt install -y chromium chromium-driver postgresql libpq-dev nginx python3-dev python3-pip virtualenv
 	/etc/init.d/postgresql start &
 	bash ./tests/wait_for_pg.sh
 	bash ./tests/doc_test.sh doc/code_blocks.json install/pip
 
 doc_test_pip:
-	docker run -v $(current_dir):/sosse:ro debian:bullseye bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'
+	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'
 
 _pip_pkg_check:
 	pip install twine
@@ -121,16 +123,15 @@ _common_pip_functional_tests:
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'sosse-admin default_conf' /tmp/code_blocks.json
 	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.browser_options=.*/browser_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.crawler_count=.*/crawler_count=1/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -i /tmp/code_blocks.json # add --no-sandbox to chromium's command line
+	echo 'SOSSE_ADMIN: /opt/sosse-venv/bin/sosse-admin' > tests/robotframework/config.yaml
 
 _deb_pkg_functional_tests:
-	echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
-	apt update
-	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s#python3-django [^,]*,#python3-django/bullseye-backports#g" -e "s/,//g" | xargs apt install -y
+	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
 	grep '^ExecStartPre=' debian/sosse-uwsgi.service | sed -e 's/^ExecStartPre=-\?+\?//' -e 's/^/---- /'
 	bash -c "`grep '^ExecStartPre=' debian/sosse-uwsgi.service | sed -e 's/^ExecStartPre=-\?+\?//'`"
 	cp doc/code_blocks.json /tmp/code_blocks.json
-	grep -q 'apt install -y python3-django/bullseye-backports sosse' /tmp/code_blocks.json
-	sed -e 's#apt install -y python3-django/bullseye-backports sosse#apt install -y python3-django/bullseye-backports sudo; dpkg -i deb/*.deb ; /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
+	grep -q 'apt install -y sosse' /tmp/code_blocks.json
+	sed -e 's#apt install -y sosse#apt install -y sudo; dpkg -i deb/*.deb ; /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
 	sed -e 's/^.browser_options=.*/browser_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox/' -i /etc/sosse/sosse.conf # add --no-sandbox to chromium's command line
 	sed -e 's/^.browser_crash_retry=.*/browser_crash_retry=3/' -i /etc/sosse/sosse.conf
@@ -144,7 +145,7 @@ _rf_functional_tests:
 	cat /etc/sosse/sosse.conf
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
-	cd ./tests/robotframework && /rf-venv/bin/robot --exitonerror --exitonfailure tests/
+	cd ./tests/robotframework && /rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
 
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'

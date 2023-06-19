@@ -14,25 +14,19 @@ Then setup the repository:
 
 .. code-block:: shell
 
-   echo 'deb [signed-by=/etc/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bullseye main' > /etc/apt/sources.list.d/piggledy.list
-
-SOSSE also requires a version of Django (3.2) that is not available in Debian Bullseye. A compatible version can be installed using the `Debian backports <https://backports.debian.org/>`_ repository:
-
-.. code-block:: shell
-
-   echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
+   echo 'deb [signed-by=/etc/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bookworm main' > /etc/apt/sources.list.d/piggledy.list
 
 The SOSSE package can then be installed with its dependencies:
 
 .. code-block:: shell
 
    apt update
-   apt install -y python3-django/bullseye-backports sosse
+   apt install -y sosse
 
 Database setup
 --------------
 
-.. include:: database.rst
+.. include:: database_debian.rst
 
 Daemons setup
 -------------

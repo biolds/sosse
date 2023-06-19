@@ -2,6 +2,8 @@ doc/code_blocks.json
 doc/source/CHANGELOG.md
 doc/source/cli_generated.rst
 doc/source/config_file_generated.rst
+doc/source/install/database_debian.rst
+doc/source/install/database_pip.rst
 doc/source/user/shortcut_list_generated.rst
 docker/doc/requirements.txt
 docker/debian-test/requirements.txt

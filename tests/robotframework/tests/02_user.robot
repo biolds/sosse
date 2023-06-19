@@ -40,13 +40,13 @@
 |  | Capture Page Screenshot | preferences.png
 
 | Statistics
-|  | Run Command | ../../sosse-admin | loaddata | tests/document-ja.json | shell=True
-|  | Run Command | ../../sosse-admin | shell | -c | from se.models import CrawlerStats ; from django.utils.timezone import now ; CrawlerStats.create(now()) | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../document-ja.json | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import CrawlerStats ; from django.utils.timezone import now ; CrawlerStats.create(now()) | shell=True
 |  | Go To | http://127.0.0.1/stats/
 |  | Capture Page Screenshot | statistics.png
 
 | History
-|  | Run Command | ../../sosse-admin | loaddata | tests/searchhistory.json | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../searchhistory.json | shell=True
 |  | Go To | http://127.0.0.1/history/
 |  | Wait Until Page Contains | 4 elements in the history
 |  | Capture Page Screenshot | history.png
@@ -64,8 +64,8 @@
 
 | Browsable home
 |  | [Tags] | browsable_home
-|  | Run Command | ../../sosse-admin | loaddata | tests/robotframework/home_favicon.json | shell=True
-|  | Run Command | ../../sosse-admin | loaddata | tests/robotframework/home_docs.json | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_favicon.json | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_docs.json | shell=True
 |  | Run Command | sed | -e | s/^#browsable_home.*/browsable_home\=true/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
 |  | Go To | http://127.0.0.1/

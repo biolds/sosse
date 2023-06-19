@@ -1,7 +1,7 @@
 .PHONY=build
 
 build:
-	docker pull debian:bullseye
+	docker pull debian:bookworm
 	$(MAKE) -C debian build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C debian-pkg build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C debian-test build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)

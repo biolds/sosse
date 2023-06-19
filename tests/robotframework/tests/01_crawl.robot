@@ -90,7 +90,7 @@
 |  | Capture Page Screenshot | domain_setting.png
 
 | Cookies
-|  | Run Keyword And Ignore Error | Run Command | ../../sosse-admin | loaddata | tests/cookies.json | shell=True
+|  | Run Keyword And Ignore Error | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../cookies.json | shell=True
 |  | Go To | http://127.0.0.1/admin/se/cookie/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr

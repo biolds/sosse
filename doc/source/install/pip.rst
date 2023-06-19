@@ -15,11 +15,12 @@ Before installing SOSSE, you'll need to manually install the following softwares
 Package install
 ---------------
 
-The installation can be done with the command:
+The installation can be done with the commands:
 
 .. code-block:: shell
 
-    pip install sosse
+    virtualenv /opt/sosse-venv/
+    /opt/sosse-venv/bin/pip install sosse
 
 Default Configuration
 ---------------------
@@ -32,7 +33,7 @@ The default configuration and directories can be created with the commands:
    touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
    chown -R www-data:www-data /run/sosse /var/lib/sosse /var/log/sosse
    mkdir /etc/sosse
-   sosse-admin default_conf > /etc/sosse/sosse.conf
+   /opt/sosse-venv/bin/sosse-admin default_conf > /etc/sosse/sosse.conf
 
 Static files
 ------------
@@ -41,12 +42,12 @@ Static files will be copied to their target location with the following command.
 
 .. code-block:: shell
 
-   sosse-admin collectstatic --noinput --clear
+   /opt/sosse-venv/bin/sosse-admin collectstatic --noinput --clear
 
 Database setup
 --------------
 
-.. include:: database.rst
+.. include:: database_pip.rst
 
 WSGI server
 -----------
@@ -55,7 +56,7 @@ You can install a WSGI server of your choice. If you wish to install `uWSGI <htt
 
 .. code-block:: shell
 
-   pip install uwsgi
+   /opt/sosse-venv/bin/pip install uwsgi
 
 And write the following config files:
 
@@ -77,7 +78,7 @@ After that, the server can be run in the background with:
 
    mkdir /var/log/uwsgi
    chown www-data:www-data /var/log/uwsgi
-   uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/uwsgi/sosse.log &
+   /opt/sosse-venv/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/uwsgi/sosse.log &
 
 File permissions
 ----------------
@@ -117,7 +118,7 @@ Crawlers can now be started in the background with the command:
 
 .. code-block:: shell
 
-   sudo -u www-data sosse-admin crawl &
+   sudo -u www-data /opt/sosse-venv/bin/sosse-admin crawl &
 
 Next steps
 ----------

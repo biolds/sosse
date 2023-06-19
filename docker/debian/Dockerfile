@@ -1,16 +1,15 @@
-FROM debian:bullseye
+FROM debian:bookworm
 ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
 RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
 RUN apt update
 RUN apt upgrade -y
-RUN apt install -y curl gpg fonts-noto
+RUN apt install -y curl gpg
 RUN curl http://piggledy.org/repo/apt/debian/public.gpg.key | gpg --dearmor > /usr/share/keyrings/piggledy.gpg
-RUN echo 'deb [signed-by=/usr/share/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bullseye main' > /etc/apt/sources.list.d/piggledy.list
-RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/bullseye-backports.list
+RUN echo 'deb [signed-by=/usr/share/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bookworm main' > /etc/apt/sources.list.d/piggledy.list
 RUN apt update
-RUN apt install -y python3-django/bullseye-backports sosse && \
+RUN apt install -y sosse && \
         apt-get clean autoclean && \
         apt-get autoremove --yes && \
         rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
@@ -23,7 +22,7 @@ RUN ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
 
 WORKDIR /
 USER postgres
-RUN echo "listen_addresses='127.0.0.1'" >> /etc/postgresql/13/main/postgresql.conf
+RUN echo "listen_addresses='127.0.0.1'" >> /etc/postgresql/15/main/postgresql.conf
 RUN /etc/init.d/postgresql start && \
     psql --command "CREATE USER sosse WITH PASSWORD 'CHANGE ME';" && \
     createdb -O sosse sosse && \

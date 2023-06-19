@@ -19,11 +19,11 @@ The initial database data can be injected with the following commands:
 
 .. code-block:: shell
 
-   sosse-admin migrate
-   sosse-admin update_se
+   |sosse-admin| migrate
+   |sosse-admin| update_se
 
 A default ``admin`` user with password ``admin`` can be created with:
 
 .. code-block:: shell
 
-   sosse-admin default_admin
+   |sosse-admin| default_admin

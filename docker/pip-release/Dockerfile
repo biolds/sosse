@@ -1,7 +1,8 @@
 FROM biolds/sosse:pip-base
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
-RUN pip install sosse uwsgi && pip cache purge
+RUN virtualenv /venv
+RUN /venv/bin/pip install sosse uwsgi && /venv/bin/pip cache purge
 RUN mkdir -p /etc/sosse/ /etc/sosse_src/ /var/log/sosse /var/log/uwsgi
 RUN sosse-admin default_conf | sed -e 's/^#db_pass.*/db_pass=sosse/' -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox/' > /etc/sosse_src/sosse.conf
 ADD uwsgi.* /etc/sosse_src/
@@ -25,7 +26,7 @@ sosse-admin migrate \n \
 sosse-admin collectstatic --noinput \n \
 sosse-admin update_se \n \
 sosse-admin default_admin \n \
-/usr/local/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log & \n \
+/venv/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log & \n \
 /etc/init.d/nginx start \n \
 sosse-admin crawl & \n \
 tail -F /var/log/sosse/crawler.log' > /run.sh ; chmod +x /run.sh

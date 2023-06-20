@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-set -e
 CODE_BLOCK_FILE="$1"
 DOC_SRC="$2"
 
@@ -7,6 +6,12 @@ code_length="$(jq --arg SRC "$DOC_SRC" '[.[] | select(.src == $SRC and (.lang ==
 
 function code_no() {
     jq -r --arg IDX "$1" --arg SRC "$DOC_SRC" '[.[] | select(.src == $SRC and (.lang == "shell" or .lang == "default"))][$IDX|tonumber].code' < "$CODE_BLOCK_FILE"
+}
+
+function show_error() {
+    f="$(jq -r --arg IDX "$1" --arg SRC "$DOC_SRC" '[.[] | select(.src == $SRC and (.lang == "shell" or .lang == "default"))][$IDX|tonumber].source' < "$CODE_BLOCK_FILE")"
+    l="$(jq -r --arg IDX "$1" --arg SRC "$DOC_SRC" '[.[] | select(.src == $SRC and (.lang == "shell" or .lang == "default"))][$IDX|tonumber].line' < "$CODE_BLOCK_FILE")"
+    echo "Failed on $f, line $l." >&2
 }
 
 if [ "$code_length" == "0" ]
@@ -33,6 +38,12 @@ do
             do
                 echo "----- $line"
                 eval "$line"
+                exit_status=$?
+                if [ $exit_status != 0 ]
+                then
+                    show_error "$block_no"
+                    exit 1
+                fi
             done
         fi
     fi

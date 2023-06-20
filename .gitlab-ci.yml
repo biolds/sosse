@@ -115,7 +115,7 @@ doc:
     - functional_tests
   script:
     - make _build_doc
-    - test -n "RTD_TOKEN" && curl -X POST -d "branches=main" -d "token=$RTD_TOKEN" -d "default_branch=main" https://readthedocs.org/api/v2/webhook/sosse/236935/ || true
+    - test -n "$RTD_TOKEN" && curl -X POST -d "branches=main" -d "token=$RTD_TOKEN" -d "default_branch=main" https://readthedocs.org/api/v2/webhook/sosse/236935/ || true
 
 pip_pkg:
   image: biolds/sosse:pip-test

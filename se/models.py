@@ -385,8 +385,14 @@ class Document(models.Model):
         beautified_url = url_beautify(page.url)
         normalized_url = beautified_url.split('://', 1)[1].replace('/', ' ').strip()
         self.normalized_url = remove_accent(normalized_url)
-        from magic import from_buffer as magic_from_buffer
-        self.mimetype = magic_from_buffer(page.content, mime=True)
+
+        # dirty hack to avoid some errors (as triggered since bookworm during tests)
+        magic_head = page.content[:10].strip().lower()
+        if magic_head.startswith('<html'):
+            self.mimetype = 'text/html'
+        else:
+            from magic import from_buffer as magic_from_buffer
+            self.mimetype = magic_from_buffer(page.content, mime=True)
 
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):
             crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))

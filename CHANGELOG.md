@@ -1,3 +1,12 @@
+## 1.1.0 (2023-06-18)
+### Features (3 changes)
+- [Debian Bookworm support](biolds1/sosse@b2112e5a0a526e777600499d726002ad62612aac) ([merge request](biolds1/sosse!10))
+- [browsable archive on homepage view](biolds1/sosse@f3f2c065f63ada182e0f6154b5586dcae1ea5158) ([merge request](biolds1/sosse!8))
+- [automatically follow redirection in cached pages](biolds1/sosse@5d2a40ef0d253a5e47746d25d725794d58216cb2) ([merge request](biolds1/sosse!7))
+### Bug fixes (2 changes)
+- [fix resolving links when the header has a <base> tag](biolds1/sosse@ff6d4f2d33d6395be87c026c5c9f87c457d5f1a7) ([merge request](biolds1/sosse!6))
+- [scroll all elements when taking screenshots](biolds1/sosse@1001d51d41241fb971bde65f5f2fa22e583eff17) ([merge request](biolds1/sosse!5))
+
 ## 1.0.1 (2023-05-01)
 ### Features (1 change)
 - [doc improvements](biolds1/sosse@1f2cbcc6f4fc9d537358147aa39e538e1020e9ce)

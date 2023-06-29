@@ -1,3 +1,7 @@
+## 1.1.1 (2023-06-29)
+### Bug fixes (1 change)
+- [misc Bookworm, Docker and Selenium fixes](biolds1/sosse@54fcc7043bfc34a6125fa301d58c08ea02e0b292) ([merge request](biolds1/sosse!12))
+
 ## 1.1.0 (2023-06-18)
 ### Features (3 changes)
 - [Debian Bookworm support](biolds1/sosse@b2112e5a0a526e777600499d726002ad62612aac) ([merge request](biolds1/sosse!10))

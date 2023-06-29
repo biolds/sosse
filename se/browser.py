@@ -29,6 +29,7 @@ import requests
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
+from urllib3.exceptions import HTTPError
 
 
 crawl_logger = logging.getLogger('crawler')
@@ -317,7 +318,7 @@ def retry(f):
                 r = f(*args, **kwargs)
                 crawl_logger.debug('%s succeeded' % f)
                 return r
-            except WebDriverException:
+            except (WebDriverException, HTTPError):
                 exc = traceback.format_exc()
                 crawl_logger.error('%s failed' % f)
                 crawl_logger.error('Selenium returned an exception:\n%s' % exc)

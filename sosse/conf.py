@@ -225,7 +225,7 @@ DEFAULTS = OrderedDict([
             'default': '1920x1080'
         }],
         ['browser_options', {
-            'comment': "Options passed to Chromium's command line.\nYou may need to add ``--no-sandbox`` to run the crawler in a virtualized container.",
+            'comment': "Options passed to Chromium's command line.\nYou may need to add ``--no-sandbox`` to run the crawler as root,\nor ``--disable-dev-shm-usage`` to run in a virtualized container.",
             'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
         }],
         ['js_stable_time', {

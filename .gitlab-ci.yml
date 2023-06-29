@@ -26,7 +26,7 @@ unit_tests:
     - mkdir -p /var/lib/sosse/screenshots/ /var/lib/sosse/downloads/0 && chown -R www-data:www-data /var/lib/sosse/
     - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
     - export PYTHONPATH="$CI_PROJECT_DIR"
-    - /tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
+    - /tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox --disable-dev-shm-usage/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
     - /tmp/sudo_sosse test -v3 --failfast
     - /tmp/sudo_sosse load_se tests/opensearch.xml
     - /tmp/sudo_sosse update_se

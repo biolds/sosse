@@ -12,7 +12,7 @@ RUN virtualenv /venv
 RUN /venv/bin/pip install ./ && /venv/bin/pip install uwsgi && /venv/bin/pip cache purge
 ADD debian/sosse.conf /etc/nginx/sites-enabled/default
 RUN mkdir -p /etc/sosse/ /etc/sosse_src/ /var/log/sosse /var/log/uwsgi
-RUN /venv/bin/sosse-admin default_conf | sed -e 's/^#db_pass.*/db_pass=sosse/' -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox/' > /etc/sosse_src/sosse.conf
+RUN /venv/bin/sosse-admin default_conf | sed -e 's/^#db_pass.*/db_pass=sosse/' -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' > /etc/sosse_src/sosse.conf
 ADD debian/uwsgi.* /etc/sosse_src/
 RUN chown -R root:www-data /etc/sosse /etc/sosse_src && chmod 750 /etc/sosse_src/ && chmod 640 /etc/sosse_src/*
 

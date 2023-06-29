@@ -16,7 +16,7 @@ RUN apt install -y sosse && \
 
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*
-RUN sed -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox/' -i /etc/sosse/sosse.conf
+RUN sed -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
 
@@ -41,7 +41,7 @@ chown -R www-data:www-data /run/sosse \n \
 sosse-admin migrate \n \
 sosse-admin update_se \n \
 sosse-admin collectstatic --noinput \n \
-/usr/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini & \n \
+/usr/bin/uwsgi --uid www-data --gid www-data --plugin python3 --ini /etc/sosse/uwsgi.ini & \n \
 /etc/init.d/nginx start \n \
 sosse-admin crawl & \n \
 tail -F /var/log/sosse/crawler.log' > /run.sh ; chmod +x /run.sh

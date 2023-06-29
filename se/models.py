@@ -388,7 +388,9 @@ class Document(models.Model):
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
         magic_head = page.content[:10].strip().lower()
-        if magic_head.startswith('<html'):
+        is_html = isinstance(magic_head, str) and magic_head.startswith('<html')
+        is_html |= isinstance(magic_head, bytes) and magic_head.startswith(b'<html')
+        if is_html:
             self.mimetype = 'text/html'
         else:
             from magic import from_buffer as magic_from_buffer

@@ -1,3 +1,7 @@
+## 1.1.2 (2023-06-30)
+### Bug fixes (1 change)
+- [fix database configuration documentation](biolds1/sosse@d10379ffbdfe19bbaef302822110641e9495f75a)
+
 ## 1.1.1 (2023-06-29)
 ### Bug fixes (1 change)
 - [misc Bookworm, Docker and Selenium fixes](biolds1/sosse@54fcc7043bfc34a6125fa301d58c08ea02e0b292) ([merge request](biolds1/sosse!12))

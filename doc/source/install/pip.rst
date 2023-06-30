@@ -47,7 +47,7 @@ Static files will be copied to their target location with the following command.
 Database setup
 --------------
 
-.. include:: database_pip.rst
+.. include:: database_pip_generated.rst
 
 WSGI server
 -----------

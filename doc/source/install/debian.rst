@@ -26,7 +26,7 @@ The SOSSE package can then be installed with its dependencies:
 Database setup
 --------------
 
-.. include:: database_debian.rst
+.. include:: database_debian_generated.rst
 
 Daemons setup
 -------------

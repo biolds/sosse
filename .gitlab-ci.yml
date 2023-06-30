@@ -91,6 +91,8 @@ doc_gen:
     - ./sosse-admin extract_doc cli > doc/source/cli_generated.rst
     - ./sosse-admin extract_doc se > doc/source/user/shortcut_list_generated.rst
     - ./doc/build_changelog.sh > doc/source/CHANGELOG.md
+    - sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
+    - sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
 
 doc_code_extract:
   image: biolds/sosse:doc

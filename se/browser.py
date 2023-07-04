@@ -432,6 +432,18 @@ class SeleniumBrowser(Browser):
         return redirect_count
 
     @classmethod
+    def remove_nav_elements(cls):
+        cls.driver.execute_script('''
+        const tags = ['nav', 'header', 'footer'];
+        tags.map((tag) => {
+            const elems = document.getElementsByTagName(tag);
+            for (no = 0; no < elems.length; no++) {
+                elems[no].remove();
+            }
+        });
+        ''')
+
+    @classmethod
     def _get_page(cls, url):
         from .models import CrawlPolicy
         redirect_count = cls._wait_for_ready(url)
@@ -441,6 +453,9 @@ class SeleniumBrowser(Browser):
         if crawl_policy and crawl_policy.script:
             cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready(url)
+
+        if crawl_policy and crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_YES:
+            cls.remove_nav_elements()
 
         content = cls.driver.page_source
         page = Page(current_url,

@@ -93,6 +93,11 @@ Format of the image JPG or PNG.
 
 .. _script_params:
 
+Remove navigation related elements
+""""""""""""""""""""""""""""""""""
+
+This option removes HTML elements `<nav>`, `<header>` and `<footer>` before processing the page.
+
 Script
 """"""
 

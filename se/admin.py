@@ -458,7 +458,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'mimetype_regex', 'keep_params', 'store_extern_links')
         }),
         ('Browser', {
-            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'script')
+            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'remove_nav_elements', 'script')
         }),
         ('Updates', {
             'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')

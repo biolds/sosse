@@ -300,6 +300,9 @@ class Document(models.Model):
         if elem.name in ('[document]', 'title', 'script', 'style'):
             return
 
+        if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_YES and elem.name in ('nav', 'header', 'footer'):
+            return
+
         s = self._get_elem_text(elem)
 
         # Keep the link if it has text, or if we take screenshots
@@ -1361,6 +1364,14 @@ class CrawlPolicy(models.Model):
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_SELENIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
     take_screenshots = models.BooleanField(default=True)
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
+
+    REMOVE_NAV_YES = 'yes'
+    REMOVE_NAV_NO = 'no'
+    REMOVE_NAV = [
+        (REMOVE_NAV_YES, 'Yes'),
+        (REMOVE_NAV_NO, 'No')
+    ]
+    remove_nav_elements = models.CharField(default=REMOVE_NAV_YES, help_text='Remove navigation related elements', choices=REMOVE_NAV, max_length=4)
     script = models.TextField(default='', help_text='Javascript code to execute after the page is loaded', blank=True)
     store_extern_links = models.BooleanField(default=False, help_text='Store links to non-indexed pages')
 

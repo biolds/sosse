@@ -21,7 +21,7 @@ import base64
 from django.test import TestCase
 
 from se.browser import Browser, SeleniumBrowser, Page
-from se.models import CrawlPolicy
+from se.models import CrawlPolicy, Document
 
 
 LINKS = ({
@@ -120,7 +120,7 @@ class PageTest(TestCase):
     @classmethod
     def setUpClass(cls):
         Browser.init()
-        CrawlPolicy.create_default()
+        cls.policy = CrawlPolicy.create_default()
 
     @classmethod
     def tearDownClass(cls):
@@ -144,3 +144,18 @@ class PageTest(TestCase):
         for no, link in enumerate(links):
             expected = LINKS[no].get('expected_output', LINKS[no]['link'])
             self.assertEqual(link, expected, '%s failed' % LINKS[no]['descr'])
+
+    NAV_HTML = '<html><body><header>header</header><nav>nav</nav>text<footer>footer</footer></body></html>'
+
+    def test_30_no_nav_element(self):
+        page = Page('http://test/', self.NAV_HTML, None)
+        doc = Document()
+        doc.index(page, self.policy)
+        self.assertEqual(doc.content, 'text')
+
+    def test_40_nav_element(self):
+        page = Page('http://test/', self.NAV_HTML, None)
+        doc = Document()
+        self.policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
+        doc.index(page, self.policy)
+        self.assertEqual(doc.content, 'header nav text footer')

@@ -2,7 +2,7 @@ let images, links;
 
 function resize() {
     // width with implicit margin
-    const w_width = document.body.getBoundingClientRect().width + 8;
+    const w_width = document.body.getBoundingClientRect().width;
     const ratio = w_width / screen_width;
 
     for (let i = 0; i < images.length; i++) {
@@ -29,4 +29,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
 
     resize();
+
+    // Work-around in case the initial resize() was done while no image was loaded yet
+    setTimeout(resize, 300);
 });

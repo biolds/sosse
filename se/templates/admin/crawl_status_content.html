@@ -1,3 +1,4 @@
+{% load static %}
 <h4>Crawlers</h4>
 {% if crawlers %}
   <div class="results">
@@ -60,6 +61,8 @@
     <table id="result_list" style="width: 100%">
       <thead>
         <th><div class="text">Url</div></th>
+        <th><div class="text">Title</div></th>
+        <th><div class="text">Status</div></th>
         <th><div class="text">Crawl next</div></th>
         <th><div class="text">Crawled last</div></th>
       </thead>
@@ -70,6 +73,18 @@
               <a href="{% url 'admin:se_document_change' doc.id %}">
                 {{ doc.url }}
               </a>
+            </td>
+            <td>
+              <a href="{% url 'admin:se_document_change' doc.id %}">
+                {{ doc.title }}
+              </a>
+            </td>
+            <td>
+                {% if doc.error %}
+                    <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
+                {% else %}
+                    <img src="{% static "admin/img/icon-yes.svg" %}" alt="True">
+                {% endif %}
             </td>
             {% if doc.worker_no is not None %}
                <td>In progress</td>

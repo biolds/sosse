@@ -19,7 +19,15 @@ setInterval(refresh, {{ settings.SOSSE_CRAWL_STATUS_AUTOREFRESH }} * 1000);
   white-space: nowrap;
   overflow: hidden;
   max-width: 0;
-  width: 70%;
+  width: 35%;
+  text-overflow: ellipsis;
+}
+
+#result_list th:nth-child(2), #result_list td:nth-child(2) {
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 0;
+  width: 35%;
   text-overflow: ellipsis;
 }
 

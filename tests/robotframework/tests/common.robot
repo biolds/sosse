@@ -10,6 +10,7 @@
 |  | Input Text | id=id_username | admin
 |  | Input Text | id=id_password | admin
 |  | Click Element | xpath=//form[@id='login-form']//input[@type='submit']
+|  | Wait Until Element Is Visible | id=menu_username
 
 
 | Hilight | [Arguments] | @{kwargs}

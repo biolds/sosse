@@ -1,3 +1,10 @@
+## 1.2.0 (2023-07-14)
+### Features (2 changes)
+- [crawling status improvements](biolds1/sosse@848fba81977bf56780430592261bd0847ee52110) ([merge request](biolds1/sosse!18))
+- [navigation elements removal](biolds1/sosse@0d9d3582486ed45202359fa5174aadc5bb945d3d) ([merge request](biolds1/sosse!16))
+### Bug fixes (1 change)
+- [fix screenshots resize](biolds1/sosse@5f6ca3441cd402b5d71ad77598b0e8a17c80dbd6) ([merge request](biolds1/sosse!17))
+
 ## 1.1.2 (2023-06-30)
 ### Bug fixes (1 change)
 - [fix database configuration documentation](biolds1/sosse@d10379ffbdfe19bbaef302822110641e9495f75a)

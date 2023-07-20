@@ -53,6 +53,11 @@ class PageTooBig(SkipIndexing):
         super().__init__(self, f'Document size is too big ({size} > {conf_size}). Increase the `max_file_size` option in the configuration to index this file.')
 
 
+class TooManyRedirects(SkipIndexing):
+    def __init__(self):
+        super().__init__(f'Max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached. You can increase the `max_redirects` option in the configuration file in case it\'s needed.')
+
+
 class Page:
     def __init__(self, url, content, browser):
         from .models import sanitize_url
@@ -268,7 +273,7 @@ class RequestBrowser(Browser):
             break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
-            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached')
+            raise TooManyRedirects()
 
         page.redirect_count = redirect_count
         return page
@@ -435,7 +440,7 @@ class SeleniumBrowser(Browser):
                 break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
-            raise SkipIndexing(f'max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached')
+            raise TooManyRedirects()
 
         return redirect_count
 

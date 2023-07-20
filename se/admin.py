@@ -162,8 +162,8 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage')
     search_fields = ['url__regex', 'title__regex']
     fields = ['url', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
-              'error', 'crawl_first', 'crawl_last', 'crawl_next', 'crawl_dt', 'crawl_recurse',
-              'robotstxt_rejected', 'too_many_redirects', 'mimetype', 'lang', '_content']
+              'error', 'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse',
+              'robotstxt_rejected', 'too_many_redirects', 'mimetype', '_lang_txt', '_content']
     readonly_fields = copy(fields)
     readonly_fields.remove('show_on_homepage')
     ordering = ('-crawl_last',)
@@ -341,10 +341,30 @@ class DocumentAdmin(admin.ModelAdmin):
             return defaultfilters.date(obj.crawl_next, 'DATETIME_FORMAT')
 
     @staticmethod
+    @admin.display(description='Crawl next')
+    def _crawl_next_txt(obj):
+        if obj:
+            if obj.crawl_next:
+                return defaultfilters.date(obj.crawl_next, 'DATETIME_FORMAT')
+            elif obj.crawl_last:
+                return 'No crawl scheduled'
+            elif not obj.crawl_last:
+                return 'When a worker is available'
+
+    @staticmethod
     @admin.display(ordering='crawl_last')
     def _crawl_last(obj):
         if obj:
             return defaultfilters.date(obj.crawl_last, 'DATETIME_FORMAT')
+
+    @staticmethod
+    @admin.display(description='Crawl last')
+    def _crawl_last_txt(obj):
+        if obj:
+            if obj.crawl_last:
+                return defaultfilters.date(obj.crawl_last, 'DATETIME_FORMAT')
+            else:
+                return 'Not yet crawled'
 
     @staticmethod
     def fav(obj):
@@ -395,11 +415,17 @@ class DocumentAdmin(admin.ModelAdmin):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
 
     @staticmethod
+    @admin.display(description='Language')
+    def _lang_txt(obj):
+        if obj.lang_iso_639_1:
+            return obj.lang_flag(full=True)
+
+    @staticmethod
     @admin.display(description='Content')
     def _content(obj):
         if obj.redirect_url:
             url = reverse_no_escape('cache', args=[obj.redirect_url])
-            return format_html('Redirected to <a href="{}">{}</a>', url, obj.redirect_url)
+            return format_html('This page redirects to <a href="{}">{}</a>', url, obj.redirect_url)
         return obj.content
 
     def delete_model(self, request, obj):

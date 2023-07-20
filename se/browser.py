@@ -31,6 +31,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from urllib3.exceptions import HTTPError
 
+from .utils import human_filesize
 
 crawl_logger = logging.getLogger('crawler')
 
@@ -43,6 +44,13 @@ class AuthElemFailed(Exception):
 
 class SkipIndexing(Exception):
     pass
+
+
+class PageTooBig(SkipIndexing):
+    def __init__(self, size):
+        size = human_filesize(size)
+        conf_size = human_filesize(settings.SOSSE_MAX_FILE_SIZE * 1024)
+        super().__init__(self, f'Document size is too big ({size} > {conf_size}). Increase the `max_file_size` option in the configuration to index this file.')
 
 
 class Page:
@@ -197,7 +205,7 @@ class RequestBrowser(Browser):
         content_length = int(r.headers.get('content-length', 0))
         if content_length / 1024 > settings.SOSSE_MAX_FILE_SIZE:
             r.close()
-            raise SkipIndexing(f'document size is too big ({content_length} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise PageTooBig(content_length)
 
         content = b''
         for chunk in r.iter_content(chunk_size=1024):
@@ -207,7 +215,7 @@ class RequestBrowser(Browser):
         r.close()
 
         if len(content) / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-            raise SkipIndexing(f'document size is too big ({len(content)} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise PageTooBig(len(content))
 
         r._content = content
         crawl_logger.debug('after request jar: %s', s.cookies)
@@ -597,14 +605,14 @@ class SeleniumBrowser(Browser):
 
             if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
                 SeleniumBrowser.destroy()  # cancel the download
-                raise SkipIndexing(f'document size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+                raise PageTooBig(size)
 
         crawl_logger.debug('Download done: %s' % os.listdir('.'))
 
         filename = os.listdir('.')[0]
         size = os.stat(filename).st_size
         if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-            raise SkipIndexing(f'document size is too big ({size} / {settings.SOSSE_MAX_FILE_SIZE}k)')
+            raise PageTooBig(size)
         with open(filename, 'rb') as f:
             content = f.read()
 

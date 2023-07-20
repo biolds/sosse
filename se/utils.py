@@ -102,6 +102,20 @@ def human_dt(d, short=False):
     return 'now'
 
 
+def get_unit(n):
+    units = ['', 'k', 'M', 'G', 'T', 'P']
+    unit_no = 0
+    while n >= 1000:
+        unit_no += 1
+        n /= 1000
+    return 10 ** (unit_no * 3), units[unit_no]
+
+
+def human_filesize(n):
+    factor, unit = get_unit(n)
+    return '%0.1f%sB' % (n / factor, unit)
+
+
 def reverse_no_escape(url, args):
     assert isinstance(args, (list, tuple))
     assert len(args) == 1

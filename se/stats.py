@@ -25,21 +25,8 @@ import pygal
 
 from .login import login_required
 from .models import CrawlerStats, Document, DAILY, MINUTELY
+from .utils import get_unit, human_filesize
 from .views import get_context
-
-
-def get_unit(n):
-    units = ['', 'k', 'M', 'G', 'T', 'P']
-    unit_no = 0
-    while n >= 1000:
-        unit_no += 1
-        n /= 1000
-    return 10 ** (unit_no * 3), units[unit_no]
-
-
-def filesizeformat(n):
-    factor, unit = get_unit(n)
-    return '%0.1f%sB' % (n / factor, unit)
 
 
 def datetime_graph(pygal_config, pygal_style, freq, data, col, _now):
@@ -209,11 +196,11 @@ def stats(request):
                 screenshot_size += os.path.getsize(fp)
 
     hdd_pie = pygal.Pie(pygal_config, style=pygal_style, disable_xml_declaration=True)
-    hdd_pie.title = 'HDD size (total %s)' % filesizeformat(hdd_size)
-    hdd_pie.add('DB(%s)' % filesizeformat(db_size), db_size)
-    hdd_pie.add('Screenshots(%s)' % filesizeformat(screenshot_size), screenshot_size)
-    hdd_pie.add('Other(%s)' % filesizeformat(hdd_other), hdd_other)
-    hdd_pie.add('Free(%s)' % filesizeformat(hdd_free), hdd_free)
+    hdd_pie.title = 'HDD size (total %s)' % human_filesize(hdd_size)
+    hdd_pie.add('DB(%s)' % human_filesize(db_size), db_size)
+    hdd_pie.add('Screenshots(%s)' % human_filesize(screenshot_size), screenshot_size)
+    hdd_pie.add('Other(%s)' % human_filesize(hdd_other), hdd_other)
+    hdd_pie.add('Free(%s)' % human_filesize(hdd_free), hdd_free)
 
     # Crawler stats
     context = get_context({
@@ -222,8 +209,8 @@ def stats(request):
         # index
         'doc_count': doc_count,
         'lang_count': len(indexed_langs),
-        'db_size': filesizeformat(db_size),
-        'doc_size': 0 if doc_count == 0 else filesizeformat(db_size / doc_count),
+        'db_size': human_filesize(db_size),
+        'doc_size': 0 if doc_count == 0 else human_filesize(db_size / doc_count),
         'lang_recognizable': len(os.listdir(PROFILES_DIRECTORY)),
         'lang_parsable': [lang.title() for lang in sorted(Document.get_supported_langs())],
         'lang_chart': lang_chart,

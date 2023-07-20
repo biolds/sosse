@@ -4,7 +4,7 @@
 {% block head %}
     <script type="text/javascript" src="{% static "se/screenshot.js" %}"></script>
     {% for screen in screens %}
-         <link rel="preload" href="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}" as="image" type="{{ screenshot_mime }}"/>
+         <link rel="preload" href="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}?cachetime={{ doc.crawl_last|date:'U' }}" as="image" type="{{ screenshot_mime }}"/>
     {% endfor %}
 {% endblock %}
 
@@ -47,7 +47,7 @@ const screen_height = {{ screenshot_size.1 }};
        <a class="img_link" style="left: {{ link.pos_left }}px; top: {{ link.pos_top }}px; width: {{ link.pos_width }}px; height: {{ link.pos_height }}px;" data-loc="{{ link.screen_pos }}" {% if link.doc_to %}href="{{ link.doc_to.get_absolute_url }}" title="{{ link.doc_to.title }}"{% else %}href="{{ link.extern_url }}" title="{{ link.extern_url }}"{% endif %}></a>
     {% endfor %}
     {% for screen in screens %}
-         <img src="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}"/>
+         <img src="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}?cachetime={{ doc.crawl_last|date:'U' }}"/>
     {% endfor %}
     </div>
 {% endblock %}

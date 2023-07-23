@@ -55,11 +55,14 @@
 
 | Cache
 |  | Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
+|  | Click Element | id=fold_button
 |  | Capture Page Screenshot | cache_header.png
 |  | Reload Page
+|  | Select Frame | xpath=//iframe[1]
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]
 |  | Capture Page Screenshot | cache_screenshot.png
+|  | Unselect Frame
 
 | Browsable home
 |  | [Tags] | browsable_home

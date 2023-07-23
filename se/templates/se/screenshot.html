@@ -1,56 +1,7 @@
-{% extends "se/base.html" %}
+{% extends "se/base_fold.html" %}
 {% load static %}
 
-{% block head %}
-    <script type="text/javascript" src="{% static "se/screenshot.js" %}"></script>
-    {% for screen in screens %}
-         <link rel="preload" href="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}?cachetime={{ doc.crawl_last|date:'U' }}" as="image" type="{{ screenshot_mime }}"/>
-    {% endfor %}
-{% endblock %}
-
-{% block js %}
-const screen_width = {{ screenshot_size.0 }};
-const screen_height = {{ screenshot_size.1 }};
-{% endblock %}
-
-{% block css %}
-    #error_pre {
-        overflow: scroll;
-        border: 1px;
-        border-style: solid;
-        border-color: #aaa;
-        background-color: #fdd;
-    }
-    #screenshots {
-        position: absolute;
-        margin-left: -40px;
-    }
-    #screenshots > img {
-        margin-top: -5px;
-    }
-    .img_link {
-        position: absolute;
-        margin-top: -4px;
-    }
-    .img_link:hover {
-        position: absolute;
-        box-shadow: 0px 0px 4px 4px #91baff;
-        margin: -4px 0px 0px -2px;
-        padding: 0px 8px 4px 0px;
-    }
-{% endblock %}
-
-{% block top_bar %}
-    {% include "se/cached.html" %}
-{% endblock %}
-
-{% block body %}
-    <div id="screenshots">
-    {% for link in links %}
-       <a class="img_link" style="left: {{ link.pos_left }}px; top: {{ link.pos_top }}px; width: {{ link.pos_width }}px; height: {{ link.pos_height }}px;" data-loc="{{ link.screen_pos }}" {% if link.doc_to %}href="{{ link.doc_to.get_absolute_url }}" title="{{ link.doc_to.title }}"{% else %}href="{{ link.extern_url }}" title="{{ link.extern_url }}"{% endif %}></a>
-    {% endfor %}
-    {% for screen in screens %}
-         <img src="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}?cachetime={{ doc.crawl_last|date:'U' }}"/>
-    {% endfor %}
-    </div>
+{% block body_no_margin %}
+    {{ block.super }}
+    <iframe src="{{ url }}" sandbox="allow-top-navigation allow-same-origin allow-scripts"></iframe>
 {% endblock %}

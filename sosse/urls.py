@@ -34,7 +34,7 @@ from django.urls import path, re_path
 from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
 from se.atom import atom
 from se.cached import cache_redirect
-from se.screenshot import screenshot
+from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
 from se.words import words
 from se.www import www
@@ -54,6 +54,7 @@ urlpatterns = [
     path('opensearch.xml', opensearch, name='opensearch'),
     re_path(r'favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
     re_path(r'screenshot/.*', screenshot, name='screenshot'),
+    re_path(r'screenshot_full/.*', screenshot_full, name='screenshot_full'),
     re_path(r'www/.*', www, name='www'),
     re_path(r'words/.*', words, name='words'),
     re_path(r'cache/.*', cache_redirect, name='cache'),

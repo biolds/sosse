@@ -79,6 +79,8 @@ TEST_RUNNER = 'sosse.test_runner.SuiteRunner'
 
 WSGI_APPLICATION = 'sosse.wsgi.application'
 
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

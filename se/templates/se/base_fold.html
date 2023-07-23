@@ -1,0 +1,66 @@
+{% extends "se/base.html" %}
+{% load static %}
+
+{% block css %}
+    body {
+        overflow: hidden;
+    }
+    #top_bar {
+	    top: 0;
+	    left: 0;
+	    right: 0;
+
+	    z-index: 999;
+	    position: absolute;
+	    background-color: #fff;
+        display: none;
+    }
+    iframe {
+        border: 0;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0; 
+    }
+    #fold_button {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        padding: 3px;
+        z-index: 1000;
+    }
+    #fold_button > img {
+        vertical-align: top;
+        width: 16px;
+        height: 16px;
+    }
+{% endblock %}
+
+{% block js %}
+    function fold_switch() {
+        const top_bar = document.getElementById('top_bar');
+        const fold_button = document.getElementById('fold_button');
+
+        if (top_bar.style.display === 'block') {
+            top_bar.style.display = 'none';
+            fold_button.innerHTML = fold_button.innerHTML.replace('Hide', 'Show')
+        } else {
+            top_bar.style.display = 'block';
+            fold_button.innerHTML = fold_button.innerHTML.replace('Show', 'Hide')
+        }
+    }
+{% endblock %}
+
+{% block top_bar %}
+    {% include "se/cached.html" %}
+{% endblock %}
+
+{% block body_no_margin %}
+    <button id="fold_button" onclick="fold_switch()">
+        <img src="{% static "se/logo.svg" %}">
+        Show
+    </button>
+{% endblock %}

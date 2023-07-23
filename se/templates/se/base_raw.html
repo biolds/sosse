@@ -1,0 +1,37 @@
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
+<head>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="robots" content="NONE,NOARCHIVE">
+    <meta charset="utf-8">
+    {% if favicon %}
+        <link rel="icon" href="{{ favicon }}" />
+    {% else %}
+        <link rel="icon" href="{% static "se/logo.svg" %}" />
+    {% endif %}
+    <title>SOSSE{% if title %} · {{ head_title|default:title }}{% endif %}</title>
+    <script src="{% static 'se/base.js' %}"></script>
+
+    {% block head %}
+    {% endblock %}
+
+    <link rel="stylesheet" href="{% static "se/style.css" %}">
+
+    <style>
+        {% block css %}
+        {% endblock %}
+    </style>
+
+    <script>
+        {% block js %}
+        {% endblock %}
+    </script>
+</head>
+{% block body_tag %}
+<body>
+{% endblock %}
+    {% block body_base %}
+    {% endblock %}
+</body>
+</html>

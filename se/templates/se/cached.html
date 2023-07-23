@@ -1,58 +1,24 @@
-<div id="cache_info">
-<h5>Source page <a href="{{ doc.url }}">{{ beautified_url }} 🌍</a></h5>
-<ul>
-    {% if doc.crawl_last %}
-        <li>Last crawled on {{ doc.crawl_last }}</li>
-    {% else %}
-        <li>This page has not been crawled yet</li>
-    {% endif %}
-    {% if doc.crawl_next %}
-        <li>Next crawl is scheduled for {{ doc.crawl_next }}</li>
-    {% elif not doc.crawl_last %}
-        <li>This page will be crawled when a worker is available</li>
-    {% else %}
-        <li>No crawl is scheduled</li>
-    {% endif %}
-    {% if doc.crawl_first %}
-        <li>First successfully crawled on {{ doc.crawl_first }}</li>
-    {% endif %}
-    {% if doc.mimetype %}
-        <li>Mimetype {{ doc.mimetype }}</li>
-    {% endif %}
-    {% if doc.crawl_depth is not None %}
-        <li>Page depth is {{ doc.crawl_depth }}</li>
-    {% endif %}
-    {% if doc.robotstxt_rejected %}
-        <li>The crawler was rejected by a robots.txt rule</li>
-    {% endif %}
-    <li>This page follows the policy
-        {% if 'se.view_crawlpolicy' in perms %}
-            <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>
-        {% else %}
-            {{ crawl_policy }}
-        {% endif %}
-    </li>
+<div id="top_bar_links">
+    <p style="color: #080; font-size: 13px">
+        {{ beautified_url }}
+    </p>
+    <a href="{{ doc.url }}">🌍 Source page</a>
     {% if other_links %}
         {% for link in other_links %}
-            <li><a href="{{ link.href }}">{{ link.text }}</a></li>
+            <a href="{{ link.href }}">{{ link.text }}</a>
         {% endfor %}
     {% endif %}
     {% if 'se.view_document' in perms %}
-        <li><a href="{% url 'admin:se_document_change' doc.id %}">Page details</a></li>
+        <a href="{% url 'admin:se_document_change' doc.id %}">⭐ Administration</a>
     {% endif %}
+    <a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">🔗 Pages linking here</a>
+    <a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">🔗 Links from this page</a>
     {% if doc.redirect_url %}
-        <li>This page redirects to <a href="{{ www_redirect_url }}">{{ doc.redirect_url }}</a> · <a href="{{ doc.redirect_url }}">🌍</a></li>
+        <br/>
+        This page redirects to <a href="{{ www_redirect_url }}">{{ doc.redirect_url }}</a> · <a href="{{ doc.redirect_url }}">🌍</a></li>
     {% endif %}
     {% if doc.too_many_redirects %}
-        <li>Redirection was not followed, because the crawler was redirected too many times</li>
+        <br/>
+        Redirection was not followed, because the crawler was redirected too many times
     {% endif %}
-    <li><a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Pages linking here</a></li>
-    <li><a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from this page</a></li>
-</ul>
-{% if doc.error %}
-    Last crawl triggered an error:
-    <pre id="error_pre">
-        {{ doc.error }}
-    </pre>
-{% endif %}
 </div>

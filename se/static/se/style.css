@@ -16,6 +16,9 @@ li:nth-of-type(2n + 1) {
     padding: 8px;
     box-shadow: 0px 5px 5px 0px #e3e5f6;
 }
+#top_bar_links a {
+    margin-left: 10px
+}
 #logo img {
     vertical-align: middle;
     width: 35px;

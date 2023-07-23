@@ -55,8 +55,7 @@
 
 | Cache
 |  | Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
-|  | Hilight | id=cache_info
-|  | Capture Page Screenshot | cache_info.png
+|  | Capture Page Screenshot | cache_header.png
 |  | Reload Page
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]

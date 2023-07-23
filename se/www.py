@@ -65,9 +65,9 @@ def www(request):
     if doc.screenshot_file:
         context['other_links'] = [{
             'href': reverse_no_escape('screenshot', args=[doc.url]),
-            'text': 'Screenshot'
+            'text': '📷 Screenshot'
         }, {
             'href': reverse_no_escape('words', args=[doc.url]),
-            'text': 'Words weight',
+            'text': '📚 Words weight',
         }]
     return render(request, 'se/www.html', context)

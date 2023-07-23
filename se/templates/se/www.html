@@ -1,19 +1,11 @@
 {% extends "se/base.html" %}
 
-{% block css %}
-    #error_pre {
-        overflow: scroll;
-        border: 1px;
-        border-style: solid;
-        border-color: #aaa;
-        background-color: #fdd;
-    }
+{% block top_bar %}
+    {% include "se/cached.html" %}
 {% endblock %}
 
 {% block body %}
-    {% include "se/cached.html" %}
     {% if content %}
-        <hr/>
         {{ content }}
     {% endif %}
 {% endblock %}

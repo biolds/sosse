@@ -39,10 +39,10 @@ def screenshot(request):
         'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
         'other_links': [{
             'href': reverse_no_escape('www', args=[doc.url]),
-            'text': 'Text version',
+            'text': '✒ Text version',
         }, {
             'href': reverse_no_escape('words', args=[doc.url]),
-            'text': 'Words weight',
+            'text': '📚 Words weight',
         }],
         'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
         'screens': range(doc.screenshot_count or 0)

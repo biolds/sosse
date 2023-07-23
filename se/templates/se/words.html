@@ -1,9 +1,11 @@
 {% extends "se/base.html" %}
 {% load static %}
 
-{% block body %}
+{% block top_bar %}
     {% include "se/cached.html" %}
-    <hr/>
+{% endblock %}
+
+{% block body %}
     <ul>
         <li>{{ lang }} detected</li>
         <li>The document has {{ doc.content.split|length }} words</li>

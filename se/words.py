@@ -36,10 +36,10 @@ def words(request):
     context.update({
         'other_links': [{
             'href': reverse_no_escape('www', args=[doc.url]),
-            'text': 'Text version',
+            'text': '✒ Text version',
         }, {
             'href': reverse_no_escape('screenshot', args=[doc.url]),
-            'text': 'Screenshot'
+            'text': '📷 Screenshot'
         }],
         'words': words,
         'lang': doc.lang_flag(True)

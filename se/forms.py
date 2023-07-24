@@ -16,7 +16,7 @@
 from django import forms
 from django.conf import settings
 
-from .models import Document, sanitize_url, validate_url
+from .document import Document, sanitize_url, validate_url
 
 
 SORT = (

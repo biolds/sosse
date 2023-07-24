@@ -15,8 +15,9 @@
 
 from django.test import TestCase
 
+from .document import Document
 from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
-from .models import AuthField, Cookie, CrawlPolicy, Document, DomainSetting, Link
+from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
 
 
 TEST_SERVER_URL = 'http://127.0.0.1:8000/'

@@ -20,8 +20,9 @@ import base64
 
 from django.test import TestCase
 
+from se.document import Document
 from se.browser import Browser, SeleniumBrowser, Page
-from se.models import CrawlPolicy, Document
+from se.models import CrawlPolicy
 
 
 LINKS = ({

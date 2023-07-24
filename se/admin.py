@@ -28,8 +28,9 @@ from django.utils.timezone import now
 from django.shortcuts import redirect, reverse
 from django.template import defaultfilters, response
 
+from .document import Document
 from .forms import AddToQueueForm
-from .models import AuthField, Document, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
+from .models import AuthField, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
 from .utils import human_datetime, human_dt, reverse_no_escape
 
 

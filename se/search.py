@@ -23,7 +23,7 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
-from .models import Document, remove_accent
+from .document import Document, remove_accent
 
 
 logger = logging.getLogger('web')

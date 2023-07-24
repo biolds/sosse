@@ -60,7 +60,7 @@ class TooManyRedirects(SkipIndexing):
 
 class Page:
     def __init__(self, url, content, browser):
-        from .models import sanitize_url
+        from .document import sanitize_url
         self.url = sanitize_url(url, True, True)
         self.content = content
         self.redirect_count = 0
@@ -397,7 +397,7 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _current_url(cls):
-        from .models import sanitize_url
+        from .document import sanitize_url
         return sanitize_url(cls.driver.current_url, True, True)
 
     @classmethod
@@ -510,7 +510,7 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _load_cookies(cls, url):
-        from se.models import sanitize_url
+        from .document import sanitize_url
         from .models import Cookie
 
         # Cookies can only be set to the same domain,

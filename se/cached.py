@@ -19,7 +19,8 @@ from django.conf import settings
 from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
-from .models import Document, CrawlPolicy, sanitize_url
+from .document import Document, sanitize_url
+from .models import CrawlPolicy
 from .utils import url_beautify, reverse_no_escape
 
 

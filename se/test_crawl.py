@@ -20,7 +20,8 @@ from django.test import TestCase
 from requests import HTTPError
 
 from .browser import Page
-from .models import Document, DomainSetting, Link, CrawlPolicy
+from .document import Document
+from .models import DomainSetting, Link, CrawlPolicy
 
 
 class BrowserMock:
@@ -209,7 +210,7 @@ class CrawlerTest(TestCase):
         self.assertEqual(link.extern_url, 'http://127.0.0.1/page1/')
 
     @mock.patch('se.browser.RequestBrowser.get')
-    @mock.patch('se.models.now')
+    @mock.patch('se.document.now')
     def test_005_recrawl_none(self, now, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
         now.side_effect = lambda: self.fake_now
@@ -232,7 +233,7 @@ class CrawlerTest(TestCase):
         self.assertEqual(doc.crawl_dt, None)
 
     @mock.patch('se.browser.RequestBrowser.get')
-    @mock.patch('se.models.now')
+    @mock.patch('se.document.now')
     def test_006_recrawl_constant(self, now, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
         self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_CONSTANT
@@ -265,7 +266,7 @@ class CrawlerTest(TestCase):
         self.assertEqual(doc.crawl_dt, None)
 
     @mock.patch('se.browser.RequestBrowser.get')
-    @mock.patch('se.models.now')
+    @mock.patch('se.document.now')
     def test_007_recrawl_adaptive(self, now, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': 'Hello world'})
         self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE

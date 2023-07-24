@@ -23,8 +23,9 @@ from django.utils.timezone import now
 from langdetect.detector_factory import PROFILES_DIRECTORY
 import pygal
 
+from .document import Document
 from .login import login_required
-from .models import CrawlerStats, Document, DAILY, MINUTELY
+from .models import CrawlerStats, DAILY, MINUTELY
 from .utils import get_unit, human_filesize
 from .views import get_context
 

@@ -17,8 +17,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
+from .document import Document
 from .forms import SearchForm
-from .models import Document, Link, SearchEngine
+from .models import Link, SearchEngine
 from .search import add_headlines, get_documents
 
 

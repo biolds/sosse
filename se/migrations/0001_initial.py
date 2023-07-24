@@ -138,7 +138,7 @@ class Migration(migrations.Migration):
             name='Document',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('url', models.TextField(unique=True, validators=[se.models.validate_url])),
+                ('url', models.TextField(unique=True, validators=[se.document.validate_url])),
                 ('normalized_url', models.TextField()),
                 ('title', models.TextField()),
                 ('normalized_title', models.TextField()),
@@ -147,7 +147,7 @@ class Migration(migrations.Migration):
                 ('content_hash', models.TextField(blank=True, null=True)),
                 ('vector', django.contrib.postgres.search.SearchVectorField(blank=True, null=True)),
                 ('lang_iso_639_1', models.CharField(blank=True, max_length=6, null=True, verbose_name='Language')),
-                ('vector_lang', se.models.RegConfigField(default='simple')),
+                ('vector_lang', se.document.RegConfigField(default='simple')),
                 ('mimetype', models.CharField(blank=True, max_length=64, null=True)),
                 ('robotstxt_rejected', models.BooleanField(default=False, verbose_name='Rejected by robots.txt')),
                 ('redirect_url', models.TextField(blank=True, null=True)),

@@ -25,9 +25,10 @@ from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from .document import Document, remove_accent
 from .forms import SearchForm
 from .login import login_required
-from .models import Document, FavIcon, SearchEngine, SearchHistory, remove_accent
+from .models import FavIcon, SearchEngine, SearchHistory
 from .search import add_headlines, get_documents
 
 

@@ -22,7 +22,8 @@ from django.utils import timezone
 
 from se.atom import atom
 from se.cached import cache_redirect
-from se.models import CrawlerStats, CrawlPolicy, Document, DomainSetting
+from se.document import Document
+from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
 from se.views import about, history, opensearch, prefs, search, search_redirect, word_stats

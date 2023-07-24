@@ -29,7 +29,7 @@ The default configuration and directories can be created with the commands:
 
 .. code-block:: shell
 
-   mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots
+   mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html
    touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
    chown -R www-data:www-data /run/sosse /var/lib/sosse /var/log/sosse
    mkdir /etc/sosse

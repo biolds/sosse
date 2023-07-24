@@ -9,6 +9,7 @@
       {{ crawl_policy.url_regex }}
     {% endif %}
   </li>
+  <li><a href="{{ url }}">🌍 Source page</a></li>
   {% if 'se.add_document' in perms %}
     <form method="post" action="{% url 'admin:queue_confirm' %}">
       {% csrf_token %}

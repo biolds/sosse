@@ -48,6 +48,9 @@
                 {% if crawl_policy.take_screenshots %}
                     <li>Screenshots of pages will be saved</li>
                 {% endif %}
+                {% if crawl_policy.snapshot_html %}
+                    <li>HTML copy of pages will be saved</li>
+                {% endif %}
             </ul>
             <p>
                 <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ url|urlencode }}">Create a new policy</a>

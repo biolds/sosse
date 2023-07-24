@@ -3,9 +3,9 @@ Description=SOSSE uWSGI server
 After=syslog.target network.target postgresql.service
 
 [Service]
-ExecStartPre=-+mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots
+ExecStartPre=-+mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html
 ExecStartPre=-+touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
-ExecStartPre=-+chown www-data:www-data /run/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
+ExecStartPre=-+chown www-data:www-data /run/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
 ExecStart=/usr/bin/uwsgi --uid www-data --gid www-data --plugin python3 --ini /etc/sosse/uwsgi.ini \
            --logto /var/log/uwsgi/sosse.log
 

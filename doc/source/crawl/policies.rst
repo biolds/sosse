@@ -123,6 +123,19 @@ In case the script triggers an error, further processing of the page is aborted 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
 
+HTML snapshot
+-------------
+
+.. image:: ../../../tests/robotframework/screenshots/crawl_policy_html_snapshot.png
+   :class: sosse-screenshot
+
+Snapshot html
+"""""""""""""
+
+This option enables capturing snapshots of crawled HTML pages and the related images, CSS, etc. it relies on for offline use.
+
+A browser can be used to take the snapshot after dynamic content is loaded.
+
 Updates
 -------
 

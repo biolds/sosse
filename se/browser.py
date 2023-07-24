@@ -36,6 +36,15 @@ from .utils import human_filesize
 crawl_logger = logging.getLogger('crawler')
 
 
+def dict_merge(a, b):
+    for key in b:
+        if key in a and isinstance(a[key], dict) and isinstance(b[key], dict):
+            dict_merge(a[key], b[key])
+        else:
+            a[key] = b[key]
+    return a
+
+
 class AuthElemFailed(Exception):
     def __init__(self, page, *args, **kwargs):
         self.page = page
@@ -47,19 +56,19 @@ class SkipIndexing(Exception):
 
 
 class PageTooBig(SkipIndexing):
-    def __init__(self, size):
+    def __init__(self, size, conf_size):
         size = human_filesize(size)
-        conf_size = human_filesize(settings.SOSSE_MAX_FILE_SIZE * 1024)
-        super().__init__(self, f'Document size is too big ({size} > {conf_size}). Increase the `max_file_size` option in the configuration to index this file.')
+        conf_size = human_filesize(conf_size * 1024)
+        super().__init__(f'Document size is too big ({size} > {conf_size}). You can increase the `max_file_size` and `max_html_asset_size` option in the configuration to index this file.')
 
 
 class TooManyRedirects(SkipIndexing):
     def __init__(self):
-        super().__init__(f'Max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached. You can increase the `max_redirects` option in the configuration file in case it\'s needed.')
+        super().__init__(f'Max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached. You can increase the `max_redirects` option in the configuration file in case it\'s needed.')
 
 
 class Page:
-    def __init__(self, url, content, browser):
+    def __init__(self, url, content, browser, mimetype=None):
         from .document import sanitize_url
         self.url = sanitize_url(url, True, True)
         self.content = content
@@ -67,6 +76,7 @@ class Page:
         self.title = None
         self.soup = None
         self.browser = browser
+        self.mimetype = mimetype
 
     def get_soup(self):
         if self.soup:
@@ -85,6 +95,12 @@ class Page:
             if a.get('href'):
                 u = absolutize_url(self.url, a.get('href').strip(), keep_params, False)
                 yield u
+
+    def update_soup(self, soup):
+        self.soup = soup
+
+    def dump_html(self):
+        return self.get_soup().encode()
 
 
 class Browser:
@@ -128,9 +144,11 @@ class RequestBrowser(Browser):
                 # Binary file
                 pass
 
-        page = Page(r.url,
-                    content,
-                    cls)
+        mimetype = r.headers.get('content-type') or 'application/octet-stream'
+        if ';' in mimetype:
+            mimetype, _ = mimetype.split(';', 1)
+
+        page = Page(r.url, content, cls, mimetype)
         parsed = page.get_soup()
         page.title = parsed.title and parsed.title.string
         return page
@@ -197,37 +215,38 @@ class RequestBrowser(Browser):
         return params
 
     @classmethod
-    def _requests_query(cls, method, url, **kwargs):
+    def _requests_query(cls, method, url, max_file_size, **kwargs):
         jar = cls._get_cookies(url)
         crawl_logger.debug('from the jar: %s', jar)
         s = requests.Session()
         s.cookies = jar
 
         func = getattr(s, method)
-        r = func(url, **cls._requests_params(), **kwargs)
+        kwargs = dict_merge(cls._requests_params(), kwargs)
+        r = func(url, **kwargs)
         cls._set_cookies(url, s.cookies)
 
         content_length = int(r.headers.get('content-length', 0))
-        if content_length / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+        if content_length / 1024 > max_file_size:
             r.close()
-            raise PageTooBig(content_length)
+            raise PageTooBig(content_length, max_file_size)
 
         content = b''
         for chunk in r.iter_content(chunk_size=1024):
             content += chunk
-            if len(content) / 1024 >= settings.SOSSE_MAX_FILE_SIZE:
+            if len(content) / 1024 >= max_file_size:
                 break
         r.close()
 
-        if len(content) / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-            raise PageTooBig(len(content))
+        if len(content) / 1024 > max_file_size:
+            raise PageTooBig(len(content), max_file_size)
 
         r._content = content
         crawl_logger.debug('after request jar: %s', s.cookies)
         return r
 
     @classmethod
-    def get(cls, url, raw=False, check_status=False):
+    def get(cls, url, raw=False, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs):
         Browser.init()
         REDIRECT_CODE = (301, 302, 307, 308)
 
@@ -236,7 +255,7 @@ class RequestBrowser(Browser):
         redirect_count = 0
 
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
-            r = cls._requests_query('get', url)
+            r = cls._requests_query('get', url, max_file_size, **kwargs)
 
             if check_status:
                 r.raise_for_status()
@@ -309,7 +328,7 @@ class RequestBrowser(Browser):
             post_url = page.url
 
         crawl_logger.debug('authenticating to %s with %s', post_url, payload)
-        r = cls._requests_query('post', post_url, data=payload)
+        r = cls._requests_query('post', post_url, settings.SOSSE_MAX_FILE_SIZE, data=payload)
         if r.status_code != 302:
             crawl_logger.debug('no redirect after auth')
             return cls._page_from_request(r)
@@ -615,14 +634,14 @@ class SeleniumBrowser(Browser):
 
             if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
                 SeleniumBrowser.destroy()  # cancel the download
-                raise PageTooBig(size)
+                raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
 
         crawl_logger.debug('Download done: %s' % os.listdir('.'))
 
         filename = os.listdir('.')[0]
         size = os.stat(filename).st_size
         if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-            raise PageTooBig(size)
+            raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
         with open(filename, 'rb') as f:
             content = f.read()
 

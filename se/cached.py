@@ -54,7 +54,7 @@ def get_document(request):
     return Document.objects.filter(url=url).first()
 
 
-def get_context(doc):
+def get_context(doc, view_name):
     crawl_policy = CrawlPolicy.get_from_url(doc.url)
     beautified_url = url_beautify(doc.url)
     title = doc.title or beautified_url
@@ -66,6 +66,28 @@ def get_context(doc):
     else:
         page_title = title
 
+    other_links = []
+    if view_name != 'www':
+        other_links.append({
+            'href': reverse_no_escape('www', args=[doc.url]),
+            'text': '✒ Text version',
+        })
+    if doc.has_html_snapshot and view_name != 'html':
+        other_links.append({
+            'href': reverse_no_escape('html', args=[doc.url]),
+            'text': '🔖 HTML',
+        })
+    if doc.screenshot_file and view_name != 'screenshot':
+        other_links.append({
+            'href': reverse_no_escape('screenshot', args=[doc.url]),
+            'text': '📷 Screenshot'
+        })
+    if view_name != 'words':
+        other_links.append({
+            'href': reverse_no_escape('words', args=[doc.url]),
+            'text': '📚 Words weight',
+        })
+
     return {
         'crawl_policy': crawl_policy,
         'doc': doc,
@@ -73,7 +95,8 @@ def get_context(doc):
         'head_title': title,
         'title': page_title,
         'beautified_url': beautified_url,
-        'favicon': favicon
+        'favicon': favicon,
+        'other_links': other_links
     }
 
 

@@ -699,7 +699,10 @@ class CrawlPolicy(models.Model):
     keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
 
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_SELENIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
-    take_screenshots = models.BooleanField(default=True)
+
+    snapshot_html = models.BooleanField(default=True)
+
+    take_screenshots = models.BooleanField(default=False)
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
 
     REMOVE_NAV_YES = 'yes'

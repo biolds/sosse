@@ -20,7 +20,6 @@ from django.utils.html import format_html
 from .cached import get_cached_doc, get_context
 from .login import login_required
 from .models import Link
-from .utils import reverse_no_escape
 
 
 @login_required
@@ -59,15 +58,6 @@ def www(request):
         content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
         content += format_html('{}<br/>', line)
 
-    context = get_context(doc)
+    context = get_context(doc, 'www')
     context['content'] = content
-
-    if doc.screenshot_file:
-        context['other_links'] = [{
-            'href': reverse_no_escape('screenshot', args=[doc.url]),
-            'text': '📷 Screenshot'
-        }, {
-            'href': reverse_no_escape('words', args=[doc.url]),
-            'text': '📚 Words weight',
-        }]
     return render(request, 'se/www.html', context)

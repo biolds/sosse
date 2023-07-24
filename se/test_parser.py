@@ -120,10 +120,13 @@ class PageTest(TestCase):
     def setUpClass(cls):
         Browser.init()
         cls.policy = CrawlPolicy.create_default()
+        cls.policy.snapshot_html = False
+        cls.policy.save()
 
     @classmethod
     def tearDownClass(cls):
         Browser.destroy()
+        cls.policy.delete()
 
     def test_10_beautifulsoup(self):
         page = Page('http://127.0.0.1/', FAKE_PAGE, None)

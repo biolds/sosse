@@ -17,7 +17,6 @@ from django.shortcuts import render
 
 from .cached import get_document, get_context, unknown_url_view
 from .login import login_required
-from .utils import reverse_no_escape
 
 
 @login_required
@@ -26,7 +25,7 @@ def words(request):
     if doc is None:
         return unknown_url_view(request)
 
-    context = get_context(doc)
+    context = get_context(doc, 'words')
     words = []
     for w in doc.vector.split():
         word, weights = w.split(':', 1)
@@ -34,13 +33,6 @@ def words(request):
         words.append((word, weights))
 
     context.update({
-        'other_links': [{
-            'href': reverse_no_escape('www', args=[doc.url]),
-            'text': '✒ Text version',
-        }, {
-            'href': reverse_no_escape('screenshot', args=[doc.url]),
-            'text': '📷 Screenshot'
-        }],
         'words': words,
         'lang': doc.lang_flag(True)
     })

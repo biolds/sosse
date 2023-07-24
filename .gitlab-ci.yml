@@ -24,7 +24,7 @@ unit_tests:
   script:
     - 'grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y'
     - /etc/init.d/postgresql start
-    - mkdir -p /var/lib/sosse/screenshots/ /var/lib/sosse/downloads/0 && chown -R www-data:www-data /var/lib/sosse/
+    - mkdir -p /var/lib/sosse/screenshots /var/lib/sosse/html /var/lib/sosse/downloads/0 && chown -R www-data:www-data /var/lib/sosse/
     - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
     - export PYTHONPATH="$CI_PROJECT_DIR"
     - /tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/^#browser_options=\(.*\)/browser_options=\1 --no-sandbox --disable-dev-shm-usage/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf

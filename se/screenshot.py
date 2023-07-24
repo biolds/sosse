@@ -20,7 +20,6 @@ from django.shortcuts import render
 from .browser import SeleniumBrowser
 from .cached import get_cached_doc, get_context, url_from_request
 from .login import login_required
-from .utils import reverse_no_escape
 
 
 @login_required
@@ -29,18 +28,11 @@ def screenshot(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    context = get_context(doc)
+    context = get_context(doc, 'screenshot')
     context.update({
-        'other_links': [{
-            'href': reverse_no_escape('www', args=[doc.url]),
-            'text': '✒ Text version',
-        }, {
-            'href': reverse_no_escape('words', args=[doc.url]),
-            'text': '📚 Words weight',
-        }],
         'url': request.build_absolute_uri('/screenshot_full/') + url_from_request(request)
     })
-    return render(request, 'se/screenshot.html', context)
+    return render(request, 'se/embed.html', context)
 
 
 @login_required
@@ -51,7 +43,7 @@ def screenshot_full(request):
 
     base_dir, filename = SeleniumBrowser.screenshot_name(doc.url)
 
-    context = get_context(doc)
+    context = get_context(doc, 'screenshot')
     context.update({
         'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
         'screenshot_size': doc.screenshot_size.split('x'),

@@ -6,8 +6,8 @@ Cached pages can be access from the search results, by clicking the ``Cache`` li
 .. image:: ../../../tests/robotframework/screenshots/cache_header.png
    :class: sosse-screenshot
 
-When the :doc:`Crawl Policy <../crawl/policies>` has screenshots enabled,
-the cached page shows the screenshot and links to other indexed page can be clicked:
+When the :doc:`Crawl Policy <../crawl/policies>` has HTML snapshots or screenshots enabled,
+the cached page shows the rendered content and links to other indexed page can be clicked:
 
 .. image:: ../../../tests/robotframework/screenshots/cache_screenshot.png
    :class: sosse-screenshot

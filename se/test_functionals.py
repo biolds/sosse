@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from django.conf import settings
 from django.test import TestCase
 
 from .document import Document
@@ -43,6 +44,7 @@ class FunctionalTest:
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=False,
                                    take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL, None, None)
@@ -78,13 +80,15 @@ class FunctionalTest:
         self.assertEqual(doc.error, '')
         self.assertEqual(doc.error_hash, '')
         self.assertIsNone(doc.worker_no)
+        self.assertFalse(doc.has_html_snapshot)
+        self.assertEqual(len(Document._meta.get_fields()), 32)
 
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
 
     def test_20_user_agent(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
-        self.assertIn('"user-agent": "SOSSE"', page.content)
+        self.assertIn(f'"user-agent": "{settings.SOSSE_USER_AGENT}"', page.content)
 
     def test_30_gzip(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'gzip')
@@ -100,6 +104,7 @@ class FunctionalTest:
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=False,
                                    take_screenshots=False)
         Document.queue(TEST_SERVER_URL + 'cookies/set?test_key=test_value', None, None)
         self._crawl()
@@ -135,11 +140,13 @@ class FunctionalTest:
                                    condition=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=False,
                                    take_screenshots=False)
         policy = CrawlPolicy.objects.create(url_regex='^%s.*' % TEST_SERVER_URL,
                                             condition=CrawlPolicy.CRAWL_NEVER,
                                             recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                             default_browse_mode=self.BROWSE_MODE,
+                                            snapshot_html=False,
                                             take_screenshots=False,
                                             auth_login_url_re='%sadmin/login/.*' % TEST_SERVER_URL,
                                             auth_form_selector='#login-form')
@@ -178,6 +185,8 @@ class FunctionalTest:
         self.assertEqual(doc.error, '')
         self.assertEqual(doc.error_hash, '')
         self.assertIsNone(doc.worker_no)
+        self.assertFalse(doc.has_html_snapshot)
+        self.assertEqual(len(Document._meta.get_fields()), 32)
 
         self.assertEqual(Cookie.objects.count(), 2)
         cookies = Cookie.objects.order_by('name').values()
@@ -206,7 +215,7 @@ class FunctionalTest:
         self.assertEqual(Link.objects.count(), 0)
 
     def test_80_file_too_big(self):
-        FILE_SIZE = 500 * 1024
+        FILE_SIZE = settings.SOSSE_MAX_FILE_SIZE * 1024
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
         self.assertEqual(len(page.content), FILE_SIZE)
 

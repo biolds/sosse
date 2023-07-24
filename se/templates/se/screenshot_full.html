@@ -11,16 +11,6 @@
 {% block js %}
 const screen_width = {{ screenshot_size.0 }};
 const screen_height = {{ screenshot_size.1 }};
-
-document.addEventListener("DOMContentLoaded", function(event) {
-    const links = document.getElementsByTagName('a');
-    for (let i = 0; i < links.length; i++) {
-        const link = links[i];
-        link.onclick = function() {
-            window.top.location.href = link.getAttribute('href');
-        };
-    }
-});
 {% endblock %}
 
 {% block css %}

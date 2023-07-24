@@ -35,6 +35,7 @@ from langdetect.lang_detect_exception import LangDetectException
 from PIL import Image
 
 from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
+from .html_snapshot import HTMLSnapshot
 from .utils import reverse_no_escape, url_beautify
 
 crawl_logger = logging.getLogger('crawler')
@@ -164,6 +165,7 @@ class Document(models.Model):
 
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
     robotstxt_rejected = models.BooleanField(default=False, verbose_name='Rejected by robots.txt')
+    has_html_snapshot = models.BooleanField(default=False)
 
     # HTTP status
     redirect_url = models.TextField(null=True, blank=True)
@@ -197,6 +199,8 @@ class Document(models.Model):
     def get_absolute_url(self):
         if self.screenshot_file or self.redirect_url:
             return reverse_no_escape('screenshot', args=(self.url,))
+        if self.has_html_snapshot:
+            return reverse_no_escape('html', args=(self.url,))
         else:
             return reverse_no_escape('www', args=(self.url,))
 
@@ -307,8 +311,8 @@ class Document(models.Model):
         s = self._get_elem_text(elem)
 
         # Keep the link if it has text, or if we take screenshots
-        if elem.name in (None, 'a') and (s or crawl_policy.take_screenshots):
-            if links['text'] and links['text'][-1] not in (' ', '\n'):
+        if elem.name in (None, 'a'):
+            if links['text'] and links['text'][-1] not in (' ', '\n') and s:
                 links['text'] += ' '
 
             if elem.name == 'a':
@@ -406,6 +410,9 @@ class Document(models.Model):
             crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
             return
 
+        FavIcon.extract(self, page)
+        self._index_log('favicon', stats, verbose)
+
         if self.mimetype.startswith('text/'):
             parsed = page.get_soup()
             if page.title:
@@ -447,11 +454,15 @@ class Document(models.Model):
 
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)
+
+            if crawl_policy.snapshot_html:
+                snapshot = HTMLSnapshot(page, crawl_policy)
+                snapshot.snapshot(self.content_hash)
+                self.has_html_snapshot = True
         else:
             self._clear_content()
 
-        FavIcon.extract(self, page)
-        self._index_log('favicon', stats, verbose)
+        self._index_log('done', stats, verbose)
 
     def convert_to_jpg(self):
         d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.screenshot_file)

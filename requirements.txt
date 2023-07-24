@@ -1,4 +1,5 @@
 bs4
+cssutils
 defusedxml
 django<4
 django-uwsgi

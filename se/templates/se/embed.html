@@ -1,0 +1,22 @@
+{% extends "se/base_fold.html" %}
+{% load static %}
+
+{% block js %}
+    {{ block.super }}
+
+    function frame_loaded() {
+        const iframe = document.getElementsByTagName('iframe');
+        const links = iframe[0].contentWindow.document.getElementsByTagName('a');
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+            link.onclick = function() {
+                window.top.location.href = link.getAttribute('href');
+            };
+        }
+    }
+{% endblock %}
+
+{% block body_no_margin %}
+    {{ block.super }}
+    <iframe src="{{ url }}" sandbox="allow-top-navigation allow-same-origin allow-scripts" onload="frame_loaded()"></iframe>
+{% endblock %}

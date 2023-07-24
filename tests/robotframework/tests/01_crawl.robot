@@ -46,6 +46,11 @@
 |  | Capture Page Screenshot | crawl_policy_browser.png
 
 |  | Reload Page
+|  | Hilight | //h2[.='HTML snapshot']/..
+|  | Scroll To Elem | //h2[.='HTML snapshot']/..
+|  | Capture Page Screenshot | crawl_policy_html_snapshot.png
+
+|  | Reload Page
 |  | Hilight | //h2[.='Updates']/..
 |  | Scroll To Elem | //h2[.='Updates']/..
 |  | Capture Page Screenshot | crawl_policy_updates.png

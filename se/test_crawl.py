@@ -36,7 +36,7 @@ class BrowserMock:
         }
         self.web.update(web)
 
-    def __call__(self, url, raw=False, check_status=False):
+    def __call__(self, url, raw=False, check_status=False, **kwargs):
         content = self.web[url]
         if isinstance(content, Exception):
             raise content
@@ -54,10 +54,12 @@ class CrawlerTest(TestCase):
         self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
                                                       condition=CrawlPolicy.CRAWL_NEVER,
                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+                                                      snapshot_html=False,
                                                       take_screenshots=False)
         self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
                                                        condition=CrawlPolicy.CRAWL_ALL,
                                                        default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+                                                       snapshot_html=False,
                                                        take_screenshots=False)
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
@@ -137,6 +139,7 @@ class CrawlerTest(TestCase):
         CrawlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
                                    condition=CrawlPolicy.CRAWL_ON_DEPTH,
                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+                                   snapshot_html=False,
                                    take_screenshots=False)
         self._crawl()
 

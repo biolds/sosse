@@ -101,6 +101,12 @@ DEFAULTS = OrderedDict([
         ['screenshots_dir', {
             'default': '/var/lib/sosse/screenshots/'
         }],
+        ['html_snapshot_url', {
+            'default': '/snap/'
+        }],
+        ['html_snapshot_dir', {
+            'default': '/var/lib/sosse/html/'
+        }],
         ['use_i18n', {
             'var': 'USE_I18N',
             'comment': 'See https://docs.djangoproject.com/en/3.2/ref/settings/#use-i18n',
@@ -257,6 +263,11 @@ DEFAULTS = OrderedDict([
             'default': 500,
             'type': int
         }],
+        ['max_html_asset_size', {
+            'comment': 'Maximum file size of html assets (css, images, etc.) to download',
+            'default': 5000,
+            'type': int
+        }],
         ['max_redirects', {
             'comment': 'Maximum numbers of redirect before aborting.\n(this is accurate when using Requests only,\nsome redirects may be missed on Chromium)',
             'default': 5,
@@ -323,6 +334,11 @@ LOGGING = {
             'propagate': True,
         },
         'crawler': {
+            'handlers': ['crawler_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'html_snapshot': {
             'handlers': ['crawler_file'],
             'level': 'INFO',
             'propagate': False,

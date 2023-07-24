@@ -23,6 +23,7 @@ from django.utils import timezone
 from se.atom import atom
 from se.cached import cache_redirect
 from se.document import Document
+from se.html import html
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
@@ -80,6 +81,7 @@ class ViewsTest(TestCase):
                             ('/atom/?q=page&cached=1', atom),
                             ('/word_stats/?q=page', word_stats),
                             ('/opensearch.xml', opensearch),
+                            ('/html/' + CRAWL_URL, html),
                             ('/www/' + CRAWL_URL, www),
                             ('/www/http://unknown/', www),
                             ('/words/' + CRAWL_URL, words),
@@ -91,7 +93,7 @@ class ViewsTest(TestCase):
                 response = view(request)
             except:  # noqa
                 raise Exception('Failed on %s' % url)
-            self.assertEqual(response.status_code, 200, url)
+            self.assertEqual(response.status_code, 200, f'{url}\n{response.content}\n{response.headers}')
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)

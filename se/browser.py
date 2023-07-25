@@ -398,6 +398,8 @@ class SeleniumBrowser(Browser):
     @classmethod
     def _current_url(cls):
         from .document import sanitize_url
+        if cls.driver.current_url.startswith('data:'):
+            return ''
         return sanitize_url(cls.driver.current_url, True, True)
 
     @classmethod
@@ -512,6 +514,9 @@ class SeleniumBrowser(Browser):
     def _load_cookies(cls, url):
         from .document import sanitize_url
         from .models import Cookie
+
+        if url.startswith('data:'):
+            return
 
         # Cookies can only be set to the same domain,
         # so first we navigate to the correct location

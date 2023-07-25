@@ -42,16 +42,23 @@ crawl_logger = logging.getLogger('crawler')
 DetectorFactory.seed = 0
 
 
-def sanitize_url(url, keep_params, keep_anchors):
+def sanitize_url(_url, keep_params, keep_anchors):
     if not keep_params:
-        if '?' in url:
-            url = url.split('?', 1)[0]
+        if '?' in _url:
+            _url = _url.split('?', 1)[0]
 
     if not keep_anchors:
-        if '#' in url:
-            url = url.split('#', 1)[0]
+        if '#' in _url:
+            _url = _url.split('#', 1)[0]
 
-    url = urlparse(url)
+    url = urlparse(_url)
+
+    if not url.scheme:
+        raise Exception(f'url has no scheme ({_url})')
+    if url.scheme not in ('http', 'https'):
+        raise Exception(f'invalid scheme ({_url})')
+    if not url.netloc:
+        raise Exception(f'url has no netloc ({_url})')
 
     # normalize percent-encoding
     _path = unquote(url.path)
@@ -72,10 +79,10 @@ def sanitize_url(url, keep_params, keep_anchors):
     if url.path == '':
         url = url._replace(path='/')
     else:
-        new_path = os.path.abspath(url.path)
+        new_path = os.path.normpath(url.path)
         new_path = new_path.replace('//', '/')
         if url.path.endswith('/') and url.path != '/':
-            # restore traling / (deleted by abspath)
+            # restore traling / (deleted by normpath)
             new_path += '/'
         url = url._replace(path=new_path)
 

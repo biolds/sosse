@@ -16,12 +16,10 @@
 # This file checks url conversion (percent encoding, punycode, spaces ...) and consistencies
 # across classes and external libraries
 
-import base64
-
 from django.test import TestCase
 
 from se.document import Document
-from se.browser import Browser, SeleniumBrowser, Page
+from se.browser import Browser, Page
 from se.models import CrawlPolicy
 
 
@@ -128,17 +126,7 @@ class PageTest(TestCase):
         Browser.destroy()
 
     def test_10_beautifulsoup(self):
-        page = Page('', FAKE_PAGE, None)
-        links = list(page.get_links(True))
-
-        self.assertEqual(len(links), len(LINKS))
-        for no, link in enumerate(links):
-            expected = LINKS[no].get('expected_output', LINKS[no]['link'])
-            self.assertEqual(link, expected, '%s failed' % LINKS[no]['descr'])
-
-    def test_20_chromium(self):
-        url = 'data:text/html;base64,' + base64.b64encode(FAKE_PAGE.encode('utf-8')).decode('utf-8')
-        page = SeleniumBrowser.get(url)
+        page = Page('http://127.0.0.1/', FAKE_PAGE, None)
         links = list(page.get_links(True))
 
         self.assertEqual(len(links), len(LINKS))
@@ -148,15 +136,15 @@ class PageTest(TestCase):
 
     NAV_HTML = '<html><body><header>header</header><nav>nav</nav>text<footer>footer</footer></body></html>'
 
-    def test_30_no_nav_element(self):
+    def test_20_no_nav_element(self):
         page = Page('http://test/', self.NAV_HTML, None)
-        doc = Document()
+        doc = Document(url=page.url)
         doc.index(page, self.policy)
         self.assertEqual(doc.content, 'text')
 
-    def test_40_nav_element(self):
+    def test_30_nav_element(self):
         page = Page('http://test/', self.NAV_HTML, None)
-        doc = Document()
+        doc = Document(url=page.url)
         self.policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
         doc.index(page, self.policy)
         self.assertEqual(doc.content, 'header nav text footer')

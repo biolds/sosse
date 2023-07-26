@@ -540,7 +540,7 @@ class SeleniumBrowser(Browser):
                 'value': c.value,
                 'path': c.path,
                 'secure': c.secure,
-                'sameSite': c.same_site,
+                'sameSite': c.same_site.title(),
             }
             if c.domain_cc:
                 cookie['domain'] = c.domain_cc

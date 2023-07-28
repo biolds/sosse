@@ -83,10 +83,16 @@ Take screenshots
 
 Enables taking screenshots of pages for offline use.
 
+.. note::
+   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+
 Screenshot format
 """""""""""""""""
 
 Format of the image JPG or PNG.
+
+.. note::
+   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
 
 .. _script_params:
 
@@ -113,6 +119,9 @@ For example, the following script could be used to click on a `GDPR <https://en.
    }
 
 In case the script triggers an error, further processing of the page is aborted and the error message is stored in the :ref:`document error field <document_error>`. It can be useful to use a tool such as `Tamperonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
+
+.. note::
+   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
 
 Updates
 -------

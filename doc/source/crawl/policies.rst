@@ -118,7 +118,7 @@ For example, the following script could be used to click on a `GDPR <https://en.
        button.singleNodeValue.click();
    }
 
-In case the script triggers an error, further processing of the page is aborted and the error message is stored in the :ref:`document error field <document_error>`. It can be useful to use a tool such as `Tamperonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
+In case the script triggers an error, further processing of the page is aborted and the error message is stored in the :ref:`document error field <document_error>`. It can be useful to use a tool such as `Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.

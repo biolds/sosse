@@ -5,6 +5,5 @@ The excluded URLs list can be reached from the :doc:`../admin_ui`, by clicking o
 
 .. image:: ../../tests/robotframework/screenshots/excluded_url.png
    :class: sosse-screenshot
-   :scale: 50%
 
 This stores individual URLs that will always be skipped by the crawlers.

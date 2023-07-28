@@ -3,7 +3,6 @@ Searches
 
 .. image:: ../../../tests/robotframework/screenshots/search.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Making searches
 ---------------
@@ -21,7 +20,6 @@ More search options are available when clicking on ``Params``:
 
 .. image:: ../../../tests/robotframework/screenshots/extended_search.png
    :class: sosse-screenshot
-   :scale: 50%
 
 These perform exact text match as opposed to the search bar that has natural-language processing features (word stemming, diactric removal, ...).
 Any number of extra filter can be added using the |plus_button| button. Each field in the filter is:
@@ -64,7 +62,6 @@ Results
 
 .. image:: ../../../tests/robotframework/screenshots/search_result.png
    :class: sosse-screenshot
-   :scale: 50%
 
 From top to bottom, left to right, the elements displayed are:
 
@@ -85,7 +82,6 @@ Clicking on the |stats_button| button, shows the top 100 most frequent words (af
 
 .. image:: ../../../tests/robotframework/screenshots/word_stats.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Atom feeds
 ----------

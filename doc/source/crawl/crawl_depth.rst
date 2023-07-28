@@ -16,7 +16,6 @@ Crawling pages up to a certain level can be simply achieved by setting a :ref:`C
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_on_depth_add.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Partial limited recursion
 -------------------------
@@ -29,10 +28,8 @@ For example, one could crawl all Wikipedia, and crawl external links up to 2 lev
 
 .. image:: ../../../tests/robotframework/screenshots/policy_all.png
    :class: sosse-screenshot
-   :scale: 50%
 
 * A default policy with a ``Depending on depth`` condition:
 
 .. image:: ../../../tests/robotframework/screenshots/policy_on_depth.png
    :class: sosse-screenshot
-   :scale: 50%

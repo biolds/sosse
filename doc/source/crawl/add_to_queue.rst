@@ -5,7 +5,6 @@ In the :doc:`../admin_ui`, by clicking ``Crawl a new URL`` you can queue an URL 
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_new_url.png
    :class: sosse-screenshot
-   :scale: 50%
 
 By default, all links found in the page will be visited and the crawlers will recurse until all pages are discovered. Submitting redirects to
 the :doc:`status` page.

@@ -3,7 +3,6 @@ External search engine shortcuts
 
 .. image:: ../../../tests/robotframework/screenshots/shortcut.png
    :class: sosse-screenshot
-   :scale: 50%
 
 In the search bar, shortcuts can be used to search on external search engine. In the screenshot above, the search terms ``!b cats`` would redirect to the `Brave Search <https://search.brave.com/>`_ search engine, searching for ``cats`` 🐈.
 

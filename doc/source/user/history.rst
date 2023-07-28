@@ -3,7 +3,6 @@ History
 
 .. image:: ../../../tests/robotframework/screenshots/history.png
    :class: sosse-screenshot
-   :scale: 50%
 
 The history page shows the search history of the logged in user.
 

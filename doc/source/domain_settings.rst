@@ -5,7 +5,6 @@ Domain level parameters can be reached from the :doc:`../admin_ui`, by clicking 
 
 .. image:: ../../tests/robotframework/screenshots/domain_setting.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Domain settings are automatically created during crawling, but can also be updated manually or created manually.
 

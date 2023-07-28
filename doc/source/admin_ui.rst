@@ -13,4 +13,3 @@ The default user name and password are both ``admin``. After submitting, the adm
 
 .. image:: ../../tests/robotframework/screenshots/admin_ui.png
    :class: sosse-screenshot
-   :scale: 50%

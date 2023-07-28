@@ -8,6 +8,9 @@ img.sosse-screenshot {
     margin-left: auto;
     margin-right: auto;
     display: block;
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
 }
 img.sosse-inline-screenshot {
     vertical-align: bottom;

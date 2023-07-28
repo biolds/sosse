@@ -5,7 +5,6 @@ The list of all indexed documents can be reached from the :doc:`../admin_ui`, by
 
 .. image:: ../../tests/robotframework/screenshots/documents_list.png
    :class: sosse-screenshot
-   :scale: 50%
 
 The document page contains fields about the crawl status of the page:
 

@@ -8,7 +8,6 @@ Crawl policies define which pages are indexed and how they are indexed. The poli
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_list.png
    :class: sosse-screenshot
-   :scale: 50%
 
 When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to handle the link.
 The policy with the longest ``URL regex`` matching is selected. On last resort, the default policy ``.*`` is selected.
@@ -20,7 +19,6 @@ Indexing decision
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_decision.png
    :class: sosse-screenshot
-   :scale: 50%
 
 URL regexp
 """"""""""
@@ -68,7 +66,6 @@ Browser
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_browser.png
    :class: sosse-screenshot
-   :scale: 50%
 
 .. _default_browse_params:
 
@@ -122,7 +119,6 @@ Updates
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_updates.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Crawl frequency, Recrawl dt
 """""""""""""""""""""""""""
@@ -150,7 +146,6 @@ See :doc:`../authentication` for general guidelines on authentication.
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_auth.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Login URL
 """""""""

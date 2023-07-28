@@ -8,7 +8,6 @@ To reach the Preferences user interface, click the |user_menu_button| button, th
 
 .. image:: ../../../tests/robotframework/screenshots/preferences.png
    :class: sosse-screenshot
-   :scale: 50%
 
 Preferences are stored in the browser's `Local storage <https://en.wikipedia.org/wiki/Web_storage#Local_and_session_storage>`_, so they are not shared accross users, devices, or browsers.
 

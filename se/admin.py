@@ -163,7 +163,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage')
     search_fields = ['url__regex', 'title__regex']
     fields = ['url', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
-              'error', 'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse',
+              '_error', 'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse',
               'robotstxt_rejected', 'too_many_redirects', 'mimetype', '_lang_txt', '_content']
     readonly_fields = copy(fields)
     readonly_fields.remove('show_on_homepage')
@@ -414,6 +414,11 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(ordering='url')
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
+
+    @staticmethod
+    @admin.display(description='Error')
+    def _error(obj):
+        return format_html('<pre>{}</pre>', obj.error)
 
     @staticmethod
     @admin.display(description='Language')

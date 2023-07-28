@@ -16,10 +16,10 @@
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from requests import HTTPError
 
-from .browser import Page
+from .browser import AuthElemFailed, Page, SkipIndexing
 from .document import Document
 from .models import DomainSetting, Link, CrawlPolicy
 
@@ -38,7 +38,7 @@ class BrowserMock:
 
     def __call__(self, url, raw=False, check_status=False):
         content = self.web[url]
-        if isinstance(content, HTTPError):
+        if isinstance(content, Exception):
             raise content
         return Page(url, content, BrowserMock)
 
@@ -332,3 +332,46 @@ class CrawlerTest(TestCase):
         self.assertEqual(doc1.content, 'base test')
         self.assertEqual(doc2.url, 'http://127.0.0.1/base/test')
         self.assertEqual(doc2.content, 'test page')
+
+    @override_settings(TEST_MODE=False)
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_010_generic_exception_handling(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': Exception('Generic exception')})
+
+        self._crawl()
+        doc = Document.objects.get()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, '')
+        self.assertIn('Generic exception', doc.error)
+        self.assertIn('Traceback (most recent call last):', doc.error)
+
+    @override_settings(TEST_MODE=False)
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_020_skip_exception_handling(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': SkipIndexing('Skip test')})
+
+        self._crawl()
+        doc = Document.objects.get()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, '')
+        self.assertIn('Skip test', doc.error)
+        self.assertNotIn('Traceback (most recent call last):', doc.error)
+
+    @override_settings(TEST_MODE=False)
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_030_auth_failed_exception_handling(self, RequestBrowser):
+        page = Page('http://127.0.0.1/', 'test', BrowserMock)
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': AuthElemFailed(page, 'xxx not found')})
+
+        self._crawl()
+        doc = Document.objects.get()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'test')
+        self.assertIn('xxx not found', doc.error)
+        self.assertNotIn('Traceback (most recent call last):', doc.error)

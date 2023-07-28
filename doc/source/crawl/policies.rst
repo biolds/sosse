@@ -94,12 +94,12 @@ Format of the image JPG or PNG.
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
 
-.. _script_params:
-
 Remove navigation related elements
 """"""""""""""""""""""""""""""""""
 
 This option removes HTML elements `<nav>`, `<header>` and `<footer>` before processing the page.
+
+.. _script_params:
 
 Script
 """"""

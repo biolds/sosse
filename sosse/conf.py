@@ -416,8 +416,11 @@ class Conf:
                 raise Exception('Configuration parsing error: invalid "crawler_count", must be an integer or empty: %s' % crawler_count)
 
         if settings['DEBUG']:
-            LOGGING['loggers']['crawler']['level'] = 'DEBUG'
-            LOGGING['loggers']['web']['level'] = 'DEBUG'
+            for key, logger in LOGGING['loggers'].items():
+                if key == 'django':
+                    # skip SQL debug statement
+                    continue
+                logger['level'] = 'DEBUG'
 
         settings.update({
             'HASHING_ALGO': getattr(hashlib, hash_algo),

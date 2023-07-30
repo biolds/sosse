@@ -1,0 +1,12 @@
+{% extends "se/base.html" %}
+
+{% block body %}
+    <p>
+        This file was not {% if method == 'mimetype' %}saved{% else %}downloaded{% endif %} because its {{ method }} matched the exclusion regexp of assets to download.
+    </p>
+    {% if crawl_policy and 'se.view_crawlpolicy' in perms %}
+        <p>
+            The crawl policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a> can be modified to make this file available.
+        </p>
+    {% endif %}
+{% endblock %}

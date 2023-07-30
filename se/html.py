@@ -22,6 +22,7 @@ from django.shortcuts import redirect, render
 from .cached import get_cached_doc, get_context, url_from_request
 from .html_snapshot import HTMLSnapshot
 from .login import login_required
+from .models import CrawlPolicy
 from .utils import reverse_no_escape
 
 
@@ -38,3 +39,17 @@ def html(request):
     context = get_context(doc, 'html')
     context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + page_file
     return render(request, 'se/embed.html', context)
+
+
+@login_required
+def html_excluded(request, crawl_policy, method):
+    if method == 'mime':
+        method = 'mimetype'
+    elif method == 'element':
+        method = 'target element'
+    crawl_policy = CrawlPolicy.objects.filter(id=crawl_policy).first()
+    context = {
+        'crawl_policy': crawl_policy,
+        'method': method
+    }
+    return render(request, 'se/html_excluded.html', context)

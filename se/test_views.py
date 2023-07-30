@@ -23,7 +23,7 @@ from django.utils import timezone
 from se.atom import atom
 from se.cached import cache_redirect
 from se.document import Document
-from se.html import html
+from se.html import html, html_excluded
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
@@ -70,30 +70,35 @@ class ViewsTest(TestCase):
         return request
 
     def test_views(self):
-        for (url, view) in (('/?q=page', search),
-                            ('/about/', about),
-                            ('/prefs/', prefs),
-                            ('/stats/', stats),
-                            ('/history/', history),
-                            ('/?q=page', search),
-                            ('/s/?q=page', search_redirect),
-                            ('/atom/?q=page', atom),
-                            ('/atom/?q=page&cached=1', atom),
-                            ('/word_stats/?q=page', word_stats),
-                            ('/opensearch.xml', opensearch),
-                            ('/html/' + CRAWL_URL, html),
-                            ('/www/' + CRAWL_URL, www),
-                            ('/www/http://unknown/', www),
-                            ('/words/' + CRAWL_URL, words),
-                            ('/screenshot/' + CRAWL_URL, screenshot),
-                            ('/screenshot_full/' + CRAWL_URL, screenshot_full)):
+        for (url, view, args) in (('/?q=page', search, tuple()),
+                                  ('/about/', about, tuple()),
+                                  ('/prefs/', prefs, tuple()),
+                                  ('/stats/', stats, tuple()),
+                                  ('/history/', history, tuple()),
+                                  ('/?q=page', search, tuple()),
+                                  ('/s/?q=page', search_redirect, tuple()),
+                                  ('/atom/?q=page', atom, tuple()),
+                                  ('/atom/?q=page&cached=1', atom, tuple()),
+                                  ('/word_stats/?q=page', word_stats, tuple()),
+                                  ('/opensearch.xml', opensearch, tuple()),
+                                  ('/html/' + CRAWL_URL, html, tuple()),
+                                  ('/www/' + CRAWL_URL, www, tuple()),
+                                  ('/www/http://unknown/', www, tuple()),
+                                  ('/words/' + CRAWL_URL, words, tuple()),
+                                  ('/screenshot/' + CRAWL_URL, screenshot, tuple()),
+                                  ('/screenshot_full/' + CRAWL_URL, screenshot_full, tuple()),
+                                  (f'/html_excluded/{self.crawl_policy.id}/url', html_excluded, (self.crawl_policy.id, 'url'))):
 
             request = self._request_from_factory(url)
             try:
-                response = view(request)
+                response = view(request, *args)
             except:  # noqa
                 raise Exception('Failed on %s' % url)
             self.assertEqual(response.status_code, 200, f'{url}\n{response.content}\n{response.headers}')
+
+    def test_new_urls(self):
+        from sosse.urls import urlpatterns
+        self.assertEqual(len(urlpatterns), 20)
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)

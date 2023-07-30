@@ -24,6 +24,7 @@ from traceback import format_exc
 
 import cssutils
 from django.conf import settings
+from django.shortcuts import reverse
 
 logger = logging.getLogger('html_snapshot')
 
@@ -115,10 +116,14 @@ class HTMLSnapshot:
                         url = url[5:]
 
                     if not (url.startswith('file:') or url.startswith('blob:') or url.startswith('about:') or url.startswith('data:')):
-                        url = absolutize_url(self.page.url, url, True, True)
-                        url = self.download_asset(url)
-                        # Escape commas since they are used as a separator in srcset
-                        url = url.replace(',', '%2C')
+                        if self.crawl_policy.snapshot_exclude_element_re and re.match(self.crawl_policy.snapshot_exclude_element_re, elem.name):
+                            logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
+                            url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
+                        else:
+                            url = absolutize_url(self.page.url, url, True, True)
+                            url = self.download_asset(url)
+                            # Escape commas since they are used as a separator in srcset
+                            url = url.replace(',', '%2C')
 
                     _urls.append(url + params)
                 urls = ', '.join(_urls)
@@ -141,7 +146,11 @@ class HTMLSnapshot:
                     elem.attrs[attr] = '/html/' + url
                     break
                 else:
-                    filename_url = self.download_asset(url)
+                    if self.crawl_policy.snapshot_exclude_element_re and re.match(self.crawl_policy.snapshot_exclude_element_re, elem.name):
+                        logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
+                        filename_url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
+                    else:
+                        filename_url = self.download_asset(url)
                     elem.attrs[attr] = filename_url
 
     def handle_css(self, src_url, content, inline_css):
@@ -189,6 +198,10 @@ class HTMLSnapshot:
         return css
 
     def download_asset(self, url):
+        if self.crawl_policy.snapshot_exclude_url_re and re.match(self.crawl_policy.snapshot_exclude_url_re, url):
+            logger.debug('download_asset %s excluded because it matches the url exclude regexp' % url)
+            return reverse('html_excluded', args=(self.crawl_policy.id, 'url'))
+
         from .browser import RequestBrowser, SkipIndexing
         logger.debug('download_asset %s' % url)
         try:
@@ -198,6 +211,10 @@ class HTMLSnapshot:
 
             if asset.mimetype == 'text/html':
                 return '/html/' + url
+
+            if self.crawl_policy.snapshot_exclude_mime_re and re.match(self.crawl_policy.snapshot_exclude_mime_re, asset.mimetype):
+                logger.debug('download_asset %s excluded because it matched the mimetype (%s) exclude regexp' % (url, asset.mimetype))
+                return reverse('html_excluded', args=(self.crawl_policy.id, 'mime'))
 
             # Build the extension using mimetypes, because the appropriate extension
             # is required by Nginx when the file is served statically

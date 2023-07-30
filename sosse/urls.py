@@ -34,7 +34,7 @@ from django.urls import path, re_path
 from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
 from se.atom import atom
 from se.cached import cache_redirect
-from se.html import html
+from se.html import html, html_excluded
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
 from se.words import words
@@ -60,4 +60,5 @@ urlpatterns = [
     re_path(r'www/.*', www, name='www'),
     re_path(r'words/.*', words, name='words'),
     re_path(r'cache/.*', cache_redirect, name='cache'),
+    re_path(r'html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$', html_excluded, name='html_excluded'),
 ]

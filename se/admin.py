@@ -493,7 +493,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'remove_nav_elements', 'script')
         }),
         ('HTML snapshot', {
-            'fields': ('snapshot_html',)
+            'fields': ('snapshot_html', 'snapshot_exclude_url_re', 'snapshot_exclude_mime_re', 'snapshot_exclude_element_re')
         }),
         ('Updates', {
             'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')

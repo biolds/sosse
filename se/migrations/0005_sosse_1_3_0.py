@@ -50,4 +50,20 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=False),
         ),
         migrations.RunPython(forward_default_snapshot, reverse_default_snapshot),
+
+        migrations.AddField(
+            model_name='crawlpolicy',
+            name='snapshot_exclude_element_re',
+            field=models.TextField(blank=True, default='', help_text='Regexp of elements to skip asset downloading'),
+        ),
+        migrations.AddField(
+            model_name='crawlpolicy',
+            name='snapshot_exclude_mime_re',
+            field=models.TextField(blank=True, default='', help_text='Regexp of mimetypes to skip asset saving'),
+        ),
+        migrations.AddField(
+            model_name='crawlpolicy',
+            name='snapshot_exclude_url_re',
+            field=models.TextField(blank=True, default='', help_text='Regexp of URL to skip asset downloading'),
+        ),
     ]

@@ -701,6 +701,9 @@ class CrawlPolicy(models.Model):
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_SELENIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
 
     snapshot_html = models.BooleanField(default=True)
+    snapshot_exclude_url_re = models.TextField(blank=True, default='', help_text='Regexp of URL to skip asset downloading')
+    snapshot_exclude_mime_re = models.TextField(blank=True, default='', help_text='Regexp of mimetypes to skip asset saving')
+    snapshot_exclude_element_re = models.TextField(blank=True, default='', help_text='Regexp of elements to skip asset downloading')
 
     take_screenshots = models.BooleanField(default=False)
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)

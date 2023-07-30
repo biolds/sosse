@@ -18,7 +18,9 @@ from unittest import mock
 
 import cssutils
 from django.conf import settings
+from django.shortcuts import reverse
 from django.test import TestCase, override_settings
+from django.utils.html import format_html
 
 from .browser import Page, PageTooBig
 from .html_snapshot import HTMLSnapshot, HTML_SNAPSHOT_HASH_LEN, max_filename_size
@@ -33,6 +35,7 @@ class BrowserMock:
             'http://127.0.0.1/image.png': b'PNG test',
             'http://127.0.0.1/image2.png': b'PNG test2',
             'http://127.0.0.1/image3.png': b'PNG test3',
+            'http://127.0.0.1/image.jpg': b'JPG test',
             'http://127.0.0.1/video.mp4': b'MP4 test',
             'http://127.0.0.1/police.svg': b'SVG test',
             'http://127.0.0.1/police.woff': b'WOFF test',
@@ -447,3 +450,91 @@ class HtmlSnapshotTest(TestCase):
 
             RequestBrowser.reset_mock()
             _open.reset_mock()
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('os.makedirs')
+    @mock.patch('se.html_snapshot.open')
+    def test_180_exclude_url(self, _open, makedirs, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        makedirs.side_effect = None
+
+        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_url_re='http://127.0.0.1/excluded.*')
+        HTML = '''<html><head></head><body>
+            <img src="/excluded.png"/>
+            <img src="/image.png"/>
+        </body></html>'''
+        page = Page('http://127.0.0.1/', HTML, None)
+        HTMLSnapshot(page, policy).handle_assets()
+
+        self.assertTrue(RequestBrowser.call_args_list == [
+            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+        ], RequestBrowser.call_args_list)
+        self.assertTrue(_open.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+        ], _open.call_args_list)
+
+        dump = page.dump_html()
+        self.assertEqual(dump, format_html('''<html><head></head><body>
+            <img src="{}"/>
+            <img src="{}http,3A/127.0.0.1/image.png_0fcab19ae8.png"/>
+        </body></html>''', reverse('html_excluded', args=(policy.id, 'url',)), settings.SOSSE_HTML_SNAPSHOT_URL).encode('utf-8'))
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('os.makedirs')
+    @mock.patch('se.html_snapshot.open')
+    def test_180_exclude_mime(self, _open, makedirs, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        makedirs.side_effect = None
+
+        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_mime_re='image/jpe?g')
+        HTML = '''<html><head></head><body>
+            <img src="/image.jpg"/>
+            <img src="/image.png"/>
+        </body></html>'''
+        page = Page('http://127.0.0.1/', HTML, None)
+        HTMLSnapshot(page, policy).handle_assets()
+
+        self.assertTrue(RequestBrowser.call_args_list == [
+            mock.call('http://127.0.0.1/image.jpg', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+        ], RequestBrowser.call_args_list)
+        self.assertTrue(_open.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+        ], _open.call_args_list)
+
+        dump = page.dump_html()
+        self.assertEqual(dump, format_html('''<html><head></head><body>
+            <img src="{}"/>
+            <img src="{}http,3A/127.0.0.1/image.png_0fcab19ae8.png"/>
+        </body></html>''', reverse('html_excluded', args=(policy.id, 'mime',)), settings.SOSSE_HTML_SNAPSHOT_URL).encode('utf-8'))
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('os.makedirs')
+    @mock.patch('se.html_snapshot.open')
+    def test_190_exclude_element(self, _open, makedirs, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        makedirs.side_effect = None
+
+        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_element_re='aud.*')
+        HTML = '''<html><head></head><body>
+            <audio src="/audio.wav"></audio>
+            <video src="/video.mp4"></video>
+        </body></html>'''
+        page = Page('http://127.0.0.1/', HTML, None)
+        HTMLSnapshot(page, policy).handle_assets()
+
+        self.assertTrue(RequestBrowser.call_args_list == [
+            mock.call('http://127.0.0.1/video.mp4', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+        ], RequestBrowser.call_args_list)
+        self.assertTrue(_open.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4', 'wb'),
+        ], _open.call_args_list)
+
+        dump = page.dump_html()
+        self.assertEqual(dump, format_html('''<html><head></head><body>
+            <audio src="{}"></audio>
+            <video src="{}http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4"></video>
+        </body></html>''', reverse('html_excluded', args=(policy.id, 'element',)), settings.SOSSE_HTML_SNAPSHOT_URL).encode('utf-8'))

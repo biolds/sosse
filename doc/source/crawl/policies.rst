@@ -132,9 +132,27 @@ HTML snapshot
 Snapshot html
 """""""""""""
 
-This option enables capturing snapshots of crawled HTML pages and the related images, CSS, etc. it relies on for offline use.
+This option enables capturing snapshots of crawled HTML pages and there related images, CSS, etc. it relies on for offline use.
 
 A browser can be used to take the snapshot after dynamic content is loaded.
+
+Snapshot exclude url re
+"""""""""""""""""""""""
+
+This field defines a regular expression of URL of related assets to skip downloading. For example, setting a regexp of ``png$`` would make the crawler
+skip the download of URL ending with ``png``.
+
+Snapshot exclude mime re
+""""""""""""""""""""""""
+
+This field defines a regular expression of mimetypes of related assets to skip saving, however files are still downloaded to determine there mimetype.
+For example, setting a regexp of ``image/.*`` would make the crawler skip saving images.
+
+Snapshot exclude element re
+"""""""""""""""""""""""""""
+
+This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a regexp of ``audio|video`` would make the crawler
+skip the download of medias.
 
 Updates
 -------

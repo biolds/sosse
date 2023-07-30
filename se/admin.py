@@ -435,11 +435,13 @@ class DocumentAdmin(admin.ModelAdmin):
         return obj.content
 
     def delete_model(self, request, obj):
+        obj.delete_html()
         obj.delete_screenshot()
         return super().delete_model(request, obj)
 
     def delete_queryset(self, request, queryset):
         for obj in queryset.all():
+            obj.delete_html()
             obj.delete_screenshot()
         return super().delete_queryset(request, queryset)
 

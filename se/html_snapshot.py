@@ -22,8 +22,10 @@ from mimetypes import guess_extension
 from urllib.parse import quote, unquote_plus, urlparse
 from traceback import format_exc
 
+from bs4 import BeautifulSoup
 import cssutils
 from django.conf import settings
+from django.db import models
 from django.shortcuts import reverse
 
 logger = logging.getLogger('html_snapshot')
@@ -35,16 +37,142 @@ def max_filename_size():
     return os.statvfs(settings.SOSSE_HTML_SNAPSHOT_DIR).f_namemax
 
 
+def remove_html_asset_file(fn):
+    try:
+        logger.debug('deleting %s', fn)
+        os.unlink(fn)
+    except OSError:
+        # should not happen
+        pass
+    try:
+        dn = os.path.dirname(fn)
+        logger.debug('rmdir start %s', dn)
+        while dn.startswith(settings.SOSSE_HTML_SNAPSHOT_DIR):
+            logger.debug('rmdir %s', dn)
+            os.rmdir(dn)
+            dn = os.path.dirname(dn)
+    except OSError:
+        # ignore directory not empty errors
+        pass
+
+
+class HTMLAsset(models.Model):
+    filename = models.TextField(unique=True)
+    ref_count = models.PositiveBigIntegerField(default=1)
+
+    @staticmethod
+    def add_ref(fn):
+        asset, created = HTMLAsset.objects.get_or_create(filename=fn)
+        if not created:
+            HTMLAsset.objects.filter(id=asset.id).update(ref_count=models.F('ref_count') + 1)
+
+    @staticmethod
+    def html_delete(url, _hash):
+        fn = settings.SOSSE_HTML_SNAPSHOT_DIR + HTMLSnapshot.html_filename(url, _hash, '.html')
+        try:
+            content = open(fn, 'rb').read()
+            assets = HTMLAsset.html_extract_assets(content)
+            for asset in assets:
+                HTMLAsset.remove_ref(asset)
+        except OSError:
+            pass
+
+        remove_html_asset_file(fn)
+
+    @staticmethod
+    def remove_ref(fn):
+        # TODO: fix the race condition below
+        logger.debug('removing ref on %s', fn)
+        HTMLAsset.objects.filter(filename=fn).update(ref_count=models.F('ref_count') - 1)
+        asset = HTMLAsset.objects.filter(filename=fn).first()
+        if asset and asset.ref_count <= 0:
+            logger.debug('removing file %s', fn)
+            asset.delete()
+            remove_html_asset_file(settings.SOSSE_HTML_SNAPSHOT_DIR + fn)
+
+    @staticmethod
+    def html_extract_assets(content):
+        assets = set()
+        soup = BeautifulSoup(content, 'html5lib')
+        for elem in soup.find_all(True):
+            if elem.name == 'style':
+                if elem.string:
+                    assets |= HTMLAsset.css_extract_assets(elem.string, False)
+
+            if elem.attrs.get('style'):
+                assets |= HTMLAsset.css_extract_assets(elem.attrs['style'], True)
+
+            if 'srcset' in elem.attrs:
+                urls = elem.attrs['srcset'].strip()
+                urls = urls.split(',')
+
+                for url in urls:
+                    url = url.strip()
+                    if ' ' in url:
+                        url, _ = url.split(' ', 1)
+
+                    # unescape comma that were in HTMLSnapshot.handle_assets
+                    url = url.replace('%2C', ',')
+
+                    if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
+                        assets.add(url[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+
+            for attr in ('src', 'href'):
+                if attr not in elem.attrs:
+                    continue
+
+                url = elem.attrs[attr]
+                if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
+                    filename = url[len(settings.SOSSE_HTML_SNAPSHOT_URL):]
+                    assets.add(filename)
+
+                    if url.endswith('.css'):
+                        filename = settings.SOSSE_HTML_SNAPSHOT_DIR + filename
+                        assets |= HTMLAsset.css_extract_assets(open(filename).read(), False)
+
+        return assets
+
+    @staticmethod
+    def css_extract_assets(content, inline_css):
+        assets = set()
+        if inline_css:
+            sheet = cssutils.parseStyle(content)
+        else:
+            sheet = cssutils.parseString(content)
+        for rule in sheet:
+            if not hasattr(rule, 'style'):
+                continue
+
+            for prop in rule.style:
+                value = prop.value
+                m = list(re.finditer(r'\burl\([^\)]+\)', value))
+                if m:
+                    for css_url in m:
+                        url = css_url[0][4:-1]
+                        if url.startswith('"'):
+                            url = url[1:-1]
+
+                        if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
+                            assets.add(url[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+
+        return assets
+
+
 class HTMLSnapshot:
     def __init__(self, page, crawl_policy):
         self.page = page
         self.crawl_policy = crawl_policy
+        self.assets_url = set()
 
     def snapshot(self, _hash):
         logger.debug('snapshot of %s' % self.page.url)
         self.sanitize()
         self.handle_assets()
         self.write_asset(self.page.url, self.page.dump_html(), '.html', _hash)
+
+        for fn in self.assets_url:
+            HTMLAsset.add_ref(fn)
+
         logger.debug('html_snapshot of %s done' % self.page.url)
 
     def sanitize(self):
@@ -278,15 +406,25 @@ class HTMLSnapshot:
             _parts.append(part)
         return '/'.join(_parts)
 
-    def write_asset(self, url, content, extension, _hash=None):
+    def write_asset(self, url, content, extension, src_hash=None):
         logger.debug('html_write_asset for %s', url)
-        _hash = _hash or md5(content).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
-        filename_url = self.html_filename(url, _hash, extension)
-        dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
 
+        if src_hash:
+            _hash = src_hash
+        else:
+            _hash = md5(content).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
+
+        filename_url = self.html_filename(url, _hash, extension)
+        if not src_hash:
+            self.assets_url.add(filename_url)
+
+        dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
         dest_dir, _ = dest.rsplit('/', 1)
         os.makedirs(dest_dir, 0o755, exist_ok=True)
 
         with open(dest, 'wb') as fd:
             fd.write(content)
         return settings.SOSSE_HTML_SNAPSHOT_URL + filename_url
+
+    def get_assets_url(self):
+        return self.assets_url

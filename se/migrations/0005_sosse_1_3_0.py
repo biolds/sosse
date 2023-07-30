@@ -66,4 +66,13 @@ class Migration(migrations.Migration):
             name='snapshot_exclude_url_re',
             field=models.TextField(blank=True, default='', help_text='Regexp of URL to skip asset downloading'),
         ),
+
+        migrations.CreateModel(
+            name='HTMLAsset',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('filename', models.TextField(unique=True)),
+                ('ref_count', models.PositiveBigIntegerField(default=1)),
+            ],
+        ),
     ]

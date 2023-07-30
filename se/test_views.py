@@ -14,7 +14,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from urllib.parse import quote
+import os
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
 from django.test.client import Client
@@ -55,6 +57,15 @@ class ViewsTest(TestCase):
         cls.user.delete()
         cls.doc.delete()
         cls.crawl_policy.delete()
+        try:
+            os.unlink(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/cookies_98ba5952821ca60c491fa81c6214e26f.html')
+        except OSError:
+            pass
+        try:
+            os.rmdir(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/')
+            os.rmdir(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/')
+        except OSError:
+            pass
 
     def setUp(self):
         self.factory = RequestFactory()

@@ -438,6 +438,12 @@ class Conf:
             'LOGGING': LOGGING
         })
 
+        for opt in ('static_url', 'static_root', 'screenshots_url', 'screenshots_dir',
+                    'html_snapshot_url', 'html_snapshot_dir'):
+            val = settings.get('SOSSE_' + opt.upper(), '')
+            if not val.endswith('/'):
+                settings['SOSSE_' + opt.upper()] = val + '/'
+
         return settings
 
     @classmethod

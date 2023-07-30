@@ -453,6 +453,7 @@ class Document(models.Model):
                 link.save()
             self._index_log('bulk', stats, verbose)
 
+            self.delete_screenshot()
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)
 

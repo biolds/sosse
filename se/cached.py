@@ -70,7 +70,7 @@ def get_context(doc, view_name):
     if view_name != 'www':
         other_links.append({
             'href': reverse_no_escape('www', args=[doc.url]),
-            'text': '✒ Text version',
+            'text': '✒ Text',
         })
     if doc.has_html_snapshot and view_name != 'html':
         other_links.append({

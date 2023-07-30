@@ -162,7 +162,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage')
     search_fields = ['url__regex', 'title__regex']
-    fields = ['url', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cached', 'link', 'title', 'status',
+    fields = ['url', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cache', 'link', 'title', 'status',
               '_error', 'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse',
               'robotstxt_rejected', 'too_many_redirects', 'mimetype', '_lang_txt', '_content']
     readonly_fields = copy(fields)
@@ -377,8 +377,8 @@ class DocumentAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">Source page 🔗</a>', obj.url)
 
     @staticmethod
-    def cached(obj):
-        return format_html('<a href="{}">Cached version 🔗</a>', obj.get_absolute_url())
+    def cache(obj):
+        return format_html('<a href="{}">Page in cache 🔗</a>', obj.get_absolute_url())
 
     @staticmethod
     def domain(obj):

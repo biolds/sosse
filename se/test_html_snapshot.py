@@ -336,6 +336,39 @@ class HtmlSnapshotTest(TestCase):
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
     @mock.patch('se.html_snapshot.open')
+    def test_122_css_inline_handling(self, _open, makedirs, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        makedirs.side_effect = None
+
+        HTML = '''<html><head></head></html>
+            <div style="background-image: url(/image.png)"></div>
+        </body></html>'''
+        page = Page('http://127.0.0.1/', HTML, None)
+        snap = HTMLSnapshot(page, self.policy)
+        snap.handle_assets()
+
+        self.assertTrue(RequestBrowser.call_args_list == [
+            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+
+        ], RequestBrowser.call_args_list)
+
+        self.assertTrue(_open.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+        ], _open.call_args_list)
+
+        dump = page.dump_html()
+        OUTPUT = '''<html><head></head><body>
+            <div style='background-image: url("%shttp,3A/127.0.0.1/image.png_0fcab19ae8.png")'></div>
+        </body></html>''' % settings.SOSSE_HTML_SNAPSHOT_URL
+        self.assertEqual(dump.decode('utf-8'), OUTPUT)
+
+        self.assertEqual(snap.get_assets_url(), set(('http,3A/127.0.0.1/image.png_0fcab19ae8.png',)))
+        self.assertEqual(snap.get_assets_url(), HTMLAsset.html_extract_assets(OUTPUT))
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('os.makedirs')
+    @mock.patch('se.html_snapshot.open')
     def test_130_css_data_handling(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)

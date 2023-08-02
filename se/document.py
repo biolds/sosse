@@ -372,6 +372,8 @@ class Document(models.Model):
         self.normalized_content = ''
         self.title = ''
         self.normalized_title = ''
+        self.robotstxt_rejected = False
+        self.mimetype = ''
         self.delete_html()
         self.delete_screenshot()
         Link.objects.filter(doc_from=self).delete()
@@ -725,3 +727,5 @@ class Document(models.Model):
                 filename = '%s_%s.%s' % (d, i, self.screenshot_format)
                 if os.path.exists(filename):
                     os.unlink(filename)
+            self.screenshot_file = None
+            self.screenshot_count = None

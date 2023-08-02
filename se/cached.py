@@ -45,6 +45,9 @@ def get_cached_doc(request, view_name):
     if doc is None:
         return unknown_url_view(request)
     if settings.SOSSE_CACHE_FOLLOWS_REDIRECT and doc.redirect_url:
+        new_doc = Document.objects.filter(url=doc.redirect_url).first()
+        if new_doc:
+            return redirect(new_doc.get_absolute_url())
         return redirect(reverse_no_escape(view_name, args=[doc.redirect_url]))
     return doc
 

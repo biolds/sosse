@@ -156,16 +156,30 @@ class HTMLSnapshot:
     def __init__(self, page, crawl_policy):
         self.page = page
         self.crawl_policy = crawl_policy
-        self.assets_url = set()
+        self.asset_filenames = set()
+
+    def _add_asset_ref(self, filename):
+        if filename not in self.asset_filenames:
+            self.asset_filenames.add(filename)
+            HTMLAsset.add_ref(filename)
+
+    def _clear_assets(self):
+        for asset_filename in self.asset_filenames:
+            HTMLAsset.remove_ref(asset_filename)
+        self.asset_filenames = set()
 
     def snapshot(self, _hash):
         logger.debug('snapshot of %s' % self.page.url)
-        self.sanitize()
-        self.handle_assets()
-        self.write_asset(self.page.url, self.page.dump_html(), '.html', _hash)
-
-        for fn in self.assets_url:
-            HTMLAsset.add_ref(fn)
+        try:
+            self.sanitize()
+            self.handle_assets()
+            self.write_asset(self.page.url, self.page.dump_html(), '.html', _hash)
+        except Exception as e:  # noqa
+            if getattr(settings, 'TEST_MODE', False) and not getattr(settings, 'TEST_HTML_ERROR_HANDLING', False):
+                raise
+            content = 'An error occured while downloading %s:\n%s' % (self.page.url, format_exc())
+            self.write_asset(self.page.url, content.encode('utf-8'), '.html', _hash)
+            self._clear_assets()
 
         logger.debug('html_snapshot of %s done' % self.page.url)
 
@@ -329,6 +343,9 @@ class HTMLSnapshot:
         return css
 
     def download_asset(self, url):
+        if getattr(settings, 'TEST_HTML_ERROR_HANDLING', False) and url == 'http://127.0.0.1/test-exception':
+            raise Exception('html_error_handling test')
+
         if self.crawl_policy.snapshot_exclude_url_re and re.match(self.crawl_policy.snapshot_exclude_url_re, url):
             logger.debug('download_asset %s excluded because it matches the url exclude regexp' % url)
             return reverse('html_excluded', args=(self.crawl_policy.id, 'url'))
@@ -419,7 +436,7 @@ class HTMLSnapshot:
 
         filename_url = self.html_filename(url, _hash, extension)
         if not src_hash:
-            self.assets_url.add(filename_url)
+            self._add_asset_ref(filename_url)
 
         dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
         dest_dir, _ = dest.rsplit('/', 1)
@@ -429,5 +446,5 @@ class HTMLSnapshot:
             fd.write(content)
         return settings.SOSSE_HTML_SNAPSHOT_URL + filename_url
 
-    def get_assets_url(self):
-        return self.assets_url
+    def get_asset_filenames(self):
+        return self.asset_filenames

@@ -288,6 +288,10 @@ DEFAULTS = OrderedDict([
             'default': 1,
             'type': int
         }],
+        ['css_parser', {
+            'comment': 'Choose which CSS parser implementation to use. May be one of ``internal`` or ``cssutils``:\nYou may want to change this option when HTML snapshots have broken styles.',
+            'default': 'internal',
+        }],
     ])]
 ])
 
@@ -405,6 +409,10 @@ class Conf:
                 pass
         if hash_algo not in algos:
             raise Exception('Configuration parsing error: invalid hashing_algo value "%s", must be one of %s' % (hash_algo, ', '.join(sorted(algos))))
+
+        css_parser = settings.get('SOSSE_CSS_PARSER')
+        if css_parser not in ('internal', 'cssutils'):
+            raise Exception('Configuration parsing error: invalid css_parser value "%s", it must be either "internal" or "cssutils"')
 
         crawler_count = settings.pop('SOSSE_CRAWLER_COUNT')
         if not crawler_count:

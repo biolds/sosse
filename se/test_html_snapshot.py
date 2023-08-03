@@ -25,14 +25,14 @@ from requests import HTTPError
 
 from .browser import Page, PageTooBig
 from .document import Document
-from .html_snapshot import HTMLAsset, HTMLSnapshot, HTML_SNAPSHOT_HASH_LEN, max_filename_size
+from .html_snapshot import css_parser, HTMLAsset, HTMLSnapshot, HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .models import CrawlPolicy, DomainSetting
 
 
 class BrowserMock:
     def __init__(self, web):
         self.web = {
-            'http://127.0.0.1/style.css': b'body { color: #fff; }',
+            'http://127.0.0.1/style.css': b'body {\n    color: #fff\n    }',
             'http://127.0.0.1/page.html': b'HTML test',
             'http://127.0.0.1/image.png': b'PNG test',
             'http://127.0.0.1/image2.png': b'PNG test2',
@@ -54,7 +54,7 @@ class BrowserMock:
         return Page(url, content, BrowserMock, mimetype)
 
 
-class HtmlSnapshotTest(TestCase):
+class HTMLSnapshotTest:
     @classmethod
     def setUpClass(cls):
         cls.policy = CrawlPolicy.create_default()
@@ -269,13 +269,13 @@ class HtmlSnapshotTest(TestCase):
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        CSS = '''@font-face {
+        CSS = b'''@font-face {
     font-family: "police";
-    src: url(police.woff);
-}'''
+    src: url("police.woff")
+    }'''
         page = Page('http://127.0.0.1/', CSS, None)
         snap = HTMLSnapshot(page, self.policy)
-        output = snap.handle_css('http://127.0.0.1/', CSS, False)
+        output = css_parser().handle_css(snap, 'http://127.0.0.1/', CSS, False)
 
         self.assertTrue(RequestBrowser.call_args_list == [
             mock.call('http://127.0.0.1/police.woff', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
@@ -292,7 +292,7 @@ class HtmlSnapshotTest(TestCase):
     }''' % settings.SOSSE_HTML_SNAPSHOT_URL)
 
         self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/police.woff_644bf7897f.woff',)))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.css_extract_assets(output, False))
+        self.assertEqual(snap.get_asset_filenames(), css_parser().css_extract_assets(output, False))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
@@ -302,7 +302,9 @@ class HtmlSnapshotTest(TestCase):
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head><style>body {src: local(police), url(police.svg) format("svg"), url(police.woff) format("woff")}</style></head><body>
+        HTML = '''<html><head><style>body {
+    src: local(police), url("police.svg") format("svg"), url("police.woff") format("woff")
+    }</style></head><body>
             test
             <div style="color: #fff"></div>
         </body></html>'''
@@ -342,7 +344,7 @@ class HtmlSnapshotTest(TestCase):
         makedirs.side_effect = None
 
         HTML = '''<html><head></head></html>
-            <div style="background-image: url(/image.png)"></div>
+            <div style='background-image: url("/image.png")'></div>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
         snap = HTMLSnapshot(page, self.policy)
@@ -776,3 +778,22 @@ class HtmlSnapshotTest(TestCase):
         self.assertIn(b'Exception: html_error_handling test', mock_open.mock_calls[6].args[0])
 
         self.assertEqual(HTMLAsset.objects.count(), 0)
+
+
+class HTMLSnapshotCSSUtilsParser(HTMLSnapshotTest, TestCase):
+    @classmethod
+    def setUpClass(cls):
+        HTMLSnapshotTest.setUpClass()
+        import se.html_snapshot
+        cls.InternalCSSParser = se.html_snapshot.InternalCSSParser
+        se.html_snapshot.InternalCSSParser = se.html_snapshot.CSSUtilsParser
+
+    @classmethod
+    def tearDownClass(cls):
+        HTMLSnapshotTest.tearDownClass()
+        import se.html_snapshot
+        se.html_snapshot.InternalCSSParser = cls.InternalCSSParser
+
+
+class HTMLSnapshotInternalCSSParser(HTMLSnapshotTest, TestCase):
+    pass

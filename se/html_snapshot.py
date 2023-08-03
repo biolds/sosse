@@ -22,7 +22,7 @@ from mimetypes import guess_extension
 from urllib.parse import quote, unquote_plus, urlparse
 from traceback import format_exc
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 import cssutils
 from django.conf import settings
 from django.db import models
@@ -35,6 +35,13 @@ HTML_SNAPSHOT_HASH_LEN = 10
 
 def max_filename_size():
     return os.statvfs(settings.SOSSE_HTML_SNAPSHOT_DIR).f_namemax
+
+
+def css_parser():
+    if settings.SOSSE_CSS_PARSER == 'internal':
+        return InternalCSSParser
+    else:
+        return CSSUtilsParser
 
 
 def remove_html_asset_file(fn):
@@ -97,10 +104,10 @@ class HTMLAsset(models.Model):
         for elem in soup.find_all(True):
             if elem.name == 'style':
                 if elem.string:
-                    assets |= HTMLAsset.css_extract_assets(elem.string, False)
+                    assets |= css_parser().css_extract_assets(elem.string, False)
 
             if elem.attrs.get('style'):
-                assets |= HTMLAsset.css_extract_assets(elem.attrs['style'], True)
+                assets |= css_parser().css_extract_assets(elem.attrs['style'], True)
 
             if 'srcset' in elem.attrs:
                 urls = elem.attrs['srcset'].strip()
@@ -128,14 +135,132 @@ class HTMLAsset(models.Model):
 
                     if url.endswith('.css'):
                         filename = settings.SOSSE_HTML_SNAPSHOT_DIR + filename
-                        assets |= HTMLAsset.css_extract_assets(open(filename).read(), False)
+                        assets |= css_parser().css_extract_assets(open(filename).read(), False)
 
         return assets
+
+
+class InternalCSSParser:
+    @staticmethod
+    def handle_css(snapshot, src_url, content, inline_css):
+        if inline_css:
+            assert isinstance(content, str), content.__class__.__name__
+        else:
+            assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
+            if isinstance(content, bytes):
+                content = content.decode('utf-8')
+        from .document import absolutize_url
+        val = ''
+
+        m = list(re.finditer(r'\burl\([^\)]+\)', content))
+        if m:
+            for no, css_url in enumerate(m):
+                if no == 0:
+                    start = 0
+                else:
+                    start = m[no - 1].end()
+                val += content[start:css_url.start()]
+
+                url = css_url[0][4:-1].strip()
+                quote = ''
+                if url.startswith('"') or url.startswith("'"):
+                    quote = url[0]
+                    url = url[1:-1]
+
+                if not url.startswith('data:') and not url.startswith('#'):
+                    url = absolutize_url(src_url, url, True, True)
+                    url = snapshot.download_asset(url)
+
+                url = f'{quote}{url}{quote}'
+                val += f'url({url})'
+
+            val += content[m[-1].end(0):]
+            css = val
+        else:
+            css = content
+        assert isinstance(css, str)
+        return css
+
+    @staticmethod
+    def css_extract_assets(content, _):
+        assets = set()
+        m = list(re.finditer(r'\burl\([^\)]+\)', content))
+        if m:
+            for css_url in m:
+                url = css_url[0][4:-1].strip()
+                if url.startswith('"') or url.startswith('"'):
+                    url = url[1:-1]
+
+                if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
+                    assets.add(url[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+
+        return assets
+
+
+class CSSUtilsParser:
+    @staticmethod
+    def css_declarations(content, inline_css):
+        if inline_css:
+            declarations = cssutils.parseStyle(content)
+            sheet = None
+        else:
+            sheet = cssutils.parseString(content)
+            declarations = []
+            for rule in sheet:
+                if hasattr(rule, 'style'):
+                    declarations += rule.style
+        return declarations, sheet
+
+    @staticmethod
+    def handle_css(snapshot, src_url, content, inline_css):
+        if inline_css:
+            assert isinstance(content, str), content.__class__.__name__
+        else:
+            assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
+        from .document import absolutize_url
+        declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
+
+        for prop in declarations:
+            value = prop.value
+            val = ''
+
+            m = list(re.finditer(r'\burl\([^\)]+\)', value))
+            if m:
+                for no, css_url in enumerate(m):
+                    if no == 0:
+                        start = 0
+                    else:
+                        start = m[no - 1].end()
+                    val += value[start:css_url.start()]
+
+                    url = css_url[0][4:-1]
+                    has_quotes = False
+                    if url.startswith('"'):
+                        url = url[1:-1]
+
+                    if not url.startswith('data:') and not url.startswith('#'):
+                        url = absolutize_url(src_url, url, True, True)
+                        url = snapshot.download_asset(url)
+
+                    if has_quotes:
+                        url = f'"{url}"'
+
+                    val += f'url({url})'
+
+                val += value[m[-1].end(0):]
+                prop.value = val
+
+        if inline_css:
+            css = declarations.cssText
+        else:
+            css = sheet.cssText.decode('utf-8')
+        assert isinstance(css, str)
+        return css
 
     @staticmethod
     def css_extract_assets(content, inline_css):
         assets = set()
-        declarations, sheet = HTMLSnapshot.css_declarations(content, inline_css)
+        declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
 
         for prop in declarations:
             value = prop.value
@@ -230,11 +355,11 @@ class HTMLSnapshot:
             if elem.name == 'style':
                 logger.debug('handle_css of %s (<style>)' % self.page.url)
                 if elem.string:
-                    elem.string = self.handle_css(self.page.url, elem.string, False)
+                    elem.string = css_parser().handle_css(self, self.page.url, elem.string, False)
 
             if elem.attrs.get('style'):
                 logger.debug('handle_css of %s (style=%s)' % (self.page.url, elem.attrs['style']))
-                elem.attrs['style'] = self.handle_css(self.page.url, elem.attrs['style'], True)
+                elem.attrs['style'] = css_parser().handle_css(self, self.page.url, elem.attrs['style'], True)
 
             if 'srcset' in elem.attrs:
                 urls = elem.attrs['srcset'].strip()
@@ -289,59 +414,6 @@ class HTMLSnapshot:
                         filename_url = self.download_asset(url)
                     elem.attrs[attr] = filename_url
 
-    @staticmethod
-    def css_declarations(content, inline_css):
-        if inline_css:
-            declarations = cssutils.parseStyle(content)
-            sheet = None
-        else:
-            sheet = cssutils.parseString(content)
-            declarations = []
-            for rule in sheet:
-                if hasattr(rule, 'style'):
-                    declarations += rule.style
-        return declarations, sheet
-
-    def handle_css(self, src_url, content, inline_css):
-        from .document import absolutize_url
-        declarations, sheet = self.css_declarations(content, inline_css)
-
-        for prop in declarations:
-            value = prop.value
-            val = ''
-
-            m = list(re.finditer(r'\burl\([^\)]+\)', value))
-            if m:
-                for no, css_url in enumerate(m):
-                    if no == 0:
-                        start = 0
-                    else:
-                        start = m[no - 1].end()
-                    val += value[start:css_url.start()]
-
-                    url = css_url[0][4:-1]
-                    has_quotes = False
-                    if url.startswith('"'):
-                        url = url[1:-1]
-
-                    if not url.startswith('data:') and not url.startswith('#'):
-                        url = absolutize_url(src_url, url, True, True)
-                        url = self.download_asset(url)
-
-                    if has_quotes:
-                        url = f'"{url}"'
-
-                    val += f'url({url})'
-
-                val += value[m[-1].end(0):]
-                prop.value = val
-
-        if inline_css:
-            css = declarations.cssText
-        else:
-            css = sheet.cssText.decode('utf-8')
-        return css
-
     def download_asset(self, url):
         if getattr(settings, 'TEST_HTML_ERROR_HANDLING', False) and url == 'http://127.0.0.1/test-exception':
             raise Exception('html_error_handling test')
@@ -379,7 +451,7 @@ class HTMLSnapshot:
 
             if asset.mimetype == 'text/css':
                 logger.debug('handle_css of %s due to mimetype' % url)
-                content = self.handle_css(url, content, False).encode('utf-8')
+                content = css_parser().handle_css(self, url, content, False).encode('utf-8')
         except SkipIndexing as e:
             content = 'An error occured while downloading %s:\n%s' % (url, e.args[0])
             content = content.encode('utf-8')

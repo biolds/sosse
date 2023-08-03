@@ -206,7 +206,7 @@ DEFAULTS = OrderedDict([
             'default': ''
         }],
         ['proxy', {
-            'comment': 'Url of the HTTP proxy server to use.',
+            'comment': 'Url of the HTTP proxy server to use.\nExample: http://192.168.0.1:8080/',
             'default': ''
         }],
         ['user_agent', {

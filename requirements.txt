@@ -12,4 +12,4 @@ publicsuffix2
 pygal
 python-magic
 requests
-selenium
+selenium<4.11

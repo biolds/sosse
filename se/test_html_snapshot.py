@@ -94,11 +94,13 @@ class HTMLSnapshotTest:
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
+    @mock.patch('se.html_asset.open')
     @mock.patch('se.html_snapshot.open')
-    def test_060_assets_handling(self, _open, makedirs, RequestBrowser):
+    def test_060_assets_handling(self, snap_open, asset_open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
-        _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        snap_open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        asset_open.side_effect = snap_open.side_effect
 
         HTML = '''<html><head>
             <link rel="stylesheet" href="/style.css"/>
@@ -114,10 +116,10 @@ class HTMLSnapshotTest:
             mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
-        self.assertTrue(_open.call_args_list == [
+        self.assertTrue(snap_open.call_args_list == [
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'wb'),
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
-        ], _open.call_args_list)
+        ], snap_open.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = f'''<html><head>
@@ -687,7 +689,7 @@ class HTMLSnapshotTest:
 
         for no in (1, 2):
             mock_open = mock.mock_open()
-            with mock.patch('se.html_snapshot.open', mock_open):
+            with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_snapshot.open', mock_open):
                 Document.objects.create(url='http://127.0.0.1/page%s.html' % no)
                 Document.crawl(0)
                 self.assertEqual(mock_open.mock_calls[0],
@@ -699,7 +701,7 @@ class HTMLSnapshotTest:
         self.assertEqual(HTMLAsset.objects.get().ref_count, 2)
 
         mock_open = mock.mock_open(read_data=HTML % (settings.SOSSE_HTML_SNAPSHOT_URL + PNG_URL))
-        with mock.patch('se.html_snapshot.open', mock_open):
+        with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_snapshot.open', mock_open):
             obj = Document.objects.first()
             obj.delete_html()
             obj.delete()

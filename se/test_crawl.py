@@ -17,30 +17,11 @@ from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 from django.test import TestCase, override_settings
-from requests import HTTPError
 
 from .browser import AuthElemFailed, Page, SkipIndexing
 from .document import Document
 from .models import DomainSetting, Link, CrawlPolicy
-
-
-class BrowserMock:
-    def __init__(self, web):
-        self.web = {
-            'http://127.0.0.1/robots.txt': HTTPError(),
-            'http://127.0.0.1/favicon.ico': HTTPError(),
-            'http://127.0.0.2/robots.txt': HTTPError(),
-            'http://127.0.0.2/favicon.ico': HTTPError(),
-            'http://127.0.0.3/robots.txt': HTTPError(),
-            'http://127.0.0.3/favicon.ico': HTTPError(),
-        }
-        self.web.update(web)
-
-    def __call__(self, url, raw=False, check_status=False, **kwargs):
-        content = self.web[url]
-        if isinstance(content, Exception):
-            raise content
-        return Page(url, content, BrowserMock)
+from .test_mock import BrowserMock
 
 
 class CrawlerTest(TestCase):

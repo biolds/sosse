@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from mimetypes import guess_type
 from unittest import mock
 
 import cssutils
@@ -23,35 +22,11 @@ from django.test import TestCase, override_settings
 from django.utils.html import format_html
 from requests import HTTPError
 
-from .browser import Page, PageTooBig
+from .browser import Page
 from .document import Document
 from .html_snapshot import css_parser, HTMLAsset, HTMLSnapshot, HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .models import CrawlPolicy, DomainSetting
-
-
-class BrowserMock:
-    def __init__(self, web):
-        self.web = {
-            'http://127.0.0.1/style.css': b'body {\n    color: #fff\n    }',
-            'http://127.0.0.1/page.html': b'HTML test',
-            'http://127.0.0.1/image.png': b'PNG test',
-            'http://127.0.0.1/image2.png': b'PNG test2',
-            'http://127.0.0.1/image3.png': b'PNG test3',
-            'http://127.0.0.1/image.jpg': b'JPG test',
-            'http://127.0.0.1/video.mp4': b'MP4 test',
-            'http://127.0.0.1/police.svg': b'SVG test',
-            'http://127.0.0.1/police.woff': b'WOFF test',
-            'http://127.0.0.1/toobig.png': PageTooBig(2000, 1),
-            'http://127.0.0.1/exception.png': Exception('Generic exception')
-        }
-        self.web.update(web)
-
-    def __call__(self, url, raw=False, check_status=False, **kwargs):
-        content = self.web[url]
-        if isinstance(content, Exception):
-            raise content
-        mimetype = guess_type(url)[0]
-        return Page(url, content, BrowserMock, mimetype)
+from .test_mock import BrowserMock
 
 
 class HTMLSnapshotTest:

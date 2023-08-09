@@ -23,5 +23,3 @@ class HTMLAssetTest(TestCase):
     def test_010_cache_miss(self):
         assets_count = HTMLAsset.objects.count()
         self.assertEqual(assets_count, 0)
-
-        HTML

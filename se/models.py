@@ -485,7 +485,7 @@ class DomainSetting(models.Model):
         try:
             page = RequestBrowser.get(robots_url, check_status=True)
             crawl_logger.debug('%s: loading %s' % (self.domain, robots_url))
-            self._parse_robotstxt(page.content)
+            self._parse_robotstxt(page.content.decode('utf-8'))
         except requests.HTTPError:
             self.robots_status = DomainSetting.ROBOTS_EMPTY
         else:

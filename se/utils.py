@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote, unquote_plus, urlparse
 
 from django.shortcuts import reverse
@@ -141,3 +141,38 @@ def has_browsable_scheme(url):
         if url.startswith(prefix):
             return False
     return True
+
+
+def http_date_parser(d):
+    if d is None:
+        return None
+    assert isinstance(d, str)
+    try:
+        _, day, month, year, t, _ = d.strip().split()
+        day = int(day)
+        MONTHS = ('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+        month = MONTHS.index(month.lower()) + 1
+        year = int(year)
+
+        hour, minute, second = t.split(':')
+        hour = int(hour)
+        minute = int(minute)
+        second = int(second)
+
+        return datetime(year, month, day, hour, minute, second, tzinfo=timezone.utc)
+    except (ValueError, IndexError):
+        return None
+
+
+def http_date_format(d):
+    # Locale independant formatting
+    assert isinstance(d, datetime)
+    DOW = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
+    dow = DOW[d.weekday()]
+
+    MONTHS = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+    month = MONTHS[d.month - 1]
+
+    s = f'{dow}, {d.day} {month} {d.year}'
+    s += ' %02d:%02d:%02d GMT' % (d.hour, d.minute, d.second)
+    return s

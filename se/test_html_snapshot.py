@@ -23,8 +23,10 @@ from django.utils.html import format_html
 from requests import HTTPError
 
 from .browser import Page
-from .document import Document, sanitize_url
-from .html_snapshot import css_parser, HTMLAsset, HTMLSnapshot, HTML_SNAPSHOT_HASH_LEN, max_filename_size
+from .document import Document
+from .html_asset import HTMLAsset
+from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
+from .html_snapshot import css_parser, HTMLSnapshot
 from .models import CrawlPolicy, DomainSetting
 from .test_mock import BrowserMock
 
@@ -81,27 +83,15 @@ class HTMLSnapshotTest:
             <div data-test="other"></div>
         </body></html>''')
 
-    def test_050_html_filenames(self):
-        for url, fn in (
-            ('http://127.0.0.1/test.html', 'http,3A/127.0.0.1/test.html_~~~.html'),
-            ('http://127.0.0.1/test.html?a=b', 'http,3A/127.0.0.1/test.html,3Fa,3Db_~~~.html'),
-            ('http://127.0.0.1/', 'http,3A/127.0.0.1/_~~~.html'),
-            ('http://127.0.0.1/../', 'http,3A/127.0.0.1/_~~~.html'),
-            ('http://127.0.0.1/,', 'http,3A/127.0.0.1/,2C_~~~.html'),
-        ):
-            url = sanitize_url(url, True, True)
-            _fn = HTMLSnapshot.html_filename(url, '~~~', '.html')
-            self.assertEqual(_fn, fn, f'failed on {url} / expected {fn} / got {_fn}')
-
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
     @mock.patch('se.html_asset.open')
-    @mock.patch('se.html_snapshot.open')
-    def test_060_assets_handling(self, snap_open, asset_open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_050_assets_handling(self, cache_open, asset_open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
-        snap_open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
-        asset_open.side_effect = snap_open.side_effect
+        cache_open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        asset_open.side_effect = cache_open.side_effect
 
         HTML = b'''<html><head>
             <link rel="stylesheet" href="/style.css"/>
@@ -117,26 +107,28 @@ class HTMLSnapshotTest:
             mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
-        self.assertTrue(snap_open.call_args_list == [
+        self.assertTrue(cache_open.call_args_list == [
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'wb'),
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
-        ], snap_open.call_args_list)
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
+        ], cache_open.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = f'''<html><head>
             <link href="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/style.css_72f0eee2c7.css" rel="stylesheet"/>
         </head><body>
-            <img src="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/image.png_0fcab19ae8.png"/>
+            <img src="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/image.png_62d75f74b8.png"/>
         </body></html>'''.encode('utf-8')
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'http,3A/127.0.0.1/image.png_0fcab19ae8.png')))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(),
+                         set(('http://127.0.0.1/style.css', 'http://127.0.0.1/image.png')))
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT),
+                         set(('http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'http,3A/127.0.0.1/image.png_62d75f74b8.png')))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_070_srcset_attributes(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_060_srcset_attributes(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
@@ -159,7 +151,7 @@ class HTMLSnapshotTest:
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(_open.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image2.png_d22a588d3b.png', 'wb'),
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image3.png_c2e85796e4.png', 'wb'),
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4', 'wb')
@@ -167,21 +159,28 @@ class HTMLSnapshotTest:
 
         dump = page.dump_html()
         OUTPUT = f'''<html><head></head><body>
-            <img src="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/image3.png_c2e85796e4.png" srcset="{settings.SOSSE_HTML_SNAPSHOT_URL}http%2C3A/127.0.0.1/image.png_0fcab19ae8.png 200px, {settings.SOSSE_HTML_SNAPSHOT_URL}http%2C3A/127.0.0.1/image2.png_d22a588d3b.png 300px"/>
+            <img src="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/image3.png_c2e85796e4.png" srcset="{settings.SOSSE_HTML_SNAPSHOT_URL}http%2C3A/127.0.0.1/image.png_62d75f74b8.png 200px, {settings.SOSSE_HTML_SNAPSHOT_URL}http%2C3A/127.0.0.1/image2.png_d22a588d3b.png 300px"/>
             <video>
                 <source srcset="{settings.SOSSE_HTML_SNAPSHOT_URL}http%2C3A/127.0.0.1/video.mp4_60fce7cf30.mp4"/>
             </video>
         </body></html>'''.encode('utf-8')
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'http,3A/127.0.0.1/image2.png_d22a588d3b.png',
-                                                          'http,3A/127.0.0.1/image3.png_c2e85796e4.png', 'http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4')))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(),
+                         set(('http://127.0.0.1/image.png',
+                              'http://127.0.0.1/image2.png',
+                              'http://127.0.0.1/image3.png',
+                              'http://127.0.0.1/video.mp4')))
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT),
+                         set(('http,3A/127.0.0.1/image.png_62d75f74b8.png',
+                              'http,3A/127.0.0.1/image2.png_d22a588d3b.png',
+                              'http,3A/127.0.0.1/image3.png_c2e85796e4.png',
+                              'http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4')))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_080_links_handling(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_070_links_handling(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -201,13 +200,13 @@ class HTMLSnapshotTest:
         </body></html>'''
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set())
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(), set())
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT), set())
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_090_data_assets(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_080_data_assets(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -227,10 +226,10 @@ class HTMLSnapshotTest:
         </body></html>'''
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set())
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(), set())
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT), set())
 
-    def test_100_css_parser(self):
+    def test_090_css_parser(self):
         SRC = 'body {src: local(police), url(police.svg) format("svg"), url(police.woff) format("woff")}'
         DST = '''body {
     src: local(police), url(police.svg) format("svg"), url(police.woff) format("woff")
@@ -241,8 +240,8 @@ class HTMLSnapshotTest:
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_110_css_directives(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_100_css_directives(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -269,13 +268,13 @@ class HTMLSnapshotTest:
     src: url("%shttp,3A/127.0.0.1/police.woff_644bf7897f.woff")
     }''' % settings.SOSSE_HTML_SNAPSHOT_URL)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/police.woff_644bf7897f.woff',)))
-        self.assertEqual(snap.get_asset_filenames(), css_parser().css_extract_assets(output, False))
+        self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/police.woff',)))
+        self.assertEqual(css_parser().css_extract_assets(output, False), set(('http,3A/127.0.0.1/police.woff_644bf7897f.woff',)))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_120_css_content_handling(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_110_css_content_handling(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -310,13 +309,17 @@ class HTMLSnapshotTest:
         </body></html>''' % (settings.SOSSE_HTML_SNAPSHOT_URL, settings.SOSSE_HTML_SNAPSHOT_URL)
         self.assertEqual(dump.decode('utf-8'), OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/police.woff_644bf7897f.woff', 'http,3A/127.0.0.1/police.svg_614a9bdfc7.svg')))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(),
+                         set(('http://127.0.0.1/police.svg',
+                              'http://127.0.0.1/police.woff')))
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT),
+                         set(('http,3A/127.0.0.1/police.woff_644bf7897f.woff',
+                              'http,3A/127.0.0.1/police.svg_614a9bdfc7.svg')))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_122_css_inline_handling(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_120_css_inline_handling(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -334,21 +337,23 @@ class HTMLSnapshotTest:
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(_open.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
         ], _open.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = '''<html><head></head><body>
-            <div style='background-image: url("%shttp,3A/127.0.0.1/image.png_0fcab19ae8.png")'></div>
+            <div style='background-image: url("%shttp,3A/127.0.0.1/image.png_62d75f74b8.png")'></div>
         </body></html>''' % settings.SOSSE_HTML_SNAPSHOT_URL
         self.assertEqual(dump.decode('utf-8'), OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/image.png_0fcab19ae8.png',)))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(),
+                         set(('http://127.0.0.1/image.png',)))
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT),
+                         set(('http,3A/127.0.0.1/image.png_62d75f74b8.png',)))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
+    @mock.patch('se.html_cache.open')
     def test_130_css_data_handling(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
@@ -369,12 +374,12 @@ class HTMLSnapshotTest:
         dump = page.dump_html()
         self.assertEqual(dump, HTML)
 
-        self.assertEqual(snap.get_asset_filenames(), set())
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(HTML))
+        self.assertEqual(snap.get_asset_urls(), set())
+        self.assertEqual(HTMLAsset.html_extract_assets(HTML), set())
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
+    @mock.patch('se.html_cache.open')
     def test_140_html_asset(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
@@ -398,8 +403,8 @@ class HTMLSnapshotTest:
         </body></html>'''
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set())
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(), set())
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT), set())
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
@@ -413,7 +418,7 @@ class HTMLSnapshotTest:
         page = Page('http://127.0.0.1/', HTML, None)
 
         mock_open = mock.mock_open()
-        with mock.patch('se.html_snapshot.open', mock_open):
+        with mock.patch('se.html_cache.open', mock_open):
             snap = HTMLSnapshot(page, self.policy)
             snap.handle_assets()
 
@@ -434,8 +439,8 @@ class HTMLSnapshotTest:
         </body></html>'''.encode('utf-8')
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/toobig.png_89ad261c12.txt',)))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(OUTPUT))
+        self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/toobig.png',)))
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT), set(('http,3A/127.0.0.1/toobig.png_89ad261c12.txt',)))
 
     @override_settings(TEST_MODE=False)
     @mock.patch('se.browser.RequestBrowser.get')
@@ -450,7 +455,7 @@ class HTMLSnapshotTest:
         page = Page('http://127.0.0.1/', HTML, None)
 
         mock_open = mock.mock_open()
-        with mock.patch('se.html_snapshot.open', mock_open):
+        with mock.patch('se.html_cache.open', mock_open):
             snap = HTMLSnapshot(page, self.policy)
             snap.handle_assets()
 
@@ -462,14 +467,17 @@ class HTMLSnapshotTest:
         self.assertIn(b'Traceback (most recent call last):', mock_open.mock_calls[2].args[0])
         self.assertIn(b'Exception: Generic exception', mock_open.mock_calls[2].args[0])
 
-        for assets in (snap.get_asset_filenames(), HTMLAsset.html_extract_assets(page.dump_html())):
-            self.assertEqual(len(assets), 1)
-            asset = assets.pop()
-            self.assertRegex(asset, 'http,3A/127.0.0.1/exception.png_[^.]+.txt')
+        urls = snap.get_asset_urls()
+        self.assertEqual(len(urls), 1)
+        self.assertEqual(urls.pop(), 'http://127.0.0.1/exception.png')
+
+        filenames = HTMLAsset.html_extract_assets(page.dump_html())
+        self.assertEqual(len(filenames), 1)
+        self.assertRegex(filenames.pop(), 'http,3A/127.0.0.1/exception.png_[^.]+.txt')
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
+    @mock.patch('se.html_cache.open')
     def test_170_max_filename(self, _open, makedirs, RequestBrowser):
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
@@ -517,15 +525,15 @@ class HTMLSnapshotTest:
                 self.assertEqual(long_url_dirname, dn)
 
             assets = set([a.args[0][len(settings.SOSSE_HTML_SNAPSHOT_DIR):] for a in _open.call_args_list])
-            self.assertEqual(snap.get_asset_filenames(), assets)
-            self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(page.dump_html()))
+            self.assertEqual(snap.get_asset_urls(), set((long_file_url, long_dir_url)))
+            self.assertEqual(HTMLAsset.html_extract_assets(page.dump_html()), assets)
 
             RequestBrowser.reset_mock()
             _open.reset_mock()
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
+    @mock.patch('se.html_cache.open')
     def test_180_exclude_url(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
@@ -544,23 +552,23 @@ class HTMLSnapshotTest:
             mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
         self.assertTrue(_open.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
         ], _open.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = format_html('''<html><head></head><body>
             <img src="{}"/>
-            <img src="{}http,3A/127.0.0.1/image.png_0fcab19ae8.png"/>
+            <img src="{}http,3A/127.0.0.1/image.png_62d75f74b8.png"/>
         </body></html>''', reverse('html_excluded', args=(policy.id, 'url',)), settings.SOSSE_HTML_SNAPSHOT_URL).encode('utf-8')
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/image.png_0fcab19ae8.png',)))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(page.dump_html()))
+        self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/image.png',)))
+        self.assertEqual(HTMLAsset.html_extract_assets(page.dump_html()), set(('http,3A/127.0.0.1/image.png_62d75f74b8.png',)))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_180_exclude_mime(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_190_exclude_mime(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -579,23 +587,23 @@ class HTMLSnapshotTest:
             mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
         self.assertTrue(_open.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
         ], _open.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = format_html('''<html><head></head><body>
             <img src="{}"/>
-            <img src="{}http,3A/127.0.0.1/image.png_0fcab19ae8.png"/>
+            <img src="{}http,3A/127.0.0.1/image.png_62d75f74b8.png"/>
         </body></html>''', reverse('html_excluded', args=(policy.id, 'mime',)), settings.SOSSE_HTML_SNAPSHOT_URL).encode('utf-8')
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/image.png_0fcab19ae8.png',)))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(page.dump_html()))
+        self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/image.png',)))
+        self.assertEqual(HTMLAsset.html_extract_assets(page.dump_html()), set(('http,3A/127.0.0.1/image.png_62d75f74b8.png',)))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
-    def test_190_exclude_element(self, _open, makedirs, RequestBrowser):
+    @mock.patch('se.html_cache.open')
+    def test_200_exclude_element(self, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
@@ -623,12 +631,12 @@ class HTMLSnapshotTest:
         </body></html>''', reverse('html_excluded', args=(policy.id, 'element',)), settings.SOSSE_HTML_SNAPSHOT_URL).encode('utf-8')
         self.assertEqual(dump, OUTPUT)
 
-        self.assertEqual(snap.get_asset_filenames(), set(('http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4',)))
-        self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(page.dump_html()))
+        self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/video.mp4',)))
+        self.assertEqual(HTMLAsset.html_extract_assets(page.dump_html()), set(('http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4',)))
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
-    @mock.patch('se.html_snapshot.open')
+    @mock.patch('se.html_cache.open')
     def _snapshot_page(self, url, _open, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
@@ -640,48 +648,58 @@ class HTMLSnapshotTest:
 
         page = Page('http://127.0.0.1/' + url, HTML, None)
         snap = HTMLSnapshot(page, self.policy)
-        snap.snapshot('test')
+        snap.snapshot()
 
         self.assertTrue(RequestBrowser.call_args_list == [
             mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(_open.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/%s_test.html' % url, 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/%s_81faf90c0b.html' % url, 'wb'),
         ], _open.call_args_list)
 
-    def test_200_asset_add_ref(self):
+    def test_210_asset_add_ref(self):
         assets = HTMLAsset.objects.all()
         self.assertEqual(len(assets), 0)
 
         self._snapshot_page('page1.html')
-        assets = HTMLAsset.objects.all()
-        self.assertEqual(len(assets), 1)
-        asset = assets.first()
-        self.assertEqual(asset.url, 'http://127.0.0.1/image.png')
-        self.assertEqual(asset.filename, 'http,3A/127.0.0.1/image.png_0fcab19ae8.png')
-        self.assertEqual(asset.ref_count, 1)
+        assets = HTMLAsset.objects.order_by('download_date')
+        self.assertEqual(len(assets), 2)
+        asset_png = assets.first()
+        self.assertEqual(asset_png.url, 'http://127.0.0.1/image.png')
+        self.assertEqual(asset_png.filename, 'http,3A/127.0.0.1/image.png_62d75f74b8.png')
+        self.assertEqual(asset_png.ref_count, 1)
+        asset_html1 = assets.last()
+        self.assertEqual(asset_html1.url, 'http://127.0.0.1/page1.html')
+        self.assertEqual(asset_html1.filename, 'http,3A/127.0.0.1/page1.html_81faf90c0b.html')
+        self.assertEqual(asset_html1.ref_count, 1)
 
         self._snapshot_page('page2.html')
-        assets = HTMLAsset.objects.all()
-        self.assertEqual(len(assets), 1)
-        asset = assets.first()
-        self.assertEqual(asset.url, 'http://127.0.0.1/image.png')
-        self.assertEqual(asset.filename, 'http,3A/127.0.0.1/image.png_0fcab19ae8.png')
-        self.assertEqual(asset.ref_count, 2)
+        assets = HTMLAsset.objects.order_by('download_date')
+        self.assertEqual(len(assets), 3)
+        self.assertEqual(assets[0], asset_html1)
+        asset_html1.refresh_from_db()
+        self.assertEqual(asset_html1.ref_count, 1)
+
+        self.assertEqual(assets[1], asset_png)
+        asset_png.refresh_from_db()
+        self.assertEqual(asset_png.ref_count, 2)
+
+        asset_html2 = assets.last()
+        self.assertEqual(asset_html2.url, 'http://127.0.0.1/page2.html')
+        self.assertEqual(asset_html2.filename, 'http,3A/127.0.0.1/page2.html_81faf90c0b.html')
+        self.assertEqual(asset_html2.ref_count, 1)
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
     @mock.patch('os.unlink')
     @mock.patch('os.rmdir')
-    def test_210_asset_remove(self, rmdir, unlink, makedirs, RequestBrowser):
+    def test_220_asset_remove(self, rmdir, unlink, makedirs, RequestBrowser):
         HTML = b'''<html><head></head><body>
             <img src="%s"/>
         </body></html>'''
-        PNG_URL = 'http,3A/127.0.0.1/image.png_0fcab19ae8.png'
+        PNG_URL = 'http,3A/127.0.0.1/image.png_62d75f74b8.png'
         RequestBrowser.side_effect = BrowserMock({
             'http://127.0.0.1/page1.html': HTML % b'/image.png',
             'http://127.0.0.1/page2.html': HTML % b'/image.png',
@@ -692,27 +710,27 @@ class HTMLSnapshotTest:
 
         for no in (1, 2):
             mock_open = mock.mock_open()
-            with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_snapshot.open', mock_open):
+            with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_cache.open', mock_open):
                 Document.objects.create(url='http://127.0.0.1/page%s.html' % no)
                 Document.crawl(0)
                 self.assertEqual(mock_open.mock_calls[0],
                                  mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + PNG_URL, 'wb'))
                 self.assertEqual(mock_open.mock_calls[4],
-                                 mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page%i.html_f09a5e73a0e6f31bc733e115e25b0ffb.html' % no, 'wb'))
+                                 mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page%i.html_3acae9ed94.html' % no, 'wb'))
 
-        self.assertEqual(HTMLAsset.objects.count(), 1)
-        self.assertEqual(HTMLAsset.objects.get().ref_count, 2)
+        self.assertEqual(HTMLAsset.objects.count(), 3)
+        self.assertEqual(HTMLAsset.objects.get(url='http://127.0.0.1/image.png').ref_count, 2)
 
         png_url_bytes = (settings.SOSSE_HTML_SNAPSHOT_URL + PNG_URL).encode('utf-8')
         mock_open = mock.mock_open(read_data=HTML % png_url_bytes)
-        with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_snapshot.open', mock_open):
+        with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_cache.open', mock_open):
             obj = Document.objects.first()
             obj.delete_html()
             obj.delete()
-            self.assertEqual(HTMLAsset.objects.count(), 1)
-            self.assertEqual(HTMLAsset.objects.get().ref_count, 1)
+            self.assertEqual(HTMLAsset.objects.count(), 2)
+            self.assertEqual(HTMLAsset.objects.get(url='http://127.0.0.1/image.png').ref_count, 1)
             self.assertTrue(unlink.call_args_list == [
-                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page1.html_f09a5e73a0e6f31bc733e115e25b0ffb.html')
+                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page1.html_3acae9ed94.html')
             ], unlink.call_args_list)
             unlink.reset_mock()
 
@@ -721,44 +739,83 @@ class HTMLSnapshotTest:
             obj.delete()
             self.assertEqual(HTMLAsset.objects.count(), 0)
             self.assertTrue(unlink.call_args_list == [
-                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png'),
-                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page2.html_f09a5e73a0e6f31bc733e115e25b0ffb.html'),
+                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png'),
+                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page2.html_3acae9ed94.html'),
             ], unlink.call_args_list)
 
     @mock.patch('se.html_asset.remove_html_asset_file')
-    def test_212_asset_duplicate_fn(self, remove_html_asset_file):
+    def test_230_asset_duplicate_fn(self, remove_html_asset_file):
         self.assertEqual(HTMLAsset.objects.count(), 0)
-        HTMLAsset.add_ref('url1', 'filename')
+        asset1 = HTMLAsset.objects.create(url='url1', filename='filename')
+        asset1.init_ref_count()
+        asset1.refresh_from_db()
+        self.assertEqual(asset1.ref_count, 0)
+        asset1.increment_ref()
+        asset1.refresh_from_db()
+        self.assertEqual(asset1.ref_count, 1)
 
-        self.assertEqual(HTMLAsset.objects.count(), 1)
-        asset = HTMLAsset.objects.first()
-        self.assertEqual(asset.url, 'url1')
-        self.assertEqual(asset.filename, 'filename')
-        self.assertEqual(asset.ref_count, 1)
+        asset2 = HTMLAsset.objects.create(url='url2', filename='filename')
+        self.assertEqual(asset2.ref_count, 0)
+        asset2.init_ref_count()
+        asset2.refresh_from_db()
+        self.assertEqual(asset2.ref_count, 1)
+        asset2.increment_ref()
+        asset2.refresh_from_db()
 
-        HTMLAsset.add_ref('url2', 'filename')
-        self.assertEqual(HTMLAsset.objects.count(), 2)
-        asset1 = HTMLAsset.objects.order_by('id').first()
-        self.assertEqual(asset1.url, 'url1')
-        self.assertEqual(asset1.filename, 'filename')
+        asset1.refresh_from_db()
         self.assertEqual(asset1.ref_count, 2)
-
-        asset2 = HTMLAsset.objects.order_by('id').last()
-        self.assertEqual(asset2.url, 'url2')
-        self.assertEqual(asset2.filename, 'filename')
         self.assertEqual(asset2.ref_count, 2)
 
         self.assertTrue(remove_html_asset_file.call_args_list == [], remove_html_asset_file.call_args_list)
 
-        HTMLAsset.remove_ref('filename')
+        HTMLAsset.remove_file_ref('filename')
         self.assertEqual(HTMLAsset.objects.count(), 2)
         self.assertEqual(list(HTMLAsset.objects.values_list('ref_count', flat=True)), [1, 1])
         self.assertTrue(remove_html_asset_file.call_args_list == [], remove_html_asset_file.call_args_list)
 
-        HTMLAsset.remove_ref('filename')
+        HTMLAsset.remove_file_ref('filename')
         self.assertEqual(HTMLAsset.objects.count(), 0)
         self.assertTrue(remove_html_asset_file.call_args_list == [
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'filename')
+        ], remove_html_asset_file.call_args_list)
+
+    @mock.patch('se.html_asset.remove_html_asset_file')
+    def test_240_asset_duplicate_url(self, remove_html_asset_file):
+        self.assertEqual(HTMLAsset.objects.count(), 0)
+        asset1 = HTMLAsset.objects.create(url='url', filename='filename1')
+        asset1.init_ref_count()
+        asset1.refresh_from_db()
+        self.assertEqual(asset1.ref_count, 0)
+        asset1.increment_ref()
+        asset1.refresh_from_db()
+        self.assertEqual(asset1.ref_count, 1)
+
+        asset2 = HTMLAsset.objects.create(url='url', filename='filename2')
+        self.assertEqual(asset2.ref_count, 0)
+        asset2.init_ref_count()
+        asset2.refresh_from_db()
+        self.assertEqual(asset2.ref_count, 0)
+        asset2.increment_ref()
+        asset2.refresh_from_db()
+
+        asset1.refresh_from_db()
+        self.assertEqual(asset1.ref_count, 1)
+        self.assertEqual(asset2.ref_count, 1)
+
+        self.assertTrue(remove_html_asset_file.call_args_list == [], remove_html_asset_file.call_args_list)
+
+        HTMLAsset.remove_file_ref('filename1')
+        self.assertEqual(HTMLAsset.objects.count(), 1)
+        self.assertEqual(list(HTMLAsset.objects.values_list('ref_count', flat=True)), [1])
+        self.assertTrue(remove_html_asset_file.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'filename1')
+        ], remove_html_asset_file.call_args_list)
+        remove_html_asset_file.reset_mock()
+
+        HTMLAsset.remove_file_ref('filename2')
+        self.assertEqual(HTMLAsset.objects.count(), 0)
+        self.assertTrue(remove_html_asset_file.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'filename2')
         ], remove_html_asset_file.call_args_list)
 
     @override_settings(TEST_HTML_ERROR_HANDLING=True)
@@ -766,7 +823,7 @@ class HTMLSnapshotTest:
     @mock.patch('os.makedirs')
     @mock.patch('os.unlink')
     @mock.patch('os.rmdir')
-    def test_220_html_error_handling(self, rmdir, unlink, makedirs, RequestBrowser):
+    def test_250_html_error_handling(self, rmdir, unlink, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
 
         HTML = b'''<html><head></head><body>
@@ -777,24 +834,28 @@ class HTMLSnapshotTest:
         snap = HTMLSnapshot(page, self.policy)
 
         mock_open = mock.mock_open()
-        with mock.patch('se.html_snapshot.open', mock_open):
-            snap.snapshot('test')
+        with mock.patch('se.html_cache.open', mock_open):
+            snap.snapshot()
 
         self.assertTrue(RequestBrowser.call_args_list == [
             mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(unlink.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png'),
         ], unlink.call_args_list)
 
-        self.assertEqual(mock_open.mock_calls[0].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png')
-        self.assertEqual(mock_open.mock_calls[4].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/_test.html')
+        self.assertEqual(mock_open.mock_calls[0].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png')
+        self.assertRegex(mock_open.mock_calls[4].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + r'http,3A/127\.0\.0\.1/_[^.]+\.html')
 
         self.assertIn(b'Traceback (most recent call last):', mock_open.mock_calls[6].args[0])
         self.assertIn(b'Exception: html_error_handling test', mock_open.mock_calls[6].args[0])
 
-        self.assertEqual(HTMLAsset.objects.count(), 0)
+        self.assertEqual(HTMLAsset.objects.count(), 1)
+        asset = HTMLAsset.objects.first()
+        self.assertEqual(asset.url, 'http://127.0.0.1/')
+        self.assertRegex(asset.filename, r'http,3A/127\.0\.0\.1/_[^.]+\.html')
+        self.assertEqual(asset.ref_count, 1)
 
 
 class HTMLSnapshotCSSUtilsParser(HTMLSnapshotTest, TestCase):

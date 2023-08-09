@@ -1,0 +1,126 @@
+# Copyright 2022-2023 Laurent Defert
+#
+#  This file is part of SOSSE.
+#
+# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# General Public License as published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# If not, see <https://www.gnu.org/licenses/>.
+
+from datetime import timedelta
+from unittest import mock
+
+from django.conf import settings
+from django.test import TestCase
+from django.utils import timezone
+
+from .document import sanitize_url
+from .html_asset import HTMLAsset
+from .html_cache import CacheHit, CacheMiss, HTMLCache
+from .test_mock import BrowserMock
+from .utils import http_date_format
+
+
+class HTMLCacheTest(TestCase):
+    def test_010_html_filenames(self):
+        for url, fn in (
+            ('http://127.0.0.1/test.html', 'http,3A/127.0.0.1/test.html_~~~.html'),
+            ('http://127.0.0.1/test.html?a=b', 'http,3A/127.0.0.1/test.html,3Fa,3Db_~~~.html'),
+            ('http://127.0.0.1/', 'http,3A/127.0.0.1/_~~~.html'),
+            ('http://127.0.0.1/../', 'http,3A/127.0.0.1/_~~~.html'),
+            ('http://127.0.0.1/,', 'http,3A/127.0.0.1/,2C_~~~.html'),
+        ):
+            url = sanitize_url(url, True, True)
+            _fn = HTMLCache.html_filename(url, '~~~', '.html')
+            self.assertEqual(_fn, fn, f'failed on {url} / expected {fn} / got {_fn}')
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_020_cache_miss(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        assets_count = HTMLAsset.objects.count()
+        self.assertEqual(assets_count, 0)
+
+        with self.assertRaises(CacheMiss):
+            HTMLCache._cache_check('http://127.0.0.1/image.png')
+
+    def _download_miss(self, RequestBrowser):
+        page = HTMLCache.download('http://127.0.0.1/to_cache.png', settings.SOSSE_MAX_HTML_ASSET_SIZE)
+        HTMLCache.write_asset(page.url, page.content, page, mimetype=page.mimetype)
+
+        self.assertTrue(RequestBrowser.call_args_list == [
+            mock.call('http://127.0.0.1/to_cache.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+        ], RequestBrowser.call_args_list)
+        RequestBrowser.reset_mock()
+
+        self.assertEqual(HTMLAsset.objects.count(), 1)
+        asset = HTMLAsset.objects.get()
+        self.assertEqual(asset.url, 'http://127.0.0.1/to_cache.png')
+        self.assertEqual(asset.filename, 'http,3A/127.0.0.1/to_cache.png_55505ba281.png')
+        self.assertEqual(asset.url, 'http://127.0.0.1/to_cache.png')
+        return asset
+
+    def _download_hit(self, RequestBrowser):
+        with self.assertRaises(CacheHit) as cm:
+            HTMLCache.download('http://127.0.0.1/to_cache.png', settings.SOSSE_MAX_HTML_ASSET_SIZE)
+
+        self.assertTrue(RequestBrowser.call_args_list == [], RequestBrowser.call_args_list)
+        return cm.exception.asset
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.html_cache.HTMLCache._heuristic_check', wraps=HTMLCache._heuristic_check)
+    def test_030_heuristic_hit(self, _heuristic_check, RequestBrowser):
+        now = timezone.now()
+        now = now.replace(microsecond=0)
+        now_http = http_date_format(now)
+        last_year = now - timedelta(days=365)
+        last_year = last_year.replace(microsecond=0)
+        last_year_http = http_date_format(last_year)
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/to_cache.png': (b'PNG', {
+                'Date': now_http,
+                'Last-Modified': last_year_http
+            })
+        })
+
+        asset = self._download_miss(RequestBrowser)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+        self.assertEqual(asset.download_date, now)
+        self.assertEqual(asset.last_modified, last_year)
+
+        _asset = self._download_hit(RequestBrowser)
+        self.assertEqual(asset, _asset)
+        self.assertTrue(_heuristic_check.call_args_list == [
+            mock.call(asset)
+        ], _heuristic_check.call_args_list)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.html_cache.HTMLCache._heuristic_check', wraps=HTMLCache._heuristic_check)
+    def test_040_heuristic_miss(self, _heuristic_check, RequestBrowser):
+        yesterday = timezone.now() - timedelta(days=1)
+        yesterday = yesterday.replace(microsecond=0)
+        yesterday_http = http_date_format(yesterday)
+        previous = yesterday - timedelta(minutes=1)
+        previous_http = http_date_format(previous)
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/to_cache.png': (b'PNG', {
+                'Date': yesterday_http,
+                'Last-Modified': previous_http
+            })
+        })
+
+        asset = self._download_miss(RequestBrowser)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+        self.assertEqual(asset.download_date, yesterday)
+        self.assertEqual(asset.last_modified, previous)
+
+        _asset = self._download_miss(RequestBrowser)
+        self.assertEqual(asset, _asset)
+        self.assertTrue(_heuristic_check.call_args_list == [
+            mock.call(asset)
+        ], _heuristic_check.call_args_list)

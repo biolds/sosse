@@ -35,7 +35,8 @@ from langdetect.lang_detect_exception import LangDetectException
 from PIL import Image
 
 from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
-from .html_snapshot import HTMLAsset, HTMLSnapshot
+from .html_cache import HTMLAsset
+from .html_snapshot import HTMLSnapshot
 from .utils import has_browsable_scheme, reverse_no_escape, url_beautify
 
 crawl_logger = logging.getLogger('crawler')
@@ -461,14 +462,14 @@ class Document(models.Model):
             self.delete_screenshot()
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)
-
-            self.delete_html()
-            if crawl_policy.snapshot_html:
-                snapshot = HTMLSnapshot(page, crawl_policy)
-                snapshot.snapshot(self.content_hash)
-                self.has_html_snapshot = True
         else:
             self._clear_content()
+
+        self.delete_html()
+        if crawl_policy.snapshot_html:
+            snapshot = HTMLSnapshot(page, crawl_policy)
+            snapshot.snapshot()
+            self.has_html_snapshot = True
 
         self._index_log('done', stats, verbose)
 
@@ -719,7 +720,7 @@ class Document(models.Model):
 
     def delete_html(self):
         if self.has_html_snapshot:
-            HTMLAsset.html_delete(self.url, self.content_hash)
+            HTMLAsset.html_delete_url(self.url)
             self.has_html_snapshot = False
 
     def delete_screenshot(self):

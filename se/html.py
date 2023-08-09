@@ -20,8 +20,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
 from .cached import get_cached_doc, get_context, url_from_request
-from .document import sanitize_url
-from .html_snapshot import HTMLSnapshot
+from .html_asset import HTMLAsset
 from .login import login_required
 from .models import CrawlPolicy
 from .utils import reverse_no_escape
@@ -33,13 +32,14 @@ def html(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    url = sanitize_url(url_from_request(request), True, True)
-    page_file = HTMLSnapshot.html_filename(url, doc.content_hash, '.html')
-    if not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + page_file):
+    url = url_from_request(request)
+    asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
+
+    if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
         return redirect(reverse_no_escape('www', args=(doc.url,)))
 
     context = get_context(doc, 'html')
-    context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + page_file
+    context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
     return render(request, 'se/embed.html', context)
 
 

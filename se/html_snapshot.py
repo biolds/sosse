@@ -14,12 +14,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import os
 import re
 
-from hashlib import md5
-from mimetypes import guess_extension
-from urllib.parse import quote, unquote_plus
 from traceback import format_exc
 
 from bs4 import NavigableString
@@ -28,17 +24,12 @@ from django.conf import settings
 from django.shortcuts import reverse
 from django.utils.html import format_html
 
-from .html_asset import HTMLAsset
+from .browser import SkipIndexing
+from .html_cache import HTMLCache, CacheHit
 from .utils import has_browsable_scheme
 
 
 logger = logging.getLogger('html_snapshot')
-
-HTML_SNAPSHOT_HASH_LEN = 10
-
-
-def max_filename_size():
-    return os.statvfs(settings.SOSSE_HTML_SNAPSHOT_DIR).f_namemax
 
 
 def css_parser():
@@ -96,7 +87,7 @@ class InternalCSSParser:
         if m:
             for css_url in m:
                 url = css_url[0][4:-1].strip()
-                if url.startswith('"') or url.startswith('"'):
+                if url.startswith('"') or url.startswith("'"):
                     url = url[1:-1]
 
                 if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
@@ -189,30 +180,34 @@ class HTMLSnapshot:
     def __init__(self, page, crawl_policy):
         self.page = page
         self.crawl_policy = crawl_policy
-        self.asset_filenames = set()
-
-    def _add_asset_ref(self, url, filename):
-        if filename not in self.asset_filenames:
-            self.asset_filenames.add(filename)
-            HTMLAsset.add_ref(url, filename)
+        self.assets = set()
+        self.assets = set()
+        self.asset_urls = set()
 
     def _clear_assets(self):
-        for asset_filename in self.asset_filenames:
-            HTMLAsset.remove_ref(asset_filename)
-        self.asset_filenames = set()
+        for asset in self.assets:
+            asset.remove_ref()
+        self.assets = set()
+        self.asset_urls = set()
 
-    def snapshot(self, _hash):
+    def _add_asset(self, asset):
+        self.assets.add(asset)
+        self.asset_urls.add(asset.url)
+
+    def snapshot(self):
         logger.debug('snapshot of %s' % self.page.url)
         try:
             self.sanitize()
             self.handle_assets()
-            self.write_asset(self.page.url, self.page.dump_html(), '.html', _hash)
+            HTMLCache.write_asset(self.page.url, self.page.dump_html(), self.page, extension='.html')
         except Exception as e:  # noqa
             if getattr(settings, 'TEST_MODE', False) and not getattr(settings, 'TEST_HTML_ERROR_HANDLING', False):
                 raise
+            logger.error('html_snapshot of %s failed:\n%s', self.page.url, format_exc())
             content = 'An error occured while downloading %s:\n%s' % (self.page.url, format_exc())
             content = format_html('<pre>{}</pre>', content)
-            self.write_asset(self.page.url, content.encode('utf-8'), '.html', _hash)
+            content = content.encode('utf-8')
+            HTMLCache.write_asset(self.page.url, content, self.page, extension='.html')
             self._clear_assets()
 
         logger.debug('html_snapshot of %s done' % self.page.url)
@@ -331,99 +326,55 @@ class HTMLSnapshot:
             logger.debug('download_asset %s excluded because it matches the url exclude regexp' % url)
             return reverse('html_excluded', args=(self.crawl_policy.id, 'url'))
 
-        from .browser import RequestBrowser, SkipIndexing
-        logger.debug('download_asset %s' % url)
-        try:
-            asset = RequestBrowser.get(url,
-                                       check_status=True,
-                                       max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                                       headers={'Accept': '*/*'})
-            content = asset.content
+        if url in self.asset_urls:
+            for asset in self.assets:
+                if asset.url == url:
+                    return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
+            raise Exception('asset not found')
 
-            if asset.mimetype == 'text/html':
+        logger.debug('download_asset %s' % url)
+        mimetype = None
+        extension = None
+        page = None
+
+        try:
+            page = HTMLCache.download(url, settings.SOSSE_MAX_HTML_ASSET_SIZE)
+            content = page.content
+            mimetype = page.mimetype
+
+            if mimetype == 'text/html':
                 return '/html/' + url
 
-            if self.crawl_policy.snapshot_exclude_mime_re and re.match(self.crawl_policy.snapshot_exclude_mime_re, asset.mimetype):
-                logger.debug('download_asset %s excluded because it matched the mimetype (%s) exclude regexp' % (url, asset.mimetype))
+            if self.crawl_policy.snapshot_exclude_mime_re and re.match(self.crawl_policy.snapshot_exclude_mime_re, mimetype):
+                logger.debug('download_asset %s excluded because it matched the mimetype (%s) exclude regexp' % (url, mimetype))
                 return reverse('html_excluded', args=(self.crawl_policy.id, 'mime'))
 
-            # Build the extension using mimetypes, because the appropriate extension
-            # is required by Nginx when the file is served statically
-            extension = guess_extension(asset.mimetype)
-            if extension is None:
-                _, ext = url.rsplit('.', 1)
-                if '?' in ext:
-                    ext, _ = ext.split('?', 1)
-
-                if '/' in ext:
-                    extension = '.bin'
-                else:
-                    extension = f'.{ext}'
-
-            if asset.mimetype == 'text/css':
+            if mimetype == 'text/css':
                 logger.debug('handle_css of %s due to mimetype' % url)
                 content = css_parser().handle_css(self, url, content, False).encode('utf-8')
+
+        except CacheHit as e:
+            logger.info('CACHE HIT %s', url)
+            self._add_asset(e.asset)
+            return settings.SOSSE_HTML_SNAPSHOT_URL + e.asset.filename
         except SkipIndexing as e:
             content = 'An error occured while downloading %s:\n%s' % (url, e.args[0])
             content = content.encode('utf-8')
             extension = '.txt'
         except:  # noqa
-            content = 'An error occured while downloading %s:\n%s' % (url, format_exc())
+            content = 'An error occured while processing %s:\n%s' % (url, format_exc())
             content = content.encode('utf-8')
             extension = '.txt'
             if getattr(settings, 'TEST_MODE', False):
                 raise
 
-        return self.write_asset(url, content, extension)
+        assert isinstance(content, bytes)
+        asset = HTMLCache.write_asset(url, content, page, extension=extension, mimetype=mimetype)
+        if extension == '.html':
+            return settings.SOSSE_HTML_SNAPSHOT_URL + asset
 
-    @staticmethod
-    def html_filename(url, _hash, extension):
-        # replace http:// by http:/
-        url = url.replace('//', '/')
+        self._add_asset(asset)
+        return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
 
-        # Unquote before requoting
-        url = unquote_plus(url)
-        # Replace % by , to prevent interpration of the escape by nginx
-        url = quote(url).replace('%', ',')
-
-        # Make sure the filename is not longer than supported by the filesystem
-        parts = url.split('/')
-        _parts = []
-        for no, part in enumerate(parts):
-            if no == len(parts) - 1:
-                max_len = max_filename_size() - HTML_SNAPSHOT_HASH_LEN - len(extension) - 1
-                if len(part) > max_len:
-                    part = part[:max_len]
-                part = f'{part}_{_hash}{extension}'
-            else:
-                if len(part) > max_filename_size():
-                    part = part[:max_filename_size() - HTML_SNAPSHOT_HASH_LEN - 1]
-                    part = f'{part}_{_hash}'
-
-            _parts.append(part)
-        return '/'.join(_parts)
-
-    def write_asset(self, url, content, extension, src_hash=None):
-        from .document import sanitize_url
-        logger.debug('html_write_asset for %s', url)
-
-        if src_hash:
-            _hash = src_hash
-        else:
-            _hash = md5(content).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
-
-        url = sanitize_url(url, True, True)
-        filename_url = self.html_filename(url, _hash, extension)
-        if not src_hash:
-            self._add_asset_ref(url, filename_url)
-
-        dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
-        dest_dir, _ = dest.rsplit('/', 1)
-        os.makedirs(dest_dir, 0o755, exist_ok=True)
-
-        with open(dest, 'wb') as fd:
-            fd.write(content)
-        return settings.SOSSE_HTML_SNAPSHOT_URL + filename_url
-
-    def get_asset_filenames(self):
-        return self.asset_filenames
+    def get_asset_urls(self):
+        return self.asset_urls

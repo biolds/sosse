@@ -16,11 +16,14 @@
 # This file checks url conversion (percent encoding, punycode, spaces ...) and consistencies
 # across classes and external libraries
 
+from datetime import datetime, timezone
+
 from django.test import TestCase
 
-from se.document import Document
-from se.browser import Browser, Page
-from se.models import CrawlPolicy
+from .browser import Browser, Page
+from .document import Document
+from .models import CrawlPolicy
+from .utils import http_date_format, http_date_parser
 
 
 LINKS = ({
@@ -151,3 +154,16 @@ class PageTest(TestCase):
         self.policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
         doc.index(page, self.policy)
         self.assertEqual(doc.content, 'header nav text footer')
+
+    DATES = (
+        ('Wed, 21 Oct 2015 07:28:00 GMT', datetime(2015, 10, 21, 7, 28, 0, tzinfo=timezone.utc)),
+        ('Tue, 22 Feb 2022 22:22:22 GMT', datetime(2022, 2, 22, 22, 22, 22, tzinfo=timezone.utc))
+    )
+
+    def test_40_http_date_parse(self):
+        for s, d in self.DATES:
+            self.assertEqual(http_date_parser(s), d)
+
+    def test_50_http_date_fromat(self):
+        for s, d in self.DATES:
+            self.assertEqual(s, http_date_format(d))

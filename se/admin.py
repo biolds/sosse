@@ -30,6 +30,7 @@ from django.template import defaultfilters, response
 
 from .document import Document
 from .forms import AddToQueueForm
+from .html_asset import HTMLAsset
 from .models import AuthField, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
 from .utils import human_datetime, human_dt, reverse_no_escape
 
@@ -37,7 +38,7 @@ from .utils import human_datetime, human_dt, reverse_no_escape
 class SEAdminSite(admin.AdminSite):
     def get_app_list(self, request):
         MODELS_ORDER = (
-            ('se', ('CrawlPolicy', 'Document', 'DomainSetting', 'Cookie', 'ExcludedUrl', 'SearchEngine')),
+            ('se', ('CrawlPolicy', 'Document', 'DomainSetting', 'Cookie', 'ExcludedUrl', 'SearchEngine', 'HTMLAsset')),
             ('auth', ('Group', 'User'))
         )
         _apps_list = super().get_app_list(request)
@@ -572,3 +573,12 @@ class ExcludedUrlAdmin(admin.ModelAdmin):
     list_display = ('url',)
     search_fields = ('url', 'comment')
     ordering = ('url',)
+
+
+if settings.DEBUG:
+    @admin.register(HTMLAsset)
+    class HTMLAssetAdmin(admin.ModelAdmin):
+        list_display = ('url', 'filename', 'ref_count')
+        search_fields = ('url', 'filename')
+        ordering = ('url', 'filename', 'ref_count')
+        exclude = tuple()

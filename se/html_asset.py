@@ -43,57 +43,67 @@ def remove_html_asset_file(fn):
 
 
 class HTMLAsset(models.Model):
-    url = models.TextField(unique=True)
+    url = models.TextField()
     filename = models.TextField()
     ref_count = models.PositiveBigIntegerField(default=0)
+    download_date = models.DateTimeField(blank=True, null=True)
+    last_modified = models.DateTimeField(blank=True, null=True)
 
-    @staticmethod
-    def add_ref(url, fn):
-        logger.debug('addref %s %s', url, fn)
+    class Meta:
+        unique_together = (('url', 'filename'),)
+
+    def init_ref_count(self):
         # TODO: fix the race condition below
-        asset, created = HTMLAsset.objects.get_or_create(url=url, filename=fn)
+        max_ref_count = HTMLAsset.objects.filter(filename=self.filename).aggregate(models.Max('ref_count'))
+        max_ref_count = max_ref_count.get('ref_count__max') or 0
+        HTMLAsset.objects.filter(id=self.id).update(ref_count=max_ref_count)
+        logger.debug('refcount initialized for %s', self.url)
 
-        if created:
-            max_ref_count = HTMLAsset.objects.filter(filename=fn).aggregate(models.Max('ref_count'))
-            max_ref_count = max_ref_count.get('ref_count__max') or 0
-            HTMLAsset.objects.filter(id=asset.id).update(ref_count=max_ref_count)
+    def increment_ref(self):
+        count = HTMLAsset.objects.filter(filename=self.filename).update(ref_count=models.F('ref_count') + 1)
+        logger.debug('%s refcount incremented for %s', count, self.filename)
 
-        # multiple URLs can be stored with the same filename, in this case the ref_count
-        # must be incremented for each entry, that's why the filtering is done on ``filneame``
-        count = HTMLAsset.objects.filter(filename=fn).update(ref_count=models.F('ref_count') + 1)
-        logger.debug('%s refcount incremented for %s', count, fn)
+    def update_values(self, **kwargs):
+        HTMLAsset.objects.filter(id=self.id).update(**kwargs)
 
     @staticmethod
-    def html_delete(url, _hash):
+    def html_delete_url(url):
         from .document import sanitize_url
-        from .html_snapshot import HTMLSnapshot
         url = sanitize_url(url, True, True)
-        fn = settings.SOSSE_HTML_SNAPSHOT_DIR + HTMLSnapshot.html_filename(url, _hash, '.html')
+        for asset in HTMLAsset.objects.filter(url=url):
+            asset.html_delete()
+
+    def html_delete(self):
+        fn = settings.SOSSE_HTML_SNAPSHOT_DIR + self.filename
         try:
             content = open(fn, 'rb').read()
             assets = HTMLAsset.html_extract_assets(content)
             for asset in assets:
-                HTMLAsset.remove_ref(asset)
+                HTMLAsset.remove_file_ref(asset)
         except OSError:
             pass
 
-        remove_html_asset_file(fn)
+        self.remove_ref()
+
+    def remove_ref(self):
+        # TODO: fix the race condition below
+        logger.debug('removing ref on url %s', self.url)
+        HTMLAsset.remove_file_ref(self.filename)
 
     @staticmethod
-    def remove_ref(fn):
+    def remove_file_ref(filename):
+        logger.debug('removing ref on %s', filename)
         # TODO: fix the race condition below
-        logger.debug('removing ref on %s', fn)
-        HTMLAsset.objects.filter(filename=fn).update(ref_count=models.F('ref_count') - 1)
-
-        refs_count = HTMLAsset.objects.filter(filename=fn, ref_count__gt=0).aggregate(models.Sum('ref_count'))
+        HTMLAsset.objects.filter(filename=filename).update(ref_count=models.F('ref_count') - 1)
+        refs_count = HTMLAsset.objects.filter(filename=filename, ref_count__gt=0).aggregate(models.Sum('ref_count'))
         refs_count = refs_count.get('ref_count__sum')
 
         # refs_count is None when HTMLAsset.objects.filter(...) returns an empty set
         if refs_count is None or refs_count <= 0:
-            logger.debug('removing file %s', fn)
-            remove_html_asset_file(settings.SOSSE_HTML_SNAPSHOT_DIR + fn)
+            logger.debug('removing file %s', filename)
+            remove_html_asset_file(settings.SOSSE_HTML_SNAPSHOT_DIR + filename)
 
-        HTMLAsset.objects.filter(filename=fn, ref_count__lte=0).delete()
+        HTMLAsset.objects.filter(filename=filename, ref_count__lte=0).delete()
 
     @staticmethod
     def html_extract_assets(content):
@@ -137,3 +147,25 @@ class HTMLAsset(models.Model):
                         assets |= css_parser().css_extract_assets(open(filename).read(), False)
 
         return assets
+
+    def add_refs_from_cache(self):
+        from .html_snapshot import css_parser
+        self.add_file_ref(self.filename)
+
+        if '.' not in self.filename:
+            return
+        _, extension = self.filename.rsplit('.', 1)
+
+        if extension not in ('css', 'htm', 'html'):
+            return
+
+        filename = settings.SOSSE_HTML_SNAPSHOT_DIR + self.filename
+        with open(filename, 'rb') as f:
+            content = f.read()
+
+        if extension == 'css':
+            assets = css_parser().css_extract_assets(content, False)
+        else:
+            assets = HTMLAsset.html_extract_assets(content)
+        for asset in assets:
+            HTMLAsset.remove_file_ref(asset)

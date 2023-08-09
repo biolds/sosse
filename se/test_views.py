@@ -125,7 +125,8 @@ class ViewsTest(TestCase):
                     '/admin/se/document/%s/change/' % self.doc.id,
                     '/admin/se/domainsetting/', '/admin/se/domainsetting/%s/change/' % DomainSetting.get_from_url(CRAWL_URL).id,
                     '/admin/se/cookie/', '/admin/se/cookie/?q=%s' % quote(CRAWL_URL),
-                    '/admin/se/excludedurl/', '/admin/se/searchengine/', '/admin/se/searchengine/?conflict=yes'):
+                    '/admin/se/excludedurl/', '/admin/se/searchengine/', '/admin/se/searchengine/?conflict=yes',
+                    '/admin/se/htmlasset/'):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200, '%s / %s' % (url, response))
 

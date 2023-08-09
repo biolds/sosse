@@ -68,7 +68,7 @@ class TooManyRedirects(SkipIndexing):
 
 
 class Page:
-    def __init__(self, url, content, browser, mimetype=None):
+    def __init__(self, url, content, browser, mimetype=None, headers=None):
         assert isinstance(content, bytes)
         from .document import sanitize_url
         self.url = sanitize_url(url, True, True)
@@ -78,11 +78,17 @@ class Page:
         self.soup = None
         self.browser = browser
         self.mimetype = mimetype
+        self.headers = headers or {}
 
     def get_soup(self):
         if self.soup:
             return self.soup
-        self.soup = BeautifulSoup(self.content.decode('utf-8'), 'html5lib')
+        try:
+            content = self.content.decode('utf-8')
+        except UnicodeDecodeError:
+            return None
+
+        self.soup = BeautifulSoup(content, 'html5lib')
 
         # Remove <template> tags as BS extract its text
         for elem in self.soup.find_all('template'):
@@ -142,9 +148,10 @@ class RequestBrowser(Browser):
         if ';' in mimetype:
             mimetype, _ = mimetype.split(';', 1)
 
-        page = Page(r.url, content, cls, mimetype)
-        parsed = page.get_soup()
-        page.title = parsed.title and parsed.title.string
+        page = Page(r.url, content, cls, mimetype, r.headers)
+        soup = page.get_soup()
+        if soup:
+            page.title = soup.title and soup.title.string
         return page
 
     @classmethod
@@ -268,21 +275,23 @@ class RequestBrowser(Browser):
             page = cls._page_from_request(r)
 
             # Check for an HTML / meta redirect
-            for meta in page.get_soup().find_all('meta'):
-                if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
-                    # handle redirect
-                    dest = meta.get('content')
+            soup = page.get_soup()
+            if soup:
+                for meta in page.get_soup().find_all('meta'):
+                    if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
+                        # handle redirect
+                        dest = meta.get('content')
 
-                    if ';' in dest:
-                        dest = dest.split(';', 1)[1]
+                        if ';' in dest:
+                            dest = dest.split(';', 1)[1]
 
-                    if dest.startswith('url='):
-                        dest = dest[4:]
+                        if dest.startswith('url='):
+                            dest = dest[4:]
 
-                    url = absolutize_url(url, dest, True, False)
-                    redirect_count += 1
-                    crawl_logger.debug('%s: html redirected' % url)
-                    continue
+                        url = absolutize_url(url, dest, True, False)
+                        redirect_count += 1
+                        crawl_logger.debug('%s: html redirected' % url)
+                        continue
             break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:

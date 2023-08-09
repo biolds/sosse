@@ -71,9 +71,14 @@ class Migration(migrations.Migration):
             name='HTMLAsset',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('url', models.TextField(unique=True)),
+                ('url', models.TextField()),
                 ('filename', models.TextField()),
                 ('ref_count', models.PositiveBigIntegerField(default=0)),
+                ('download_date', models.DateTimeField(blank=True, null=True)),
+                ('last_modified', models.DateTimeField(blank=True, null=True)),
             ],
+            options={
+                'unique_together': {('url', 'filename')},
+            },
         ),
     ]

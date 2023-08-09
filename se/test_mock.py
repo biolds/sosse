@@ -13,11 +13,26 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from base64 import b64decode
 from mimetypes import guess_type
 
 from requests import HTTPError
 
 from .browser import Page, PageTooBig
+
+
+PNG64 = '''
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9
+kT1Iw0AcxV9TxSqVDnYQUchQneziF461CkWoUGqFVh1MLv2CJg1Jiouj4Fpw8GOx6uDirKuDqyAI
+foC4ujgpukiJ/0sKLWI8OO7Hu3uPu3eA0Kgw1eyKAapmGelEXMzmVsWeVwQQQi+mMSIxU59LpZLw
+HF/38PH1LsqzvM/9OfqVvMkAn0gcY7phEW8Qz2xaOud94jArSQrxOfG4QRckfuS67PIb56LDAs8M
+G5n0PHGYWCx2sNzBrGSoxFPEEUXVKF/Iuqxw3uKsVmqsdU/+wmBeW1nmOs1hJLCIJaQgQkYNZVRg
+IUqrRoqJNO3HPfxDjj9FLplcZTByLKAKFZLjB/+D392ahckJNykYB7pfbPtjFOjZBZp12/4+tu3m
+CeB/Bq60tr/aAGY/Sa+3tcgRENoGLq7bmrwHXO4Ag0+6ZEiO5KcpFArA+xl9Uw4YuAX61tzeWvs4
+fQAy1FXyBjg4BMaKlL3u8e5AZ2//nmn19wO39nLC/XngKAAAAAlwSFlzAAAuIwAALiMBeKU/dgAA
+AAd0SU1FB+cIDwk1OsRq+oYAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAA
+DElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC
+'''
 
 
 class BrowserMock:
@@ -34,7 +49,7 @@ class BrowserMock:
             # HTML snapshot tests
             'http://127.0.0.1/style.css': b'body {\n    color: #fff\n    }',
             'http://127.0.0.1/page.html': b'HTML test',
-            'http://127.0.0.1/image.png': b'PNG test',
+            'http://127.0.0.1/image.png': b64decode(PNG64),
             'http://127.0.0.1/image2.png': b'PNG test2',
             'http://127.0.0.1/image3.png': b'PNG test3',
             'http://127.0.0.1/image.jpg': b'JPG test',
@@ -50,5 +65,8 @@ class BrowserMock:
         content = self.web[url]
         if isinstance(content, Exception):
             raise content
+        headers = None
+        if isinstance(content, tuple):
+            content, headers = content
         mimetype = guess_type(url)[0]
-        return Page(url, content, BrowserMock, mimetype)
+        return Page(url, content, BrowserMock, mimetype, headers)

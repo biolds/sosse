@@ -23,7 +23,7 @@ from django.utils.html import format_html
 from requests import HTTPError
 
 from .browser import Page
-from .document import Document
+from .document import Document, sanitize_url
 from .html_snapshot import css_parser, HTMLAsset, HTMLSnapshot, HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .models import CrawlPolicy, DomainSetting
 from .test_mock import BrowserMock
@@ -89,6 +89,7 @@ class HTMLSnapshotTest:
             ('http://127.0.0.1/../', 'http,3A/127.0.0.1/_~~~.html'),
             ('http://127.0.0.1/,', 'http,3A/127.0.0.1/,2C_~~~.html'),
         ):
+            url = sanitize_url(url, True, True)
             _fn = HTMLSnapshot.html_filename(url, '~~~', '.html')
             self.assertEqual(_fn, fn, f'failed on {url} / expected {fn} / got {_fn}')
 
@@ -660,6 +661,7 @@ class HTMLSnapshotTest:
         assets = HTMLAsset.objects.all()
         self.assertEqual(len(assets), 1)
         asset = assets.first()
+        self.assertEqual(asset.url, 'http://127.0.0.1/image.png')
         self.assertEqual(asset.filename, 'http,3A/127.0.0.1/image.png_0fcab19ae8.png')
         self.assertEqual(asset.ref_count, 1)
 
@@ -667,6 +669,7 @@ class HTMLSnapshotTest:
         assets = HTMLAsset.objects.all()
         self.assertEqual(len(assets), 1)
         asset = assets.first()
+        self.assertEqual(asset.url, 'http://127.0.0.1/image.png')
         self.assertEqual(asset.filename, 'http,3A/127.0.0.1/image.png_0fcab19ae8.png')
         self.assertEqual(asset.ref_count, 2)
 
@@ -720,6 +723,42 @@ class HTMLSnapshotTest:
                 mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png'),
                 mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/page2.html_f09a5e73a0e6f31bc733e115e25b0ffb.html'),
             ], unlink.call_args_list)
+
+    @mock.patch('se.html_asset.remove_html_asset_file')
+    def test_212_asset_duplicate_fn(self, remove_html_asset_file):
+        self.assertEqual(HTMLAsset.objects.count(), 0)
+        HTMLAsset.add_ref('url1', 'filename')
+
+        self.assertEqual(HTMLAsset.objects.count(), 1)
+        asset = HTMLAsset.objects.first()
+        self.assertEqual(asset.url, 'url1')
+        self.assertEqual(asset.filename, 'filename')
+        self.assertEqual(asset.ref_count, 1)
+
+        HTMLAsset.add_ref('url2', 'filename')
+        self.assertEqual(HTMLAsset.objects.count(), 2)
+        asset1 = HTMLAsset.objects.order_by('id').first()
+        self.assertEqual(asset1.url, 'url1')
+        self.assertEqual(asset1.filename, 'filename')
+        self.assertEqual(asset1.ref_count, 2)
+
+        asset2 = HTMLAsset.objects.order_by('id').last()
+        self.assertEqual(asset2.url, 'url2')
+        self.assertEqual(asset2.filename, 'filename')
+        self.assertEqual(asset2.ref_count, 2)
+
+        self.assertTrue(remove_html_asset_file.call_args_list == [], remove_html_asset_file.call_args_list)
+
+        HTMLAsset.remove_ref('filename')
+        self.assertEqual(HTMLAsset.objects.count(), 2)
+        self.assertEqual(list(HTMLAsset.objects.values_list('ref_count', flat=True)), [1, 1])
+        self.assertTrue(remove_html_asset_file.call_args_list == [], remove_html_asset_file.call_args_list)
+
+        HTMLAsset.remove_ref('filename')
+        self.assertEqual(HTMLAsset.objects.count(), 0)
+        self.assertTrue(remove_html_asset_file.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'filename')
+        ], remove_html_asset_file.call_args_list)
 
     @override_settings(TEST_HTML_ERROR_HANDLING=True)
     @mock.patch('se.browser.RequestBrowser.get')

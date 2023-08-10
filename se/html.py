@@ -20,6 +20,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
 from .cached import get_cached_doc, get_context, url_from_request
+from .document import sanitize_url
 from .html_snapshot import HTMLSnapshot
 from .login import login_required
 from .models import CrawlPolicy
@@ -32,7 +33,8 @@ def html(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    page_file = HTMLSnapshot.html_filename(url_from_request(request), doc.content_hash, '.html')
+    url = sanitize_url(url_from_request(request), True, True)
+    page_file = HTMLSnapshot.html_filename(url, doc.content_hash, '.html')
     if not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + page_file):
         return redirect(reverse_no_escape('www', args=(doc.url,)))
 

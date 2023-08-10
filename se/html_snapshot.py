@@ -19,7 +19,7 @@ import re
 
 from hashlib import md5
 from mimetypes import guess_extension
-from urllib.parse import quote, unquote_plus, urlparse
+from urllib.parse import quote, unquote_plus
 from traceback import format_exc
 
 from bs4 import NavigableString
@@ -189,10 +189,10 @@ class HTMLSnapshot:
         self.crawl_policy = crawl_policy
         self.asset_filenames = set()
 
-    def _add_asset_ref(self, filename):
+    def _add_asset_ref(self, url, filename):
         if filename not in self.asset_filenames:
             self.asset_filenames.add(filename)
-            HTMLAsset.add_ref(filename)
+            HTMLAsset.add_ref(url, filename)
 
     def _clear_assets(self):
         for asset_filename in self.asset_filenames:
@@ -373,15 +373,9 @@ class HTMLSnapshot:
 
     @staticmethod
     def html_filename(url, _hash, extension):
-        from .document import sanitize_url
-        url = sanitize_url(url, True, True)
-        _url = urlparse(url)
-
-        filename = _url.path
-        if '/' in _url.path:
-            _, filename = _url.path.rsplit('/', 1)
-
+        # replace http:// by http:/
         url = url.replace('//', '/')
+
         # Unquote before requoting
         url = unquote_plus(url)
         # Replace % by , to prevent interpration of the escape by nginx
@@ -405,6 +399,7 @@ class HTMLSnapshot:
         return '/'.join(_parts)
 
     def write_asset(self, url, content, extension, src_hash=None):
+        from .document import sanitize_url
         logger.debug('html_write_asset for %s', url)
 
         if src_hash:
@@ -412,9 +407,10 @@ class HTMLSnapshot:
         else:
             _hash = md5(content).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
 
+        url = sanitize_url(url, True, True)
         filename_url = self.html_filename(url, _hash, extension)
         if not src_hash:
-            self._add_asset_ref(filename_url)
+            self._add_asset_ref(url, filename_url)
 
         dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
         dest_dir, _ = dest.rsplit('/', 1)

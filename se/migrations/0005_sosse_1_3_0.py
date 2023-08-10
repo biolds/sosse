@@ -71,8 +71,9 @@ class Migration(migrations.Migration):
             name='HTMLAsset',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('filename', models.TextField(unique=True)),
-                ('ref_count', models.PositiveBigIntegerField(default=1)),
+                ('url', models.TextField(unique=True)),
+                ('filename', models.TextField()),
+                ('ref_count', models.PositiveBigIntegerField(default=0)),
             ],
         ),
     ]

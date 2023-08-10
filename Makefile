@@ -5,7 +5,7 @@ current_dir = $(shell pwd)
 	deb docker_run docker_build docker_push _build_doc build_doc \
 	doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
 	pip_pkg_check _pip_pkg_check _pip_functional_tests _pip_pkg_functional_tests _deb_pkg_functional_tests \
-    _common_pip_functional_tests _rf_functional_tests functional_tests
+	_common_pip_functional_tests _rf_functional_tests functional_tests
 
 # Empty default target, since the debian packagin runs `make`
 all:
@@ -150,3 +150,8 @@ _rf_functional_tests:
 
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'
+
+static_checks:
+	flake8 --ignore=E501,W503,W504 --exclude=migrations
+	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
+	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'

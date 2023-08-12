@@ -103,7 +103,7 @@ class HTMLSnapshotTest:
         snap_open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         asset_open.side_effect = snap_open.side_effect
 
-        HTML = '''<html><head>
+        HTML = b'''<html><head>
             <link rel="stylesheet" href="/style.css"/>
         </head><body>
             <img src="/image.png"/>
@@ -113,8 +113,8 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/style.css', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/style.css', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(snap_open.call_args_list == [
@@ -141,7 +141,7 @@ class HTMLSnapshotTest:
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img srcset="image.png 200px, image2.png 300px" src="image3.png"/>
             <video>
                 <source srcset="video.mp4"/>
@@ -152,10 +152,10 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/image2.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/image3.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/video.mp4', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image2.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image3.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/video.mp4', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(_open.call_args_list == [
@@ -186,7 +186,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <a href="http://127.0.0.2/">link</a>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
@@ -212,7 +212,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="/>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
@@ -256,7 +256,7 @@ class HTMLSnapshotTest:
         output = css_parser().handle_css(snap, 'http://127.0.0.1/', CSS, False)
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/police.woff', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/police.woff', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
 
         ], RequestBrowser.call_args_list)
 
@@ -280,7 +280,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head><style>body {
+        HTML = b'''<html><head><style>body {
     src: local(police), url("police.svg") format("svg"), url("police.woff") format("woff")
     }</style></head><body>
             test
@@ -291,8 +291,8 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/police.svg', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/police.woff', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/police.svg', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/police.woff', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
 
         ], RequestBrowser.call_args_list)
 
@@ -321,7 +321,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head></head></html>
+        HTML = b'''<html><head></head></html>
             <div style='background-image: url("/image.png")'></div>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
@@ -329,7 +329,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
 
         ], RequestBrowser.call_args_list)
 
@@ -354,7 +354,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head><style>body {
+        HTML = b'''<html><head><style>body {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==")
     }</style></head><body>
             test
@@ -367,7 +367,7 @@ class HTMLSnapshotTest:
         self.assertTrue(_open.call_args_list == [], _open.call_args_list)
 
         dump = page.dump_html()
-        self.assertEqual(dump, HTML.encode('utf-8'))
+        self.assertEqual(dump, HTML)
 
         self.assertEqual(snap.get_asset_filenames(), set())
         self.assertEqual(snap.get_asset_filenames(), HTMLAsset.html_extract_assets(HTML))
@@ -380,7 +380,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/page.html"/>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
@@ -388,7 +388,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/page.html', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/page.html', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
         self.assertTrue(_open.call_args_list == [], _open.call_args_list)
 
@@ -407,7 +407,7 @@ class HTMLSnapshotTest:
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/toobig.png"/>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
@@ -418,7 +418,7 @@ class HTMLSnapshotTest:
             snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/toobig.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/toobig.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(mock_open.mock_calls == [
@@ -444,7 +444,7 @@ class HTMLSnapshotTest:
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/exception.png"/>
         </body></html>'''
         page = Page('http://127.0.0.1/', HTML, None)
@@ -455,7 +455,7 @@ class HTMLSnapshotTest:
             snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/exception.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/exception.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
         self.assertRegex(mock_open.mock_calls[0].args[0], '^' + settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/exception.png_[^.]+.txt')
@@ -488,17 +488,17 @@ class HTMLSnapshotTest:
             web[long_dir_url] = CONTENT
 
             RequestBrowser.side_effect = BrowserMock(web)
-            HTML = '''<html><head></head><body>
+            HTML = b'''<html><head></head><body>
                 <img src="%s"/>
                 <img src="%s"/>
-            </body></html>''' % (long_file_url, long_dir_url)
+            </body></html>''' % (long_file_url.encode('utf-8'), long_dir_url.encode('utf-8'))
             page = Page('http://127.0.0.1/', HTML, None)
             snap = HTMLSnapshot(page, self.policy)
             snap.handle_assets()
 
             self.assertTrue(RequestBrowser.call_args_list == [
-                mock.call(long_file_url, raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-                mock.call(long_dir_url, raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+                mock.call(long_file_url, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+                mock.call(long_dir_url, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
             ], RequestBrowser.call_args_list)
 
             long_url_filename = _open.call_args_list[0].args[0].split('/')[-1]
@@ -532,7 +532,7 @@ class HTMLSnapshotTest:
         makedirs.side_effect = None
 
         policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_url_re='http://127.0.0.1/excluded.*')
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/excluded.png"/>
             <img src="/image.png"/>
         </body></html>'''
@@ -541,7 +541,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
         self.assertTrue(_open.call_args_list == [
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
@@ -566,7 +566,7 @@ class HTMLSnapshotTest:
         makedirs.side_effect = None
 
         policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_mime_re='image/jpe?g')
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/image.jpg"/>
             <img src="/image.png"/>
         </body></html>'''
@@ -575,8 +575,8 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/image.jpg', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/image.jpg', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
         self.assertTrue(_open.call_args_list == [
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_0fcab19ae8.png', 'wb'),
@@ -601,7 +601,7 @@ class HTMLSnapshotTest:
         makedirs.side_effect = None
 
         policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_element_re='aud.*')
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <audio src="/audio.wav"></audio>
             <video src="/video.mp4"></video>
         </body></html>'''
@@ -610,7 +610,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/video.mp4', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/video.mp4', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
         ], RequestBrowser.call_args_list)
         self.assertTrue(_open.call_args_list == [
             mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4', 'wb'),
@@ -633,7 +633,7 @@ class HTMLSnapshotTest:
         RequestBrowser.side_effect = BrowserMock({})
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/image.png"/>
             <img src="/image.png"/>
         </body></html>'''
@@ -643,8 +643,8 @@ class HTMLSnapshotTest:
         snap.snapshot('test')
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(_open.call_args_list == [
@@ -678,13 +678,13 @@ class HTMLSnapshotTest:
     @mock.patch('os.unlink')
     @mock.patch('os.rmdir')
     def test_210_asset_remove(self, rmdir, unlink, makedirs, RequestBrowser):
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="%s"/>
         </body></html>'''
         PNG_URL = 'http,3A/127.0.0.1/image.png_0fcab19ae8.png'
         RequestBrowser.side_effect = BrowserMock({
-            'http://127.0.0.1/page1.html': HTML % '/image.png',
-            'http://127.0.0.1/page2.html': HTML % '/image.png',
+            'http://127.0.0.1/page1.html': HTML % b'/image.png',
+            'http://127.0.0.1/page2.html': HTML % b'/image.png',
             'http://127.0.0.1/robots.txt': HTTPError(),
             'http://127.0.0.1/favicon.ico': HTTPError(),
         })
@@ -703,7 +703,8 @@ class HTMLSnapshotTest:
         self.assertEqual(HTMLAsset.objects.count(), 1)
         self.assertEqual(HTMLAsset.objects.get().ref_count, 2)
 
-        mock_open = mock.mock_open(read_data=HTML % (settings.SOSSE_HTML_SNAPSHOT_URL + PNG_URL))
+        png_url_bytes = (settings.SOSSE_HTML_SNAPSHOT_URL + PNG_URL).encode('utf-8')
+        mock_open = mock.mock_open(read_data=HTML % png_url_bytes)
         with mock.patch('se.html_asset.open', mock_open), mock.patch('se.html_snapshot.open', mock_open):
             obj = Document.objects.first()
             obj.delete_html()
@@ -768,7 +769,7 @@ class HTMLSnapshotTest:
     def test_220_html_error_handling(self, rmdir, unlink, makedirs, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({})
 
-        HTML = '''<html><head></head><body>
+        HTML = b'''<html><head></head><body>
             <img src="/image.png"/>
             <img src="/test-exception"/>
         </body></html>'''
@@ -780,7 +781,7 @@ class HTMLSnapshotTest:
             snap.snapshot('test')
 
         self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/image.png', raw=True, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
         ], RequestBrowser.call_args_list)
 
         self.assertTrue(unlink.call_args_list == [

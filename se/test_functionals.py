@@ -88,15 +88,16 @@ class FunctionalTest:
 
     def test_20_user_agent(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
-        self.assertIn(f'"user-agent": "{settings.SOSSE_USER_AGENT}"', page.content)
+        user_agent = b'"user-agent": "%s"' % settings.SOSSE_USER_AGENT.encode('utf-8')
+        self.assertIn(user_agent, page.content)
 
     def test_30_gzip(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'gzip')
-        self.assertIn('"deflated": true', page.content)
+        self.assertIn(b'"deflated": true', page.content)
 
     def test_40_deflate(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'deflate')
-        self.assertIn('"deflated": true', page.content)
+        self.assertIn(b'"deflated": true', page.content)
 
     def test_50_cookies(self):
         CrawlPolicy.objects.create(url_regex='.*',

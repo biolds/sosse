@@ -331,7 +331,7 @@ class FavIcon(models.Model):
                 favicon.content = data
                 favicon.missing = False
             else:
-                page = RequestBrowser.get(url, raw=True, check_status=True)
+                page = RequestBrowser.get(url, check_status=True)
                 from magic import from_buffer as magic_from_buffer
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)
                 if favicon.mimetype.startswith('image/'):

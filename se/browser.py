@@ -69,6 +69,7 @@ class TooManyRedirects(SkipIndexing):
 
 class Page:
     def __init__(self, url, content, browser, mimetype=None):
+        assert isinstance(content, bytes)
         from .document import sanitize_url
         self.url = sanitize_url(url, True, True)
         self.content = content
@@ -81,7 +82,7 @@ class Page:
     def get_soup(self):
         if self.soup:
             return self.soup
-        self.soup = BeautifulSoup(self.content, 'html5lib')
+        self.soup = BeautifulSoup(self.content.decode('utf-8'), 'html5lib')
 
         # Remove <template> tags as BS extract its text
         for elem in self.soup.find_all('template'):
@@ -135,15 +136,8 @@ class RequestBrowser(Browser):
         pass
 
     @classmethod
-    def _page_from_request(cls, r, raw=False):
+    def _page_from_request(cls, r):
         content = r._content
-        if not raw:
-            try:
-                content = content.decode('utf-8')
-            except UnicodeDecodeError:
-                # Binary file
-                pass
-
         mimetype = r.headers.get('content-type') or 'application/octet-stream'
         if ';' in mimetype:
             mimetype, _ = mimetype.split(';', 1)
@@ -246,7 +240,7 @@ class RequestBrowser(Browser):
         return r
 
     @classmethod
-    def get(cls, url, raw=False, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs):
+    def get(cls, url, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs):
         Browser.init()
         REDIRECT_CODE = (301, 302, 307, 308)
 
@@ -271,7 +265,7 @@ class RequestBrowser(Browser):
 
                 continue
 
-            page = cls._page_from_request(r, raw)
+            page = cls._page_from_request(r)
 
             # Check for an HTML / meta redirect
             for meta in page.get_soup().find_all('meta'):
@@ -491,7 +485,7 @@ class SeleniumBrowser(Browser):
         if crawl_policy and crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_YES:
             cls.remove_nav_elements()
 
-        content = cls.driver.page_source
+        content = cls.driver.page_source.encode('utf-8')
         page = Page(current_url,
                     content,
                     cls)

@@ -34,13 +34,13 @@ class RedirectTest:
         page = self.BROWSER.get(TEST_SERVER_URL)
         self.assertEqual(page.url, TEST_SERVER_URL)
         self.assertEqual(page.redirect_count, 0)
-        self.assertIn('This page.', page.content)
+        self.assertIn(b'This page.', page.content)
 
     def test_20_one_redirect(self):
         page = self.BROWSER.get(TEST_SERVER_URL + 'redirect/1')
         self.assertEqual(page.url, TEST_SERVER_URL + 'get')
         self.assertEqual(page.redirect_count, 1)
-        self.assertIn('"url": "http://127.0.0.1:8000/get"', page.content)
+        self.assertIn(b'"url": "http://127.0.0.1:8000/get"', page.content)
 
 
 class RequestsRedirectTest(RedirectTest, TestCase):
@@ -50,7 +50,7 @@ class RequestsRedirectTest(RedirectTest, TestCase):
         page = self.BROWSER.get(TEST_SERVER_URL + 'redirect/5')
         self.assertEqual(page.url, TEST_SERVER_URL + 'get')
         self.assertEqual(page.redirect_count, 5)
-        self.assertIn('"url": "http://127.0.0.1:8000/get"', page.content)
+        self.assertIn(b'"url": "http://127.0.0.1:8000/get"', page.content)
 
     def test_40_max_redirect(self):
         with self.assertRaises(SkipIndexing):

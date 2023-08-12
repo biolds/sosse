@@ -46,7 +46,7 @@ class BrowserMock:
         }
         self.web.update(web)
 
-    def __call__(self, url, raw=False, check_status=False, **kwargs):
+    def __call__(self, url, check_status=False, **kwargs):
         content = self.web[url]
         if isinstance(content, Exception):
             raise content

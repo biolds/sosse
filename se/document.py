@@ -250,18 +250,21 @@ class Document(models.Model):
         return lang
 
     def _hash_content(self, content, crawl_policy):
+        assert isinstance(content, bytes)
         from .models import CrawlPolicy
         if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
             pass
         elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
-            if isinstance(content, str):
+            try:
+                content = content.decode('utf-8')
                 content = re.sub('[0-9]+', '0', content)
+                content = content.encode('utf-8')
+            except UnicodeEncodeError:
+                pass
         else:
             raise Exception('HASH_MODE not supported')
 
-        if isinstance(content, bytes):
-            return settings.HASHING_ALGO(content).hexdigest()
-        return settings.HASHING_ALGO(content.encode('utf-8')).hexdigest()
+        return settings.HASHING_ALGO(content).hexdigest()
 
     def _index_log(self, s, stats, verbose):
         if not verbose:
@@ -620,7 +623,7 @@ class Document(models.Model):
                     try:
                         page = crawl_policy.url_get(domain_setting, doc.url)
                     except AuthElemFailed as e:
-                        doc.content = e.page.content
+                        doc.content = e.page.content.decode('utf-8')
                         doc._schedule_next(True, crawl_policy)
                         doc.set_error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         crawl_logger.error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')

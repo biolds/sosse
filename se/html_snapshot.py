@@ -331,8 +331,10 @@ class HTMLSnapshot:
         from .browser import RequestBrowser, SkipIndexing
         logger.debug('download_asset %s' % url)
         try:
-            asset = RequestBrowser.get(url, raw=True, check_status=True,
-                                       max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            asset = RequestBrowser.get(url,
+                                       check_status=True,
+                                       max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
+                                       headers={'Accept': '*/*'})
             content = asset.content
 
             if asset.mimetype == 'text/html':

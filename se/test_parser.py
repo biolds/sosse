@@ -24,87 +24,87 @@ from se.models import CrawlPolicy
 
 
 LINKS = ({
-    'descr': 'regular link',
-    'link': 'http://test.com/',
+    'descr': b'regular link',
+    'link': b'http://test.com/',
 }, {
-    'descr': 'percent-encoded utf8 link',
-    'link': 'http://test.com/%F0%9F%90%88/',
+    'descr': b'percent-encoded utf8 link',
+    'link': b'http://test.com/%F0%9F%90%88/',
 }, {
-    'descr': 'utf8 link',
-    'link': 'http://test.com/🐈/',
+    'descr': b'utf8 link',
+    'link': 'http://test.com/🐈/'.encode('utf-8'),
     'expected_output': 'http://test.com/%F0%9F%90%88/',
 }, {
-    'descr': 'utf8 domain',
-    'link': 'http://🐈.com/',
+    'descr': b'utf8 domain',
+    'link': 'http://🐈.com/'.encode('utf-8'),
     'expected_output': 'http://xn--zn8h.com/',
 }, {
-    'descr': 'punycode-encoded utf8 domain',
-    'link': 'http://xn--zn8h.com/',
+    'descr': b'punycode-encoded utf8 domain',
+    'link': b'http://xn--zn8h.com/',
 }, {
-    'descr': 'percent-encode ascii link',
-    'link': 'http://test.com/%61%62%63/',
+    'descr': b'percent-encode ascii link',
+    'link': b'http://test.com/%61%62%63/',
     'expected_output': 'http://test.com/abc/',
 }, {
-    'descr': 'relative link',
-    'link': 'http://test.com/test/../abc/',
+    'descr': b'relative link',
+    'link': b'http://test.com/test/../abc/',
     'expected_output': 'http://test.com/abc/'
 }, {
-    'descr': 'percent-encoded relative link',
-    'link': 'http://test.com/test/%2e%2e/abc/',
+    'descr': b'percent-encoded relative link',
+    'link': b'http://test.com/test/%2e%2e/abc/',
     'expected_output': 'http://test.com/abc/'
 }, {
-    'descr': 'space link',
-    'link': 'http://test.com/test/a b c/',
+    'descr': b'space link',
+    'link': b'http://test.com/test/a b c/',
     'expected_output': 'http://test.com/test/a%20b%20c/',
 }, {
-    'descr': 'percent-encoded space link',
-    'link': 'http://test.com/test/a%20b%20c/',
+    'descr': b'percent-encoded space link',
+    'link': b'http://test.com/test/a%20b%20c/',
 }, {
-    'descr': 'special characters link',
-    'link': 'http://test.com/, &/',
+    'descr': b'special characters link',
+    'link': b'http://test.com/, &/',
     'expected_output': 'http://test.com/%2C%20%26/',
 }, {
-    'descr': 'percent-encoded slash link',
-    'link': 'http://test.com/test/a%2fb/',
+    'descr': b'percent-encoded slash link',
+    'link': b'http://test.com/test/a%2fb/',
     'expected_output': 'http://test.com/test/a/b/',
 }, {
-    'descr': 'url parameters',
-    'link': 'http://test.com/?a=b',
+    'descr': b'url parameters',
+    'link': b'http://test.com/?a=b',
 }, {
-    'descr': 'url parameters with space',
-    'link': 'http://test.com/?a=a b',
+    'descr': b'url parameters with space',
+    'link': b'http://test.com/?a=a b',
     'expected_output': 'http://test.com/?a=a+b',
 }, {
-    'descr': 'url parameters with plus',
-    'link': 'http://test.com/?a=a+b',
+    'descr': b'url parameters with plus',
+    'link': b'http://test.com/?a=a+b',
 }, {
-    'descr': 'url parameters with percents',
-    'link': 'http://test.com/?a=a%20b',
+    'descr': b'url parameters with percents',
+    'link': b'http://test.com/?a=a%20b',
     'expected_output': 'http://test.com/?a=a+b',
 }, {
-    'descr': 'url parameters with slash',
-    'link': 'http://test.com/?a=a/b',
+    'descr': b'url parameters with slash',
+    'link': b'http://test.com/?a=a/b',
     'expected_output': 'http://test.com/?a=a%2Fb',
 }, {
-    'descr': 'url with sharp',
-    'link': 'http://test.com/test#test/',
+    'descr': b'url with sharp',
+    'link': b'http://test.com/test#test/',
     'expected_output': 'http://test.com/test',
 }, {
-    'descr': 'no trailing slash hostname',
-    'link': 'http://test.com',
+    'descr': b'no trailing slash hostname',
+    'link': b'http://test.com',
     'expected_output': 'http://test.com/',
 }, {
-    'descr': 'trailing slash hostname',
-    'link': 'http://test.com/',
+    'descr': b'trailing slash hostname',
+    'link': b'http://test.com/',
 }, {
-    'descr': 'no trailing slash path',
-    'link': 'http://test.com/test',
+    'descr': b'no trailing slash path',
+    'link': b'http://test.com/test',
 }, {
-    'descr': 'trailing slash path',
-    'link': 'http://test.com/test/',
+    'descr': b'trailing slash path',
+    'link': b'http://test.com/test/',
 })
 
-FAKE_PAGE = '''
+FAKE_PAGE = b'''
 <!DOCTYPE html>
 <html>
   <head><meta charset="utf-8"></head>'
@@ -112,7 +112,7 @@ FAKE_PAGE = '''
     %s
   </body>
 </html>
-''' % '\n'.join(['<a href="%s">%s</a>' % (link['link'], link['descr']) for link in LINKS])
+''' % b'\n'.join([b'<a href="%s">%s</a>' % (link['link'], link['descr']) for link in LINKS])
 
 
 class PageTest(TestCase):
@@ -134,10 +134,10 @@ class PageTest(TestCase):
 
         self.assertEqual(len(links), len(LINKS))
         for no, link in enumerate(links):
-            expected = LINKS[no].get('expected_output', LINKS[no]['link'])
+            expected = LINKS[no].get('expected_output', LINKS[no]['link'].decode('utf-8'))
             self.assertEqual(link, expected, '%s failed' % LINKS[no]['descr'])
 
-    NAV_HTML = '<html><body><header>header</header><nav>nav</nav>text<footer>footer</footer></body></html>'
+    NAV_HTML = b'<html><body><header>header</header><nav>nav</nav>text<footer>footer</footer></body></html>'
 
     def test_20_no_nav_element(self):
         page = Page('http://test/', self.NAV_HTML, None)

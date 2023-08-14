@@ -26,6 +26,7 @@ from bs4 import NavigableString
 import cssutils
 from django.conf import settings
 from django.shortcuts import reverse
+from django.utils.html import format_html
 
 from .html_asset import HTMLAsset
 
@@ -209,6 +210,7 @@ class HTMLSnapshot:
             if getattr(settings, 'TEST_MODE', False) and not getattr(settings, 'TEST_HTML_ERROR_HANDLING', False):
                 raise
             content = 'An error occured while downloading %s:\n%s' % (self.page.url, format_exc())
+            content = format_html('<pre>{}</pre>', content)
             self.write_asset(self.page.url, content.encode('utf-8'), '.html', _hash)
             self._clear_assets()
 

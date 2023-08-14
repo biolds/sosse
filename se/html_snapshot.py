@@ -29,6 +29,7 @@ from django.shortcuts import reverse
 from django.utils.html import format_html
 
 from .html_asset import HTMLAsset
+from .utils import has_browsable_scheme
 
 
 logger = logging.getLogger('html_snapshot')
@@ -74,7 +75,7 @@ class InternalCSSParser:
                     quote = url[0]
                     url = url[1:-1]
 
-                if not url.startswith('data:') and not url.startswith('#'):
+                if has_browsable_scheme(url):
                     url = absolutize_url(src_url, url, True, True)
                     url = snapshot.download_asset(url)
 
@@ -306,7 +307,7 @@ class HTMLSnapshot:
                 if url.startswith('blob:'):
                     url = url[5:]
 
-                if url.startswith('file:') or url.startswith('blob:') or url.startswith('about:') or url.startswith('data:'):
+                if not has_browsable_scheme(url):
                     continue
 
                 url = absolutize_url(self.page.url, url, True, True)

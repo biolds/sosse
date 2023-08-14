@@ -36,7 +36,7 @@ from PIL import Image
 
 from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
 from .html_snapshot import HTMLAsset, HTMLSnapshot
-from .utils import reverse_no_escape, url_beautify
+from .utils import has_browsable_scheme, reverse_no_escape, url_beautify
 
 crawl_logger = logging.getLogger('crawler')
 
@@ -320,7 +320,7 @@ class Document(models.Model):
 
             if elem.name == 'a':
                 href = elem.get('href')
-                if href and not href.startswith('data:'):
+                if href and has_browsable_scheme(href):
                     href = href.strip()
 
                     href_for_policy = absolutize_url(base_url, href, True, True)

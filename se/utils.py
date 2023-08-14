@@ -134,3 +134,10 @@ def url_beautify(url):
     _query = unquote_plus(url.query)
     url = url._replace(netloc=_netloc, path=_path, query=_query)
     return url.geturl()
+
+
+def has_browsable_scheme(url):
+    for prefix in ('#', 'file:', 'blob:', 'about:', 'data:', 'javascript:', 'mailto:'):
+        if url.startswith(prefix):
+            return False
+    return True

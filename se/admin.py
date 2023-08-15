@@ -566,5 +566,5 @@ class CookieAdmin(admin.ModelAdmin):
 @admin.register(ExcludedUrl)
 class ExcludedUrlAdmin(admin.ModelAdmin):
     list_display = ('url',)
-    search_fields = ('url', 'domment')
+    search_fields = ('url', 'comment')
     ordering = ('url',)

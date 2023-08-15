@@ -26,6 +26,6 @@ The number of search result displayed in one page.
 Search result principal links point to cache
 --------------------------------------------
 
-When enabled, search result links point to the :doc:`cached versions <cached>`  of pages. ``source`` links are displayed to access original websites.
+When enabled, search result links point to the :doc:`cached versions <cached>` of pages. ``source`` links are displayed to access original websites.
 
 When disabled, search result links point to original websites. ``cached`` links are displayed to access :doc:`cached versions <cached>`.

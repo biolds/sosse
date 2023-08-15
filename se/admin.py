@@ -58,6 +58,10 @@ class SEAdminSite(admin.AdminSite):
                             # The model may not be available due to permission reasons
                             if request.user.is_superuser:
                                 raise Exception('object_name not found %s' % model)
+
+                    for dj_model in dj_models:
+                        if dj_model['object_name'] not in _models:
+                            raise Exception('Model %s not referenced in MODELS_ORDER' % dj_model['object_name'])
         return app_list
 
 

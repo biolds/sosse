@@ -71,13 +71,19 @@ class HTMLCache():
                     logger.debug('cache miss, max_age, no cache control')
                     raise CacheMiss()
 
+                headers = {
+                    'Accept': '*/*',
+                    'If-Modified-Since': http_date_format(asset.download_date)
+                }
+
+                if asset.etag:
+                    headers['If-None-Match'] = asset.etag
+
                 page = RequestBrowser.get(asset.url,
                                           check_status=True,
                                           max_file_size=max_file_size,
-                                          headers={
-                                                'Accept': '*/*',
-                                                'If-Modified-Since': http_date_format(asset.download_date)
-                                          })
+                                          headers=headers)
+
                 if page.status_code == 304:
                     # http not modified
                     logger.debug('cache hit, max_age, cache control, not modified')

@@ -77,7 +77,8 @@ class Migration(migrations.Migration):
                 ('download_date', models.DateTimeField(blank=True, null=True)),
                 ('last_modified', models.DateTimeField(blank=True, null=True)),
                 ('max_age', models.PositiveBigIntegerField(blank=True, null=True)),
-                ('has_cache_control', models.BooleanField(default=False))
+                ('has_cache_control', models.BooleanField(default=False)),
+                ('etag', models.CharField(max_length=128, null=True, blank=True))
             ],
             options={
                 'unique_together': {('url', 'filename')},

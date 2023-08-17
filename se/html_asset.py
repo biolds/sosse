@@ -54,6 +54,7 @@ class HTMLAsset(models.Model):
     last_modified = models.DateTimeField(blank=True, null=True)
     max_age = models.PositiveBigIntegerField(blank=True, null=True)
     has_cache_control = models.BooleanField(default=False)
+    etag = models.CharField(max_length=128, null=True, blank=True)
 
     class Meta:
         unique_together = (('url', 'filename'),)
@@ -203,6 +204,10 @@ class HTMLAsset(models.Model):
                 else:
                     cache_control[control] = True
 
+        etag = None
+        if page.headers.get('ETag') and not page.headers['ETag'].startswith('W/'):
+            etag = page.headers.get('ETag')
+
         if last_modified is None:
             last_modified = download_date
 
@@ -218,4 +223,5 @@ class HTMLAsset(models.Model):
         self.update_values(download_date=download_date,
                            last_modified=last_modified,
                            max_age=max_age,
-                           has_cache_control=has_cache_control)
+                           has_cache_control=has_cache_control,
+                           etag=etag)

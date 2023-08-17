@@ -15,10 +15,14 @@
 
 import logging
 import os
+from datetime import timedelta
 
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+
+from .utils import http_date_parser
 
 logger = logging.getLogger('html_snapshot')
 
@@ -49,6 +53,7 @@ class HTMLAsset(models.Model):
     download_date = models.DateTimeField(blank=True, null=True)
     last_modified = models.DateTimeField(blank=True, null=True)
     max_age = models.PositiveBigIntegerField(blank=True, null=True)
+    has_cache_control = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (('url', 'filename'),)
@@ -170,3 +175,47 @@ class HTMLAsset(models.Model):
             assets = HTMLAsset.html_extract_assets(content)
         for asset in assets:
             HTMLAsset.remove_file_ref(asset)
+
+    def update_from_page(self, page):
+        download_date = http_date_parser(page.headers.get('Date')) or timezone.now()
+        last_modified = http_date_parser(page.headers.get('Last-Modified'))
+
+        if page.headers.get('Age') and last_modified is None:
+            try:
+                age = int(page.headers.get('Age', 0))
+                last_modified = download_date - timedelta(seconds=age)
+            except ValueError:
+                pass
+
+        cache_control = {}
+        has_cache_control = False
+        if page.headers.get('Cache-Control'):
+            has_cache_control = True
+            for control in page.headers['Cache-Control'].split(','):
+                control = control.lower()
+                if '=' in control:
+                    key, val = control.split('=', 1)
+                    try:
+                        val = int(val)
+                    except ValueError:
+                        val = 0
+                    cache_control[key] = val
+                else:
+                    cache_control[control] = True
+
+        if last_modified is None:
+            last_modified = download_date
+
+        max_age = cache_control.get('max-age')
+
+        if cache_control.get('no-cache'):
+            max_age = 0
+
+        if page.headers.get('Expires') and max_age is None:
+            expires = http_date_parser(page.headers.get('Expires'))
+            max_age = (expires - last_modified).total_seconds()
+
+        self.update_values(download_date=download_date,
+                           last_modified=last_modified,
+                           max_age=max_age,
+                           has_cache_control=has_cache_control)

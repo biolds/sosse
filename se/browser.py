@@ -68,7 +68,7 @@ class TooManyRedirects(SkipIndexing):
 
 
 class Page:
-    def __init__(self, url, content, browser, mimetype=None, headers=None):
+    def __init__(self, url, content, browser, mimetype=None, headers=None, status_code=None):
         assert isinstance(content, bytes)
         from .document import sanitize_url
         self.url = sanitize_url(url, True, True)
@@ -79,6 +79,7 @@ class Page:
         self.browser = browser
         self.mimetype = mimetype
         self.headers = headers or {}
+        self.status_code = status_code
 
     def get_soup(self):
         if self.soup:
@@ -148,7 +149,7 @@ class RequestBrowser(Browser):
         if ';' in mimetype:
             mimetype, _ = mimetype.split(';', 1)
 
-        page = Page(r.url, content, cls, mimetype, r.headers)
+        page = Page(r.url, content, cls, mimetype, r.headers, r.status_code)
         soup = page.get_soup()
         if soup:
             page.title = soup.title and soup.title.string

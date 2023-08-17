@@ -76,7 +76,8 @@ class Migration(migrations.Migration):
                 ('ref_count', models.PositiveBigIntegerField(default=0)),
                 ('download_date', models.DateTimeField(blank=True, null=True)),
                 ('last_modified', models.DateTimeField(blank=True, null=True)),
-                ('max_age', models.PositiveBigIntegerField(blank=True, null=True))
+                ('max_age', models.PositiveBigIntegerField(blank=True, null=True)),
+                ('has_cache_control', models.BooleanField(default=False))
             ],
             options={
                 'unique_together': {('url', 'filename')},

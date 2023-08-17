@@ -66,7 +66,12 @@ class BrowserMock:
         if isinstance(content, Exception):
             raise content
         headers = None
+        status_code = None
         if isinstance(content, tuple):
-            content, headers = content
+            if len(content) == 2:
+                content, headers = content
+            else:
+                content, headers, status_code = content
+
         mimetype = guess_type(url)[0]
-        return Page(url, content, BrowserMock, mimetype, headers)
+        return Page(url, content, BrowserMock, mimetype, headers, status_code)

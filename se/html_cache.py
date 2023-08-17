@@ -26,7 +26,7 @@ from django.utils import timezone
 
 from .browser import RequestBrowser
 from .html_asset import HTMLAsset
-from .utils import http_date_parser
+from .utils import http_date_format
 
 
 logger = logging.getLogger('html_snapshot')
@@ -40,23 +40,24 @@ def max_filename_size():
     return os.statvfs(settings.SOSSE_HTML_SNAPSHOT_DIR).f_namemax
 
 
-class CacheException(Exception):
+class CacheHit(Exception):
     def __init__(self, asset):
         self.asset = asset
 
 
-class CacheHit(CacheException):
+class CacheMiss(Exception):
     pass
 
 
-class CacheMiss(CacheException):
-    pass
+class CacheRefresh(Exception):
+    def __init__(self, page):
+        self.page = page
 
 
 class HTMLCache():
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#expires_or_max-age
     @staticmethod
-    def _max_age_check(asset):
+    def _max_age_check(asset, max_file_size):
         if asset.max_age and asset.last_modified:
             expire = asset.last_modified + timedelta(seconds=asset.max_age)
             if expire >= timezone.now():
@@ -64,7 +65,26 @@ class HTMLCache():
                 raise CacheHit(asset)
             else:
                 logger.debug('cache miss, max_age, %s + %s > %s', asset.last_modified, asset.max_age, timezone.now())
-                raise CacheMiss(asset)
+
+                # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#validation
+                if not asset.has_cache_control:
+                    logger.debug('cache miss, max_age, no cache control')
+                    raise CacheMiss()
+
+                page = RequestBrowser.get(asset.url,
+                                          check_status=True,
+                                          max_file_size=max_file_size,
+                                          headers={
+                                                'Accept': '*/*',
+                                                'If-Modified-Since': http_date_format(asset.download_date)
+                                          })
+                if page.status_code == 304:
+                    # http not modified
+                    logger.debug('cache hit, max_age, cache control, not modified')
+                    raise CacheHit(asset)
+
+                logger.debug('cache refresh, max_age, cache control, refresh')
+                raise CacheRefresh(page)
 
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#heuristic_caching
     @staticmethod
@@ -78,28 +98,34 @@ class HTMLCache():
                 raise CacheHit(asset)
             else:
                 logger.debug('cache miss, heuristic_caching, %s + %s < %s', asset.download_date, dt, timezone.now())
-                raise CacheMiss(asset)
+                raise CacheMiss()
 
     @staticmethod
-    def _cache_check(url):
+    def _cache_check(url, max_file_size):
         asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
 
         if not asset:
             logger.debug('cache miss, asset does not exist')
-            raise CacheMiss(None)
+            raise CacheMiss()
 
-        HTMLCache._max_age_check(asset)
+        if asset.download_date is None:
+            logger.debug('cache miss, force refresh')
+            raise CacheMiss()
+
+        HTMLCache._max_age_check(asset, max_file_size)
         HTMLCache._heuristic_check(asset)
         logger.debug('cache miss, cache outdated')
-        raise CacheMiss(asset)
+        raise CacheMiss()
 
     @staticmethod
     def download(url, max_file_size):
         try:
-            HTMLCache._cache_check(url)
+            HTMLCache._cache_check(url, max_file_size)
         except CacheHit as e:
             e.asset.increment_ref()
             raise
+        except CacheRefresh as e:
+            return e.page
         except CacheMiss:
             pass
 
@@ -119,40 +145,8 @@ class HTMLCache():
         asset.increment_ref()
 
         if page:
-            download_date = http_date_parser(page.headers.get('Date')) or timezone.now()
-            last_modified = http_date_parser(page.headers.get('Last-Modified'))
+            asset.update_from_page(page)
 
-            if page.headers.get('Age'):
-                try:
-                    age = int(page.headers.get('Age', 0))
-                    last_modified = download_date - timedelta(seconds=age)
-                except ValueError:
-                    raise
-
-            cache_control = {}
-            for control in page.headers.get('Cache-Control', '').split(','):
-                control = control.lower()
-                if '=' in control:
-                    key, val = control.split('=', 1)
-                    try:
-                        val = int(val)
-                    except ValueError:
-                        val = 0
-                    cache_control[key] = val
-                else:
-                    cache_control[control] = True
-
-            max_age = cache_control.get('max-age')
-            if last_modified is None:
-                last_modified = download_date
-
-            if page.headers.get('Expires') and max_age is None:
-                expires = http_date_parser(page.headers.get('Expires'))
-                max_age = (expires - last_modified).total_seconds()
-
-            asset.update_values(download_date=download_date,
-                                last_modified=last_modified,
-                                max_age=max_age)
         return asset
 
     @staticmethod

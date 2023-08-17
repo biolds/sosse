@@ -54,6 +54,18 @@ class CacheMiss(CacheException):
 
 
 class HTMLCache():
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#expires_or_max-age
+    @staticmethod
+    def _max_age_check(asset):
+        if asset.max_age and asset.last_modified:
+            expire = asset.last_modified + timedelta(seconds=asset.max_age)
+            if expire >= timezone.now():
+                logger.debug('cache hit, max_age')
+                raise CacheHit(asset)
+            else:
+                logger.debug('cache miss, max_age, %s + %s > %s', asset.last_modified, asset.max_age, timezone.now())
+                raise CacheMiss(asset)
+
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#heuristic_caching
     @staticmethod
     def _heuristic_check(asset):
@@ -76,6 +88,7 @@ class HTMLCache():
             logger.debug('cache miss, asset does not exist')
             raise CacheMiss(None)
 
+        HTMLCache._max_age_check(asset)
         HTMLCache._heuristic_check(asset)
         logger.debug('cache miss, cache outdated')
         raise CacheMiss(asset)
@@ -108,8 +121,38 @@ class HTMLCache():
         if page:
             download_date = http_date_parser(page.headers.get('Date')) or timezone.now()
             last_modified = http_date_parser(page.headers.get('Last-Modified'))
+
+            if page.headers.get('Age'):
+                try:
+                    age = int(page.headers.get('Age', 0))
+                    last_modified = download_date - timedelta(seconds=age)
+                except ValueError:
+                    raise
+
+            cache_control = {}
+            for control in page.headers.get('Cache-Control', '').split(','):
+                control = control.lower()
+                if '=' in control:
+                    key, val = control.split('=', 1)
+                    try:
+                        val = int(val)
+                    except ValueError:
+                        val = 0
+                    cache_control[key] = val
+                else:
+                    cache_control[control] = True
+
+            max_age = cache_control.get('max-age')
+            if last_modified is None:
+                last_modified = download_date
+
+            if page.headers.get('Expires') and max_age is None:
+                expires = http_date_parser(page.headers.get('Expires'))
+                max_age = (expires - last_modified).total_seconds()
+
             asset.update_values(download_date=download_date,
-                                last_modified=last_modified)
+                                last_modified=last_modified,
+                                max_age=max_age)
         return asset
 
     @staticmethod

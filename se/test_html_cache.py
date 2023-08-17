@@ -92,6 +92,7 @@ class HTMLCacheTest(TestCase):
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertEqual(asset.download_date, now)
         self.assertEqual(asset.last_modified, last_year)
+        self.assertIsNone(asset.max_age)
 
         _asset = self._download_hit(RequestBrowser)
         self.assertEqual(asset, _asset)
@@ -118,9 +119,126 @@ class HTMLCacheTest(TestCase):
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertEqual(asset.download_date, yesterday)
         self.assertEqual(asset.last_modified, previous)
+        self.assertIsNone(asset.max_age)
 
         _asset = self._download_miss(RequestBrowser)
         self.assertEqual(asset, _asset)
         self.assertTrue(_heuristic_check.call_args_list == [
             mock.call(asset)
         ], _heuristic_check.call_args_list)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.html_cache.HTMLCache._heuristic_check', wraps=HTMLCache._heuristic_check)
+    @mock.patch('se.html_cache.HTMLCache._max_age_check', wraps=HTMLCache._max_age_check)
+    def test_050_expires_hit(self, _max_age_check, _heuristic_check, RequestBrowser):
+        now = timezone.now()
+        now = now.replace(microsecond=0)
+        now_http = http_date_format(now)
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/to_cache.png': (b'PNG', {
+                'Date': now_http,
+                'Last-Modified': http_date_format(now - timedelta(seconds=1)),
+                'Expires': http_date_format(now + timedelta(seconds=59))
+            })
+        })
+
+        asset = self._download_miss(RequestBrowser)
+        self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+        self.assertEqual(asset.download_date, now)
+        self.assertEqual(asset.last_modified, now - timedelta(seconds=1))
+        self.assertEqual(asset.max_age, 60)
+
+        _asset = self._download_hit(RequestBrowser)
+        self.assertEqual(asset, _asset)
+        self.assertTrue(_max_age_check.call_args_list == [
+            mock.call(asset)
+        ], _max_age_check.call_args_list)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.html_cache.HTMLCache._heuristic_check', wraps=HTMLCache._heuristic_check)
+    @mock.patch('se.html_cache.HTMLCache._max_age_check', wraps=HTMLCache._max_age_check)
+    def test_060_expires_miss(self, _max_age_check, _heuristic_check, RequestBrowser):
+        now = timezone.now()
+        now = now.replace(microsecond=0)
+        now_http = http_date_format(now)
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/to_cache.png': (b'PNG', {
+                'Date': now_http,
+                'Last-Modified': http_date_format(now - timedelta(seconds=61)),
+                'Expires': http_date_format(now - timedelta(seconds=1))
+            })
+        })
+
+        asset = self._download_miss(RequestBrowser)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+        self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
+        self.assertEqual(asset.download_date, now)
+        self.assertEqual(asset.last_modified, now - timedelta(seconds=61))
+        self.assertEqual(asset.max_age, 60)
+
+        _asset = self._download_miss(RequestBrowser)
+        self.assertEqual(asset, _asset)
+        self.assertTrue(_max_age_check.call_args_list == [
+            mock.call(asset)
+        ], _max_age_check.call_args_list)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.html_cache.HTMLCache._heuristic_check', wraps=HTMLCache._heuristic_check)
+    @mock.patch('se.html_cache.HTMLCache._max_age_check', wraps=HTMLCache._max_age_check)
+    def test_070_max_age_hit(self, _max_age_check, _heuristic_check, RequestBrowser):
+        now = timezone.now()
+        now = now.replace(microsecond=0)
+        now_http = http_date_format(now)
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/to_cache.png': (b'PNG', {
+                'Date': now_http,
+                'Cache-Control': 'max-age=60',
+                'Age': '1',
+            })
+        })
+
+        asset = self._download_miss(RequestBrowser)
+        self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+        self.assertEqual(asset.download_date, now)
+        self.assertEqual(asset.last_modified, now - timedelta(seconds=1))
+        self.assertEqual(asset.max_age, 60)
+
+        _asset = self._download_hit(RequestBrowser)
+        self.assertEqual(asset, _asset)
+        self.assertTrue(_max_age_check.call_args_list == [
+            mock.call(asset)
+        ], _max_age_check.call_args_list)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.html_cache.HTMLCache._heuristic_check', wraps=HTMLCache._heuristic_check)
+    @mock.patch('se.html_cache.HTMLCache._max_age_check', wraps=HTMLCache._max_age_check)
+    def test_080_max_age_miss(self, _max_age_check, _heuristic_check, RequestBrowser):
+        now = timezone.now()
+        now = now.replace(microsecond=0)
+        now_http = http_date_format(now)
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/to_cache.png': (b'PNG', {
+                'Date': now_http,
+                'Cache-Control': 'max-age=60',
+                'Age': '61',
+            })
+        })
+
+        asset = self._download_miss(RequestBrowser)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
+        self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
+        self.assertEqual(asset.download_date, now)
+        self.assertEqual(asset.last_modified, now - timedelta(seconds=61))
+        self.assertEqual(asset.max_age, 60)
+
+        _asset = self._download_miss(RequestBrowser)
+        self.assertEqual(asset, _asset)
+        self.assertTrue(_max_age_check.call_args_list == [
+            mock.call(asset)
+        ], _max_age_check.call_args_list)
+        self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)

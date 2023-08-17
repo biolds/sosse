@@ -48,6 +48,7 @@ class HTMLAsset(models.Model):
     ref_count = models.PositiveBigIntegerField(default=0)
     download_date = models.DateTimeField(blank=True, null=True)
     last_modified = models.DateTimeField(blank=True, null=True)
+    max_age = models.PositiveBigIntegerField(blank=True, null=True)
 
     class Meta:
         unique_together = (('url', 'filename'),)

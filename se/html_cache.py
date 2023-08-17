@@ -58,9 +58,8 @@ class HTMLCache():
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#expires_or_max-age
     @staticmethod
     def _max_age_check(asset, max_file_size):
-        if asset.max_age and asset.last_modified:
-            expire = asset.last_modified + timedelta(seconds=asset.max_age)
-            if expire >= timezone.now():
+        if (asset.max_age and asset.last_modified) or asset.etag:
+            if asset.max_age and asset.last_modified and asset.last_modified + timedelta(seconds=asset.max_age) >= timezone.now():
                 logger.debug('cache hit, max_age')
                 raise CacheHit(asset)
             else:

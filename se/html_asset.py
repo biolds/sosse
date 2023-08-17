@@ -193,9 +193,11 @@ class HTMLAsset(models.Model):
         if page.headers.get('Cache-Control'):
             has_cache_control = True
             for control in page.headers['Cache-Control'].split(','):
-                control = control.lower()
+                control = control.lower().strip()
                 if '=' in control:
                     key, val = control.split('=', 1)
+                    key = key.strip()
+                    val = val.strip()
                     try:
                         val = int(val)
                     except ValueError:
@@ -219,6 +221,9 @@ class HTMLAsset(models.Model):
         if page.headers.get('Expires') and max_age is None:
             expires = http_date_parser(page.headers.get('Expires'))
             max_age = (expires - last_modified).total_seconds()
+
+        if max_age and max_age < 0:
+            max_age = 0
 
         self.update_values(download_date=download_date,
                            last_modified=last_modified,

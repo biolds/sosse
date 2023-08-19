@@ -52,6 +52,14 @@ build_doc:
 	mkdir -p doc/build/
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc:/sosse/doc biolds/sosse:doc bash -c 'cd /sosse && make _build_doc'
 
+doc_gen:
+	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
+	./sosse-admin extract_doc conf > doc/source/config_file_generated.rst
+	./sosse-admin extract_doc cli > doc/source/cli_generated.rst
+	./sosse-admin extract_doc se > doc/source/user/shortcut_list_generated.rst
+	./doc/build_changelog.sh > doc/source/CHANGELOG.md
+	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
+	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
 
 docker_run:
 	docker volume inspect sosse_postgres &>/dev/null || docker volume create sosse_postgres

@@ -26,6 +26,7 @@
 |  | Capture Element Screenshot | id=stats_button | stats_button.png
 |  | Capture Element Screenshot | id=atom_button | atom_button.png
 |  | Click Element | id=stats_button
+|  | Wait Until Page Does Not Contain | Please wait
 |  | Capture Element Screenshot | id=word_stats | word_stats.png
 
 | Shortcuts

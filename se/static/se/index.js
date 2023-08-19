@@ -249,11 +249,22 @@ function on_submit() {
 }
 
 let word_stats_loaded = false;
+let update_loading_interval = null;
+let update_loading_count = 1;
+
+function update_loading() {
+    update_loading_interval++;
+    update_loading_interval = update_loading_interval % 3;
+    const please_wait = document.getElementById('please_wait');
+    please_wait.innerText = 'Please wait' + '.'.repeat(update_loading_interval + 1);
+}
 
 function show_word_stats() {
     const word_stats = document.getElementById('word_stats');
     const word_stats_displayed = word_stats.style.display === 'block';
     if (!word_stats_displayed && !word_stats_loaded) {
+        update_loading_interval = setInterval(update_loading, 1000);
+
         // https://stackoverflow.com/questions/247483/http-get-request-in-javascript
         const xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function() {
@@ -270,6 +281,10 @@ function show_word_stats() {
 }
 
 function do_show_word_stats(data) {
+    clearInterval(update_loading_interval);
+    const please_wait = document.getElementById('please_wait');
+    please_wait.remove();
+
     const table = document.getElementById('word_stats_list');
     data.forEach(function (e) {
         const line = document.createElement('li');

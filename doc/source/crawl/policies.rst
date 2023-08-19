@@ -78,6 +78,8 @@ Can be one of:
 * ``Chromium``: Chromium is used.
 * ``Python Requests``: Python Requests is used.
 
+.. _policy_take_screenshot:
+
 Take screenshots
 """"""""""""""""
 
@@ -122,6 +124,8 @@ In case the script triggers an error, further processing of the page is aborted 
 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+
+.. _policy_html_snapshot:
 
 HTML snapshot
 -------------

@@ -1,4 +1,4 @@
 python-gitlab
 requests
-furo
+furo==2023.07.26
 myst-parser

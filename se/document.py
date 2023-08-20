@@ -383,7 +383,7 @@ class Document(models.Model):
         Link.objects.filter(doc_from=self).delete()
 
     def index(self, page, crawl_policy, verbose=False, force=False):
-        from .models import FavIcon, Link
+        from .models import FavIcon
         n = now()
         stats = {'prev': n}
         content_hash = self._hash_content(page.content, crawl_policy)
@@ -396,6 +396,7 @@ class Document(models.Model):
         if self.content_hash == content_hash and not force:
             return
 
+        self._clear_content()
         self.content_hash = content_hash
         self._index_log('queuing links', stats, verbose)
 
@@ -450,22 +451,15 @@ class Document(models.Model):
             self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
             self._index_log('remove accent', stats, verbose)
 
-            Link.objects.filter(doc_from=self).delete()
-            self._index_log('delete', stats, verbose)
-
             # The bulk request triggers a deadlock
             # Link.objects.bulk_create(links['links'])
             for link in links['links']:
                 link.save()
             self._index_log('bulk', stats, verbose)
 
-            self.delete_screenshot()
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)
-        else:
-            self._clear_content()
 
-        self.delete_html()
         if crawl_policy.snapshot_html:
             snapshot = HTMLSnapshot(page, crawl_policy)
             snapshot.snapshot()

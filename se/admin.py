@@ -379,7 +379,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
     @staticmethod
     def link(obj):
-        return format_html('<a href="{}">Source page 🔗</a>', obj.url)
+        return format_html('<a href="{}">Source page 🌍</a>', obj.url)
 
     @staticmethod
     def cache(obj):

@@ -51,8 +51,8 @@ class CrawlerTest(TestCase):
         self.root_policy.delete()
         self.crawl_policy.delete()
 
-    def _crawl(self):
-        Document.queue('http://127.0.0.1/', None, None)
+    def _crawl(self, url='http://127.0.0.1/'):
+        Document.queue(url, None, None)
         while Document.crawl(0):
             pass
 
@@ -359,3 +359,46 @@ class CrawlerTest(TestCase):
         self.assertEqual(doc.content, 'test')
         self.assertIn('xxx not found', doc.error)
         self.assertNotIn('Traceback (most recent call last):', doc.error)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_040_extern_url_update(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': b'<html><body><a href="/extern.html">extern link</a></body></html>',
+            'http://127.0.0.1/extern.html': b'<html><body>extern page</body></html>',
+        })
+
+        self.crawl_policy.url_regex = 'http://127.0.0.1/$'
+        self.crawl_policy.store_extern_links = True
+        self.crawl_policy.save()
+
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'extern link')
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, doc)
+        self.assertIsNone(link.doc_to)
+        self.assertEqual(link.extern_url, 'http://127.0.0.1/extern.html')
+
+        self.crawl_policy.url_regex = 'http://127.0.0.1/.*$'
+        self.crawl_policy.save()
+
+        self._crawl('http://127.0.0.1/extern.html')
+
+        self.assertEqual(Document.objects.count(), 2)
+        doc1 = Document.objects.order_by('id').first()
+        self.assertEqual(doc1.url, 'http://127.0.0.1/')
+        self.assertEqual(doc1.content, 'extern link')
+        doc2 = Document.objects.order_by('id').last()
+        self.assertEqual(doc2.url, 'http://127.0.0.1/extern.html')
+        self.assertEqual(doc2.content, 'extern page')
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, doc1)
+        self.assertEqual(link.doc_to, doc2)
+        self.assertIsNone(link.extern_url)

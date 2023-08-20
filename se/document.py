@@ -577,7 +577,7 @@ class Document(models.Model):
 
     @staticmethod
     def crawl(worker_no):
-        from .models import CrawlPolicy, DomainSetting, WorkerStats
+        from .models import CrawlPolicy, DomainSetting, Link, WorkerStats
         doc = Document.pick_queued(worker_no)
         if doc is None:
             return False
@@ -611,6 +611,7 @@ class Document(models.Model):
                             doc.crawl_first = n
                         doc.crawl_next = None
                         doc.crawl_dt = None
+                        doc.save()
                         break
                     else:
                         doc.robotstxt_rejected = False
@@ -621,17 +622,21 @@ class Document(models.Model):
                         doc.content = e.page.content.decode('utf-8')
                         doc._schedule_next(True, crawl_policy)
                         doc.set_error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
+                        doc.save()
                         crawl_logger.error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         break
                     except SkipIndexing as e:
                         doc._schedule_next(False, crawl_policy)
                         doc.set_error(e.args[0])
+                        doc.save()
                         crawl_logger.debug(f'{doc.url}: {e.args[0]}')
                         break
 
                     if page.url == doc.url:
                         doc.index(page, crawl_policy)
                         doc.set_error('')
+                        doc.save()
+                        Link.objects.filter(extern_url=doc.url).update(extern_url=None, doc_to=doc)
                         break
                     else:
                         if not page.redirect_count:
@@ -658,10 +663,8 @@ class Document(models.Model):
             worker_stats.refresh_from_db()
             if worker_stats.state == 'paused':
                 doc.worker_no = None
+                doc.save()
                 break
-
-        if doc:
-            doc.save()
 
         return True
 

@@ -27,6 +27,21 @@ def reverse_default_snapshot(apps, schema_editor):
     pass
 
 
+def forward_update_external_links(apps, schema_editor):
+    Document = apps.get_model('se', 'Document')
+    Link = apps.get_model('se', 'Link')
+    for link in Link.objects.filter(extern_url__isnull=False):
+        doc = Document.objects.filter(url=link.extern_url).first()
+        if doc:
+            link.extern_url = None
+            link.doc_to = doc
+            link.save()
+
+
+def reverse_update_external_links(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -84,4 +99,5 @@ class Migration(migrations.Migration):
                 'unique_together': {('url', 'filename')},
             },
         ),
+        migrations.RunPython(forward_update_external_links, reverse_update_external_links),
     ]

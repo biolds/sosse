@@ -135,6 +135,17 @@ def crawler_stats(pygal_config, pygal_style, freq):
     }
 
 
+def dir_size(d):
+    # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
+    size = 0
+    for dirpath, dirnames, filenames in os.walk(d):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if not os.path.islink(fp):
+                size += os.path.getsize(fp)
+    return size
+
+
 @login_required
 def stats(request):
     if not request.user.is_staff and not request.user.is_superuser:
@@ -184,22 +195,17 @@ def stats(request):
     statvfs = os.statvfs('/var/lib')
     hdd_size = statvfs.f_frsize * statvfs.f_blocks
     hdd_free = statvfs.f_frsize * statvfs.f_bavail
-    hdd_other = hdd_size - hdd_free - db_size
     factor, unit = get_unit(hdd_size)
 
-    # Screenshot dir size
-    # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
-    screenshot_size = 0
-    for dirpath, dirnames, filenames in os.walk(settings.SOSSE_SCREENSHOTS_DIR):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            if not os.path.islink(fp):
-                screenshot_size += os.path.getsize(fp)
+    screenshot_size = dir_size(settings.SOSSE_SCREENSHOTS_DIR)
+    html_size = dir_size(settings.SOSSE_HTML_SNAPSHOT_DIR)
+    hdd_other = hdd_size - hdd_free - db_size - screenshot_size - html_size
 
     hdd_pie = pygal.Pie(pygal_config, style=pygal_style, disable_xml_declaration=True)
     hdd_pie.title = 'HDD size (total %s)' % human_filesize(hdd_size)
     hdd_pie.add('DB(%s)' % human_filesize(db_size), db_size)
     hdd_pie.add('Screenshots(%s)' % human_filesize(screenshot_size), screenshot_size)
+    hdd_pie.add('HTML(%s)' % human_filesize(html_size), html_size)
     hdd_pie.add('Other(%s)' % human_filesize(hdd_other), hdd_other)
     hdd_pie.add('Free(%s)' % human_filesize(hdd_free), hdd_free)
 

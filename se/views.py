@@ -130,10 +130,14 @@ def search(request):
         for r in paginated:
             if form.cleaned_data['c']:
                 r.link = r.get_absolute_url()
+                r.link_flag = ''
                 r.extra_link = r.url
+                r.extra_link_flag = r.source_link_flags()
             else:
                 r.link = r.url
+                r.link_flag = r.source_link_flags()
                 r.extra_link = r.get_absolute_url()
+                r.extra_link_flag = ''
 
     extra_link_txt = 'cached'
     if form.cleaned_data['c']:

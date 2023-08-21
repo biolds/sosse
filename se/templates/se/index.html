@@ -285,25 +285,25 @@
             <div class="res" {% if r.screenshot_file %}style="min-height: 100px"{% endif %}>
                 <div>
                     {% if r.screenshot_file %}
-                        <a href="{{ r.link }}">
+                        <a href="{{ r.link }}" {{ r.link_flag }}>
                             <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}/{{ r.screenshot_file }}_0.{{ r.screenshot_format }}" class="res-preview" />
                         </a>
                     {% endif %}
                     {% if r.favicon and not r.favicon.missing %}
                         <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
                     {% endif %}
-                    <a href="{{ r.link }}">
+                    <a href="{{ r.link }}" {{ r.link_flag }}>
                         <h3 class="res-title">{{ r.title }}</h3>
                     </a>
                 </div>
-                <a href="{{ r.link }}" class="res-url">
+                <a href="{{ r.link }}" class="res-url" {{ r.link_flag }}>
                     {{ r.url }}
                 </a>
                 <div class="res-rank"> · {{ r.rank|floatformat:"1" }}</div>
                 <div class="res-rank"> · {{ r.lang_flag }}</div>
-                <div class="res-rank"> · <a href="{{ r.extra_link }}">{{ extra_link_txt }}</a></div>
+                <div class="res-rank"> · <a href="{{ r.extra_link }}" {{ r.extra_link_flag }}>{{ extra_link_txt }}</a></div>
                 <br/>
-                <a href="{{ r.link }}" class="res-headline">{{ r.headline }}</a>
+                <a href="{{ r.link }}" class="res-headline" {{ r.link_flag }}>{{ r.headline }}</a>
             </div>
         {% endfor %}
 

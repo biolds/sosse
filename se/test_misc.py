@@ -13,9 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from se.models import DomainSetting
+from .document import Document
 
 
 ROBOTS_TXT = '''
@@ -39,3 +40,15 @@ class MiscTest(TestCase):
 
         self.assertTrue(domain.robots_authorized('http://127.0.0.1/allow/aa'))
         self.assertFalse(domain.robots_authorized('http://127.0.0.1/disallow/aa'))
+
+    @override_settings(SOSSE_LINKS_NO_REFERRER=True)
+    @override_settings(SOSSE_LINKS_NEW_TAB=True)
+    def test_external_link(self):
+        doc = Document(url='http://test/')
+        self.assertEqual(doc.get_source_link(), '<a href="http://test/" rel="noreferrer" target="_blank">🌍 Source page</a>')
+
+    @override_settings(SOSSE_LINKS_NO_REFERRER=False)
+    @override_settings(SOSSE_LINKS_NEW_TAB=False)
+    def test_external_link_no_opt(self):
+        doc = Document(url='http://test/')
+        self.assertEqual(doc.get_source_link(), '<a href="http://test/">🌍 Source page</a>')

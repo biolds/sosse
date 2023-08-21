@@ -199,6 +199,16 @@ DEFAULTS = OrderedDict([
             'default': False,
             'type': bool
         }],
+        ['links_no_referrer', {
+            'comment': 'Omit the `referrer header <https://en.wikipedia.org/wiki/HTTP_referrer>`_ when accessing external links.',
+            'default': True,
+            'type': bool
+        }],
+        ['links_new_tab', {
+            'comment': 'Open external links in a new tab.',
+            'default': False,
+            'type': bool
+        }]
     ])],
     ['crawler', OrderedDict([
         ['crawler_count', {

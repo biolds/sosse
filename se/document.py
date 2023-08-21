@@ -29,6 +29,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
 from django.db import connection, models
+from django.utils.html import format_html
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
@@ -204,6 +205,20 @@ class Document(models.Model):
             return reverse_no_escape('html', args=(self.url,))
         else:
             return reverse_no_escape('www', args=(self.url,))
+
+    def get_source_link(self):
+        link = '<a href="{}"'
+        link += self.source_link_flags()
+        link += '>🌍 Source page</a>'
+        return format_html(link, self.url)
+
+    def source_link_flags(self):
+        opt = ''
+        if settings.SOSSE_LINKS_NO_REFERRER:
+            opt += ' rel="noreferrer"'
+        if settings.SOSSE_LINKS_NEW_TAB:
+            opt += ' target="_blank"'
+        return format_html(opt)
 
     @classmethod
     def get_supported_langs(cls):

@@ -379,11 +379,11 @@ class DocumentAdmin(admin.ModelAdmin):
 
     @staticmethod
     def link(obj):
-        return format_html('<a href="{}">Source page 🌍</a>', obj.url)
+        return obj.get_source_link()
 
     @staticmethod
     def cache(obj):
-        return format_html('<a href="{}">Page in cache 🔗</a>', obj.get_absolute_url())
+        return format_html('<a href="{}">🔗 Page in cache</a>', obj.get_absolute_url())
 
     @staticmethod
     def domain(obj):

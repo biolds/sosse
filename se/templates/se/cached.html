@@ -2,7 +2,7 @@
     <p style="color: #080; font-size: 13px">
         {{ beautified_url }}
     </p>
-    <a href="{{ doc.url }}">🌍 Source page</a>
+    {{ doc.get_source_link }}
     {% if other_links %}
         {% for link in other_links %}
             <a href="{{ link.href }}">{{ link.text }}</a>

@@ -1,3 +1,7 @@
+## 1.3.1 (2023-08-21)
+### Bug fixes (1 change)
+- [fix running with debug disabled](biolds1/sosse@ae4f4acec2eb0ca497d659d9e88a0dbef92c0a94) ([merge request](biolds1/sosse!35))
+
 ## 1.3.0 (2023-08-21)
 ### Features (4 changes)
 - [no referrer and open in new tab options for external links](biolds1/sosse@6c701a4782d517c80348642e09f68564f8a9bed3) ([merge request](biolds1/sosse!32))

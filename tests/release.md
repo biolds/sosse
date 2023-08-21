@@ -1,6 +1,6 @@
 - debian update: version + changelog
 - doc version update
-- build and update the CHANGELOG.md
+- update the CHANGELOG.md using the last changelog build it the main branch
 - MR
 - create tag "vX.X.X"
 - update the `stable` branch for the release (to update the `stable` version of readthedoc)

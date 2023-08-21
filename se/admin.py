@@ -57,7 +57,7 @@ class SEAdminSite(admin.AdminSite):
                                 break
                         else:
                             # The model may not be available due to permission reasons
-                            if request.user.is_superuser:
+                            if request.user.is_superuser and model != 'HTMLAsset':
                                 raise Exception('object_name not found %s' % model)
 
                     for dj_model in dj_models:

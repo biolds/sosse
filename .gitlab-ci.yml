@@ -160,9 +160,12 @@ changelog:
   artifacts:
     paths:
       - CHANGELOG.md
+  variables:
+    GIT_DEPTH: 0 # disable sahllow cloning since the step requires all tags
   script:
     - 'last_ver="$(git tag -l | sort -V | tail -n 1 | sed -e "s/^v//")"'
     - 'new_ver="${last_ver%.*}.$((${last_ver/*./} + 1))"'
+    - echo "$last_ver / $new_ver"
     - 'curl -X GET -H "PRIVATE-TOKEN: $GITLAB_REST_API_CHANGELOG" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/changelog?version=$new_ver" | jq -r .notes | tee /tmp/new'
     - cat /tmp/new CHANGELOG.md > new.md && mv new.md CHANGELOG.md
 

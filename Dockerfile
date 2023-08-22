@@ -26,9 +26,9 @@ USER root
 RUN echo '#!/bin/bash -x \n \
 /etc/init.d/postgresql start \n \
 test -e /etc/sosse/sosse.conf || (cp -p /etc/sosse_src/* /etc/sosse/) \n \
-mkdir -p /run/sosse \n \
+mkdir -p /run/sosse /var/lib/sosse/html/ \n \
 touch /var/log/sosse/{debug.log,main.log,crawler.log,uwsgi.log,webserver.log} \n \
-chown -R www-data:www-data /run/sosse /var/log/sosse/ \n \
+chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse \n \
 /venv/bin/sosse-admin migrate \n \
 /venv/bin/sosse-admin collectstatic --noinput \n \
 /venv/bin/sosse-admin update_se \n \

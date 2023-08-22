@@ -1,3 +1,8 @@
+## 1.3.2 (2023-08-22)
+### Bug fixes (2 changes)
+- [fix handling some malformed urls](biolds1/sosse@efea7e3d7ced7ae144b935ecd06eaff1381ca5c2)
+- [fix the docker build](biolds1/sosse@352de823a096510773fa1cd0232e84d4c931f5f3)
+
 ## 1.3.1 (2023-08-21)
 ### Bug fixes (1 change)
 - [fix running with debug disabled](biolds1/sosse@ae4f4acec2eb0ca497d659d9e88a0dbef92c0a94) ([merge request](biolds1/sosse!35))

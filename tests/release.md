@@ -1,3 +1,4 @@
+- test the docker build
 - debian update: version + changelog
 - doc version update
 - update the CHANGELOG.md using the last changelog build it the main branch

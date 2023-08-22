@@ -101,8 +101,9 @@ def absolutize_url(url, p, keep_params, keep_anchors):
         return sanitize_url(url, keep_params, keep_anchors)
 
     if p.startswith('//'):
+        # p is missing the scheme
         scheme = url.split('//', 1)[0]
-        p = scheme + p
+        p = scheme + '//' + p.lstrip('/')
 
     if re.match('[a-zA-Z]+:', p):
         return sanitize_url(p, keep_params, keep_anchors)

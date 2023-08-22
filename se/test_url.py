@@ -30,6 +30,12 @@ class UrlTest(TestCase):
         self.assertEqual(absolutize_url('http://127.0.0.1/', '//127.0.0.2/', True, True), 'http://127.0.0.2/')
         self.assertEqual(absolutize_url('https://127.0.0.1/', '//127.0.0.2/', True, True), 'https://127.0.0.2/')
 
+    def test_no_scheme_broken(self):
+        self.assertEqual(absolutize_url('http://127.0.0.1/', '///127.0.0.2/', True, True), 'http://127.0.0.2/')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', '////127.0.0.2/', True, True), 'http://127.0.0.2/')
+        self.assertEqual(absolutize_url('https://127.0.0.1/', '///127.0.0.2/', True, True), 'https://127.0.0.2/')
+        self.assertEqual(absolutize_url('https://127.0.0.1/', '////127.0.0.2/', True, True), 'https://127.0.0.2/')
+
     def test_rel(self):
         self.assertEqual(absolutize_url('http://127.0.0.1/', './page.html', True, True), 'http://127.0.0.1/page.html')
         self.assertEqual(absolutize_url('https://127.0.0.1/index.html', './page.html', True, True), 'https://127.0.0.1/page.html')

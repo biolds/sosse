@@ -276,7 +276,7 @@ class Document(models.Model):
                 content = content.decode('utf-8')
                 content = re.sub('[0-9]+', '0', content)
                 content = content.encode('utf-8')
-            except UnicodeEncodeError:
+            except UnicodeDecodeError:
                 pass
         else:
             raise Exception('HASH_MODE not supported')
@@ -434,9 +434,6 @@ class Document(models.Model):
             crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
             return
 
-        FavIcon.extract(self, page)
-        self._index_log('favicon', stats, verbose)
-
         if self.mimetype.startswith('text/'):
             parsed = page.get_soup()
             if page.title:
@@ -472,6 +469,9 @@ class Document(models.Model):
             for link in links['links']:
                 link.save()
             self._index_log('bulk', stats, verbose)
+
+            FavIcon.extract(self, page)
+            self._index_log('favicon', stats, verbose)
 
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)

@@ -402,3 +402,10 @@ class CrawlerTest(TestCase):
         self.assertEqual(link.doc_from, doc1)
         self.assertEqual(link.doc_to, doc2)
         self.assertIsNone(link.extern_url)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_050_binary_indexing(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        self.crawl_policy.mimetype_regex = '.*'
+        self.crawl_policy.save()
+        self._crawl('http://127.0.0.1/image.png')

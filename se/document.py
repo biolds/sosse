@@ -187,6 +187,8 @@ class Document(models.Model):
     screenshot_format = models.CharField(max_length=3, choices=SCREENSHOT_FORMAT)
     screenshot_size = models.CharField(max_length=16)
 
+    has_thumbnail = models.BooleanField(default=False)
+
     # Crawling info
     crawl_first = models.DateTimeField(blank=True, null=True, verbose_name='Crawled first')
     crawl_last = models.DateTimeField(blank=True, null=True, verbose_name='Crawled last')
@@ -407,6 +409,7 @@ class Document(models.Model):
         self.mimetype = ''
         self.delete_html()
         self.delete_screenshot()
+        self.delete_thumbnail()
         Link.objects.filter(doc_from=self).delete()
 
     def index(self, page, crawl_policy, verbose=False, force=False):
@@ -483,6 +486,10 @@ class Document(models.Model):
 
             FavIcon.extract(self, page)
             self._index_log('favicon', stats, verbose)
+
+            if crawl_policy.create_thumbnails:
+                SeleniumBrowser.create_thumbnail(self.url, self.image_name())
+                self.has_thumbnail = True
 
             if crawl_policy.take_screenshots:
                 self.screenshot_index(links['links'], crawl_policy)
@@ -755,3 +762,10 @@ class Document(models.Model):
                 if os.path.exists(filename):
                     os.unlink(filename)
             self.screenshot_count = 0
+
+    def delete_thumbnail(self):
+        if self.has_thumbnail:
+            f = os.path.join(settings.SOSSE_THUMBNAILS_DIR, self.image_name()) + '.jpg'
+            if os.path.exists(f):
+                os.unlink(f)
+            self.has_thumbnail = False

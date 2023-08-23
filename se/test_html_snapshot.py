@@ -36,6 +36,7 @@ class HTMLSnapshotTest:
     def setUpClass(cls):
         cls.policy = CrawlPolicy.create_default()
         cls.policy.default_browse_mode = DomainSetting.BROWSE_REQUESTS
+        cls.policy.create_thumbnails = False
         cls.policy.save()
 
     @classmethod

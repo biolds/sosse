@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 from django.conf import settings
+from PIL import Image
 import requests
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -660,6 +661,29 @@ class SeleniumBrowser(Browser):
     def screen_size(cls):
         w, h = settings.SOSSE_SCREENSHOTS_SIZE.split('x')
         return int(w), int(h)
+
+    @classmethod
+    @retry
+    def create_thumbnail(cls, url, image_name):
+        width, height = cls.screen_size()
+        cls.driver.set_window_rect(0, 0, *cls.screen_size())
+        cls.driver.execute_script('document.body.style.overflow = "hidden"')
+
+        base_name = os.path.join(settings.SOSSE_THUMBNAILS_DIR, image_name)
+        dir_name = os.path.dirname(base_name)
+        os.makedirs(dir_name, exist_ok=True)
+        thumb_png = base_name + '.png'
+        thumb_jpg = base_name + '.jpg'
+
+        try:
+            cls.driver.get_screenshot_as_file(thumb_png)
+            with Image.open(thumb_png) as img:
+                img = img.convert('RGB')  # Remove alpha channel from the png
+                img.thumbnail((160, 100))
+                img.save(thumb_jpg, 'jpeg')
+        finally:
+            if os.path.exists(thumb_png):
+                os.unlink(thumb_png)
 
     @classmethod
     @retry

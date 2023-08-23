@@ -45,6 +45,7 @@ class FunctionalTest:
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
+                                   create_thumbnails=False,
                                    take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL, None, None)
@@ -80,7 +81,8 @@ class FunctionalTest:
         self.assertEqual(doc.error_hash, '')
         self.assertIsNone(doc.worker_no)
         self.assertFalse(doc.has_html_snapshot)
-        self.assertEqual(len(Document._meta.get_fields()), 31)
+        self.assertFalse(doc.has_thumbnail)
+        self.assertEqual(len(Document._meta.get_fields()), 32)
 
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
@@ -141,6 +143,7 @@ class FunctionalTest:
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
+                                   create_thumbnails=False,
                                    take_screenshots=False)
         policy = CrawlPolicy.objects.create(url_regex='^%s.*' % TEST_SERVER_URL,
                                             condition=CrawlPolicy.CRAWL_NEVER,
@@ -148,6 +151,7 @@ class FunctionalTest:
                                             default_browse_mode=self.BROWSE_MODE,
                                             snapshot_html=False,
                                             take_screenshots=False,
+                                            create_thumbnails=False,
                                             auth_login_url_re='%sadmin/login/.*' % TEST_SERVER_URL,
                                             auth_form_selector='#login-form')
         AuthField.objects.create(key='username', value=TEST_SERVER_USER, crawl_policy=policy)
@@ -185,7 +189,8 @@ class FunctionalTest:
         self.assertEqual(doc.error_hash, '')
         self.assertIsNone(doc.worker_no)
         self.assertFalse(doc.has_html_snapshot)
-        self.assertEqual(len(Document._meta.get_fields()), 31)
+        self.assertFalse(doc.has_thumbnail)
+        self.assertEqual(len(Document._meta.get_fields()), 32)
 
         self.assertEqual(Cookie.objects.count(), 2)
         cookies = Cookie.objects.order_by('name').values()

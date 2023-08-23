@@ -45,4 +45,24 @@ class Migration(migrations.Migration):
             name='screenshot_count',
             field=models.PositiveIntegerField(default=0),
         ),
+        migrations.AddField(
+            model_name='document',
+            name='has_thumbnail',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='crawlpolicy',
+            name='create_thumbnails',
+            field=models.BooleanField(default=True, help_text='Create thumbnails to display in search results'),
+        ),
+        migrations.AlterField(
+            model_name='crawlpolicy',
+            name='snapshot_html',
+            field=models.BooleanField(default=True, help_text='Store pages as HTML and download requisite assets'),
+        ),
+        migrations.AlterField(
+            model_name='crawlpolicy',
+            name='take_screenshots',
+            field=models.BooleanField(default=False, help_text='Store pages as screenshots'),
+        ),
     ]

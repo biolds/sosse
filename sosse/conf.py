@@ -465,6 +465,8 @@ class Conf:
             if not val.endswith('/'):
                 settings['SOSSE_' + opt.upper()] = val + '/'
 
+        settings['SOSSE_THUMBNAILS_DIR'] = settings['SOSSE_SCREENSHOTS_DIR'] + 'thumb/'
+        settings['SOSSE_THUMBNAILS_URL'] = settings['SOSSE_SCREENSHOTS_URL'] + 'thumb/'
         return settings
 
     @classmethod

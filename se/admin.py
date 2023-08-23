@@ -476,7 +476,10 @@ class CrawlPolicyForm(forms.ModelForm):
                 self.add_error(key, 'This field must be null when using this recrawl mode')
 
         if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM:
-            if cleaned_data['take_screenshots']:
+            if cleaned_data['create_thumbnails']:
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to create thumbnails')
+                self.add_error('create_thumbnails', 'Browsing mode must be set to Chromium to create thumbnails')
+            elif cleaned_data['take_screenshots']:
                 self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to take screenshots')
                 self.add_error('take_screenshots', 'Browsing mode must be set to Chromium to take screenshots')
             elif cleaned_data['script']:
@@ -497,7 +500,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'mimetype_regex', 'keep_params', 'store_extern_links')
         }),
         ('Browser', {
-            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'remove_nav_elements', 'script')
+            'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'remove_nav_elements', 'script')
         }),
         ('HTML snapshot', {
             'fields': ('snapshot_html', 'snapshot_exclude_url_re', 'snapshot_exclude_mime_re', 'snapshot_exclude_element_re')

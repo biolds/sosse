@@ -78,12 +78,22 @@ Can be one of:
 * ``Chromium``: Chromium is used.
 * ``Python Requests``: Python Requests is used.
 
+.. _policy_create_thumbnails:
+
+Create thumbnails
+"""""""""""""""""
+
+Make thumbnails of pages. These thumbnails are displayed in search results.
+
+.. note::
+   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+
 .. _policy_take_screenshot:
 
 Take screenshots
 """"""""""""""""
 
-Enables taking screenshots of pages for offline use.
+Enables taking screenshots of pages for offline use. When the option :ref:`Create thumbnails <policy_create_thumbnails>` is disabled, the screenshot is displayed in search results instead.
 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.

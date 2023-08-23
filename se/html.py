@@ -23,7 +23,6 @@ from .cached import get_cached_doc, get_context, url_from_request
 from .html_asset import HTMLAsset
 from .login import login_required
 from .models import CrawlPolicy
-from .utils import reverse_no_escape
 
 
 @login_required
@@ -36,7 +35,7 @@ def html(request):
     asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
 
     if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
-        return redirect(reverse_no_escape('www', args=(doc.url,)))
+        return redirect(doc.get_absolute_url())
 
     context = get_context(doc, 'html')
     context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename

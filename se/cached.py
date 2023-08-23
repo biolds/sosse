@@ -19,7 +19,7 @@ from django.conf import settings
 from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
-from .document import Document, sanitize_url
+from .document import Document, extern_link_flags, sanitize_url
 from .models import CrawlPolicy
 from .utils import url_beautify, reverse_no_escape
 
@@ -111,6 +111,7 @@ def unknown_url_view(request):
         'title': beautified_url,
         'beautified_url': beautified_url,
         'crawl_policy': CrawlPolicy.get_from_url(url),
+        'extern_link_flags': extern_link_flags,
     }
     return render(request, 'se/unknown_url.html', context)
 

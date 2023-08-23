@@ -25,7 +25,7 @@ from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .document import Document, remove_accent
+from .document import Document, extern_link_flags, remove_accent
 from .forms import SearchForm
 from .login import login_required
 from .models import FavIcon, SearchEngine, SearchHistory
@@ -132,10 +132,10 @@ def search(request):
                 r.link = r.get_absolute_url()
                 r.link_flag = ''
                 r.extra_link = r.url
-                r.extra_link_flag = r.source_link_flags()
+                r.extra_link_flag = extern_link_flags()
             else:
                 r.link = r.url
-                r.link_flag = r.source_link_flags()
+                r.link_flag = extern_link_flags()
                 r.extra_link = r.get_absolute_url()
                 r.extra_link_flag = ''
 

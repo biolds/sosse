@@ -144,6 +144,15 @@ def validate_url(url):
         raise ValidationError('URL must match the regular expression: %s' % URL_REGEXP)
 
 
+def extern_link_flags():
+    opt = ''
+    if settings.SOSSE_LINKS_NO_REFERRER:
+        opt += ' rel="noreferrer"'
+    if settings.SOSSE_LINKS_NEW_TAB:
+        opt += ' target="_blank"'
+    return format_html(opt)
+
+
 class Document(models.Model):
     SCREENSHOT_PNG = 'png'
     SCREENSHOT_JPG = 'jpg'
@@ -209,17 +218,9 @@ class Document(models.Model):
 
     def get_source_link(self):
         link = '<a href="{}"'
-        link += self.source_link_flags()
+        link += extern_link_flags()
         link += '>🌍 Source page</a>'
         return format_html(link, self.url)
-
-    def source_link_flags(self):
-        opt = ''
-        if settings.SOSSE_LINKS_NO_REFERRER:
-            opt += ' rel="noreferrer"'
-        if settings.SOSSE_LINKS_NEW_TAB:
-            opt += ' target="_blank"'
-        return format_html(opt)
 
     @classmethod
     def get_supported_langs(cls):

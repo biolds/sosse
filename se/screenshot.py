@@ -17,7 +17,6 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from .browser import SeleniumBrowser
 from .cached import get_cached_doc, get_context, url_from_request
 from .login import login_required
 
@@ -41,15 +40,13 @@ def screenshot_full(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    base_dir, filename = SeleniumBrowser.screenshot_name(doc.url)
-
     context = get_context(doc, 'screenshot')
     context.update({
-        'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + base_dir + '/' + filename,
+        'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + doc.image_name(),
         'screenshot_size': doc.screenshot_size.split('x'),
         'screenshot_format': doc.screenshot_format,
         'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
         'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
-        'screens': range(doc.screenshot_count or 0)
+        'screens': range(doc.screenshot_count)
     })
     return render(request, 'se/screenshot_full.html', context)

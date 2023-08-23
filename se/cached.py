@@ -80,7 +80,7 @@ def get_context(doc, view_name):
             'href': reverse_no_escape('html', args=[doc.url]),
             'text': '🔖 HTML',
         })
-    if doc.screenshot_file and view_name != 'screenshot':
+    if doc.screenshot_count and view_name != 'screenshot':
         other_links.append({
             'href': reverse_no_escape('screenshot', args=[doc.url]),
             'text': '📷 Screenshot'

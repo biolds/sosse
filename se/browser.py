@@ -19,7 +19,6 @@ import pytz
 import shlex
 import traceback
 from datetime import datetime
-from hashlib import md5
 from time import sleep
 from urllib.parse import urlparse
 
@@ -658,23 +657,16 @@ class SeleniumBrowser(Browser):
         return page
 
     @classmethod
-    def screenshot_name(cls, url):
-        filename = md5(url.encode('utf-8')).hexdigest()
-        base_dir = filename[:2]
-        return base_dir, filename
-
-    @classmethod
     def screen_size(cls):
         w, h = settings.SOSSE_SCREENSHOTS_SIZE.split('x')
         return int(w), int(h)
 
     @classmethod
     @retry
-    def take_screenshots(cls, url):
-        base_dir, filename = cls.screenshot_name(url)
-        d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, base_dir)
-        os.makedirs(d, exist_ok=True)
-        f = os.path.join(d, filename)
+    def take_screenshots(cls, url, image_name):
+        base_name = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, image_name)
+        dir_name = os.path.dirname(base_name)
+        os.makedirs(dir_name, exist_ok=True)
 
         width, height = cls.screen_size()
         cls.driver.set_window_rect(0, 0, *cls.screen_size())
@@ -689,17 +681,17 @@ class SeleniumBrowser(Browser):
         img_no = 0
         while (img_no + 1) * height < doc_height:
             cls.scroll_to_page(img_no)
-            cls.driver.get_screenshot_as_file('%s_%s.png' % (f, img_no))
+            cls.driver.get_screenshot_as_file('%s_%s.png' % (base_name, img_no))
             img_no += 1
 
         remaining = doc_height - (img_no * height)
         if remaining > 0:
             cls.driver.set_window_rect(0, 0, width, remaining)
             cls.scroll_to_page(img_no)
-            cls.driver.get_screenshot_as_file('%s_%s.png' % (f, img_no))
+            cls.driver.get_screenshot_as_file('%s_%s.png' % (base_name, img_no))
             img_no += 1
 
-        return os.path.join(base_dir, filename), img_no
+        return img_no
 
     @classmethod
     def scroll_to_page(cls, page_no):

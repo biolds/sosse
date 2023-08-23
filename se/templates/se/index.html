@@ -282,11 +282,11 @@
             </div>
         </div>
         {% for r in paginated %}
-            <div class="res" {% if r.screenshot_file %}style="min-height: 100px"{% endif %}>
+            <div class="res" {% if r.screenshot_count %}style="min-height: 100px"{% endif %}>
                 <div>
-                    {% if r.screenshot_file %}
+                    {% if r.screenshot_count %}
                         <a href="{{ r.link }}" {{ r.link_flag }}>
-                            <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}/{{ r.screenshot_file }}_0.{{ r.screenshot_format }}" class="res-preview" />
+                            <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}/{{ r.image_name }}_0.{{ r.screenshot_format }}" class="res-preview" />
                         </a>
                     {% endif %}
                     {% if r.favicon and not r.favicon.missing %}

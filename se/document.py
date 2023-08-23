@@ -183,8 +183,7 @@ class Document(models.Model):
     redirect_url = models.TextField(null=True, blank=True)
     too_many_redirects = models.BooleanField(default=False)
 
-    screenshot_file = models.CharField(max_length=4096, blank=True, null=True)
-    screenshot_count = models.PositiveIntegerField(blank=True, null=True)
+    screenshot_count = models.PositiveIntegerField(default=0)
     screenshot_format = models.CharField(max_length=3, choices=SCREENSHOT_FORMAT)
     screenshot_size = models.CharField(max_length=16)
 
@@ -205,11 +204,15 @@ class Document(models.Model):
     class Meta:
         indexes = [GinIndex(fields=(('vector',)))]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._image_name = None
+
     def __str__(self):
         return self.url
 
     def get_absolute_url(self):
-        if self.screenshot_file or self.redirect_url:
+        if self.screenshot_count or self.redirect_url:
             return reverse_no_escape('screenshot', args=(self.url,))
         if self.has_html_snapshot:
             return reverse_no_escape('html', args=(self.url,))
@@ -221,6 +224,13 @@ class Document(models.Model):
         link += extern_link_flags()
         link += '>🌍 Source page</a>'
         return format_html(link, self.url)
+
+    def image_name(self):
+        if not self._image_name:
+            filename = md5(self.url.encode('utf-8')).hexdigest()
+            base_dir = filename[:2]
+            self._image_name = os.path.join(base_dir, filename)
+        return self._image_name
 
     @classmethod
     def get_supported_langs(cls):
@@ -485,7 +495,7 @@ class Document(models.Model):
         self._index_log('done', stats, verbose)
 
     def convert_to_jpg(self):
-        d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.screenshot_file)
+        d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.image_name())
 
         for i in range(self.screenshot_count):
             src = '%s_%s.png' % (d, i)
@@ -498,9 +508,8 @@ class Document(models.Model):
             os.unlink(src)
 
     def screenshot_index(self, links, crawl_policy):
-        filename, img_count = SeleniumBrowser.take_screenshots(self.url)
-
-        self.screenshot_file = filename
+        img_count = SeleniumBrowser.take_screenshots(self.url, self.image_name())
+        crawl_logger.debug('took %s screenshots for %s', img_count, self.url)
         self.screenshot_count = img_count
         self.screenshot_format = crawl_policy.screenshot_format
         self.screenshot_size = '%sx%s' % SeleniumBrowser.screen_size()
@@ -738,12 +747,11 @@ class Document(models.Model):
             self.has_html_snapshot = False
 
     def delete_screenshot(self):
-        if self.screenshot_file:
-            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.screenshot_file)
+        if self.screenshot_count:
+            d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.image_name())
 
             for i in range(self.screenshot_count):
                 filename = '%s_%s.%s' % (d, i, self.screenshot_format)
                 if os.path.exists(filename):
                     os.unlink(filename)
-            self.screenshot_file = None
-            self.screenshot_count = None
+            self.screenshot_count = 0

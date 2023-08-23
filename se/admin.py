@@ -155,7 +155,7 @@ def remove_from_crawl_queue(modeladmin, request, queryset):
 @admin.action(description='Convert screens to jpeg', permissions=['change'])
 def convert_to_jpg(modeladmin, request, queryset):
     for doc in queryset.all():
-        if doc.screenshot_format == Document.SCREENSHOT_JPG or not doc.screenshot_file:
+        if doc.screenshot_format == Document.SCREENSHOT_JPG or doc.screenshot_count == 0:
             continue
         doc.convert_to_jpg()
         doc.screenshot_format = Document.SCREENSHOT_JPG

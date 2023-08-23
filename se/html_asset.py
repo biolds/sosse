@@ -101,8 +101,8 @@ class HTMLAsset(models.Model):
     def remove_file_ref(filename):
         logger.debug('removing ref on %s', filename)
         # TODO: fix the race condition below
-        HTMLAsset.objects.filter(filename=filename).update(ref_count=models.F('ref_count') - 1)
-        refs_count = HTMLAsset.objects.filter(filename=filename, ref_count__gt=0).aggregate(models.Sum('ref_count'))
+        HTMLAsset.objects.filter(filename=filename, ref_count__gt=0).update(ref_count=models.F('ref_count') - 1)
+        refs_count = HTMLAsset.objects.filter(filename=filename).aggregate(models.Sum('ref_count'))
         refs_count = refs_count.get('ref_count__sum')
 
         # refs_count is None when HTMLAsset.objects.filter(...) returns an empty set
@@ -110,7 +110,7 @@ class HTMLAsset(models.Model):
             logger.debug('removing file %s', filename)
             remove_html_asset_file(settings.SOSSE_HTML_SNAPSHOT_DIR + filename)
 
-        HTMLAsset.objects.filter(filename=filename, ref_count__lte=0).delete()
+        HTMLAsset.objects.filter(filename=filename, ref_count=0).delete()
 
     @staticmethod
     def html_extract_assets(content):

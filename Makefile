@@ -43,8 +43,7 @@ _build_doc:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
 	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
 	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
-	#. /opt/sosse-doc/bin/activate ; make -C doc linkcheck html SPHINXOPTS="-W"
-	. /opt/sosse-doc/bin/activate ; make -C doc html SPHINXOPTS="-W"
+	. /opt/sosse-doc/bin/activate ; make -C doc linkcheck html SPHINXOPTS="-W"
 	jq . < doc/code_blocks.json > /tmp/code_blocks.json
 	mv /tmp/code_blocks.json doc/code_blocks.json
 

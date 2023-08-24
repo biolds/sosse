@@ -633,7 +633,7 @@
       "short_name": "Jotoba",
       "long_name": "Jotoba",
       "description": "Japanese dictionary search",
-      "html_template": "https://jotoba.de/search?s={searchTerms}",
+      "html_template": "https://jotoba.de/search/0/{searchTerms}",
       "shortcut": "jotoba"
     }
   }

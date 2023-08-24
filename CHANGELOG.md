@@ -1,3 +1,10 @@
+## 1.4.0 (2023-08-24)
+### Features (1 change)
+- [create pages thumbnails](biolds1/sosse@0f34d0948c78497008932ee4ead05c23134bdaa1) ([merge request](biolds1/sosse!38))
+### Bug fixes (2 changes)
+- [add missing noreferrer flag to the unknown url page](biolds1/sosse@01d07a682e386fa041438fe597cf6ec061f4b3b0) ([merge request](biolds1/sosse!37))
+- [avoid a race condition in HTML assets handling](biolds1/sosse@5fa9d5f8fbed4ef5119f1527479b1a02faf76b40) ([merge request](biolds1/sosse!37))
+
 ## 1.3.2 (2023-08-22)
 ### Bug fixes (2 changes)
 - [fix handling some malformed urls](biolds1/sosse@efea7e3d7ced7ae144b935ecd06eaff1381ca5c2)

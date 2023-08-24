@@ -38,6 +38,8 @@ unit_tests:
     - /tmp/sudo_sosse extract_doc conf > /dev/null
     - /tmp/sudo_sosse extract_doc se > /dev/null
     - python3 ./sosse/sosse_admin.py makemigrations
+    - /tmp/sudo_sosse migrate
+    - /tmp/sudo_sosse migrate se 0001
     - python3-coverage report
     - python3-coverage html
     - python3-coverage xml

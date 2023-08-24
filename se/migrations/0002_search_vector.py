@@ -64,8 +64,10 @@ class Migration(migrations.Migration):
             ''',
 
             reverse_sql = '''
-              DROP TRIGGER IF EXISTS vector
-              ON se_document;
+              DROP TRIGGER link_row_trigger ON se_link;
+              DROP TRIGGER vector_column_trigger ON se_document;
+              DROP FUNCTION link_weight_vector;
+              DROP FUNCTION doc_weight_vector;
             '''
         ),
     ]

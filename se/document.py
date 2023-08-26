@@ -455,14 +455,11 @@ class Document(models.Model):
             else:
                 self.title = beautified_url
 
-            base_url = self.url
-            if parsed.head.base and parsed.head.base.get('href'):
-                base_url = absolutize_url(self.url, parsed.head.base.get('href'), False, False)
-
             self.normalized_title = remove_accent(self.title)
 
             self._index_log('get soup', stats, verbose)
 
+            base_url = page.base_url()
             links = {
                 'links': [],
                 'text': ''

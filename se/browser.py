@@ -110,6 +110,16 @@ class Page:
     def dump_html(self):
         return self.get_soup().encode()
 
+    def base_url(self):
+        from .models import absolutize_url
+
+        soup = self.get_soup()
+
+        base_url = self.url
+        if soup.head.base and soup.head.base.get('href'):
+            base_url = absolutize_url(self.url, soup.head.base.get('href'), False, False)
+        return base_url
+
 
 class Browser:
     inited = False

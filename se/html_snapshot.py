@@ -41,7 +41,7 @@ def css_parser():
 
 class InternalCSSParser:
     @staticmethod
-    def handle_css(snapshot, src_url, content, inline_css):
+    def handle_css(snapshot, base_url, content, inline_css):
         if inline_css:
             assert isinstance(content, str), content.__class__.__name__
         else:
@@ -67,7 +67,7 @@ class InternalCSSParser:
                     url = url[1:-1]
 
                 if has_browsable_scheme(url):
-                    url = absolutize_url(src_url, url, True, True)
+                    url = absolutize_url(base_url, url, True, True)
                     url = snapshot.download_asset(url)
 
                 url = f'{quote}{url}{quote}'
@@ -111,7 +111,7 @@ class CSSUtilsParser:
         return declarations, sheet
 
     @staticmethod
-    def handle_css(snapshot, src_url, content, inline_css):
+    def handle_css(snapshot, base_url, content, inline_css):
         if inline_css:
             assert isinstance(content, str), content.__class__.__name__
         else:
@@ -138,7 +138,7 @@ class CSSUtilsParser:
                         url = url[1:-1]
 
                     if not url.startswith('data:') and not url.startswith('#'):
-                        url = absolutize_url(src_url, url, True, True)
+                        url = absolutize_url(base_url, url, True, True)
                         url = snapshot.download_asset(url)
 
                     if has_quotes:
@@ -183,6 +183,7 @@ class HTMLSnapshot:
         self.assets = set()
         self.assets = set()
         self.asset_urls = set()
+        self.base_url = page.base_url()
 
     def _clear_assets(self):
         for asset in self.assets:
@@ -259,11 +260,11 @@ class HTMLSnapshot:
             if elem.name == 'style':
                 logger.debug('handle_css of %s (<style>)' % self.page.url)
                 if elem.string:
-                    elem.string = css_parser().handle_css(self, self.page.url, elem.string, False)
+                    elem.string = css_parser().handle_css(self, self.base_url, elem.string, False)
 
             if elem.attrs.get('style'):
                 logger.debug('handle_css of %s (style=%s)' % (self.page.url, elem.attrs['style']))
-                elem.attrs['style'] = css_parser().handle_css(self, self.page.url, elem.attrs['style'], True)
+                elem.attrs['style'] = css_parser().handle_css(self, self.base_url, elem.attrs['style'], True)
 
             if 'srcset' in elem.attrs:
                 urls = elem.attrs['srcset'].strip()
@@ -285,7 +286,7 @@ class HTMLSnapshot:
                             logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
                             url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
                         else:
-                            url = absolutize_url(self.page.url, url, True, True)
+                            url = absolutize_url(self.base_url, url, True, True)
                             url = self.download_asset(url)
                             # Escape commas since they are used as a separator in srcset
                             url = url.replace(',', '%2C')
@@ -305,7 +306,7 @@ class HTMLSnapshot:
                 if not has_browsable_scheme(url):
                     continue
 
-                url = absolutize_url(self.page.url, url, True, True)
+                url = absolutize_url(self.base_url, url, True, True)
 
                 if elem.name in ('a', 'frame', 'iframe'):
                     elem.attrs[attr] = '/html/' + url

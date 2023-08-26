@@ -858,6 +858,50 @@ class HTMLSnapshotTest:
         self.assertRegex(asset.filename, r'http,3A/127\.0\.0\.1/_[^.]+\.html')
         self.assertEqual(asset.ref_count, 1)
 
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('os.makedirs')
+    @mock.patch('se.html_asset.open')
+    @mock.patch('se.html_cache.open')
+    def test_260_base_header(self, cache_open, asset_open, makedirs, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({})
+        makedirs.side_effect = None
+        cache_open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+        asset_open.side_effect = cache_open.side_effect
+
+        HTML = b'''<html><head>
+            <base href="/"/>
+            <link rel="stylesheet" href="style.css"/>
+        </head><body>
+            <img src="image.png"/>
+        </body></html>'''
+        page = Page('http://127.0.0.1/path/page.html', HTML, None)
+        snap = HTMLSnapshot(page, self.policy)
+        snap.sanitize()
+        snap.handle_assets()
+
+        self.assertTrue(RequestBrowser.call_args_list == [
+            mock.call('http://127.0.0.1/style.css', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'}),
+            mock.call('http://127.0.0.1/image.png', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+        ], RequestBrowser.call_args_list)
+
+        self.assertTrue(cache_open.call_args_list == [
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'wb'),
+            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/image.png_62d75f74b8.png', 'wb'),
+        ], cache_open.call_args_list)
+
+        dump = page.dump_html()
+        OUTPUT = f'''<html><head>
+            \n            <link href="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/style.css_72f0eee2c7.css" rel="stylesheet"/>
+        </head><body>
+            <img src="{settings.SOSSE_HTML_SNAPSHOT_URL}http,3A/127.0.0.1/image.png_62d75f74b8.png"/>
+        </body></html>'''.encode('utf-8')
+        self.assertEqual(dump, OUTPUT)
+
+        self.assertEqual(snap.get_asset_urls(),
+                         set(('http://127.0.0.1/style.css', 'http://127.0.0.1/image.png')))
+        self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT),
+                         set(('http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'http,3A/127.0.0.1/image.png_62d75f74b8.png')))
+
 
 class HTMLSnapshotCSSUtilsParser(HTMLSnapshotTest, TestCase):
     @classmethod

@@ -724,7 +724,7 @@ class CrawlPolicy(models.Model):
     recrawl_dt_max = models.DurationField(blank=True, null=True, help_text='Max. time before recrawling a page', default=timedelta(days=365))
     hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS, help_text='Page content hashing method used to detect changes in the content')
 
-    auth_login_url_re = models.TextField(null=True, blank=True, verbose_name='Login URL', help_text='A redirection to this URL will trigger authentication')
+    auth_login_url_re = models.TextField(null=True, blank=True, verbose_name='Login URL regexp', help_text='A redirection to an URL matching the regexp will trigger authentication')
     auth_form_selector = models.TextField(null=True, blank=True, verbose_name='Form selector', help_text='CSS selector pointing to the authentication &lt;form&gt; element')
 
     class Meta:

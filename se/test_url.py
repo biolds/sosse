@@ -15,36 +15,36 @@
 
 from django.test import TestCase
 
-from .document import _urlparse, absolutize_url, norm_url_path
-from .utils import reverse_no_escape, url_beautify
+from .url import absolutize_url, urlparse, url_beautify, norm_url_path
+from .utils import reverse_no_escape
 
 
 class UrlTest(TestCase):
     def test_url_parse_no_scheme(self):
-        url = _urlparse('://127.0.0.1/')
+        url = urlparse('://127.0.0.1/')
         self.assertEqual(url.scheme, '')
         self.assertEqual(url.netloc, '127.0.0.1')
         self.assertEqual(url.path, '/')
 
-        url = _urlparse('//127.0.0.1/')
+        url = urlparse('//127.0.0.1/')
         self.assertEqual(url.scheme, '')
         self.assertEqual(url.netloc, '127.0.0.1')
         self.assertEqual(url.path, '/')
 
     def test_url_parse_no_slash(self):
-        url = _urlparse('http:netloc')
+        url = urlparse('http:netloc')
         self.assertEqual(url.scheme, 'http')
         self.assertEqual(url.netloc, 'netloc')
         self.assertEqual(url.path, '/')
 
     def test_url_parse_params(self):
-        url = _urlparse('a;p')
+        url = urlparse('a;p')
         self.assertEqual(url.scheme, '')
         self.assertEqual(url.netloc, '')
         self.assertEqual(url.path, 'a')
         self.assertEqual(url.params, 'p')
 
-        url = _urlparse(';p')
+        url = urlparse(';p')
         self.assertEqual(url.scheme, '')
         self.assertEqual(url.netloc, '')
         self.assertEqual(url.path, '')

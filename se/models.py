@@ -34,7 +34,8 @@ from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
 from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser
-from .document import absolutize_url, Document
+from .document import Document
+from .url import absolutize_url
 
 crawl_logger = logging.getLogger('crawler')
 

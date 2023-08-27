@@ -19,9 +19,10 @@ from django.conf import settings
 from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
-from .document import Document, extern_link_flags, sanitize_url
+from .document import Document, extern_link_flags
 from .models import CrawlPolicy
-from .utils import url_beautify, reverse_no_escape
+from .url import sanitize_url, url_beautify
+from .utils import reverse_no_escape
 
 
 def url_from_request(request):

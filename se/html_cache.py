@@ -26,6 +26,7 @@ from django.utils import timezone
 
 from .browser import RequestBrowser
 from .html_asset import HTMLAsset
+from .url import sanitize_url
 from .utils import http_date_format
 
 
@@ -158,7 +159,6 @@ class HTMLCache():
     def write_asset(url, content, page, extension=None, mimetype=None):
         assert isinstance(content, bytes)
 
-        from .document import sanitize_url
         logger.debug('html_write_asset for %s', url)
         _hash = md5(content).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
 

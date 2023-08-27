@@ -18,17 +18,14 @@ import os
 import re
 import unicodedata
 
-from copy import copy
 from hashlib import md5
 from time import sleep
 from traceback import format_exc
-from urllib.parse import quote, quote_plus, unquote, unquote_plus, urlparse
 
 from bs4 import Doctype, Tag
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
-from django.core.exceptions import ValidationError
 from django.db import connection, models
 from django.utils.html import format_html
 from django.utils.timezone import now
@@ -39,151 +36,12 @@ from PIL import Image
 from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
 from .html_cache import HTMLAsset
 from .html_snapshot import HTMLSnapshot
-from .utils import has_browsable_scheme, reverse_no_escape, url_beautify
+from .url import absolutize_url, has_browsable_scheme, url_beautify, validate_url
+from .utils import reverse_no_escape
 
 crawl_logger = logging.getLogger('crawler')
 
 DetectorFactory.seed = 0
-
-
-def norm_url_path(p):
-    p = p.split('/')
-
-    while '.' in p:
-        idx = p.index('.')
-        # keep last '' as it's there for the trailing /
-        if idx == len(p) - 1:
-            p[-1] = ''
-            break
-
-        p.remove('.')
-
-    while '..' in p:
-        idx = p.index('..')
-        if idx == len(p) - 1:
-            # When removing the last element, keep a trailing /
-            p.append('')
-
-        p.pop(idx)
-        if idx > 0:
-            p.pop(idx - 1)
-
-    while '' in p:
-        idx = p.index('')
-        # keep last '' as it's there for the trailing /
-        if idx == len(p) - 1:
-            break
-
-        p.remove('')
-
-    return '/' + '/'.join(p)
-
-
-def sanitize_url(_url, keep_params, keep_anchors):
-    if not keep_params:
-        if '?' in _url:
-            _url = _url.split('?', 1)[0]
-
-    if not keep_anchors:
-        if '#' in _url:
-            _url = _url.split('#', 1)[0]
-
-    url = _urlparse(_url)
-
-    if not url.scheme:
-        raise Exception(f'url has no scheme ({_url})')
-    if url.scheme not in ('http', 'https'):
-        raise Exception(f'invalid scheme ({_url})')
-    if not url.netloc:
-        raise Exception(f'url has no netloc ({_url})')
-
-    # normalize percent-encoding
-    _path = unquote(url.path)
-    url = url._replace(path=quote(_path))
-
-    _query = unquote_plus(url.query)
-    url = url._replace(query=quote_plus(_query, safe='&='))
-
-    # normalize punycode
-    try:
-        url.netloc.encode('ascii')
-    except UnicodeEncodeError:
-        try:
-            url = url._replace(netloc=url.netloc.encode('idna').decode())
-        except:  # noqa: E722
-            pass
-
-    new_path = norm_url_path(url.path)
-    url = url._replace(path=new_path)
-    url = url.geturl()
-    return url
-
-
-def _urlparse(url):
-    # handle malformed url with no scheme, like:
-    if url.startswith('//') or url.startswith(':/'):
-        url = 'fake://' + url.lstrip(':').lstrip('/')
-        url = urlparse(url)
-        return url._replace(scheme='')
-
-    if ':' in url:
-        scheme, url = url.split(':', 1)
-        url = scheme + '://' + url.lstrip('/')
-
-    parsed = urlparse(url)
-    if parsed.netloc and parsed.path == '':
-        parsed = parsed._replace(path='/')
-    return parsed
-
-
-def absolutize_url(url, link, keep_params, keep_anchors):
-    if link.startswith('data:'):
-        return link
-
-    # see https://datatracker.ietf.org/doc/html/rfc3986
-    _url = _urlparse(url)
-    _link = _urlparse(link)
-
-    target = copy(_url)
-
-    if _link.scheme:
-        target = _link
-    elif _link.netloc:
-        target = _link._replace(scheme=_url.scheme)
-    elif _link.path:
-        if _link.path.startswith('/'):
-            target_path = _link.path
-        else:
-            target_path = _link.path
-            new_path = os.path.dirname(_url.path)
-            if not new_path.endswith('/'):
-                new_path += '/'
-            target_path = new_path + _link.path
-
-        target = target._replace(path=target_path,
-                                 query=_link.query,
-                                 fragment=_link.fragment,
-                                 params=_link.params)
-    else:
-        _path = _url.path
-        params = _url.params
-        query = _url.query
-        fragment = _url.fragment
-        if _link.params:
-            _path = os.path.dirname(_path) + '/'
-            params = _link.params
-
-        if _link.params or _link.query:
-            query = _link.query
-
-        if _link.params or _link.query or _link.fragment:
-            fragment = _link.fragment
-
-        target = target._replace(path=_path,
-                                 params=params,
-                                 query=query,
-                                 fragment=fragment)
-    return sanitize_url(target.geturl(), keep_params, keep_anchors)
 
 
 def remove_accent(s):
@@ -195,12 +53,6 @@ def remove_accent(s):
 class RegConfigField(models.Field):
     def db_type(self, connection):
         return 'regconfig'
-
-
-def validate_url(url):
-    URL_REGEXP = r'https?://[a-zA-Z0-9_-][a-zA-Z0-9\_\-\.]*(:[0-9]+)?/[a-zA-Z0-9\_\.\-\~\/\?\&\=\%\+]*$'
-    if not re.match(URL_REGEXP, url):
-        raise ValidationError('URL must match the regular expression: %s' % URL_REGEXP)
 
 
 def extern_link_flags():

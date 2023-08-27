@@ -21,10 +21,10 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .browser import Page
-from .document import sanitize_url
 from .html_asset import HTMLAsset
 from .html_cache import CacheHit, CacheMiss, HTMLCache
 from .test_mock import BrowserMock
+from .url import sanitize_url
 from .utils import http_date_format
 
 

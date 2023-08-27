@@ -26,7 +26,7 @@ from django.utils.html import format_html
 
 from .browser import SkipIndexing
 from .html_cache import HTMLCache, CacheHit
-from .utils import has_browsable_scheme
+from .url import absolutize_url, has_browsable_scheme
 
 
 logger = logging.getLogger('html_snapshot')
@@ -48,7 +48,6 @@ class InternalCSSParser:
             assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
             if isinstance(content, bytes):
                 content = content.decode('utf-8')
-        from .document import absolutize_url
         val = ''
 
         m = list(re.finditer(r'\burl\([^\)]+\)', content))
@@ -116,7 +115,6 @@ class CSSUtilsParser:
             assert isinstance(content, str), content.__class__.__name__
         else:
             assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
-        from .document import absolutize_url
         declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
 
         for prop in declarations:
@@ -251,7 +249,6 @@ class HTMLSnapshot:
 
     def handle_assets(self):
         logger.debug('html_handle_assets for %s' % self.page.url)
-        from .document import absolutize_url
 
         for elem in self.page.get_soup().find_all(True):
             if elem.name == 'base':

@@ -22,6 +22,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from .url import sanitize_url
 from .utils import http_date_parser
 
 logger = logging.getLogger('html_snapshot')
@@ -75,7 +76,6 @@ class HTMLAsset(models.Model):
 
     @staticmethod
     def html_delete_url(url):
-        from .document import sanitize_url
         url = sanitize_url(url, True, True)
         for asset in HTMLAsset.objects.filter(url=url):
             asset.html_delete()

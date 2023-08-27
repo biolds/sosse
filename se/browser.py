@@ -31,6 +31,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from urllib3.exceptions import HTTPError
 
+from .url import absolutize_url, sanitize_url
 from .utils import human_filesize
 
 crawl_logger = logging.getLogger('crawler')
@@ -70,7 +71,6 @@ class TooManyRedirects(SkipIndexing):
 class Page:
     def __init__(self, url, content, browser, mimetype=None, headers=None, status_code=None):
         assert isinstance(content, bytes)
-        from .document import sanitize_url
         self.url = sanitize_url(url, True, True)
         self.content = content
         self.redirect_count = 0
@@ -97,8 +97,6 @@ class Page:
         return self.soup
 
     def get_links(self, keep_params):
-        from .models import absolutize_url
-
         for a in self.get_soup().find_all('a'):
             if a.get('href'):
                 u = absolutize_url(self.url, a.get('href').strip(), keep_params, False)
@@ -111,8 +109,6 @@ class Page:
         return self.get_soup().encode()
 
     def base_url(self):
-        from .models import absolutize_url
-
         soup = self.get_soup()
 
         base_url = self.url
@@ -261,8 +257,6 @@ class RequestBrowser(Browser):
     def get(cls, url, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs):
         Browser.init()
         REDIRECT_CODE = (301, 302, 307, 308)
-
-        from .models import absolutize_url
         page = None
         redirect_count = 0
 
@@ -313,8 +307,6 @@ class RequestBrowser(Browser):
 
     @classmethod
     def try_auth(cls, page, url, crawl_policy):
-        from .models import absolutize_url
-
         Browser.init()
 
         parsed = page.get_soup()
@@ -430,7 +422,6 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _current_url(cls):
-        from .document import sanitize_url
         if cls.driver.current_url.startswith('data:'):
             return ''
         return sanitize_url(cls.driver.current_url, True, True)
@@ -545,7 +536,6 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _load_cookies(cls, url):
-        from .document import sanitize_url
         from .models import Cookie
 
         if url.startswith('data:'):

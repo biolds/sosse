@@ -18,6 +18,7 @@ import os
 import re
 import unicodedata
 
+from copy import copy
 from hashlib import md5
 from time import sleep
 from traceback import format_exc
@@ -45,6 +46,39 @@ crawl_logger = logging.getLogger('crawler')
 DetectorFactory.seed = 0
 
 
+def norm_url_path(p):
+    p = p.split('/')
+
+    while '.' in p:
+        idx = p.index('.')
+        # keep last '' as it's there for the trailing /
+        if idx == len(p) - 1:
+            p[-1] = ''
+            break
+
+        p.remove('.')
+
+    while '..' in p:
+        idx = p.index('..')
+        if idx == len(p) - 1:
+            # When removing the last element, keep a trailing /
+            p.append('')
+
+        p.pop(idx)
+        if idx > 0:
+            p.pop(idx - 1)
+
+    while '' in p:
+        idx = p.index('')
+        # keep last '' as it's there for the trailing /
+        if idx == len(p) - 1:
+            break
+
+        p.remove('')
+
+    return '/' + '/'.join(p)
+
+
 def sanitize_url(_url, keep_params, keep_anchors):
     if not keep_params:
         if '?' in _url:
@@ -54,7 +88,7 @@ def sanitize_url(_url, keep_params, keep_anchors):
         if '#' in _url:
             _url = _url.split('#', 1)[0]
 
-    url = urlparse(_url)
+    url = _urlparse(_url)
 
     if not url.scheme:
         raise Exception(f'url has no scheme ({_url})')
@@ -79,52 +113,77 @@ def sanitize_url(_url, keep_params, keep_anchors):
         except:  # noqa: E722
             pass
 
-    if url.path == '':
-        url = url._replace(path='/')
-    else:
-        new_path = os.path.normpath(url.path)
-        new_path = new_path.replace('//', '/')
-        if url.path.endswith('/') and url.path != '/':
-            # restore traling / (deleted by normpath)
-            new_path += '/'
-        url = url._replace(path=new_path)
-
+    new_path = norm_url_path(url.path)
+    url = url._replace(path=new_path)
     url = url.geturl()
     return url
 
 
-def absolutize_url(url, p, keep_params, keep_anchors):
-    if p.startswith('data:'):
-        return p
+def _urlparse(url):
+    # handle malformed url with no scheme, like:
+    if url.startswith('//') or url.startswith(':/'):
+        url = 'fake://' + url.lstrip(':').lstrip('/')
+        url = urlparse(url)
+        return url._replace(scheme='')
 
-    if p == '':
-        return sanitize_url(url, keep_params, keep_anchors)
+    if ':' in url:
+        scheme, url = url.split(':', 1)
+        url = scheme + '://' + url.lstrip('/')
 
-    if p.startswith('//'):
-        # p is missing the scheme
-        scheme = url.split('//', 1)[0]
-        p = scheme + '//' + p.lstrip('/')
+    parsed = urlparse(url)
+    if parsed.netloc and parsed.path == '':
+        parsed = parsed._replace(path='/')
+    return parsed
 
-    if re.match('[a-zA-Z]+:', p):
-        return sanitize_url(p, keep_params, keep_anchors)
 
-    url = urlparse(url)
+def absolutize_url(url, link, keep_params, keep_anchors):
+    if link.startswith('data:'):
+        return link
 
-    if p.startswith('./'):
-        p = p[2:]
+    # see https://datatracker.ietf.org/doc/html/rfc3986
+    _url = _urlparse(url)
+    _link = _urlparse(link)
 
-    if p.startswith('/'):
-        new_path = p
+    target = copy(_url)
+
+    if _link.scheme:
+        target = _link
+    elif _link.netloc:
+        target = _link._replace(scheme=_url.scheme)
+    elif _link.path:
+        if _link.path.startswith('/'):
+            target_path = _link.path
+        else:
+            target_path = _link.path
+            new_path = os.path.dirname(_url.path)
+            if not new_path.endswith('/'):
+                new_path += '/'
+            target_path = new_path + _link.path
+
+        target = target._replace(path=target_path,
+                                 query=_link.query,
+                                 fragment=_link.fragment,
+                                 params=_link.params)
     else:
-        new_path = os.path.dirname(url.path)
-        if not new_path.endswith('/'):
-            new_path += '/'
+        _path = _url.path
+        params = _url.params
+        query = _url.query
+        fragment = _url.fragment
+        if _link.params:
+            _path = os.path.dirname(_path) + '/'
+            params = _link.params
 
-        new_path += p
+        if _link.params or _link.query:
+            query = _link.query
 
-    # clear params: new params are already contained in new_path
-    url = url._replace(path=new_path, query='')
-    return sanitize_url(url.geturl(), keep_params, keep_anchors)
+        if _link.params or _link.query or _link.fragment:
+            fragment = _link.fragment
+
+        target = target._replace(path=_path,
+                                 params=params,
+                                 query=query,
+                                 fragment=fragment)
+    return sanitize_url(target.geturl(), keep_params, keep_anchors)
 
 
 def remove_accent(s):

@@ -56,15 +56,15 @@ def norm_url_path(p):
     return '/' + '/'.join(p)
 
 
-def sanitize_url(_url, keep_params, keep_anchors):
-    if not keep_params:
-        if '?' in _url:
-            _url = _url.split('?', 1)[0]
+def url_remove_query_string(url):
+    return url.split('?', 1)[0]
 
-    if not keep_anchors:
-        if '#' in _url:
-            _url = _url.split('#', 1)[0]
 
+def url_remove_fragment(url):
+    return url.split('#', 1)[0]
+
+
+def sanitize_url(_url):
     url = urlparse(_url)
 
     if not url.scheme:
@@ -113,7 +113,7 @@ def urlparse(url):
     return parsed
 
 
-def absolutize_url(url, link, keep_params, keep_anchors):
+def absolutize_url(url, link):
     if link.startswith('data:'):
         return link
 
@@ -160,7 +160,7 @@ def absolutize_url(url, link, keep_params, keep_anchors):
                                  params=params,
                                  query=query,
                                  fragment=fragment)
-    return sanitize_url(target.geturl(), keep_params, keep_anchors)
+    return sanitize_url(target.geturl())
 
 
 def validate_url(url):

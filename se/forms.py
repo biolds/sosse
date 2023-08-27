@@ -109,6 +109,6 @@ class AddToQueueForm(forms.Form):
         super().__init__(data, *args, **kwargs)
 
     def clean_url(self):
-        value = sanitize_url(self.cleaned_data['url'], True, True)
+        value = sanitize_url(self.cleaned_data['url'])
         validate_url(value)
         return value

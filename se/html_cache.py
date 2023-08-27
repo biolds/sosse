@@ -177,7 +177,7 @@ class HTMLCache():
                 else:
                     extension = f'.{ext}'
 
-        url = sanitize_url(url, True, True)
+        url = sanitize_url(url)
         filename_url = HTMLCache.html_filename(url, _hash, extension)
         dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
         dest_dir, _ = dest.rsplit('/', 1)

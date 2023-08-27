@@ -35,7 +35,7 @@ import requests
 
 from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser
 from .document import Document
-from .url import absolutize_url
+from .url import absolutize_url, url_remove_fragment, url_remove_query_string
 
 crawl_logger = logging.getLogger('crawler')
 
@@ -312,7 +312,8 @@ class FavIcon(models.Model):
         if url is None:
             url = '/favicon.ico'
 
-        url = absolutize_url(doc.url, url, False, False)
+        url = absolutize_url(doc.url, url)
+        url = url_remove_query_string(url_remove_fragment(url))
 
         favicon, created = FavIcon.objects.get_or_create(url=url)
         doc.favicon = favicon

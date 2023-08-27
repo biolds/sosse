@@ -31,7 +31,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from urllib3.exceptions import HTTPError
 
-from .url import absolutize_url, sanitize_url
+from .url import absolutize_url, sanitize_url, url_remove_fragment, url_remove_query_string
 from .utils import human_filesize
 
 crawl_logger = logging.getLogger('crawler')
@@ -71,7 +71,7 @@ class TooManyRedirects(SkipIndexing):
 class Page:
     def __init__(self, url, content, browser, mimetype=None, headers=None, status_code=None):
         assert isinstance(content, bytes)
-        self.url = sanitize_url(url, True, True)
+        self.url = sanitize_url(url)
         self.content = content
         self.redirect_count = 0
         self.title = None
@@ -99,8 +99,11 @@ class Page:
     def get_links(self, keep_params):
         for a in self.get_soup().find_all('a'):
             if a.get('href'):
-                u = absolutize_url(self.url, a.get('href').strip(), keep_params, False)
-                yield u
+                url = absolutize_url(self.url, a.get('href').strip())
+                if not keep_params:
+                    url = url_remove_query_string(url)
+                url = url_remove_fragment(url)
+                yield url
 
     def update_soup(self, soup):
         self.soup = soup
@@ -113,7 +116,8 @@ class Page:
 
         base_url = self.url
         if soup.head.base and soup.head.base.get('href'):
-            base_url = absolutize_url(self.url, soup.head.base.get('href'), False, False)
+            base_url = absolutize_url(self.url, soup.head.base.get('href'))
+            base_url = url_remove_fragment(base_url)
         return base_url
 
 
@@ -270,7 +274,8 @@ class RequestBrowser(Browser):
                 crawl_logger.debug('%s: redirected' % url)
                 redirect_count += 1
                 dest = r.headers.get('location')
-                url = absolutize_url(url, dest, True, False)
+                url = absolutize_url(url, dest)
+                url = url_remove_fragment(url)
                 crawl_logger.debug('got redirected to %s' % url)
                 if not url:
                     raise Exception('Got a %s code without a location header' % r.status_code)
@@ -293,7 +298,8 @@ class RequestBrowser(Browser):
                         if dest.startswith('url='):
                             dest = dest[4:]
 
-                        url = absolutize_url(url, dest, True, False)
+                        url = absolutize_url(url, dest)
+                        url = url_remove_fragment(url)
                         redirect_count += 1
                         crawl_logger.debug('%s: html redirected' % url)
                         continue
@@ -329,7 +335,8 @@ class RequestBrowser(Browser):
 
         post_url = form.get('action')
         if post_url:
-            post_url = absolutize_url(page.url, post_url, True, False)
+            post_url = absolutize_url(page.url, post_url)
+            post_url = url_remove_fragment(post_url)
         else:
             post_url = page.url
 
@@ -343,7 +350,8 @@ class RequestBrowser(Browser):
         if not location:
             raise Exception('No location in the redirection')
 
-        location = absolutize_url(r.url, location, True, False)
+        location = absolutize_url(r.url, location)
+        location = url_remove_fragment(location)
         crawl_logger.debug('got redirected to %s after authentication' % location)
         return cls.get(location)
 
@@ -424,7 +432,7 @@ class SeleniumBrowser(Browser):
     def _current_url(cls):
         if cls.driver.current_url.startswith('data:'):
             return ''
-        return sanitize_url(cls.driver.current_url, True, True)
+        return sanitize_url(cls.driver.current_url)
 
     @classmethod
     def _wait_for_ready(cls, url):
@@ -544,7 +552,7 @@ class SeleniumBrowser(Browser):
         # Cookies can only be set to the same domain,
         # so first we navigate to the correct location
         current_url = urlparse(cls._current_url())
-        dest = sanitize_url(url, True, True)
+        dest = sanitize_url(url)
         target_url = urlparse(dest)
         cookies = Cookie.get_from_url(dest)
         if len(cookies) == 0:

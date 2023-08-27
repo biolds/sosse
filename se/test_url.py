@@ -51,27 +51,27 @@ class UrlTest(TestCase):
         self.assertEqual(url.params, 'p')
 
     def test_absolutize(self):
-        self.assertEqual(absolutize_url('http://127.0.0.1/', 'http://127.0.0.2/', True, True), 'http://127.0.0.2/')
-        self.assertEqual(absolutize_url('http://127.0.0.1/', 'page.html', True, True), 'http://127.0.0.1/page.html')
-        self.assertEqual(absolutize_url('http://127.0.0.1/dir1/', '/page.html', True, True), 'http://127.0.0.1/page.html')
-        self.assertEqual(absolutize_url('http://127.0.0.1/dir1/dir2/', '../page.html', True, True), 'http://127.0.0.1/dir1/page.html')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', 'http://127.0.0.2/'), 'http://127.0.0.2/')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', 'page.html'), 'http://127.0.0.1/page.html')
+        self.assertEqual(absolutize_url('http://127.0.0.1/dir1/', '/page.html'), 'http://127.0.0.1/page.html')
+        self.assertEqual(absolutize_url('http://127.0.0.1/dir1/dir2/', '../page.html'), 'http://127.0.0.1/dir1/page.html')
 
     def test_no_scheme(self):
-        self.assertEqual(absolutize_url('http://127.0.0.1/', '//127.0.0.2/', True, True), 'http://127.0.0.2/')
-        self.assertEqual(absolutize_url('https://127.0.0.1/', '//127.0.0.2/', True, True), 'https://127.0.0.2/')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', '//127.0.0.2/'), 'http://127.0.0.2/')
+        self.assertEqual(absolutize_url('https://127.0.0.1/', '//127.0.0.2/'), 'https://127.0.0.2/')
 
     def test_no_scheme_broken(self):
-        self.assertEqual(absolutize_url('http://127.0.0.1/', '///127.0.0.2/', True, True), 'http://127.0.0.2/')
-        self.assertEqual(absolutize_url('http://127.0.0.1/', '////127.0.0.2/', True, True), 'http://127.0.0.2/')
-        self.assertEqual(absolutize_url('https://127.0.0.1/', '///127.0.0.2/', True, True), 'https://127.0.0.2/')
-        self.assertEqual(absolutize_url('https://127.0.0.1/', '////127.0.0.2/', True, True), 'https://127.0.0.2/')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', '///127.0.0.2/'), 'http://127.0.0.2/')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', '////127.0.0.2/'), 'http://127.0.0.2/')
+        self.assertEqual(absolutize_url('https://127.0.0.1/', '///127.0.0.2/'), 'https://127.0.0.2/')
+        self.assertEqual(absolutize_url('https://127.0.0.1/', '////127.0.0.2/'), 'https://127.0.0.2/')
 
     def test_rel(self):
-        self.assertEqual(absolutize_url('http://127.0.0.1/', './page.html', True, True), 'http://127.0.0.1/page.html')
-        self.assertEqual(absolutize_url('https://127.0.0.1/index.html', './page.html', True, True), 'https://127.0.0.1/page.html')
+        self.assertEqual(absolutize_url('http://127.0.0.1/', './page.html'), 'http://127.0.0.1/page.html')
+        self.assertEqual(absolutize_url('https://127.0.0.1/index.html', './page.html'), 'https://127.0.0.1/page.html')
 
     def test_query(self):
-        self.assertEqual(absolutize_url('http://127.0.0.1/index.html?f=1', './page.html?g=3', True, True), 'http://127.0.0.1/page.html?g=3')
+        self.assertEqual(absolutize_url('http://127.0.0.1/index.html?f=1', './page.html?g=3'), 'http://127.0.0.1/page.html?g=3')
 
     def test_reverse_no_escape(self):
         self.assertEqual(reverse_no_escape('www', ['a']), '/www/a')
@@ -123,7 +123,7 @@ class UrlTest(TestCase):
                                ('../..', 'http://a/'),
                                ('../../', 'http://a/'),
                                ('../../g', 'http://a/g')):
-            self.assertEqual(absolutize_url(base_url, link, True, True), expected, 'link: %s' % link)
+            self.assertEqual(absolutize_url(base_url, link), expected, 'link: %s' % link)
 
     def test_zzz_rfc3986_5_4_2_abnormal_examples(self):
         # https://datatracker.ietf.org/doc/html/rfc3986#section-5.4
@@ -157,7 +157,7 @@ class UrlTest(TestCase):
                                ('g?y/../x', 'http://a/b/c/g?y%2F..%2Fx'),
                                ('g#s/./x', 'http://a/b/c/g#s/./x'),
                                ('g#s/../x', 'http://a/b/c/g#s/../x')):
-            self.assertEqual(absolutize_url(base_url, link, True, True), expected, 'link: %s' % link)
+            self.assertEqual(absolutize_url(base_url, link), expected, 'link: %s' % link)
 
 
 class UrlBeautifyTest(TestCase):

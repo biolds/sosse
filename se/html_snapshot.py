@@ -66,7 +66,7 @@ class InternalCSSParser:
                     url = url[1:-1]
 
                 if has_browsable_scheme(url):
-                    url = absolutize_url(base_url, url, True, True)
+                    url = absolutize_url(base_url, url)
                     url = snapshot.download_asset(url)
 
                 url = f'{quote}{url}{quote}'
@@ -136,7 +136,7 @@ class CSSUtilsParser:
                         url = url[1:-1]
 
                     if not url.startswith('data:') and not url.startswith('#'):
-                        url = absolutize_url(base_url, url, True, True)
+                        url = absolutize_url(base_url, url)
                         url = snapshot.download_asset(url)
 
                     if has_quotes:
@@ -283,7 +283,7 @@ class HTMLSnapshot:
                             logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
                             url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
                         else:
-                            url = absolutize_url(self.base_url, url, True, True)
+                            url = absolutize_url(self.base_url, url)
                             url = self.download_asset(url)
                             # Escape commas since they are used as a separator in srcset
                             url = url.replace(',', '%2C')
@@ -303,7 +303,7 @@ class HTMLSnapshot:
                 if not has_browsable_scheme(url):
                     continue
 
-                url = absolutize_url(self.base_url, url, True, True)
+                url = absolutize_url(self.base_url, url)
 
                 if elem.name in ('a', 'frame', 'iframe'):
                     elem.attrs[attr] = '/html/' + url

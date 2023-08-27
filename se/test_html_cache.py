@@ -37,7 +37,7 @@ class HTMLCacheTest(TestCase):
             ('http://127.0.0.1/../', 'http,3A/127.0.0.1/_~~~.html'),
             ('http://127.0.0.1/,', 'http,3A/127.0.0.1/,2C_~~~.html'),
         ):
-            url = sanitize_url(url, True, True)
+            url = sanitize_url(url)
             _fn = HTMLCache.html_filename(url, '~~~', '.html')
             self.assertEqual(_fn, fn, f'failed on {url} / expected {fn} / got {_fn}')
 

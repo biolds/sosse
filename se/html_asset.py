@@ -76,7 +76,7 @@ class HTMLAsset(models.Model):
 
     @staticmethod
     def html_delete_url(url):
-        url = sanitize_url(url, True, True)
+        url = sanitize_url(url)
         for asset in HTMLAsset.objects.filter(url=url):
             asset.html_delete()
 

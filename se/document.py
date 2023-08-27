@@ -36,7 +36,7 @@ from PIL import Image
 from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
 from .html_cache import HTMLAsset
 from .html_snapshot import HTMLSnapshot
-from .url import absolutize_url, has_browsable_scheme, url_beautify, validate_url
+from .url import absolutize_url, has_browsable_scheme, url_beautify, url_remove_fragment, url_remove_query_string, validate_url
 from .utils import reverse_no_escape
 
 crawl_logger = logging.getLogger('crawler')
@@ -264,9 +264,12 @@ class Document(models.Model):
                 if href and has_browsable_scheme(href):
                     href = href.strip()
 
-                    href_for_policy = absolutize_url(base_url, href, True, True)
+                    href_for_policy = absolutize_url(base_url, href)
                     child_policy = CrawlPolicy.get_from_url(href_for_policy)
-                    href = absolutize_url(base_url, href, child_policy.keep_params, False)
+                    href = absolutize_url(base_url, href)
+                    if not child_policy.keep_params:
+                        href = url_remove_query_string(href)
+                    href = url_remove_fragment(href)
                     target = Document.queue(href, crawl_policy, self)
 
                     if target != self:
@@ -279,7 +282,7 @@ class Document(models.Model):
                                         pos=len(links['text']))
                         elif crawl_policy.store_extern_links:
                             href = elem.get('href').strip()
-                            href = absolutize_url(base_url, href, True, True)
+                            href = absolutize_url(base_url, href)
                             link = Link(doc_from=self,
                                         link_no=len(links['links']),
                                         text=s,

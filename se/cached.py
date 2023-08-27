@@ -38,7 +38,7 @@ def url_from_request(request):
     url = urlparse(url)
     url = url._replace(netloc=unquote(url.netloc))
     url = url.geturl()
-    return sanitize_url(url, True, True)
+    return sanitize_url(url)
 
 
 def get_cached_doc(request, view_name):

@@ -261,38 +261,41 @@ class Document(models.Model):
 
             if elem.name == 'a':
                 href = elem.get('href')
-                if href and has_browsable_scheme(href):
+                if href:
+                    link = None
+                    target_doc = None
                     href = href.strip()
 
-                    href_for_policy = absolutize_url(base_url, href)
-                    child_policy = CrawlPolicy.get_from_url(href_for_policy)
-                    href = absolutize_url(base_url, href)
-                    if not child_policy.keep_params:
-                        href = url_remove_query_string(href)
-                    href = url_remove_fragment(href)
-                    target = Document.queue(href, crawl_policy, self)
+                    if has_browsable_scheme(href):
+                        href_for_policy = absolutize_url(base_url, href)
+                        child_policy = CrawlPolicy.get_from_url(href_for_policy)
+                        href = absolutize_url(base_url, href)
+                        if not child_policy.keep_params:
+                            href = url_remove_query_string(href)
+                        href = url_remove_fragment(href)
+                        target_doc = Document.queue(href, crawl_policy, self)
 
-                    if target != self:
-                        link = None
-                        if target:
-                            link = Link(doc_from=self,
-                                        link_no=len(links['links']),
-                                        doc_to=target,
-                                        text=s,
-                                        pos=len(links['text']))
-                        elif crawl_policy.store_extern_links:
-                            href = elem.get('href').strip()
-                            href = absolutize_url(base_url, href)
-                            link = Link(doc_from=self,
-                                        link_no=len(links['links']),
-                                        text=s,
-                                        pos=len(links['text']),
-                                        extern_url=href)
+                        if target_doc != self:
+                            if target_doc:
+                                link = Link(doc_from=self,
+                                            link_no=len(links['links']),
+                                            doc_to=target_doc,
+                                            text=s,
+                                            pos=len(links['text']))
 
-                        if link:
-                            if crawl_policy.take_screenshots:
-                                link.css_selector = self._build_selector(elem)
-                            links['links'].append(link)
+                    if crawl_policy.store_extern_links and (not has_browsable_scheme(href) or target_doc is None):
+                        href = elem.get('href').strip()
+                        href = absolutize_url(base_url, href)
+                        link = Link(doc_from=self,
+                                    link_no=len(links['links']),
+                                    text=s,
+                                    pos=len(links['text']),
+                                    extern_url=href)
+
+                    if link:
+                        if crawl_policy.take_screenshots:
+                            link.css_selector = self._build_selector(elem)
+                        links['links'].append(link)
 
             if s:
                 links['text'] += s

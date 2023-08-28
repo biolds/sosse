@@ -69,10 +69,8 @@ def sanitize_url(_url):
 
     if not url.scheme:
         raise Exception(f'url has no scheme ({_url})')
-    if url.scheme not in ('http', 'https'):
-        raise Exception(f'invalid scheme ({_url})')
-    if not url.netloc:
-        raise Exception(f'url has no netloc ({_url})')
+    if not url.netloc and not url.path:
+        raise Exception(f'url has no netloc and no path ({_url})')
 
     # normalize percent-encoding
     _path = unquote(url.path)
@@ -103,7 +101,7 @@ def urlparse(url):
         url = base_urlparse(url)
         return url._replace(scheme='')
 
-    if ':' in url:
+    if url.startswith('http:') or url.startswith('https:'):
         scheme, url = url.split(':', 1)
         url = scheme + '://' + url.lstrip('/')
 
@@ -120,6 +118,9 @@ def absolutize_url(url, link):
     # see https://datatracker.ietf.org/doc/html/rfc3986
     _url = urlparse(url)
     _link = urlparse(link)
+
+    if _link.scheme and not has_browsable_scheme(link):
+        return link
 
     target = copy(_url)
 
@@ -169,10 +170,18 @@ def validate_url(url):
         raise ValidationError('URL must match the regular expression: %s' % URL_REGEXP)
 
 
+# https://datatracker.ietf.org/doc/html/rfc3986#section-3.1
+SCHEME_RE = '[a-zA-Z][a-zA-Z0-9+.]*:'
+
+
 def has_browsable_scheme(url):
-    for prefix in ('#', 'file:', 'blob:', 'about:', 'data:', 'javascript:', 'mailto:'):
-        if url.startswith(prefix):
-            return False
+    if url.startswith('#'):
+        return False
+
+    if re.match(SCHEME_RE, url):
+        scheme = url.split(':', 1)[0]
+        return scheme in ('http', 'https')
+
     return True
 
 

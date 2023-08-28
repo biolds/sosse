@@ -412,3 +412,35 @@ class CrawlerTest(TestCase):
         self.crawl_policy.mimetype_regex = '.*'
         self.crawl_policy.save()
         self._crawl('http://127.0.0.1/image.png')
+
+    MAILTO = {
+        'http://127.0.0.1/': b'<body><a href="mailto:test@exemple.com">mail</a></body>'
+    }
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_060_invalid_scheme(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock(self.MAILTO)
+        self._crawl()
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'mail')
+        self.assertEqual(Link.objects.count(), 0)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_070_unknown_scheme_store(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock(self.MAILTO)
+        self.crawl_policy.store_extern_links = True
+        self.crawl_policy.save()
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'mail')
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, doc)
+        self.assertEqual(link.text, 'mail')
+        self.assertEqual(link.extern_url, 'mailto:test@exemple.com')

@@ -15,11 +15,24 @@
 
 from django.test import TestCase
 
-from .url import absolutize_url, urlparse, url_beautify, norm_url_path
+from .url import absolutize_url, has_browsable_scheme, urlparse, url_beautify, norm_url_path
 from .utils import reverse_no_escape
 
 
 class UrlTest(TestCase):
+    def test_browsable_scheme(self):
+        self.assertTrue(has_browsable_scheme('http://test'))
+        self.assertTrue(has_browsable_scheme('http:/test'))
+        self.assertTrue(has_browsable_scheme('http:test'))
+        self.assertTrue(has_browsable_scheme('https://test'))
+        self.assertTrue(has_browsable_scheme('test'))
+        self.assertTrue(has_browsable_scheme('/test:plop'))
+        self.assertTrue(has_browsable_scheme('127.0.0.1/plop'))
+
+        self.assertFalse(has_browsable_scheme('ftp://plop'))
+        self.assertFalse(has_browsable_scheme('mailto:plop'))
+        self.assertFalse(has_browsable_scheme('file:///blah'))
+
     def test_url_parse_no_scheme(self):
         url = urlparse('://127.0.0.1/')
         self.assertEqual(url.scheme, '')
@@ -32,6 +45,12 @@ class UrlTest(TestCase):
         self.assertEqual(url.path, '/')
 
     def test_url_parse_no_slash(self):
+        url = urlparse('mailto:test@exemple.com')
+        self.assertEqual(url.scheme, 'mailto')
+        self.assertEqual(url.netloc, '')
+        self.assertEqual(url.path, 'test@exemple.com')
+
+    def test_url_parse_no_slash_http(self):
         url = urlparse('http:netloc')
         self.assertEqual(url.scheme, 'http')
         self.assertEqual(url.netloc, 'netloc')
@@ -95,7 +114,8 @@ class UrlTest(TestCase):
         # https://datatracker.ietf.org/doc/html/rfc3986#section-5.4
         base_url = 'http://a/b/c/d;p?q'
 
-        for link, expected in (('http:h', 'http://h/'),  # modified to folllow sosse's conventions
+        for link, expected in (('g:h', 'g:h'),
+                               ('http:h', 'http://h/'),  # modified to folllow sosse's conventions
                                ('g', 'http://a/b/c/g'),
                                ('./g', 'http://a/b/c/g'),
                                ('g/', 'http://a/b/c/g/'),

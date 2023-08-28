@@ -283,9 +283,14 @@ class Document(models.Model):
                                             text=s,
                                             pos=len(links['text']))
 
-                    if crawl_policy.store_extern_links and (not has_browsable_scheme(href) or target_doc is None):
+                    store_extern_link = (not has_browsable_scheme(href) or target_doc is None)
+                    if crawl_policy.store_extern_links and store_extern_link:
                         href = elem.get('href').strip()
-                        href = absolutize_url(base_url, href)
+                        try:
+                            href = absolutize_url(base_url, href)
+                        except ValueError:
+                            # Store the url as is if it's invalid
+                            pass
                         link = Link(doc_from=self,
                                     link_no=len(links['links']),
                                     text=s,

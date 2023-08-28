@@ -175,6 +175,11 @@ SCHEME_RE = '[a-zA-Z][a-zA-Z0-9+.]*:'
 
 
 def has_browsable_scheme(url):
+    try:
+        urlparse(url)
+    except ValueError:
+        return False
+
     if url.startswith('#'):
         return False
 

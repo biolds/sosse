@@ -444,3 +444,36 @@ class CrawlerTest(TestCase):
         self.assertEqual(link.doc_from, doc)
         self.assertEqual(link.text, 'mail')
         self.assertEqual(link.extern_url, 'mailto:test@exemple.com')
+
+    INVALID_LINK = {
+        'http://127.0.0.1/': b'<body><a href="http://[invalid IPV6/">link</a></body>'
+    }
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_090_invalid_link(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock(self.INVALID_LINK)
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'link')
+        self.assertEqual(Link.objects.count(), 0)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_100_invalid_link_store(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock(self.INVALID_LINK)
+        self.crawl_policy.store_extern_links = True
+        self.crawl_policy.save()
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertEqual(doc.content, 'link')
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, doc)
+        self.assertEqual(link.text, 'link')
+        self.assertEqual(link.extern_url, 'http://[invalid IPV6/')

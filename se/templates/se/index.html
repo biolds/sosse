@@ -282,7 +282,7 @@
             </div>
         </div>
         {% for r in paginated %}
-            <div class="res" {% if r.screenshot_count %}style="min-height: 100px"{% endif %}>
+            <div class="res" {% if r.has_thumbnail or r.screenshot_count %}style="min-height: 100px"{% endif %}>
                 <div>
                     {% if r.has_thumbnail or r.screenshot_count %}
                         <a href="{{ r.link }}" {{ r.link_flag }}>

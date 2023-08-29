@@ -22,7 +22,7 @@ from hashlib import md5
 from time import sleep
 from traceback import format_exc
 
-from bs4 import Doctype, Tag
+from bs4 import Comment, Doctype, Tag
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
@@ -243,7 +243,7 @@ class Document(models.Model):
 
     def _dom_walk(self, elem, crawl_policy, links, base_url):
         from .models import CrawlPolicy, Link
-        if isinstance(elem, Doctype):
+        if isinstance(elem, (Doctype, Comment)):
             return
 
         if elem.name in ('[document]', 'title', 'script', 'style'):

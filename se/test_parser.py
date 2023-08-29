@@ -167,3 +167,9 @@ class PageTest(TestCase):
     def test_50_http_date_fromat(self):
         for s, d in self.DATES:
             self.assertEqual(s, http_date_format(d))
+
+    def test_60_no_comment(self):
+        page = Page('http://test/', b'<html><body><!-- nothing -->text</body></html>', None)
+        doc = Document(url=page.url)
+        doc.index(page, self.policy)
+        self.assertEqual(doc.content, 'text')

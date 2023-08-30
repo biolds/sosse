@@ -1,3 +1,11 @@
+## 1.5.0 (2023-08-29)
+### Bug fixes (5 changes)
+- [remove html comments from documents](biolds1/sosse@bd871c5cde356846af74e5a36993570ddd6be063) ([merge request](biolds1/sosse!43))
+- [handle invalid links correctly](biolds1/sosse@3dd626ccd1ab56b71a07283f494b877903cadfc7) ([merge request](biolds1/sosse!42))
+- [fix result heights when thumbnail is enabled](biolds1/sosse@c998fb81113e3582aa472f65124e08e6fa7d00eb) ([merge request](biolds1/sosse!40))
+- [fix an exception on links with unknown schemes](biolds1/sosse@42de12cfbc81841627f57a77e52a76e08ffca7ff) ([merge request](biolds1/sosse!41))
+- [fix handling <base> element in html snapshots](biolds1/sosse@21602ff4564ac3d3d85f019dd1c83d65a2a6532e) ([merge request](biolds1/sosse!40))
+
 ## 1.4.0 (2023-08-24)
 ### Features (1 change)
 - [create pages thumbnails](biolds1/sosse@0f34d0948c78497008932ee4ead05c23134bdaa1) ([merge request](biolds1/sosse!38))

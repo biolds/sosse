@@ -352,7 +352,7 @@ class HTMLSnapshot:
                 content = css_parser().handle_css(self, url, content, False).encode('utf-8')
 
         except CacheHit as e:
-            logger.info('CACHE HIT %s', url)
+            logger.debug('CACHE HIT %s', url)
             self._add_asset(e.asset)
             return settings.SOSSE_HTML_SNAPSHOT_URL + e.asset.filename
         except SkipIndexing as e:

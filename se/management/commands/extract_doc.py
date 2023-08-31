@@ -76,7 +76,7 @@ class Command(BaseCommand):
                     print('   *Default: %s*' % default)
                     print()
                     comment = conf.get('doc') or conf.get('comment', '')
-                    comment = '\n'.join('   ' + line.strip() for line in comment.splitlines())
+                    comment = '\n'.join('   ' + line for line in comment.splitlines())
                     comment = comment.replace('\n   See ', '\n\n   See ')
                     if comment:
                         print(comment)

@@ -29,12 +29,12 @@ DEFAULTS = OrderedDict([
     ['common', OrderedDict([
         ['secret_key', {
             'var': 'SECRET_KEY',
-            'comment': 'SECURITY WARNING: keep the secret key used in production secret!\nRun ``sosse-admin generate_secret`` to create a new one.\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key',
+            'comment': 'Run ``sosse-admin generate_secret`` to create a new one.\nSee https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key\n\n.. warning::\n   Keep the secret key used in production secret!',
             'default': 'CHANGE ME'
         }],
         ['debug', {
             'var': 'DEBUG',
-            'comment': "SECURITY WARNING: don't run with debug turned on in production!",
+            'comment': "Debug mode.\n\n.. warning::\n   Don't run with debug turned on in production!",
             'type': bool,
             'default': False
         }],
@@ -76,7 +76,7 @@ DEFAULTS = OrderedDict([
             'default': '!',
         }],
         ['default_search_redirect', {
-            'comment': 'Default search engine to use.\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise (case sensitive).',
+            'comment': 'Default search engine to use.\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
             'default': '',
         }],
         ['sosse_shortcut', {
@@ -102,6 +102,7 @@ DEFAULTS = OrderedDict([
             'default': '/var/lib/sosse/screenshots/'
         }],
         ['html_snapshot_url', {
+            'comment': 'Url path to HTML snapshot\n\n.. danger::\n   This value is hardcoded inside stored HTML snapshot. If you modify it, any HTML page previously stored as a snapshot will need to be crawled again in order to update internal links.',
             'default': '/snap/'
         }],
         ['html_snapshot_dir', {
@@ -161,12 +162,12 @@ DEFAULTS = OrderedDict([
             'type': int
         }],
         ['atom_feed_size', {
-            'comment': 'Size of Atom feeds.',
+            'comment': 'Number of result returned by Atom feeds.',
             'default': 200,
             'type': int
         }],
         ['exclude_not_indexed', {
-            'comment': 'Exclude page queued for indexing, but not yet indexed from search results.',
+            'comment': 'Exclude page queued for indexing but not yet indexed from search results.',
             'default': True,
             'type': bool
         }],
@@ -176,7 +177,7 @@ DEFAULTS = OrderedDict([
             'type': bool
         }],
         ['cache_follows_redirect', {
-            'comment': 'Accessing a cached page of an url that redirected automatically follows the redirection.',
+            'comment': 'Accessing a cached page of a redirection url automatically follows the redirection.',
             'default': True,
             'type': bool
         }],
@@ -212,7 +213,7 @@ DEFAULTS = OrderedDict([
     ])],
     ['crawler', OrderedDict([
         ['crawler_count', {
-            'comment': 'Number of crawlers running concurrently (default to the number of CPU available).',
+            'comment': 'Number of crawlers running concurrently (defaults to the number of CPU available).',
             'default': ''
         }],
         ['proxy', {
@@ -220,11 +221,11 @@ DEFAULTS = OrderedDict([
             'default': ''
         }],
         ['user_agent', {
-            'comment': 'User agent used by crawlers.',
+            'comment': 'User agent sent by crawlers.',
             'default': 'SOSSE'
         }],
         ['requests_timeout', {
-            'comment': 'Timeout when retrieving pages with Requests (no timeout if 0).',
+            'comment': 'Timeout in secounds when retrieving pages with Requests (no timeout if 0).',
             'default': 10,
             'type': int
         }],
@@ -269,12 +270,12 @@ DEFAULTS = OrderedDict([
             'type': int
         }],
         ['max_file_size', {
-            'comment': 'Maximum file size to index (in kb).',
+            'comment': 'Maximum file size to index (in kB).',
             'default': 500,
             'type': int
         }],
         ['max_html_asset_size', {
-            'comment': 'Maximum file size of html assets (css, images, etc.) to download',
+            'comment': 'Maximum file size of html assets (css, images, etc.) to download (in kB).',
             'default': 5000,
             'type': int
         }],
@@ -294,7 +295,7 @@ DEFAULTS = OrderedDict([
             'type': float
         }],
         ['browser_crash_retry', {
-            'comment': 'Retry ``browser_crash_retry`` time to index the page on browser crashes.',
+            'comment': 'Retry ``browser_crash_retry`` times to index the page on browser crashes.',
             'default': 1,
             'type': int
         }],
@@ -484,7 +485,7 @@ class Conf:
                 else:
                     comment += '\n'
                 comment += 'Default: %s' % opt['default']
-                comment = '\n'.join('# ' + line.strip() for line in comment.splitlines())
+                comment = '\n'.join('# ' + line for line in comment.splitlines() if line)
                 if var_no != 0:
                     s += '\n'
                 s += f'{comment}\n'

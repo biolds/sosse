@@ -21,3 +21,4 @@
   - make docker_release_push
   - docker tag biolds/sosse:latest biolds/sosse:X.X.X
   - docker push biolds/sosse:X.X.X
+- in case the README.md file was modified, update the description at https://hub.docker.com/repository/docker/biolds/sosse/general

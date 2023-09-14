@@ -65,6 +65,17 @@
 |  | Capture Page Screenshot | cache_screenshot.png
 |  | Unselect Frame
 
+| Syndication feed
+|  | [Tags] | syndication_feed
+|  | Go To | http://127.0.0.1/
+|  | Click Element | id=more
+|  | Select From List By Label | id=id_s | First crawled descending
+|  | Select From List By Label | xpath=//select[@name='ff1'] | Linked by url
+|  | Select From List By Label | xpath=//select[@name='fo1'] | Equal to
+|  | Input Text | xpath=//input[@name='fv1'] | https://exemple.com/atom.xml
+|  | Capture Page Screenshot | 
+|  | Capture Element Screenshot | id=search_form | syndication_feed.png
+
 | Browsable home
 |  | [Tags] | browsable_home
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_favicon.json | shell=True

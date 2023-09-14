@@ -3,6 +3,7 @@ cssutils
 defusedxml
 django<4
 django-uwsgi
+feedparser
 html5lib
 langdetect
 lxml

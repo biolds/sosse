@@ -18,8 +18,9 @@ import os
 import re
 import unicodedata
 
+from datetime import datetime
 from hashlib import md5
-from time import sleep
+from time import sleep, mktime
 from traceback import format_exc
 
 from bs4 import Comment, Doctype, Tag
@@ -27,11 +28,13 @@ from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import connection, models
+from django.template.loader import get_template
 from django.utils.html import format_html
 from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
 from PIL import Image
+import feedparser
 
 from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
 from .html_cache import HTMLAsset
@@ -334,8 +337,69 @@ class Document(models.Model):
         self.delete_thumbnail()
         Link.objects.filter(doc_from=self).delete()
 
-    def index(self, page, crawl_policy, verbose=False, force=False):
+    def _parse_xml(self, page, crawl_policy, stats, verbose):
+        parsed = feedparser.parse(page.content)
+        if len(getattr(parsed, 'entries', [])) == 0:
+            return
+
+        for entry in parsed['entries']:
+            if entry.get('updated_parsed'):
+                entry['updated_datetime'] = datetime.fromtimestamp(mktime(entry['updated_parsed']))
+
+        if getattr(parsed.feed, 'title', None):
+            page.title = parsed.feed.title
+            self.title = parsed.feed.title
+
+        self.mimetype = 'text/html'
+
+        template = get_template('se/feed.html')
+        context = {'feed': parsed}
+        page.content = template.render(context).encode('utf-8')
+        page.soup = None
+        page.mimetype = 'text/html'
+        crawl_logger.debug('%s is a rss/atom feed with %s items', self.url, len(parsed['entries']))
+
+    def _parse_text(self, page, crawl_policy, stats, verbose):
         from .models import FavIcon
+        crawl_logger.debug('parsing %s', self.url)
+
+        parsed = page.get_soup()
+
+        self._index_log('get soup', stats, verbose)
+
+        base_url = page.base_url()
+        links = {
+            'links': [],
+            'text': ''
+        }
+        for elem in parsed.children:
+            self._dom_walk(elem, crawl_policy, links, base_url)
+        text = links['text']
+
+        self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
+
+        self.content = text
+        self.normalized_content = remove_accent(text)
+        self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
+        self._index_log('remove accent', stats, verbose)
+
+        # The bulk request triggers a deadlock
+        # Link.objects.bulk_create(links['links'])
+        for link in links['links']:
+            link.save()
+        self._index_log('bulk', stats, verbose)
+
+        FavIcon.extract(self, page)
+        self._index_log('favicon', stats, verbose)
+
+        if crawl_policy.create_thumbnails:
+            SeleniumBrowser.create_thumbnail(self.url, self.image_name())
+            self.has_thumbnail = True
+
+        if crawl_policy.take_screenshots:
+            self.screenshot_index(links['links'], crawl_policy)
+
+    def index(self, page, crawl_policy, verbose=False, force=False):
         n = now()
         stats = {'prev': n}
         content_hash = self._hash_content(page.content, crawl_policy)
@@ -355,6 +419,12 @@ class Document(models.Model):
         beautified_url = url_beautify(page.url)
         normalized_url = beautified_url.split('://', 1)[1].replace('/', ' ').strip()
         self.normalized_url = remove_accent(normalized_url)
+        if page.title:
+            self.title = page.title
+        else:
+            self.title = beautified_url
+
+        self.normalized_title = remove_accent(self.title)
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
         magic_head = page.content[:10].strip().lower()
@@ -370,48 +440,10 @@ class Document(models.Model):
             crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
             return
 
+        self._parse_xml(page, crawl_policy, stats, verbose)
+
         if self.mimetype.startswith('text/'):
-            parsed = page.get_soup()
-            if page.title:
-                self.title = page.title
-            else:
-                self.title = beautified_url
-
-            self.normalized_title = remove_accent(self.title)
-
-            self._index_log('get soup', stats, verbose)
-
-            base_url = page.base_url()
-            links = {
-                'links': [],
-                'text': ''
-            }
-            for elem in parsed.children:
-                self._dom_walk(elem, crawl_policy, links, base_url)
-            text = links['text']
-
-            self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
-
-            self.content = text
-            self.normalized_content = remove_accent(text)
-            self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
-            self._index_log('remove accent', stats, verbose)
-
-            # The bulk request triggers a deadlock
-            # Link.objects.bulk_create(links['links'])
-            for link in links['links']:
-                link.save()
-            self._index_log('bulk', stats, verbose)
-
-            FavIcon.extract(self, page)
-            self._index_log('favicon', stats, verbose)
-
-            if crawl_policy.create_thumbnails:
-                SeleniumBrowser.create_thumbnail(self.url, self.image_name())
-                self.has_thumbnail = True
-
-            if crawl_policy.take_screenshots:
-                self.screenshot_index(links['links'], crawl_policy)
+            self._parse_text(page, crawl_policy, stats, verbose)
 
         if crawl_policy.snapshot_html:
             snapshot = HTMLSnapshot(page, crawl_policy)
@@ -546,6 +578,7 @@ class Document(models.Model):
         while True:
             # Loop until we stop redirecting
             crawl_policy = CrawlPolicy.get_from_url(doc.url)
+            crawl_logger.debug('Crawling %s with policy %s', doc.url, crawl_policy)
             try:
                 WorkerStats.objects.filter(id=worker_stats.id).update(doc_processed=models.F('doc_processed') + 1)
                 doc.worker_no = None

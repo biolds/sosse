@@ -10,6 +10,7 @@ Administration
    crawl/status.rst
    crawl/policies.rst
    crawl/crawl_depth.rst
+   crawl/feeds.rst
    archive.rst
    authentication.rst
    documents.rst

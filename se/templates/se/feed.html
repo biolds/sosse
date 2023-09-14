@@ -1,0 +1,45 @@
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
+<head>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="robots" content="NONE,NOARCHIVE">
+    <meta charset="utf-8">
+    {% if feed.feed.icon %}
+        <link rel="icon" href="{{ feed.feed.icon }}" />
+    {% endif %}
+    {% if feed.feed.title %}
+    <title>{{ feed.feed.title }}</title>
+    {% endif %}
+</head>
+<body>
+    {% if 'title' in feed.feed %}
+    <h2>
+        {% if 'link' in feed.feed %}
+        <a href="{{ feed.feed.link }}">
+        {% endif %}
+            {{ feed.feed.title }}
+        {% if feed.feed.link %}
+        </a>
+        {% endif %}
+    </h2>
+    {% endif %}
+    {% if feed.feed.description %}
+        <p>
+            {{ feed.feed.description }}
+        </p>
+    {% endif %}
+    <p>
+        <ul>
+            {% for entry in feed.entries %}
+            <li>
+                {% if entry.updated_datetime %}
+                    {{ entry.updated_datetime|date:"SHORT_DATETIME_FORMAT" }}
+                {% endif %}
+                <a href="{{ entry.link }}">{{ entry.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </p>
+</body>
+</html>

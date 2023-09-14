@@ -85,6 +85,8 @@ Clicking on the |stats_button| button, shows the top 100 most frequent words (af
 .. image:: ../../../tests/robotframework/screenshots/word_stats.png
    :class: sosse-screenshot
 
+.. _ui_atom_feeds:
+
 Atom feeds
 ----------
 

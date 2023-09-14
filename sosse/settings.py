@@ -203,7 +203,8 @@ SOSSE_LANGDETECT_TO_POSTGRES = {
         'flag': '🇧🇩'
     },
     'ca': {
-        'name': 'catalan'
+        'name': 'catalan',
+        'flag': '🏴󠁥󠁳󠁣󠁴󠁿'
     },
     'cs': {
         'name': 'czech',

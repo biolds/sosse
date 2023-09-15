@@ -15,6 +15,7 @@
 
 from django import forms
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from .document import Document
 from .url import sanitize_url, validate_url
@@ -109,6 +110,9 @@ class AddToQueueForm(forms.Form):
         super().__init__(data, *args, **kwargs)
 
     def clean_url(self):
-        value = sanitize_url(self.cleaned_data['url'])
+        try:
+            value = sanitize_url(self.cleaned_data['url'])
+        except Exception as e:  # noqa
+            raise ValidationError(e.args[0])
         validate_url(value)
         return value

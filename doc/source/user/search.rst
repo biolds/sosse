@@ -90,7 +90,7 @@ Clicking on the |stats_button| button, shows the top 100 most frequent words (af
 Atom feeds
 ----------
 
-The |atom_button| button, gives access to `Atom feeds <https://en.wikipedia.org/wiki/Atom_rss>`_ for the current search terms:
+The |atom_button| button, gives access to an `Atom feeds <https://en.wikipedia.org/wiki/Atom_rss>`_ for the current search terms:
 
 .. |atom_button| image:: ../../../tests/robotframework/screenshots/atom_button.png
    :class: sosse-inline-screenshot

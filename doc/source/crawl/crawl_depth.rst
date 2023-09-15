@@ -6,7 +6,7 @@ SOSSE can crawl recursively all pages it finds, or the recursion level can be li
 No limit recursion
 -------------------
 
-Recursing with no limit is achived by using a policy with :ref:`Crawl condition <crawl_depth_params>` to ``Cralw all pages``.
+Recursing with no limit is achived by using a policy with :ref:`Crawl condition <crawl_depth_params>` to ``Crawl all pages``.
 
 
 Limited recursion

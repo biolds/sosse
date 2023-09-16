@@ -20,7 +20,7 @@ is accessed, and this option is switched to either ``Chromium`` or ``Python Requ
 Ignore robots
 """""""""""""
 
-By default the crawler will honor the ``robots.txt`` of the domain and follow its rules depending on the :ref:`User Agent <conf_option_user_agent>`.
+By default the crawler will honor the ``robots.txt`` 🤖 of the domain and follow its rules depending on the :ref:`User Agent <conf_option_user_agent>`.
 When enabled, this option will ignore any ``robots.txt`` rule and crawl pages of the domain unconditionally.
 
 Robots.txt status

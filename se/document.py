@@ -363,6 +363,8 @@ class Document(models.Model):
         from .models import FavIcon
         crawl_logger.debug('parsing %s', self.url)
 
+        with open('/tmp/dump', 'wb') as f:
+            f.write(page.content)
         parsed = page.get_soup()
 
         self._index_log('get soup', stats, verbose)

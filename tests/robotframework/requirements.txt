@@ -1,4 +1,4 @@
-selenium<4.10
+selenium
 pyyaml
 robotframework
 robotframework-seleniumlibrary

@@ -14,7 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
 
 from .document import Document
@@ -23,7 +23,7 @@ from .models import Link, SearchEngine
 from .search import add_headlines, get_documents
 
 
-class SearchTest(TestCase):
+class SearchTest(TransactionTestCase):
     def setUp(self):
         self.root = Document.objects.create(url='http://127.0.0.1/',
                                             normalized_url='http://127.0.0.1/',
@@ -181,7 +181,7 @@ class SearchTest(TestCase):
         self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Télé</span>')
 
 
-class ShortcutTest(TestCase):
+class ShortcutTest(TransactionTestCase):
     def setUp(self):
         SearchEngine.objects.create(short_name='fake', shortcut='f', html_template=self._search_url('{searchTerms}'))
         SearchEngine.objects.create(short_name='fake2', shortcut='g', html_template=self._search_url('{searchTerms}', 'test2.com'))

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
 
@@ -43,7 +43,7 @@ class RedirectTest:
         self.assertIn(b'"url": "http://127.0.0.1:8000/get"', page.content)
 
 
-class RequestsRedirectTest(RedirectTest, TestCase):
+class RequestsRedirectTest(RedirectTest, TransactionTestCase):
     BROWSER = RequestBrowser
 
     def test_30_five_redirects(self):
@@ -57,5 +57,5 @@ class RequestsRedirectTest(RedirectTest, TestCase):
             self.BROWSER.get(TEST_SERVER_URL + 'redirect/6')
 
 
-class SeleniumRedirectTest(RedirectTest, TestCase):
+class SeleniumRedirectTest(RedirectTest, TransactionTestCase):
     BROWSER = SeleniumBrowser

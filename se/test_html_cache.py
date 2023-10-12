@@ -17,7 +17,7 @@ from datetime import timedelta
 from unittest import mock
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.utils import timezone
 
 from .browser import Page
@@ -28,7 +28,7 @@ from .url import sanitize_url
 from .utils import http_date_format
 
 
-class HTMLCacheTest(TestCase):
+class HTMLCacheTest(TransactionTestCase):
     def test_010_html_filenames(self):
         for url, fn in (
             ('http://127.0.0.1/test.html', 'http,3A/127.0.0.1/test.html_~~~.html'),

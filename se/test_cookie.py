@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from .models import Cookie
 
 
-class SearchTest(TestCase):
+class SearchTest(TransactionTestCase):
     def setUp(self):
         self.cookie = Cookie.objects.create(domain='test.com',
                                             name='test_name',

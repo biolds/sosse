@@ -18,7 +18,7 @@
 
 from datetime import datetime, timezone
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from .browser import Browser, Page
 from .document import Document
@@ -173,7 +173,7 @@ RSS_FEED = b'''
 '''
 
 
-class PageTest(TestCase):
+class PageTest(TransactionTestCase):
     @classmethod
     def setUpClass(cls):
         Browser.init()

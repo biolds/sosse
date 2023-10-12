@@ -14,7 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from .document import Document
 from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
@@ -227,11 +227,11 @@ class FunctionalTest:
             self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
 
 
-class RequestsFunctionalTest(FunctionalTest, TestCase):
+class RequestsFunctionalTest(FunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
     BROWSER_CLASS = RequestBrowser
 
 
-class SeleniumFunctionalTest(FunctionalTest, TestCase):
+class SeleniumFunctionalTest(FunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_SELENIUM
     BROWSER_CLASS = SeleniumBrowser

@@ -13,13 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from .url import absolutize_url, has_browsable_scheme, urlparse, url_beautify, norm_url_path
 from .utils import reverse_no_escape
 
 
-class UrlTest(TestCase):
+class UrlTest(TransactionTestCase):
     def test_browsable_scheme(self):
         self.assertTrue(has_browsable_scheme('http://test'))
         self.assertTrue(has_browsable_scheme('http:/test'))
@@ -180,7 +180,7 @@ class UrlTest(TestCase):
             self.assertEqual(absolutize_url(base_url, link), expected, 'link: %s' % link)
 
 
-class UrlBeautifyTest(TestCase):
+class UrlBeautifyTest(TransactionTestCase):
     def test_beautify(self):
         URLS = (
             ('http://xn--z7x.com/', 'http://猫.com/'),

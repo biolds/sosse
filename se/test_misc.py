@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 
 from se.models import DomainSetting
 from .document import Document
@@ -27,7 +27,7 @@ disallow: /disallow/*
 '''
 
 
-class MiscTest(TestCase):
+class MiscTest(TransactionTestCase):
     def test_robots_txt(self):
         domain = DomainSetting.objects.create(domain='127.0.0.1')
         domain._parse_robotstxt(ROBOTS_TXT)

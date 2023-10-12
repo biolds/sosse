@@ -18,7 +18,7 @@ from unittest import mock
 import cssutils
 from django.conf import settings
 from django.shortcuts import reverse
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 from django.utils.html import format_html
 from requests import HTTPError
 
@@ -32,16 +32,11 @@ from .test_mock import BrowserMock
 
 
 class HTMLSnapshotTest:
-    @classmethod
-    def setUpClass(cls):
-        cls.policy = CrawlPolicy.create_default()
-        cls.policy.default_browse_mode = DomainSetting.BROWSE_REQUESTS
-        cls.policy.create_thumbnails = False
-        cls.policy.save()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.policy.delete()
+    def setUp(self):
+        self.policy = CrawlPolicy.create_default()
+        self.policy.default_browse_mode = DomainSetting.BROWSE_REQUESTS
+        self.policy.create_thumbnails = False
+        self.policy.save()
 
     def test_010_html_dump(self):
         HTML = b'<html><head></head><body>test</body></html>'
@@ -903,20 +898,18 @@ class HTMLSnapshotTest:
                          set(('http,3A/127.0.0.1/style.css_72f0eee2c7.css', 'http,3A/127.0.0.1/image.png_62d75f74b8.png')))
 
 
-class HTMLSnapshotCSSUtilsParser(HTMLSnapshotTest, TestCase):
+class HTMLSnapshotCSSUtilsParser(HTMLSnapshotTest, TransactionTestCase):
     @classmethod
     def setUpClass(cls):
-        HTMLSnapshotTest.setUpClass()
         import se.html_snapshot
         cls.InternalCSSParser = se.html_snapshot.InternalCSSParser
         se.html_snapshot.InternalCSSParser = se.html_snapshot.CSSUtilsParser
 
     @classmethod
     def tearDownClass(cls):
-        HTMLSnapshotTest.tearDownClass()
         import se.html_snapshot
         se.html_snapshot.InternalCSSParser = cls.InternalCSSParser
 
 
-class HTMLSnapshotInternalCSSParser(HTMLSnapshotTest, TestCase):
+class HTMLSnapshotInternalCSSParser(HTMLSnapshotTest, TransactionTestCase):
     pass

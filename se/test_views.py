@@ -18,7 +18,7 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TransactionTestCase
 from django.test.client import Client
 from django.utils import timezone
 
@@ -37,26 +37,26 @@ from se.www import www
 CRAWL_URL = 'http://127.0.0.1:8000/cookies'
 
 
-class ViewsTest(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.user = User.objects.create(username='admin', is_superuser=True, is_staff=True)
-        cls.user.set_password('admin')
-        cls.user.save()
-        cls.crawl_policy = CrawlPolicy.create_default()
-        cls.crawl_policy.default_browse_mode = DomainSetting.BROWSE_SELENIUM
-        cls.crawl_policy.take_screenshots = True
-        cls.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
-        cls.crawl_policy.save()
-        cls.doc = Document.objects.create(url=CRAWL_URL)
+class ViewsTest(TransactionTestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='admin', is_superuser=True, is_staff=True)
+        self.user.set_password('admin')
+        self.user.save()
+        self.crawl_policy = CrawlPolicy.create_default()
+        self.crawl_policy.default_browse_mode = DomainSetting.BROWSE_SELENIUM
+        self.crawl_policy.take_screenshots = True
+        self.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
+        self.crawl_policy.save()
+        self.doc = Document.objects.create(url=CRAWL_URL)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
 
+        self.factory = RequestFactory()
+        self.client = Client(HTTP_USER_AGENT='Mozilla/5.0')
+        self.assertTrue(self.client.login(username='admin', password='admin'))
+
     @classmethod
     def tearDownClass(cls):
-        cls.user.delete()
-        cls.doc.delete()
-        cls.crawl_policy.delete()
         try:
             os.unlink(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/cookies_98ba5952821ca60c491fa81c6214e26f.html')
         except OSError:
@@ -66,11 +66,6 @@ class ViewsTest(TestCase):
             os.rmdir(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/')
         except OSError:
             pass
-
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.client = Client(HTTP_USER_AGENT='Mozilla/5.0')
-        self.assertTrue(self.client.login(username='admin', password='admin'))
 
     def _request_from_factory(self, url):
         request = self.factory.get(url)

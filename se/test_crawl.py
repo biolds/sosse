@@ -16,7 +16,7 @@
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 
 from .browser import AuthElemFailed, Page, SkipIndexing
 from .document import Document
@@ -24,7 +24,7 @@ from .models import DomainSetting, Link, CrawlPolicy
 from .test_mock import BrowserMock
 
 
-class CrawlerTest(TestCase):
+class CrawlerTest(TransactionTestCase):
     DEFAULT_GETS = [
         mock.call('http://127.0.0.1/robots.txt', check_status=True),
         mock.call('http://127.0.0.1/'),

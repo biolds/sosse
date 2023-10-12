@@ -15,12 +15,12 @@
 
 import requests
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from .browser import RequestBrowser
 
 
-class RequestsTest(TestCase):
+class RequestsTest(TransactionTestCase):
     def _get(self, s, url):
         params = RequestBrowser._requests_params()
         params['allow_redirects'] = True

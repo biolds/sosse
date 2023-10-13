@@ -25,7 +25,7 @@ from django.db import connection
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
 
-from ...browser import Browser
+from ...browser import ChromiumBrowser, FirefoxBrowser
 from ...models import CrawlerStats, Document, CrawlPolicy, MINUTELY, WorkerStats
 
 crawl_logger = logging.getLogger('crawler')
@@ -36,7 +36,8 @@ class Command(BaseCommand):
     doc = '''This command starts one or multiple crawlers, depending on the :ref:`crawler count <conf_option_crawler_count>` option set in the :doc:`configuration file <config_file>`.'''
 
     def __del__(self):
-        Browser.destroy()
+        ChromiumBrowser.destroy()
+        FirefoxBrowser.destroy()
 
     def add_arguments(self, parser):
         parser.add_argument('urls', nargs='*', type=str, help='Optionnal list of URLs to add to the crawler queue.')
@@ -48,13 +49,13 @@ class Command(BaseCommand):
             connection.close()
             connection.connect()
 
-            base_dir = settings.SOSSE_TMP_DL_DIR + '/' + str(worker_no)
+            FirefoxBrowser.worker_no = worker_no
+            ChromiumBrowser.worker_no = worker_no
+            base_dir = settings.SOSSE_TMP_DL_DIR + '/chromium/' + str(worker_no)
             if not os.path.isdir(base_dir):
                 os.makedirs(base_dir)
+            # change cwd to Chromium's because it downloads directory (while Firefox has an option for target dir)
             os.chdir(base_dir)
-
-            for f in os.listdir(base_dir):
-                os.unlink(f)
 
             crawl_logger.info('Crawler %i starting' % worker_no)
 
@@ -83,7 +84,8 @@ class Command(BaseCommand):
                         crawl_logger.debug('%s %s...' % (worker_no, worker_stats.state.title()))
                     sleep_count += 1
                     if sleep_count > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
-                        Browser.destroy()
+                        ChromiumBrowser.destroy()
+                        FirefoxBrowser.destroy()
                     sleep(1)
                 else:
                     sleep_count = 0

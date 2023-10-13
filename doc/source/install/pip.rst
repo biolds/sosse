@@ -9,6 +9,8 @@ Before installing SOSSE, you'll need to manually install the following softwares
 - a web server supporting `WSGI <https://wsgi.readthedocs.io/en/latest/learn.html>`_ (the steps below explains how to setup `Nginx <https://nginx.org/>`_)
 - a WSGI server (the steps below explains how to setup `uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_)
 - `PostgreSQL <https://www.postgresql.org/>`_
+- `Firefox <https://www.mozilla.org/firefox/>`_
+- `Geckodriver <https://github.com/mozilla/geckodriver/>`_
 - `Google Chromium <https://www.chromium.org/Home>`_
 - `ChromeDriver <https://chromedriver.chromium.org/>`_
 
@@ -29,9 +31,9 @@ The default configuration and directories can be created with the commands:
 
 .. code-block:: shell
 
-   mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html
+   mkdir -p /run/sosse /var/log/sosse /var/www/.cache /var/www/.mozilla /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html
    touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
-   chown -R www-data:www-data /run/sosse /var/lib/sosse /var/log/sosse
+   chown -R www-data:www-data /run/sosse /var/lib/sosse /var/www/.cache /var/www/.mozilla /var/log/sosse
    mkdir /etc/sosse
    /opt/sosse-venv/bin/sosse-admin default_conf > /etc/sosse/sosse.conf
 

@@ -15,7 +15,8 @@
 
 from django.test import TransactionTestCase
 
-from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
+from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexing
+from .test_mock import CleanTest, FirefoxTest
 
 
 TEST_SERVER_URL = 'http://127.0.0.1:8000/'
@@ -23,12 +24,9 @@ TEST_SERVER_URL = 'http://127.0.0.1:8000/'
 
 class RedirectTest:
     @classmethod
-    def setUpClass(cls):
-        Browser.init()
-
-    @classmethod
     def tearDownClass(cls):
-        Browser.destroy()
+        ChromiumBrowser.destroy()
+        FirefoxBrowser.destroy()
 
     def test_10_no_redirect(self):
         page = self.BROWSER.get(TEST_SERVER_URL)
@@ -40,10 +38,10 @@ class RedirectTest:
         page = self.BROWSER.get(TEST_SERVER_URL + 'redirect/1')
         self.assertEqual(page.url, TEST_SERVER_URL + 'get')
         self.assertEqual(page.redirect_count, 1)
-        self.assertIn(b'"url": "http://127.0.0.1:8000/get"', page.content)
+        self._check_key_val(b'url', b'"http://127.0.0.1:8000/get"', page.content)
 
 
-class RequestsRedirectTest(RedirectTest, TransactionTestCase):
+class RequestsRedirectTest(RedirectTest, CleanTest, TransactionTestCase):
     BROWSER = RequestBrowser
 
     def test_30_five_redirects(self):
@@ -57,5 +55,9 @@ class RequestsRedirectTest(RedirectTest, TransactionTestCase):
             self.BROWSER.get(TEST_SERVER_URL + 'redirect/6')
 
 
-class SeleniumRedirectTest(RedirectTest, TransactionTestCase):
-    BROWSER = SeleniumBrowser
+class FirefoxRedirectTest(RedirectTest, FirefoxTest, TransactionTestCase):
+    BROWSER = FirefoxBrowser
+
+
+class ChromiumRedirectTest(RedirectTest, CleanTest, TransactionTestCase):
+    BROWSER = ChromiumBrowser

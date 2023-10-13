@@ -13,7 +13,7 @@ Browse mode
 
 When the policy's :ref:`Default browse mode <default_browse_params>` is set to ``Detect``, the ``Browse mode`` option of the
 domain define which browsing method to use. When its value is ``Detect``, the browsing mode is detected the next time the page
-is accessed, and this option is switched to either ``Chromium`` or ``Python Requests``.
+is accessed, and this option is switched to either ``Chromium``, ``Firefox``  or ``Python Requests``.
 
 .. _domain_ignore_robots:
 

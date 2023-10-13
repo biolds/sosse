@@ -27,9 +27,11 @@
                 {% endif %}
                 <li>
                     {% if crawl_policy.default_browse_mode == DomainSetting.BROWSE_DETECT %}
-                        A browser will be used if necessary
-                    {% elif crawl_policy.default_browse_mode == DomainSetting.BROWSE_SELENIUM %}
-                        A browser will be used
+                        Pages will be crawl with {{ settings.SOSSE_DEFAULT_BROWSER|title }} if necessary
+                    {% elif crawl_policy.default_browse_mode == DomainSetting.BROWSE_CHROMIUM %}
+                        Chromium will be used
+                    {% elif crawl_policy.default_browse_mode == DomainSetting.BROWSE_FIREFOX %}
+                        Firefox will be used
                     {% else %}
                         No browser will be used
                     {% endif %}

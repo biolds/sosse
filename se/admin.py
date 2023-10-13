@@ -475,16 +475,16 @@ class CrawlPolicyForm(forms.ModelForm):
             if not required and cleaned_data.get(key) is not None:
                 self.add_error(key, 'This field must be null when using this recrawl mode')
 
-        if cleaned_data['default_browse_mode'] != DomainSetting.BROWSE_SELENIUM:
+        if cleaned_data['default_browse_mode'] not in (DomainSetting.BROWSE_CHROMIUM, DomainSetting.BROWSE_FIREFOX):
             if cleaned_data['create_thumbnails']:
-                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to create thumbnails')
-                self.add_error('create_thumbnails', 'Browsing mode must be set to Chromium to create thumbnails')
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to create thumbnails')
+                self.add_error('create_thumbnails', 'Browsing mode must be set to Chromium or Firefox to create thumbnails')
             elif cleaned_data['take_screenshots']:
-                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to take screenshots')
-                self.add_error('take_screenshots', 'Browsing mode must be set to Chromium to take screenshots')
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to take screenshots')
+                self.add_error('take_screenshots', 'Browsing mode must be set to Chromium or Firefox to take screenshots')
             elif cleaned_data['script']:
-                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium to run a script')
-                self.add_error('script', 'Browsing mode must be set to Chromium to run a script')
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to run a script')
+                self.add_error('script', 'Browsing mode must be set to Chromium or Firefox to run a script')
         return cleaned_data
 
 

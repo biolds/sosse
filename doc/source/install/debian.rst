@@ -51,6 +51,19 @@ After installing the package, the Nginx site needs to be enabled with:
    ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
    systemctl restart nginx
 
+Geckodriver setup (optional)
+----------------------------
+
+To crawl pages with Firefox, it is required to install `Geckodriver <https://github.com/mozilla/geckodriver/>`_, with the command:
+
+.. code-block:: shell
+
+   curl -L https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
+
+.. note::
+   A more recent Geckodriver may improve compatibily with the installed Firefox, though different versions have not been tested to work
+   correctly with Sosse.
+
 Next steps
 ----------
 

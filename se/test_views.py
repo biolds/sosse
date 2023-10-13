@@ -23,6 +23,7 @@ from django.test.client import Client
 from django.utils import timezone
 
 from se.atom import atom
+from se.browser import ChromiumBrowser, FirefoxBrowser
 from se.cached import cache_redirect
 from se.document import Document
 from se.html import html, html_excluded
@@ -37,13 +38,13 @@ from se.www import www
 CRAWL_URL = 'http://127.0.0.1:8000/cookies'
 
 
-class ViewsTest(TransactionTestCase):
+class ViewsTest:
     def setUp(self):
         self.user = User.objects.create(username='admin', is_superuser=True, is_staff=True)
         self.user.set_password('admin')
         self.user.save()
         self.crawl_policy = CrawlPolicy.create_default()
-        self.crawl_policy.default_browse_mode = DomainSetting.BROWSE_SELENIUM
+        self.crawl_policy.default_browse_mode = self.BROWSER
         self.crawl_policy.take_screenshots = True
         self.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
         self.crawl_policy.save()
@@ -57,6 +58,8 @@ class ViewsTest(TransactionTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        ChromiumBrowser.destroy()
+        FirefoxBrowser.destroy()
         try:
             os.unlink(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/cookies_98ba5952821ca60c491fa81c6214e26f.html')
         except OSError:
@@ -146,3 +149,11 @@ class ViewsTest(TransactionTestCase):
 
         response = self.client.post('/admin/se/document/queue_confirm/', {'url': CRAWL_URL, 'action': 'Confirm'})
         self.assertEqual(response.status_code, 302, response)
+
+
+class ChromiumViewTest(ViewsTest, TransactionTestCase):
+    BROWSER = DomainSetting.BROWSE_CHROMIUM
+
+
+class FirefoxViewTest(ViewsTest, TransactionTestCase):
+    BROWSER = DomainSetting.BROWSE_FIREFOX

@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import logging
 import os
 import pytz
+import psutil
 import shlex
 import traceback
 from datetime import datetime
@@ -26,9 +28,12 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from PIL import Image
 import requests
+import selenium
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.options import Options as ChromiumOptions
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from urllib3.exceptions import HTTPError
 
 from .url import absolutize_url, sanitize_url, url_remove_fragment, url_remove_query_string
@@ -128,28 +133,34 @@ class Browser:
     def init(cls):
         if cls.inited:
             return
-        crawl_logger.debug('Browser init')
-        RequestBrowser.init()
-        SeleniumBrowser.init()
+        crawl_logger.info('Browser %s init' % cls.__name__)
+        cls._init()
         cls.inited = True
 
     @classmethod
     def destroy(cls):
         if not cls.inited:
             return
-        crawl_logger.debug('Browser destroy')
-        RequestBrowser.destroy()
-        SeleniumBrowser.destroy()
+        crawl_logger.info('Browser %s destroy' % cls.__name__)
+        cls._destroy()
         cls.inited = False
+
+    @classmethod
+    def _init(cls):
+        raise NotImplementedError()
+
+    @classmethod
+    def _destroy(cls):
+        raise NotImplementedError()
 
 
 class RequestBrowser(Browser):
     @classmethod
-    def init(cls):
+    def _init(cls):
         pass
 
     @classmethod
-    def destroy(cls):
+    def _destroy(cls):
         pass
 
     @classmethod
@@ -259,7 +270,6 @@ class RequestBrowser(Browser):
 
     @classmethod
     def get(cls, url, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs):
-        Browser.init()
         REDIRECT_CODE = (301, 302, 307, 308)
         page = None
         redirect_count = 0
@@ -313,8 +323,6 @@ class RequestBrowser(Browser):
 
     @classmethod
     def try_auth(cls, page, url, crawl_policy):
-        Browser.init()
-
         parsed = page.get_soup()
         form = parsed.select(crawl_policy.auth_form_selector)
 
@@ -382,49 +390,59 @@ def retry(f):
 
 
 class SeleniumBrowser(Browser):
-    driver = None
+    _worker_no = 0
+    _driver = None
     cookie_loaded = []
     COOKIE_LOADED_SIZE = 1024
     first_init = True
 
     @classmethod
-    def init(cls):
+    @property
+    def driver(cls):
+        cls.init()
+        return cls._driver
+
+    @classmethod
+    def _init(cls):
+        if not os.path.isdir(ChromiumBrowser._get_download_dir()):
+            os.makedirs(ChromiumBrowser._get_download_dir())
+        if not os.path.isdir(FirefoxBrowser._get_download_dir()):
+            os.makedirs(FirefoxBrowser._get_download_dir())
+
         # force the cwd in case it's not called from the worker
         if not os.getcwd().startswith(settings.SOSSE_TMP_DL_DIR + '/'):
-            os.chdir(settings.SOSSE_TMP_DL_DIR + '/0')
+            # change cwd to Chromium's because it downloads directory (while Firefox has an option for target dir)
+            os.chdir(ChromiumBrowser._get_download_dir())
 
-        options = Options()
-        options.binary_location = "/usr/bin/chromium"
+        # Force HOME directory as it used for Firefox profile loading
+        os.environ['HOME'] = '/var/www'
 
-        opts = shlex.split(settings.SOSSE_BROWSER_OPTIONS)
-
-        if settings.SOSSE_PROXY:
-            opts.append('--proxy-server=%s' % settings.SOSSE_PROXY.rstrip('/'))
-        opts.append('--user-agent=%s' % settings.SOSSE_USER_AGENT)
-        opts.append('--start-maximized')
-        opts.append('--start-fullscreen')
+        opt_key = 'SOSSE_%s_OPTIONS' % cls.name.upper()
+        opts = shlex.split(getattr(settings, opt_key))
         opts.append('--window-size=%s,%s' % cls.screen_size())
+        opts += cls._get_options()
 
+        options = cls._get_options_obj()
         for opt in opts:
             if cls.first_init:
                 crawl_logger.info('Passing option %s', opt)
             options.add_argument(opt)
 
         cls.first_init = False
-        cls.driver = webdriver.Chrome(options=options)
-        cls.driver.delete_all_cookies()
+        cls._driver = cls._get_driver(options)
+        cls._driver.delete_all_cookies()
 
     @classmethod
-    def destroy(cls):
-        if cls.driver:
+    def _destroy(cls):
+        if cls._driver:
             # Ignore errors in case the browser crashed
             try:
-                cls.driver.close()
+                cls._driver.close()
             except:  # noqa
                 pass
 
             try:
-                cls.driver.quit()
+                cls._driver.quit()
             except:  # noqa
                 pass
 
@@ -435,19 +453,35 @@ class SeleniumBrowser(Browser):
         return sanitize_url(cls.driver.current_url)
 
     @classmethod
+    def _driver_get(cls):
+        raise NotImplementedError()
+
+    @classmethod
+    def _wait_for_url(cls, url):
+        retry = settings.SOSSE_JS_STABLE_RETRY
+        while retry > 0 and cls.driver.current_url != url:
+            sleep(settings.SOSSE_JS_STABLE_TIME)
+            retry = 1
+
+    @classmethod
     def _wait_for_ready(cls, url):
+        crawl_logger.debug('wait_for_ready %s, %s / %s / %s', url, settings.SOSSE_MAX_REDIRECTS, settings.SOSSE_JS_STABLE_RETRY, settings.SOSSE_JS_STABLE_TIME)
         redirect_count = 0
+
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
             # Wait for page being ready
             retry = settings.SOSSE_JS_STABLE_RETRY
-            while retry > 0 and cls.driver.current_url == url:
+            while retry > 0 and cls._current_url() == url:
                 retry -= 1
-                if cls.driver.execute_script('return document.readyState;') == 'complete':
+                if cls.driver.execute_script('return document.readyState === "complete";'):
                     break
+                sleep(settings.SOSSE_JS_STABLE_TIME)
 
-            if cls.driver.current_url != url:
+            new_url = cls._current_url()
+            if new_url != url:
+                crawl_logger.debug('detected redirect %i %s -> %s', redirect_count, url, new_url)
                 redirect_count += 1
-                url = cls.driver.current_url
+                url = new_url
                 continue
             else:
                 break
@@ -457,7 +491,7 @@ class SeleniumBrowser(Browser):
             previous_content = None
             content = None
 
-            while retry > 0 and cls.driver.current_url == url:
+            while retry > 0 and cls._current_url() == url:
                 retry -= 1
                 content = cls.driver.page_source
 
@@ -466,9 +500,9 @@ class SeleniumBrowser(Browser):
                 previous_content = content
                 sleep(settings.SOSSE_JS_STABLE_TIME)
 
-            if cls.driver.current_url != url:
+            if cls._current_url() != url:
                 redirect_count += 1
-                url = cls.driver.current_url
+                url = cls._current_url()
                 continue
             else:
                 break
@@ -495,7 +529,7 @@ class SeleniumBrowser(Browser):
         from .models import CrawlPolicy
         redirect_count = cls._wait_for_ready(url)
 
-        current_url = cls._current_url()
+        current_url = cls.driver.current_url
         crawl_policy = CrawlPolicy.get_from_url(current_url)
         if crawl_policy and crawl_policy.script:
             cls.driver.execute_script(crawl_policy.script)
@@ -561,7 +595,9 @@ class SeleniumBrowser(Browser):
 
         if current_url.netloc != target_url.netloc:
             crawl_logger.debug('navigate for cookie to %s' % dest)
-            cls.driver.get(dest)
+            cls._driver_get(dest)
+            cls._wait_for_ready(dest)
+            crawl_logger.debug('navigate for cookie done %s' % cls._current_url())
 
         crawl_logger.debug('clearing cookies')
         cls.driver.delete_all_cookies()
@@ -588,12 +624,12 @@ class SeleniumBrowser(Browser):
     @classmethod
     @retry
     def get(cls, url):
-        Browser.init()
-
         current_url = cls.driver.current_url
 
         # Clear the download dir
-        for f in os.listdir('.'):
+        crawl_logger.debug('clearing %s' % cls._get_download_dir())
+        for f in os.listdir(cls._get_download_dir()):
+            f = os.path.join(cls._get_download_dir(), f)
             if os.path.isfile(f):
                 crawl_logger.warning('Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
                 os.unlink(f)
@@ -601,7 +637,7 @@ class SeleniumBrowser(Browser):
         crawl_logger.debug('loading cookies')
         cls._load_cookies(url)
         crawl_logger.debug('driver get')
-        cls.driver.get(url)
+        cls._driver_get(url)
 
         if ((current_url != url and cls.driver.current_url == current_url)  # If we got redirected to the url that was previously set in the browser
                 or cls.driver.current_url == 'data:,'):  # The url can be "data:," during a few milliseconds when the download starts
@@ -619,38 +655,46 @@ class SeleniumBrowser(Browser):
     @classmethod
     def _handle_download(cls, url):
         retry = settings.SOSSE_DL_CHECK_RETRY
+        filename = None
         while retry:
-            if len(os.listdir('.')) != 0:
-                break
+            filename = cls._get_download_file()
+            if filename is not None:
+                try:
+                    if os.stat(filename).st_size != 0:
+                        # Firefox first create an empty file, then renames it to download into it
+                        break
+                except FileNotFoundError:
+                    continue
+
             crawl_logger.debug('no download in progress')
             sleep(settings.SOSSE_DL_CHECK_TIME)
             retry -= 1
         else:
-            if len(os.listdir('.')) == 0:  # redo the check in case SOSSE_DL_CHECK_RETRY == 0
+            if len(os.listdir(cls._get_download_dir())) == 0:  # redo the check in case SOSSE_DL_CHECK_RETRY == 0
                 crawl_logger.debug('no download has started')
                 return
 
-        crawl_logger.debug('Download in progress: %s' % os.listdir('.'))
-        filename = os.listdir('.')[0]
-        size = os.stat(filename).st_size
-        while True:
-            sleep(settings.SOSSE_DL_CHECK_TIME)
-            try:
+        crawl_logger.debug('Download in progress: %s' % os.listdir(cls._get_download_dir()))
+        crawl_logger.debug('Download file: %s' % filename)
+        try:
+            size = os.stat(filename).st_size
+            while True:
+                sleep(settings.SOSSE_DL_CHECK_TIME)
                 _size = os.stat(filename).st_size
-            except FileNotFoundError:
-                # when the download is finished the file is renamed
-                break
-            if size == _size:
-                break
-            size = _size
+                if size == _size:
+                    break
+                size = _size
 
-            if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
-                SeleniumBrowser.destroy()  # cancel the download
-                raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
+                if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
+                    cls.destroy()  # cancel the download
+                    raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
+        except FileNotFoundError:
+            # when the download is finished the file is renamed
+            pass
 
-        crawl_logger.debug('Download done: %s' % os.listdir('.'))
+        crawl_logger.debug('Download done: %s' % os.listdir(cls._get_download_dir()))
 
-        filename = os.listdir('.')[0]
+        filename = cls._get_download_file()
         size = os.stat(filename).st_size
         if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
             raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
@@ -660,7 +704,8 @@ class SeleniumBrowser(Browser):
         page = Page(url, content, cls)
 
         # Remove all files in case multiple were downloaded
-        for f in os.listdir('.'):
+        for f in os.listdir(cls._get_download_dir()):
+            f = os.path.join(cls._get_download_dir(), f)
             if os.path.isfile(f):
                 os.unlink(f)
         return page
@@ -710,6 +755,7 @@ class SeleniumBrowser(Browser):
                                    html.clientHeight, html.scrollHeight, html.offsetHeight);
         ''')
 
+        crawl_logger.debug('doc_height %s, height %s', doc_height, height)
         img_no = 0
         while (img_no + 1) * height < doc_height:
             cls.scroll_to_page(img_no)
@@ -777,8 +823,6 @@ class SeleniumBrowser(Browser):
     @classmethod
     @retry
     def try_auth(cls, page, url, crawl_policy):
-        Browser.init()
-
         form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
 
         if len(form) == 0:
@@ -798,10 +842,151 @@ class SeleniumBrowser(Browser):
 
         form.submit()
         crawl_logger.debug('submitting')
+        cls._wait_for_url(url)
+
         current_url = cls._current_url()
+        crawl_logger.debug('ready after submit %s', current_url)
         cls._save_cookies(current_url)
 
         if current_url != url:
             return cls.get(url)
 
         return cls._get_page(url)
+
+
+class ChromiumBrowser(SeleniumBrowser):
+    DRIVER_CLASS = webdriver.Chrome
+    name = 'chromium'
+
+    @classmethod
+    def _get_options_obj(cls):
+        options = ChromiumOptions()
+        options.binary_location = '/usr/bin/chromium'
+        return options
+
+    @classmethod
+    def _get_options(cls):
+        opts = []
+        if settings.SOSSE_PROXY:
+            opts.append('--proxy-server=%s' % settings.SOSSE_PROXY.rstrip('/'))
+        opts.append('--user-agent=%s' % settings.SOSSE_USER_AGENT)
+        opts.append('--start-maximized')
+        opts.append('--start-fullscreen')
+        return opts
+
+    @classmethod
+    def _get_driver(cls, options):
+        return webdriver.Chrome(options=options)
+
+    @classmethod
+    def _driver_get(cls, url):
+        cls.driver.get(url)
+
+    @classmethod
+    def _get_download_file(cls):
+        d = os.listdir(cls._get_download_dir())
+        if len(d) == 0:
+            return None
+        return os.path.join(cls._get_download_dir(), d[0])
+
+    @classmethod
+    def _get_download_dir(cls):
+        return settings.SOSSE_TMP_DL_DIR + '/chromium/' + str(cls._worker_no)
+
+
+class FirefoxBrowser(SeleniumBrowser):
+    DRIVER_CLASS = webdriver.Firefox
+    name = 'firefox'
+
+    @classmethod
+    def _get_options_obj(cls):
+        options = FirefoxOptions()
+        options.set_preference('browser.download.dir', settings.SOSSE_TMP_DL_DIR + '/firefox/' + str(cls._worker_no))
+        options.set_preference('browser.download.folderList', 2)
+        options.set_preference('browser.download.useDownloadDir', True)
+        options.set_preference('browser.download.viewableInternally.enabledTypes', '')
+        options.set_preference('browser.helperApps.alwaysAsk.force', False)
+        options.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/pdf;text/plain;application/text;text/xml;application/xml;application/octet-stream')
+        options.set_preference('general.useragent.override', settings.SOSSE_USER_AGENT)
+
+        # Ensure more secure cookie defaults, and be cosistent with Chromium's behavior
+        # See https://hacks.mozilla.org/2020/08/changes-to-samesite-cookie-behavior/
+        options.set_preference('network.cookie.sameSite.laxByDefault', True)
+        options.set_preference('network.cookie.sameSite.noneRequiresSecure', True)
+
+        if settings.SOSSE_PROXY:
+            url = urlparse(settings.SOSSE_PROXY)
+            url, port = url.netloc.rsplit(':', 1)
+            port = int(port)
+            options.set_preference('network.proxy.type', 1)
+            options.set_preference('network.proxy.http', url)
+            options.set_preference('network.proxy.http_port', port)
+            options.set_preference('network.proxy.ssl', url)
+            options.set_preference('network.proxy.ssl_port', port)
+        return options
+
+    @classmethod
+    def _get_options(cls):
+        return []
+
+    @classmethod
+    def _get_driver(cls, options):
+        log_file = '/var/log/sosse/geckodriver-%i.log' % cls._worker_no
+
+        selenium_ver = tuple(map(int, selenium.__version__.split('.')))
+        if selenium_ver < (4, 9, 0):
+            service = {'service_log_path': log_file}
+        else:
+            service = {
+                'service': FirefoxService(log_output=log_file)
+            }
+        return webdriver.Firefox(options=options, **service)
+
+    @classmethod
+    def _driver_get(cls, url):
+        dl_dir_files = sorted(os.listdir(cls._get_download_dir()))
+        crawl_logger.debug('dl_dir state: %s', dl_dir_files)
+
+        # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
+        # When a download starts, the regular cls.driver.get call is stuck
+        cls.driver.execute_script('''
+            window.sosseUrlChanging = true;
+            addEventListener('readystatechange', () => {
+                window.sosseUrlChanging = false;
+            });
+            window.location.assign(%s);
+        ''' % json.dumps(url))
+
+        if url == 'about:blank':
+            raise Exception('navigating to about:blank')
+
+        while cls.driver.current_url == 'about:blank' or cls.driver.execute_script('return window.sosseUrlChanging'):
+            crawl_logger.debug('driver get not done: %s' % cls.driver.current_url)
+            if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
+                return
+            sleep(0.1)
+
+    @classmethod
+    def _destroy(cls):
+        # Kill firefox, otherwise it can get stuck on a confirmation dialog
+        # (ie, when a download is still running)
+        gecko_pid = cls._driver.service.process.pid
+        p = psutil.Process(gecko_pid)
+        p.children()[0].kill()
+        super()._destroy()
+
+    @classmethod
+    def _get_download_dir(cls):
+        return settings.SOSSE_TMP_DL_DIR + '/firefox/' + str(cls._worker_no)
+
+    @classmethod
+    def _get_download_file(cls):
+        for f in os.listdir(cls._get_download_dir()):
+            if f.endswith('.part'):
+                break
+        else:
+            d = os.listdir(cls._get_download_dir())
+            if len(d) == 0:
+                return None
+            return os.path.join(cls._get_download_dir(), d[0])
+        return os.path.join(cls._get_download_dir(), f)

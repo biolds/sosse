@@ -74,8 +74,9 @@ Default browse mode
 
 Can be one of:
 
-* ``Detect``: the first time a domain is accessed, it is crawled with both Chromium and Python Requests. If the text content varies, it is assumed that the website is dynamic and Chromium will be used for subsequent crawling of pages in this domain. If the text content is the same, Python Request will be used since it is faster.
+* ``Detect``: the first time a domain is accessed, it is crawled with a browser and Python Requests. If the text content varies, it is assumed that the website is dynamic and the browser will be used for subsequent crawling of pages in this domain. If the text content is the same, Python Request will be used since it is faster. By default, the browser used is Chromium, this can be changed with the :ref:`default_browser option <conf_option_default_browser>`.
 * ``Chromium``: Chromium is used.
+* ``Firefox``: Firefox is used.
 * ``Python Requests``: Python Requests is used.
 
 .. _policy_create_thumbnails:
@@ -86,7 +87,7 @@ Create thumbnails
 Make thumbnails of pages. These thumbnails are displayed in search results.
 
 .. note::
-   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+   This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
 .. _policy_take_screenshot:
 
@@ -96,7 +97,7 @@ Take screenshots
 Enables taking screenshots of pages for offline use. When the option :ref:`Create thumbnails <policy_create_thumbnails>` is disabled, the screenshot is displayed in search results instead.
 
 .. note::
-   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+   This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
 Screenshot format
 """""""""""""""""
@@ -104,7 +105,7 @@ Screenshot format
 Format of the image JPG or PNG.
 
 .. note::
-   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+   This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
 Remove navigation related elements
 """"""""""""""""""""""""""""""""""
@@ -133,7 +134,7 @@ For example, the following script could be used to click on a `GDPR <https://en.
 In case the script triggers an error, further processing of the page is aborted and the error message is stored in the :ref:`document error field <document_error>`. It can be useful to use a tool such as `Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
 
 .. note::
-   This option requires the ``Default browse mode`` to be ``Chromium`` in order to work.
+   This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
 .. _policy_html_snapshot:
 

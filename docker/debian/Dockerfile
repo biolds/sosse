@@ -13,10 +13,13 @@ RUN apt install -y sosse && \
         apt-get clean autoclean && \
         apt-get autoremove --yes && \
         rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
+RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
 
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*
-RUN sed -e 's/^#\(browser_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf
+RUN mkdir /var/www/.cache /var/www/.mozilla
+RUN chown www-data:www-data /var/www/.cache /var/www/.mozilla
+RUN sed -e 's/^#\(chromium_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
 
@@ -36,8 +39,8 @@ RUN /etc/init.d/postgresql start && \
 
 RUN echo '#!/bin/bash -x \n \
 /etc/init.d/postgresql start \n \
-mkdir -p /run/sosse \n \
-chown -R www-data:www-data /run/sosse \n \
+mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/html/ \n \
+chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse \n \
 sosse-admin migrate \n \
 sosse-admin update_se \n \
 sosse-admin collectstatic --noinput \n \

@@ -241,9 +241,17 @@ DEFAULTS = OrderedDict([
             'comment': 'Resolution of the browser used to take screenshots.',
             'default': '1920x1080'
         }],
-        ['browser_options', {
+        ['default_browser', {
+            'comment': 'Defines which browser to use by default when browsing mode is auto-detected (can be either "firefox" or "chromium").',
+            'default': 'chromium'
+        }],
+        ['chromium_options', {
             'comment': "Options passed to Chromium's command line.\nYou may need to add ``--no-sandbox`` to run the crawler as root,\nor ``--disable-dev-shm-usage`` to run in a virtualized container.",
             'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
+        }],
+        ['firefox_options', {
+            'comment': "Options passed to Firefox's command line.",
+            'default': '--headless'
         }],
         ['js_stable_time', {
             'comment': 'When loading a page in a browser, wait ``js_stable_time`` seconds before checking the DOM stays unchanged.',
@@ -433,6 +441,9 @@ class Conf:
                 crawler_count = int(crawler_count)
             except ValueError:
                 raise Exception('Configuration parsing error: invalid "crawler_count", must be an integer or empty: %s' % crawler_count)
+
+        if settings.get('SOSSE_DEFAULT_BROWSER', 'firefox') not in ('firefox', 'chromium'):
+            raise Exception('Configuration parsing error: invalid default_browser, must be one of "firefox" or "chromium"')
 
         if settings['DEBUG']:
             for key, logger in LOGGING['loggers'].items():

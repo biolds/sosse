@@ -36,7 +36,7 @@ from langdetect.lang_detect_exception import LangDetectException
 from PIL import Image
 import feedparser
 
-from .browser import AuthElemFailed, SeleniumBrowser, SkipIndexing
+from .browser import AuthElemFailed, SkipIndexing
 from .html_cache import HTMLAsset
 from .html_snapshot import HTMLSnapshot
 from .url import absolutize_url, has_browsable_scheme, url_beautify, url_remove_fragment, url_remove_query_string, validate_url
@@ -395,7 +395,7 @@ class Document(models.Model):
         self._index_log('favicon', stats, verbose)
 
         if crawl_policy.create_thumbnails:
-            SeleniumBrowser.create_thumbnail(self.url, self.image_name())
+            crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
             self.has_thumbnail = True
 
         if crawl_policy.take_screenshots:
@@ -468,18 +468,19 @@ class Document(models.Model):
             os.unlink(src)
 
     def screenshot_index(self, links, crawl_policy):
-        img_count = SeleniumBrowser.take_screenshots(self.url, self.image_name())
-        crawl_logger.debug('took %s screenshots for %s', img_count, self.url)
+        browser = crawl_policy.get_browser(url=self.url)
+        img_count = browser.take_screenshots(self.url, self.image_name())
+        crawl_logger.debug('took %s screenshots for %s with %s', img_count, self.url, browser)
         self.screenshot_count = img_count
         self.screenshot_format = crawl_policy.screenshot_format
-        self.screenshot_size = '%sx%s' % SeleniumBrowser.screen_size()
+        self.screenshot_size = '%sx%s' % browser.screen_size()
 
         if crawl_policy.screenshot_format == Document.SCREENSHOT_JPG:
             self.convert_to_jpg()
 
-        SeleniumBrowser.scroll_to_page(0)
+        browser.scroll_to_page(0)
         for i, link in enumerate(links):
-            loc = SeleniumBrowser.get_link_pos_abs(link.css_selector)
+            loc = browser.get_link_pos_abs(link.css_selector)
             if loc == {}:
                 continue
             for attr in ('elemLeft', 'elemTop', 'elemRight', 'elemBottom'):
@@ -604,7 +605,7 @@ class Document(models.Model):
                         doc.robotstxt_rejected = False
 
                     try:
-                        page = crawl_policy.url_get(domain_setting, doc.url)
+                        page = crawl_policy.url_get(doc.url, domain_setting)
                     except AuthElemFailed as e:
                         doc.content = e.page.content.decode('utf-8')
                         doc._schedule_next(True, crawl_policy)

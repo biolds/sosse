@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 from django.test import TransactionTestCase
 
-from .browser import Browser, Page
+from .browser import ChromiumBrowser, FirefoxBrowser, Page
 from .document import Document
 from .models import CrawlPolicy, Link
 from .utils import http_date_format, http_date_parser
@@ -176,14 +176,14 @@ RSS_FEED = b'''
 class PageTest(TransactionTestCase):
     @classmethod
     def setUpClass(cls):
-        Browser.init()
         cls.policy = CrawlPolicy.create_default()
         cls.policy.snapshot_html = False
         cls.policy.save()
 
     @classmethod
     def tearDownClass(cls):
-        Browser.destroy()
+        ChromiumBrowser.destroy()
+        FirefoxBrowser.destroy()
         cls.policy.delete()
 
     def test_10_beautifulsoup(self):

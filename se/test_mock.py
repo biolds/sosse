@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import re
 from base64 import b64decode
 from mimetypes import guess_type
 
@@ -75,3 +76,26 @@ class BrowserMock:
 
         mimetype = guess_type(url)[0]
         return Page(url, content, BrowserMock, mimetype, headers, status_code)
+
+
+class BrowserTest:
+    def _check_key_val(self, key, val, content):
+        raise NotImplementedError()
+
+
+class CleanTest(BrowserTest):
+    def _check_key_val(self, key, val, content):
+        s = b'"%s": %s' % (key, val)
+        self.assertIn(s, content)
+
+
+class FirefoxTest(BrowserTest):
+    def _check_key_val(self, key, val, _content):
+        s = b'%s%s' % (key, val)
+        content = re.sub(b'<[^>]*>', b'', _content)
+        found = s in content
+
+        s = b'"%s": %s' % (key, val)
+        found |= s in content
+
+        self.assertTrue(found, '"%s" not found in\n%s' % (s, _content))

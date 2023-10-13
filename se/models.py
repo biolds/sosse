@@ -33,7 +33,7 @@ from django.utils.timezone import now
 from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
-from .browser import AuthElemFailed, RequestBrowser, SeleniumBrowser
+from .browser import AuthElemFailed, ChromiumBrowser, FirefoxBrowser, RequestBrowser
 from .document import Document
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
 
@@ -366,11 +366,13 @@ class FavIcon(models.Model):
 
 class DomainSetting(models.Model):
     BROWSE_DETECT = 'detect'
-    BROWSE_SELENIUM = 'selenium'
+    BROWSE_CHROMIUM = 'selenium'
+    BROWSE_FIREFOX = 'firefox'
     BROWSE_REQUESTS = 'requests'
     BROWSE_MODE = [
         (BROWSE_DETECT, 'Detect'),
-        (BROWSE_SELENIUM, 'Chromium'),
+        (BROWSE_CHROMIUM, 'Chromium'),
+        (BROWSE_FIREFOX, 'Firefox'),
         (BROWSE_REQUESTS, 'Python Requests'),
     ]
 
@@ -663,7 +665,8 @@ class Cookie(models.Model):
 
 
 BROWSER_MAP = {
-    DomainSetting.BROWSE_SELENIUM: SeleniumBrowser,
+    DomainSetting.BROWSE_CHROMIUM: ChromiumBrowser,
+    DomainSetting.BROWSE_FIREFOX: FirefoxBrowser,
     DomainSetting.BROWSE_REQUESTS: RequestBrowser,
 }
 
@@ -700,7 +703,7 @@ class CrawlPolicy(models.Model):
     crawl_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
     keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
 
-    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_SELENIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
+    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_CHROMIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
 
     snapshot_html = models.BooleanField(default=True, help_text='Store pages as HTML and download requisite assets', verbose_name='Snapshot HTML 🔖')
     snapshot_exclude_url_re = models.TextField(blank=True, default='', help_text='Regexp of URL to skip asset downloading')
@@ -753,17 +756,15 @@ class CrawlPolicy(models.Model):
             return CrawlPolicy.create_default()
         return policy
 
-    def url_get(self, domain_setting, url):
-        if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
-            if domain_setting.browse_mode in (DomainSetting.BROWSE_DETECT, DomainSetting.BROWSE_SELENIUM):
-                browser = SeleniumBrowser
-            elif domain_setting.browse_mode == DomainSetting.BROWSE_REQUESTS:
-                browser = RequestBrowser
-            else:
-                raise Exception('Unsupported browse_mode')
-        else:
-            browser = BROWSER_MAP[self.default_browse_mode]
+    @staticmethod
+    def _default_browser():
+        if settings.SOSSE_DEFAULT_BROWSER == 'chromium':
+            return DomainSetting.BROWSE_CHROMIUM
+        return DomainSetting.BROWSE_FIREFOX
 
+    def url_get(self, url, domain_setting=None):
+        domain_setting = domain_setting or DomainSetting.get_from_url(url, self.default_browse_mode)
+        browser = self.get_browser(domain_setting=domain_setting, no_detection=False)
         page = browser.get(url)
 
         if page.redirect_count:
@@ -791,7 +792,7 @@ class CrawlPolicy(models.Model):
             requests_page = RequestBrowser.get(url)
 
             if len(list(requests_page.get_links(self))) != len(list(page.get_links(self))):
-                new_mode = DomainSetting.BROWSE_SELENIUM
+                new_mode = self._default_browser()
             else:
                 new_mode = DomainSetting.BROWSE_REQUESTS
                 page = requests_page
@@ -799,6 +800,24 @@ class CrawlPolicy(models.Model):
             domain_setting.browse_mode = new_mode
             domain_setting.save()
         return page
+
+    def get_browser(self, url=None, domain_setting=None, no_detection=True):
+        if url is None and domain_setting is None:
+            raise Exception('Either url or domain_setting must be provided')
+        if url is not None and domain_setting is not None:
+            raise Exception('Either url or domain_setting must be provided')
+
+        if url:
+            domain_setting = DomainSetting.get_from_url(url, self.default_browse_mode)
+
+        if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
+            if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
+                if no_detection:
+                    raise Exception('browser mode is not yet known (%s)' % domain_setting)
+                return self._default_browser()
+            else:
+                return BROWSER_MAP[domain_setting.browse_mode]
+        return BROWSER_MAP[self.default_browse_mode]
 
 
 class SearchHistory(models.Model):

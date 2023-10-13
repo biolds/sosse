@@ -17,8 +17,9 @@ from django.conf import settings
 from django.test import TransactionTestCase
 
 from .document import Document
-from .browser import Browser, RequestBrowser, SeleniumBrowser, SkipIndexing
+from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexing
 from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
+from .test_mock import CleanTest, FirefoxTest
 
 
 TEST_SERVER_URL = 'http://127.0.0.1:8000/'
@@ -28,12 +29,9 @@ TEST_SERVER_PASS = 'admin'
 
 class FunctionalTest:
     @classmethod
-    def setUpClass(cls):
-        Browser.init()
-
-    @classmethod
     def tearDownClass(cls):
-        Browser.destroy()
+        ChromiumBrowser.destroy()
+        FirefoxBrowser.destroy()
 
     def _crawl(self):
         while Document.crawl(0):
@@ -89,16 +87,15 @@ class FunctionalTest:
 
     def test_20_user_agent(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
-        user_agent = b'"user-agent": "%s"' % settings.SOSSE_USER_AGENT.encode('utf-8')
-        self.assertIn(user_agent, page.content)
+        self._check_key_val(b'user-agent', b'"%s"' % settings.SOSSE_USER_AGENT.encode('utf-8'), page.content)
 
     def test_30_gzip(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'gzip')
-        self.assertIn(b'"deflated": true', page.content)
+        self._check_key_val(b'deflated', b'true', page.content)
 
     def test_40_deflate(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'deflate')
-        self.assertIn(b'"deflated": true', page.content)
+        self._check_key_val(b'deflated', b'true', page.content)
 
     def test_50_cookies(self):
         CrawlPolicy.objects.create(url_regex='.*',
@@ -227,11 +224,16 @@ class FunctionalTest:
             self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
 
 
-class RequestsFunctionalTest(FunctionalTest, TransactionTestCase):
+class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
     BROWSER_CLASS = RequestBrowser
 
 
-class SeleniumFunctionalTest(FunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_SELENIUM
-    BROWSER_CLASS = SeleniumBrowser
+class ChromiumFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
+    BROWSE_MODE = DomainSetting.BROWSE_CHROMIUM
+    BROWSER_CLASS = ChromiumBrowser
+
+
+class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, TransactionTestCase):
+    BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
+    BROWSER_CLASS = FirefoxBrowser

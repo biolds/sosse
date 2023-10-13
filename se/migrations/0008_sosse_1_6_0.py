@@ -35,4 +35,14 @@ class Migration(migrations.Migration):
             name='take_screenshots',
             field=models.BooleanField(default=False, help_text='Store pages as screenshots', verbose_name='Take screenshots 📷'),
         ),
+        migrations.AlterField(
+            model_name='crawlpolicy',
+            name='default_browse_mode',
+            field=models.CharField(choices=[('detect', 'Detect'), ('selenium', 'Chromium'), ('firefox', 'Firefox'), ('requests', 'Python Requests')], default='selenium', help_text="Python Request is faster, but can't execute Javascript and may break pages", max_length=8),
+        ),
+        migrations.AlterField(
+            model_name='domainsetting',
+            name='browse_mode',
+            field=models.CharField(choices=[('detect', 'Detect'), ('selenium', 'Chromium'), ('firefox', 'Firefox'), ('requests', 'Python Requests')], default='detect', max_length=10),
+        ),
     ]

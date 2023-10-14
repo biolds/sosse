@@ -41,7 +41,7 @@ Condition, Crawl depth
 
 * ``Crawl all pages``: URLs matching the policy will be crawled
 * ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see :doc:`crawl_depth`)
-* ``Never crawl``: URLS matching the policy are not crawled unless they are queued manually (in this case, no recursion occurs)
+* ``Never crawl``: URLs matching the policy are not crawled unless they are queued manually (in this case, no recursion occurs)
 
 ``Crawl depth`` is only relevant when the ``Condition`` is ``Crawl all pages`` and defines the recursion depth for links outside the policy. See :doc:`crawl_depth` for more explanations.
 

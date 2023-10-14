@@ -34,12 +34,18 @@ const screen_height = {{ screenshot_size.1 }};
 {% endblock %}
 
 {% block body_base %}
-    <div id="screenshots" style="margin-top: 5px">
-    {% for link in links %}
-       <a class="img_link" style="left: {{ link.pos_left }}px; top: {{ link.pos_top }}px; width: {{ link.pos_width }}px; height: {{ link.pos_height }}px;" data-loc="{{ link.screen_pos }}" {% if link.doc_to %}href="{{ link.doc_to.get_absolute_url }}" title="{{ link.doc_to.title }}"{% else %}href="{{ link.extern_url }}" title="{{ link.extern_url }}"{% endif %}></a>
-    {% endfor %}
-    {% for screen in screens %}
-         <img src="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}?cachetime={{ doc.crawl_last|date:'U' }}"/>
-    {% endfor %}
-    </div>
+    {% if doc.screenshot_count %}
+        <div id="screenshots" style="margin-top: 5px">
+        {% for link in links %}
+           <a class="img_link" style="left: {{ link.pos_left }}px; top: {{ link.pos_top }}px; width: {{ link.pos_width }}px; height: {{ link.pos_height }}px;" data-loc="{{ link.screen_pos }}" {% if link.doc_to %}href="{{ link.doc_to.get_absolute_url }}" title="{{ link.doc_to.title }}"{% else %}href="{{ link.extern_url }}" title="{{ link.extern_url }}"{% endif %}></a>
+        {% endfor %}
+        {% for screen in screens %}
+             <img src="{{ screenshot }}_{{ forloop.counter0 }}.{{ screenshot_format }}?cachetime={{ doc.crawl_last|date:'U' }}"/>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div style="padding: 20px 40px 20px 40px">
+            {% include "se/info_fallback.html" %}
+        </div>
+    {% endif %}
 {% endblock %}

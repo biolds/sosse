@@ -1,0 +1,19 @@
+{% if doc and not doc.crawl_last %}
+    <p>
+        This page has not been crawled yet.
+    </p>
+{% elif doc and doc.robotstxt_rejected %}
+    <p>
+        Crawling this by page was rejected by a <code>robots.txt</code> rule.
+    </p>
+    <p>
+        You can ignore this <code>robots.txt</code> policy in Domain settings for <a href="{% url 'admin:se_domainsetting_change' doc.default_domain_setting.id %}">{{ doc.default_domain_setting.domain }}</a>.
+    </p>
+{% elif doc and doc.error %}
+    <p>
+        An error occured while crawling this page:
+        <pre>
+            {{ doc.error }}
+        </pre>
+    </p>
+{% endif %}

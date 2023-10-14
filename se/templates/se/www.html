@@ -7,5 +7,7 @@
 {% block body %}
     {% if content %}
         {{ content }}
+    {% else %}
+        {% include "se/info_fallback.html" %}
     {% endif %}
 {% endblock %}

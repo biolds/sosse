@@ -723,3 +723,7 @@ class Document(models.Model):
             if os.path.exists(f):
                 os.unlink(f)
             self.has_thumbnail = False
+
+    def default_domain_setting(self):
+        from se.models import DomainSetting
+        return DomainSetting.get_from_url(self.url)

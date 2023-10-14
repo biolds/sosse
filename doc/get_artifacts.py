@@ -22,7 +22,7 @@ from zipfile import ZipFile
 
 
 PROJECT_ID = 41220530
-jobs_name = ['doc_gen', 'functional_tests']
+jobs_name = ['doc_gen', 'functional_tests_chromium']
 
 gl = gitlab.Gitlab()
 project = gl.projects.get(PROJECT_ID)

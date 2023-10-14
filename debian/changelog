@@ -1,3 +1,9 @@
+sosse (1.6.0-1) bookworm; urgency=medium
+
+  * Upstream release
+
+ -- Laurent Defert <laurent_defert@yahoo.fr>  Sat, 14 Oct 2023 15:33:31 +0200
+
 sosse (1.5.0-1) bookworm; urgency=medium
 
   * Upstream release

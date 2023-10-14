@@ -1,3 +1,8 @@
+## 1.6.0 (2023-10-14)
+### Features (2 changes)
+- [crawler Firefox 🦊 support](biolds1/sosse@093a284d10ef8cb1f878f376a9d04f737b019834) ([merge request](biolds1/sosse!52))
+- [Atom and RSS feeds parsing](biolds1/sosse@34e63311406480e7c4bb35d31fb5abeed3ae6cd9) ([merge request](biolds1/sosse!48))
+
 ## 1.5.0 (2023-08-29)
 ### Bug fixes (5 changes)
 - [remove html comments from documents](biolds1/sosse@bd871c5cde356846af74e5a36993570ddd6be063) ([merge request](biolds1/sosse!43))

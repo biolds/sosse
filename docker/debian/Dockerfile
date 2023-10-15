@@ -17,7 +17,6 @@ RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.33.0/gec
 
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*
-RUN mkdir /var/www/.cache /var/www/.mozilla
 RUN chown www-data:www-data /var/www/.cache /var/www/.mozilla
 RUN sed -e 's/^#\(chromium_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf
 RUN rm /etc/nginx/sites-enabled/default

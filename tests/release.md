@@ -1,4 +1,8 @@
-- test the docker build
+- docker system prune -a
+- make docker_build
+- make docker_git_build
+- test (docker run -p 8005:80 biolds/sosse:git)
+- make docker_push
 - debian update: version + changelog
 - doc version update
 - update the CHANGELOG.md using the last changelog build it the main branch

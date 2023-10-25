@@ -457,13 +457,6 @@ class SeleniumBrowser(Browser):
         raise NotImplementedError()
 
     @classmethod
-    def _wait_for_url(cls, url):
-        retry = settings.SOSSE_JS_STABLE_RETRY
-        while retry > 0 and cls.driver.current_url != url:
-            sleep(settings.SOSSE_JS_STABLE_TIME)
-            retry = 1
-
-    @classmethod
     def _wait_for_ready(cls, url):
         crawl_logger.debug('wait_for_ready %s, %s / %s / %s', url, settings.SOSSE_MAX_REDIRECTS, settings.SOSSE_JS_STABLE_RETRY, settings.SOSSE_JS_STABLE_TIME)
         redirect_count = 0
@@ -483,9 +476,8 @@ class SeleniumBrowser(Browser):
                 redirect_count += 1
                 url = new_url
                 continue
-            else:
-                break
 
+            crawl_logger.debug('js stabilization start %s', url)
             # Wait for page content to be stable
             retry = settings.SOSSE_JS_STABLE_RETRY
             previous_content = None
@@ -499,12 +491,14 @@ class SeleniumBrowser(Browser):
                     break
                 previous_content = content
                 sleep(settings.SOSSE_JS_STABLE_TIME)
+                crawl_logger.debug('js changed %s', url)
 
             if cls._current_url() != url:
                 redirect_count += 1
                 url = cls._current_url()
                 continue
             else:
+                crawl_logger.debug('js stable %s', url)
                 break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
@@ -840,9 +834,10 @@ class SeleniumBrowser(Browser):
             elem[0].send_keys(f['value'])
             crawl_logger.debug('settings %s = %s on %s' % (f['key'], f['value'], elem[0]))
 
+        dl_dir_files = cls.page_change_wait_setup()
         form.submit()
         crawl_logger.debug('submitting')
-        cls._wait_for_url(url)
+        cls.page_change_wait(dl_dir_files)
 
         current_url = cls._current_url()
         crawl_logger.debug('ready after submit %s', current_url)
@@ -852,6 +847,29 @@ class SeleniumBrowser(Browser):
             return cls.get(url)
 
         return cls._get_page(url)
+
+    @classmethod
+    def page_change_wait_setup(cls):
+        dl_dir_files = sorted(os.listdir(cls._get_download_dir()))
+        crawl_logger.debug('dl_dir state: %s', dl_dir_files)
+
+        # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
+        # When a download starts, the regular cls.driver.get call is stuck
+        cls.driver.execute_script('''
+            window.sosseUrlChanging = true;
+            addEventListener('readystatechange', () => {
+                window.sosseUrlChanging = false;
+            });
+        ''')
+        return dl_dir_files
+
+    @classmethod
+    def page_change_wait(cls, dl_dir_files):
+        while cls.driver.current_url == 'about:blank' or cls.driver.execute_script('return window.sosseUrlChanging'):
+            crawl_logger.debug('driver get not done: %s' % cls.driver.current_url)
+            if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
+                return
+            sleep(0.1)
 
 
 class ChromiumBrowser(SeleniumBrowser):
@@ -880,7 +898,9 @@ class ChromiumBrowser(SeleniumBrowser):
 
     @classmethod
     def _driver_get(cls, url):
+        dl_dir_files = cls.page_change_wait_setup()
         cls.driver.get(url)
+        cls.page_change_wait(dl_dir_files)
 
     @classmethod
     def _get_download_file(cls):
@@ -944,27 +964,17 @@ class FirefoxBrowser(SeleniumBrowser):
 
     @classmethod
     def _driver_get(cls, url):
-        dl_dir_files = sorted(os.listdir(cls._get_download_dir()))
-        crawl_logger.debug('dl_dir state: %s', dl_dir_files)
-
+        dl_dir_files = cls.page_change_wait_setup()
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
         # When a download starts, the regular cls.driver.get call is stuck
         cls.driver.execute_script('''
-            window.sosseUrlChanging = true;
-            addEventListener('readystatechange', () => {
-                window.sosseUrlChanging = false;
-            });
             window.location.assign(%s);
         ''' % json.dumps(url))
 
         if url == 'about:blank':
             raise Exception('navigating to about:blank')
 
-        while cls.driver.current_url == 'about:blank' or cls.driver.execute_script('return window.sosseUrlChanging'):
-            crawl_logger.debug('driver get not done: %s' % cls.driver.current_url)
-            if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
-                return
-            sleep(0.1)
+        cls.page_change_wait(dl_dir_files)
 
     @classmethod
     def _destroy(cls):

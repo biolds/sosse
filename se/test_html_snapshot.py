@@ -26,7 +26,7 @@ from .browser import Page
 from .document import Document
 from .html_asset import HTMLAsset
 from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
-from .html_snapshot import css_parser, HTMLSnapshot
+from .html_snapshot import css_parser, extract_css_url, HTMLSnapshot
 from .models import CrawlPolicy, DomainSetting
 from .test_mock import BrowserMock
 
@@ -238,34 +238,46 @@ class HTMLSnapshotTest:
     @mock.patch('os.makedirs')
     @mock.patch('se.html_cache.open')
     def test_100_css_directives(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
-        _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
-        makedirs.side_effect = None
+        for url_in_css, url_dl, filename in ((b'url("police.woff")', 'police.woff', 'police.woff_644bf7897f.woff'),
+                                             (b"url('police.woff')", 'police.woff', 'police.woff_644bf7897f.woff'),
+                                             (b"url(  'police.woff'   )", 'police.woff', 'police.woff_644bf7897f.woff'),
+                                             (b"url(polic\\ e.woff)", 'polic%20e.woff', 'polic,20e.woff_644bf7897f.woff'),
+                                             (b"url('po\"lice.woff')", 'po%22lice.woff', 'po,22lice.woff_644bf7897f.woff'),
+                                             (b'url(police.woff)', 'police.woff', 'police.woff_644bf7897f.woff'),):
+            RequestBrowser.side_effect = BrowserMock({
+                'http://127.0.0.1/po%22lice.woff': b'WOFF test',
+                'http://127.0.0.1/polic%20e.woff': b'WOFF test',
+            })
+            _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
+            makedirs.side_effect = None
 
-        CSS = b'''@font-face {
+            CSS = b'''@font-face {
     font-family: "police";
-    src: url("police.woff")
-    }'''
-        page = Page('http://127.0.0.1/', CSS, None)
-        snap = HTMLSnapshot(page, self.policy)
-        output = css_parser().handle_css(snap, 'http://127.0.0.1/', CSS, False)
+    src: %s
+    }''' % url_in_css
+            page = Page('http://127.0.0.1/', CSS, None)
+            snap = HTMLSnapshot(page, self.policy)
+            output = css_parser().handle_css(snap, 'http://127.0.0.1/', CSS, False)
 
-        self.assertTrue(RequestBrowser.call_args_list == [
-            mock.call('http://127.0.0.1/police.woff', check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            self.assertTrue(RequestBrowser.call_args_list == [
+                mock.call('http://127.0.0.1/' + url_dl, check_status=True, max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE, headers={'Accept': '*/*'})
+            ], RequestBrowser.call_args_list)
 
-        ], RequestBrowser.call_args_list)
+            self.assertTrue(_open.call_args_list == [
+                mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/' + filename, 'wb')
+            ], _open.call_args_list)
 
-        self.assertTrue(_open.call_args_list == [
-            mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1/police.woff_644bf7897f.woff', 'wb')
-        ], _open.call_args_list)
-
-        self.assertEqual(output, '''@font-face {
+            self.assertEqual(output, '''@font-face {
     font-family: "police";
-    src: url("%shttp,3A/127.0.0.1/police.woff_644bf7897f.woff")
-    }''' % settings.SOSSE_HTML_SNAPSHOT_URL)
+    src: url("%shttp,3A/127.0.0.1/%s")
+    }''' % (settings.SOSSE_HTML_SNAPSHOT_URL, filename))
 
-        self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/police.woff',)))
-        self.assertEqual(css_parser().css_extract_assets(output, False), set(('http,3A/127.0.0.1/police.woff_644bf7897f.woff',)))
+            self.assertEqual(snap.get_asset_urls(), set(('http://127.0.0.1/' + url_dl,)))
+            self.assertEqual(css_parser().css_extract_assets(output, False), set(('http,3A/127.0.0.1/' + filename,)))
+
+            _open.reset_mock()
+            makedirs.reset_mock()
+            RequestBrowser.reset_mock()
 
     @mock.patch('se.browser.RequestBrowser.get')
     @mock.patch('os.makedirs')
@@ -913,3 +925,47 @@ class HTMLSnapshotCSSUtilsParser(HTMLSnapshotTest, TransactionTestCase):
 
 class HTMLSnapshotInternalCSSParser(HTMLSnapshotTest, TransactionTestCase):
     pass
+
+
+class CSSUrlExtractor(TransactionTestCase):
+    def test_css_url_extract(self):
+        CSS = '''@font-url { url('test'); }'''
+        PARSED = ((False, '@font-url { '),
+                  (True, 'test'),
+                  (False, '; }'))
+
+        for no, segment in enumerate(extract_css_url(CSS)):
+            self.assertEqual(segment, PARSED[no])
+
+    def test_css_url_extract_no_url(self):
+        CSS = '''@font-url { rl('test'); }'''
+        PARSED = ((False, "@font-url { rl('test'); }"),)
+        for no, segment in enumerate(extract_css_url(CSS)):
+            self.assertEqual(segment, PARSED[no])
+
+    def test_css_url_extract_quote(self):
+        CSS = '''@font-url { url('te"st'); }'''
+        PARSED = ((False, '@font-url { '),
+                  (True, 'te"st'),
+                  (False, '; }'))
+
+        for no, segment in enumerate(extract_css_url(CSS)):
+            self.assertEqual(segment, PARSED[no])
+
+    def test_css_url_extract_non_url(self):
+        CSS = '''@font-url { url('data:image/png;base64,iV'); }'''
+        PARSED = ((False, '@font-url { '),
+                  (False, "url('data:image/png;base64,iV')"),
+                  (False, '; }'))
+
+        for no, segment in enumerate(extract_css_url(CSS)):
+            self.assertEqual(segment, PARSED[no])
+
+    def test_css_url_extract_escape(self):
+        CSS = r'''@font-url { url('test\'plop'); }'''
+        PARSED = ((False, '@font-url { '),
+                  (True, "test'plop"),
+                  (False, '; }'))
+
+        for no, segment in enumerate(extract_css_url(CSS)):
+            self.assertEqual(segment, PARSED[no])

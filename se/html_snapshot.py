@@ -39,6 +39,58 @@ def css_parser():
         return CSSUtilsParser
 
 
+def extract_css_url(css):
+    prev = 0
+    current = 0
+    quote = None
+    url = ''
+    while True:
+        current = css.find('url(', current)
+
+        if current == -1:
+            yield False, css[prev:]
+            return
+
+        yield False, css[prev:current]
+
+        prev = current
+        current += 4
+        while css[current] == ' ' and current < len(css):
+            current += 1
+
+        if css[current] in ('"', "'") and current < len(css):
+            quote = css[current]
+            current += 1
+
+        while current < len(css) and \
+                ((quote is not None and css[current] != quote) or (quote is None and css[current] != ')')):
+            if css[current] == '\\':
+                current += 1
+
+            url += css[current]
+            current += 1
+
+        if quote is not None and current < len(css):
+            # skip the closing quote
+            current += 1
+
+        while css[current] == ' ' and current < len(css):
+            current += 1
+
+        if css[current] == ')' and current < len(css):
+            current += 1
+
+        if url:
+            if has_browsable_scheme(url):
+                yield True, url
+            else:
+                yield False, css[prev:current]
+
+            url = ''
+            quote = None
+            prev = current
+
+
 class InternalCSSParser:
     @staticmethod
     def handle_css(snapshot, base_url, content, inline_css):
@@ -48,49 +100,25 @@ class InternalCSSParser:
             assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
             if isinstance(content, bytes):
                 content = content.decode('utf-8')
-        val = ''
+        css = ''
 
-        m = list(re.finditer(r'\burl\([^\)]+\)', content))
-        if m:
-            for no, css_url in enumerate(m):
-                if no == 0:
-                    start = 0
-                else:
-                    start = m[no - 1].end()
-                val += content[start:css_url.start()]
+        for is_url, segment in extract_css_url(content):
+            if is_url and has_browsable_scheme(segment):
+                url = absolutize_url(base_url, segment)
+                url = snapshot.download_asset(url)
+                css += f'url("{url}")'
+            else:
+                css += segment
 
-                url = css_url[0][4:-1].strip()
-                quote = ''
-                if url.startswith('"') or url.startswith("'"):
-                    quote = url[0]
-                    url = url[1:-1]
-
-                if has_browsable_scheme(url):
-                    url = absolutize_url(base_url, url)
-                    url = snapshot.download_asset(url)
-
-                url = f'{quote}{url}{quote}'
-                val += f'url({url})'
-
-            val += content[m[-1].end(0):]
-            css = val
-        else:
-            css = content
-        assert isinstance(css, str)
         return css
 
     @staticmethod
     def css_extract_assets(content, _):
         assets = set()
-        m = list(re.finditer(r'\burl\([^\)]+\)', content))
-        if m:
-            for css_url in m:
-                url = css_url[0][4:-1].strip()
-                if url.startswith('"') or url.startswith("'"):
-                    url = url[1:-1]
 
-                if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
-                    assets.add(url[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+        for is_url, segment in extract_css_url(content):
+            if is_url and segment.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
+                assets.add(segment[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
 
         return assets
 
@@ -118,34 +146,16 @@ class CSSUtilsParser:
         declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
 
         for prop in declarations:
-            value = prop.value
             val = ''
+            for is_url, segment in extract_css_url(prop.value):
+                if is_url:
+                    url = absolutize_url(base_url, segment)
+                    url = snapshot.download_asset(url)
+                    val += f'url("{url}")'
+                else:
+                    val += segment
 
-            m = list(re.finditer(r'\burl\([^\)]+\)', value))
-            if m:
-                for no, css_url in enumerate(m):
-                    if no == 0:
-                        start = 0
-                    else:
-                        start = m[no - 1].end()
-                    val += value[start:css_url.start()]
-
-                    url = css_url[0][4:-1]
-                    has_quotes = False
-                    if url.startswith('"'):
-                        url = url[1:-1]
-
-                    if not url.startswith('data:') and not url.startswith('#'):
-                        url = absolutize_url(base_url, url)
-                        url = snapshot.download_asset(url)
-
-                    if has_quotes:
-                        url = f'"{url}"'
-
-                    val += f'url({url})'
-
-                val += value[m[-1].end(0):]
-                prop.value = val
+            prop.value = val
 
         if inline_css:
             css = declarations.cssText
@@ -160,16 +170,9 @@ class CSSUtilsParser:
         declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
 
         for prop in declarations:
-            value = prop.value
-            m = list(re.finditer(r'\burl\([^\)]+\)', value))
-            if m:
-                for css_url in m:
-                    url = css_url[0][4:-1]
-                    if url.startswith('"'):
-                        url = url[1:-1]
-
-                    if url.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
-                        assets.add(url[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+            for is_url, segment in extract_css_url(prop.value):
+                if is_url and segment.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
+                    assets.add(segment[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
 
         return assets
 

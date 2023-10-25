@@ -304,6 +304,8 @@ class HTMLSnapshot:
                     continue
 
                 url = absolutize_url(self.base_url, url)
+                if url == self.page.url:
+                    continue
 
                 if elem.name in ('a', 'frame', 'iframe'):
                     elem.attrs[attr] = '/html/' + url

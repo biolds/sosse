@@ -671,17 +671,15 @@ class SeleniumBrowser(Browser):
         crawl_logger.debug('Download in progress: %s' % os.listdir(cls._get_download_dir()))
         crawl_logger.debug('Download file: %s' % filename)
         try:
-            size = os.stat(filename).st_size
             while True:
                 sleep(settings.SOSSE_DL_CHECK_TIME)
-                _size = os.stat(filename).st_size
-                if size == _size:
-                    break
-                size = _size
-
+                size = os.stat(filename).st_size
                 if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
                     cls.destroy()  # cancel the download
                     raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
+
+                if not cls._download_in_progress(filename):
+                    break
         except FileNotFoundError:
             # when the download is finished the file is renamed
             pass
@@ -870,6 +868,20 @@ class SeleniumBrowser(Browser):
             if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
                 return
             sleep(0.1)
+
+    @classmethod
+    def _download_in_progress(cls, filename):
+        gecko_pid = cls._driver.service.process.pid
+        p = psutil.Process(gecko_pid)
+        pid = p.children()[0].pid
+        fd_dir = '/proc/%d/fd/' % pid
+
+        filename = os.path.join(cls._get_download_dir(), filename)
+        for f in os.listdir(fd_dir):
+            f = os.path.join(fd_dir, f)
+            if os.readlink(f) == filename:
+                return True
+        return False
 
 
 class ChromiumBrowser(SeleniumBrowser):

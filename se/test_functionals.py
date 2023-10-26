@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from unittest import mock
+
 from django.conf import settings
 from django.test import TransactionTestCase
 
@@ -222,6 +224,32 @@ class FunctionalTest:
 
         with self.assertRaises(SkipIndexing):
             self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
+
+    @mock.patch('os.makedirs')
+    def test_90_css_in_js(self, makedirs):
+        if self.BROWSE_MODE == DomainSetting.BROWSE_REQUESTS:
+            return
+
+        makedirs.side_effect = None
+
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=True,
+                                   create_thumbnails=False,
+                                   take_screenshots=False)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/css_in_js.html', None, None)
+
+        mock_open = mock.mock_open()
+        with mock.patch('se.html_cache.open', mock_open):
+            self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertIn(b'<style>body { background-color: black; }\n</style>\n  <style>body { color: white; }\n</style>', mock_open.mock_calls[2].args[0])
+        self.assertNotIn(b'style id="test"', mock_open.mock_calls[2].args[0])
+        self.assertEqual(mock_open.mock_calls[0].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/static/pages/css_in_js.html_405fd23df0.html')
 
 
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):

@@ -197,8 +197,11 @@ class HTMLSnapshot:
         self.asset_urls.add(asset.url)
 
     def snapshot(self):
+        from .browser import ChromiumBrowser, FirefoxBrowser
         logger.debug('snapshot of %s' % self.page.url)
         try:
+            if self.page.browser in (ChromiumBrowser, FirefoxBrowser):
+                self.build_style()
             self.sanitize()
             self.handle_assets()
             HTMLCache.write_asset(self.page.url, self.page.dump_html(), self.page, extension='.html')
@@ -381,3 +384,31 @@ class HTMLSnapshot:
 
     def get_asset_urls(self):
         return self.asset_urls
+
+    def build_style(self):
+        # dynamically extract style
+        style_elems = self.page.browser.driver.execute_script(r'''
+            let styleElems = [];
+            for (let ssNo = 0; ssNo < document.styleSheets.length; ssNo++) {
+                const ss = document.styleSheets[ssNo];
+                if (ss.href) {
+                    continue;
+                }
+
+                let css = '';
+                for (let rNo = 0; rNo < ss.rules.length; rNo++) {
+                    if (ss.rules[rNo].cssText) {
+                        css += ss.rules[rNo].cssText;
+                        css += '\n';
+                    }
+                }
+                styleElems.push(css);
+            }
+            return styleElems;
+        ''')
+
+        soup = self.page.get_soup()
+        for css, elem in zip(style_elems, soup.find_all('style')):
+            # replace the content by the style dynamically retrieved
+            elem.clear()
+            elem.append(NavigableString(css))

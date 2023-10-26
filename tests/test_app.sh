@@ -1,5 +1,6 @@
 #/usr/bin/bash
 SERVER_DIR=/tmp/testserver
+CURRENT_DIR="$(pwd)"
 
 test -d $SERVER_DIR && echo "Test server already exists" >&2 && exit 1
 
@@ -32,3 +33,8 @@ EOF
 else
     /usr/bin/python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000 &
 fi
+
+cd "$CURRENT_DIR"
+cd "$(dirname $0)"/..
+mkdir "$SERVER_DIR/httpbin/bin/static/"
+cp -r tests/pages/ "$SERVER_DIR/httpbin/bin/static/"

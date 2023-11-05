@@ -24,10 +24,10 @@ from defusedxml import ElementTree
 from hashlib import md5
 from urllib.parse import urlparse
 
-from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import connection, models, transaction, DataError
 from django.http import QueryDict
 from django.utils.timezone import now
 from publicsuffix2 import get_public_suffix, PublicSuffixList
@@ -671,6 +671,16 @@ BROWSER_MAP = {
 }
 
 
+@transaction.atomic
+def validate_regexp(val):
+    cursor = connection.cursor()
+    try:
+        # Try the regexp on Psql
+        cursor.execute('SELECT 1 FROM se_document WHERE url ~ %s', params=[val])
+    except DataError as e:
+        raise ValidationError(e.__cause__)
+
+
 class CrawlPolicy(models.Model):
     RECRAWL_NONE = 'none'
     RECRAWL_CONSTANT = 'constant'
@@ -708,7 +718,7 @@ class CrawlPolicy(models.Model):
         (REMOVE_NAV_NO, 'No')
     ]
 
-    url_regex = models.TextField(unique=True)
+    url_regex = models.TextField(unique=True, validators=[validate_regexp])
     condition = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default='text/.*')
     crawl_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')

@@ -17,6 +17,8 @@
 
 from django.db import migrations, models
 
+import se
+
 
 def forward_default_remove_nav(apps, schema_editor):
     CrawlPolicy = apps.get_model('se', 'CrawlPolicy')
@@ -41,4 +43,9 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('idx', 'From index'), ('scr', 'From index and screenshots'), ('yes', 'From index, screens and HTML snaps'), ('no', 'No')], default='idx', help_text='Remove navigation related elements', max_length=4),
         ),
         migrations.RunPython(forward_default_remove_nav, reverse_default_remove_nav),
-    ]
+        migrations.AlterField(
+            model_name='crawlpolicy',
+            name='url_regex',
+            field=models.TextField(unique=True, validators=[se.models.validate_regexp]),
+        ),
+]

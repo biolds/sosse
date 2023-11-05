@@ -863,11 +863,13 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def page_change_wait(cls, dl_dir_files):
-        while cls.driver.current_url == 'about:blank' or cls.driver.execute_script('return window.sosseUrlChanging'):
+        retry = settings.SOSSE_JS_STABLE_RETRY
+        while (cls.driver.current_url == 'about:blank' or cls.driver.execute_script('return window.sosseUrlChanging')) and retry > 0:
             crawl_logger.debug('driver get not done: %s' % cls.driver.current_url)
             if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
                 return
-            sleep(0.1)
+            sleep(settings.SOSSE_JS_STABLE_TIME)
+            retry -= 1
 
     @classmethod
     def _download_in_progress(cls, filename):
@@ -910,6 +912,8 @@ class ChromiumBrowser(SeleniumBrowser):
 
     @classmethod
     def _driver_get(cls, url):
+        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)):
+            return
         dl_dir_files = cls.page_change_wait_setup()
         cls.driver.get(url)
         cls.page_change_wait(dl_dir_files)
@@ -976,6 +980,8 @@ class FirefoxBrowser(SeleniumBrowser):
 
     @classmethod
     def _driver_get(cls, url):
+        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)):
+            return
         dl_dir_files = cls.page_change_wait_setup()
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
         # When a download starts, the regular cls.driver.get call is stuck

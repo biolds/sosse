@@ -107,10 +107,15 @@ Format of the image JPG or PNG.
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
-Remove navigation related elements
-""""""""""""""""""""""""""""""""""
+Remove nav elements
+"""""""""""""""""""
 
-This option removes HTML elements `<nav>`, `<header>` and `<footer>` before processing the page.
+This option removes HTML elements `<nav>`, `<header>` and `<footer>` before processing the page:
+
+* ``From index``: words used inside navigation elements are not added to the search index, this is the default.
+* ``From index and screenshots``: as above, also the elements are deleted before taking screenshots, this can be useful when websites are using sticky elements that follows scrolling.
+* ``From index, screens and HTML snaps``: as above, but also removes the elements from the HTML snapshot.
+* ``No``: the elements are not removed and are handled like regular elements.
 
 .. _script_params:
 

@@ -697,6 +697,17 @@ class CrawlPolicy(models.Model):
         (CRAWL_NEVER, 'Never crawl'),
     ]
 
+    REMOVE_NAV_FROM_INDEX = 'idx'
+    REMOVE_NAV_FROM_SCREENSHOT = 'scr'
+    REMOVE_NAV_FROM_ALL = 'yes'
+    REMOVE_NAV_NO = 'no'
+    REMOVE_NAV = [
+        (REMOVE_NAV_FROM_INDEX, 'From index'),
+        (REMOVE_NAV_FROM_SCREENSHOT, 'From index and screenshots'),
+        (REMOVE_NAV_FROM_ALL, 'From index, screens and HTML snaps'),
+        (REMOVE_NAV_NO, 'No')
+    ]
+
     url_regex = models.TextField(unique=True)
     condition = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default='text/.*')
@@ -714,13 +725,7 @@ class CrawlPolicy(models.Model):
     take_screenshots = models.BooleanField(default=False, help_text='Store pages as screenshots', verbose_name='Take screenshots 📷')
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
 
-    REMOVE_NAV_YES = 'yes'
-    REMOVE_NAV_NO = 'no'
-    REMOVE_NAV = [
-        (REMOVE_NAV_YES, 'Yes'),
-        (REMOVE_NAV_NO, 'No')
-    ]
-    remove_nav_elements = models.CharField(default=REMOVE_NAV_YES, help_text='Remove navigation related elements', choices=REMOVE_NAV, max_length=4)
+    remove_nav_elements = models.CharField(default=REMOVE_NAV_FROM_INDEX, help_text='Remove navigation related elements', choices=REMOVE_NAV, max_length=4)
     script = models.TextField(default='', help_text='Javascript code to execute after the page is loaded', blank=True)
     store_extern_links = models.BooleanField(default=False, help_text='Store links to non-indexed pages')
 

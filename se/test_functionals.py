@@ -252,16 +252,112 @@ class FunctionalTest:
         self.assertEqual(mock_open.mock_calls[0].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/static/pages/css_in_js.html_405fd23df0.html')
 
 
+class BrowserBasedFunctionalTest:
+    def test_100_remove_nav_no(self):
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=True,
+                                   take_screenshots=True,
+                                   remove_nav_elements=CrawlPolicy.REMOVE_NAV_NO,
+                                   screenshot_format=Document.SCREENSHOT_PNG)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+
+        html_open = mock.mock_open()
+        browser_open = mock.mock_open()
+        with mock.patch('se.html_cache.open', html_open), \
+                mock.patch('se.browser.open', browser_open):
+            self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(Document.objects.get().content, 'nav')
+        self.assertEqual(Document.objects.get().screenshot_count, 2)
+
+        self.assertEqual(len(html_open.mock_calls), 4)
+        self.assertIn(b'</nav>', html_open.mock_calls[2].args[0])
+
+    def test_110_remove_nav_from_index(self):
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=True,
+                                   take_screenshots=True,
+                                   remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_INDEX,
+                                   screenshot_format=Document.SCREENSHOT_PNG)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+
+        html_open = mock.mock_open()
+        with mock.patch('se.html_cache.open', html_open):
+            self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(Document.objects.get().content, '')
+        self.assertEqual(Document.objects.get().screenshot_count, 2)
+
+        self.assertEqual(len(html_open.mock_calls), 4)
+        self.assertIn(b'</nav>', html_open.mock_calls[2].args[0])
+
+    def test_120_remove_nav_from_screenshot(self):
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=True,
+                                   take_screenshots=True,
+                                   remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
+                                   screenshot_format=Document.SCREENSHOT_PNG)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+
+        html_open = mock.mock_open()
+        with mock.patch('se.html_cache.open', html_open):
+            self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(Document.objects.get().content, '')
+        self.assertEqual(Document.objects.get().screenshot_count, 1)
+
+        self.assertEqual(len(html_open.mock_calls), 4)
+        self.assertIn(b'</nav>', html_open.mock_calls[2].args[0])
+
+    def test_130_remove_nav_from_all(self):
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=True,
+                                   take_screenshots=True,
+                                   remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_ALL,
+                                   screenshot_format=Document.SCREENSHOT_PNG)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+
+        html_open = mock.mock_open()
+        with mock.patch('se.html_cache.open', html_open):
+            self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(Document.objects.get().content, '')
+        self.assertEqual(Document.objects.get().screenshot_count, 1)
+
+        self.assertEqual(len(html_open.mock_calls), 4)
+        self.assertNotIn(b'</nav>', html_open.mock_calls[2].args[0])
+
+
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
     BROWSER_CLASS = RequestBrowser
 
 
-class ChromiumFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
+class ChromiumFunctionalTest(FunctionalTest, CleanTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_CHROMIUM
     BROWSER_CLASS = ChromiumBrowser
 
 
-class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, TransactionTestCase):
+class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
     BROWSER_CLASS = FirefoxBrowser

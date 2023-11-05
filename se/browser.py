@@ -529,9 +529,6 @@ class SeleniumBrowser(Browser):
             cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready(url)
 
-        if crawl_policy and crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_YES:
-            cls.remove_nav_elements()
-
         content = cls.driver.page_source.encode('utf-8')
         page = Page(current_url,
                     content,
@@ -733,6 +730,11 @@ class SeleniumBrowser(Browser):
     @classmethod
     @retry
     def take_screenshots(cls, url, image_name):
+        from .models import CrawlPolicy
+        crawl_policy = CrawlPolicy.get_from_url(url)
+        if crawl_policy and crawl_policy.remove_nav_elements in (CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT, CrawlPolicy.REMOVE_NAV_FROM_ALL):
+            cls.remove_nav_elements()
+
         base_name = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, image_name)
         dir_name = os.path.dirname(base_name)
         os.makedirs(dir_name, exist_ok=True)

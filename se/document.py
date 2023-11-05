@@ -252,7 +252,7 @@ class Document(models.Model):
         if elem.name in ('[document]', 'title', 'script', 'style'):
             return
 
-        if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_YES and elem.name in ('nav', 'header', 'footer'):
+        if crawl_policy.remove_nav_elements != CrawlPolicy.REMOVE_NAV_NO and elem.name in ('nav', 'header', 'footer'):
             return
 
         s = self._get_elem_text(elem)
@@ -360,7 +360,6 @@ class Document(models.Model):
         crawl_logger.debug('%s is a rss/atom feed with %s items', self.url, len(parsed['entries']))
 
     def _parse_text(self, page, crawl_policy, stats, verbose):
-        from .models import FavIcon
         crawl_logger.debug('parsing %s', self.url)
 
         with open('/tmp/dump', 'wb') as f:
@@ -390,16 +389,7 @@ class Document(models.Model):
         for link in links['links']:
             link.save()
         self._index_log('bulk', stats, verbose)
-
-        FavIcon.extract(self, page)
-        self._index_log('favicon', stats, verbose)
-
-        if crawl_policy.create_thumbnails:
-            crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
-            self.has_thumbnail = True
-
-        if crawl_policy.take_screenshots:
-            self.screenshot_index(links['links'], crawl_policy)
+        return links
 
     def index(self, page, crawl_policy, verbose=False, force=False):
         n = now()
@@ -443,14 +433,31 @@ class Document(models.Model):
             return
 
         self._parse_xml(page, crawl_policy, stats, verbose)
+        if self.mimetype.startswith('text/'):
+            links = self._parse_text(page, crawl_policy, stats, verbose)
+
+            if crawl_policy.create_thumbnails:
+                crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
+                self.has_thumbnail = True
 
         if self.mimetype.startswith('text/'):
-            self._parse_text(page, crawl_policy, stats, verbose)
+            from .models import FavIcon
+            FavIcon.extract(self, page)
+            self._index_log('favicon', stats, verbose)
 
         if crawl_policy.snapshot_html:
+            from .models import CrawlPolicy
+            if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_FROM_ALL:
+                browser = crawl_policy.get_browser(url=self.url)
+                browser.remove_nav_elements()
+
             snapshot = HTMLSnapshot(page, crawl_policy)
             snapshot.snapshot()
             self.has_html_snapshot = True
+
+        if self.mimetype.startswith('text/'):
+            if crawl_policy.take_screenshots:
+                self.screenshot_index(links['links'], crawl_policy)
 
         self._index_log('done', stats, verbose)
 

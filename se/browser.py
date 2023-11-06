@@ -36,7 +36,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from urllib3.exceptions import HTTPError
 
-from .url import absolutize_url, sanitize_url, url_remove_fragment, url_remove_query_string
+from .url import absolutize_url, has_browsable_scheme, sanitize_url, url_remove_fragment, url_remove_query_string
 from .utils import human_filesize
 
 crawl_logger = logging.getLogger('crawler')
@@ -571,7 +571,7 @@ class SeleniumBrowser(Browser):
     def _load_cookies(cls, url):
         from .models import Cookie
 
-        if url.startswith('data:'):
+        if not has_browsable_scheme(url):
             return
 
         # Cookies can only be set to the same domain,
@@ -589,6 +589,14 @@ class SeleniumBrowser(Browser):
             cls._driver_get(dest)
             cls._wait_for_ready(dest)
             crawl_logger.debug('navigate for cookie done %s' % cls._current_url())
+
+        current_url = cls._current_url()
+        if urlparse(current_url).netloc != target_url.netloc:
+            # if the browser is initially on about:blank,
+            # and then loads a download url, it'll stay on about:blank
+            # which does not accept cookie loading
+            crawl_logger.debug('could not go to %s to load cookies, nav is stuck on %s', target_url.netloc, current_url)
+            return
 
         crawl_logger.debug('clearing cookies')
         cls.driver.delete_all_cookies()
@@ -616,6 +624,7 @@ class SeleniumBrowser(Browser):
     @retry
     def get(cls, url):
         current_url = cls.driver.current_url
+        crawl_logger.debug('get on %s, current %s', url, current_url)
 
         # Clear the download dir
         crawl_logger.debug('clearing %s' % cls._get_download_dir())

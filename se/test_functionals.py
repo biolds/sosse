@@ -347,6 +347,19 @@ class BrowserBasedFunctionalTest:
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertNotIn(b'</nav>', html_open.mock_calls[2].args[0])
 
+    def test_140_file_download_from_blank(self):
+        ChromiumBrowser.destroy()
+        FirefoxBrowser.destroy()
+
+        Cookie.objects.create(domain='127.0.0.1',
+                              name='test',
+                              value='test',
+                              inc_subdomain=False,
+                              secure=False)
+        FILE_SIZE = 1024
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
+        self.assertEqual(len(page.content), FILE_SIZE)
+
 
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS

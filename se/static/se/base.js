@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             search_input.value = '';
         });
         if (window.location.pathname !== '/') {
-            clear.style = 'height: 31px; width: 31px; padding-top: 6px; padding-block: 1px';
+            clear.style = 'height: 31px; width: 31px; padding-top: 6px; padding-block: 1px; border-left-style: none';
         }
         search_field.insertBefore(clear, search_button);
     }

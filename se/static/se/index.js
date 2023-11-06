@@ -45,15 +45,15 @@ function update_adv_padding() {
     for (let i = 1; i < len; i++) {
         const child = adv_search.children[i];
         if (len === 2 && i === 1) {
-            child.style['margin-left'] = '43px';
+            child.style['margin-left'] = '42px';
         } else if (len > 2 && i === 1) {
-            child.style['margin-left'] = '86px';
+            child.style['margin-left'] = '84px';
         } else if (len > 2 && i < adv_search.children.length - 1) {
-            child.style['margin-left'] = '43px';
+            child.style['margin-left'] = '42px';
         }
     }
     const lang = adv_search.children[0];
-    lang.style['margin-left'] = '86px';
+    lang.style['margin-left'] = '84px';
     if (len > 2) {
         adv_search.children[len - 1].style['margin-left'] = null;
     }

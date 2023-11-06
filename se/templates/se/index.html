@@ -93,7 +93,6 @@
 
     #search_field {
         text-align: center;
-        padding: 10px;
     }
     #more {
         color: #000;
@@ -150,20 +149,7 @@
         background-size: 20px;
         width: 40px;
         height: 40px;
-    }
-    #id_q {
-        padding: 11px;
-        min-width: 30%;
-        height: 17px;
-    }
-    #id_q:hover + #clear_button {
-        background-color: #eee;
-    }
-    #id_q:focus + #clear_button {
-        outline: 0px;
-        border-style: solid;
-        border-bottom-width: 1px;
-        border-color: #6066bf;
+        border-left-style: none;
     }
     #search_button {
         margin-left: 5px;
@@ -260,7 +246,7 @@
             <button id="stats_button" title="Words statistics" class="menu_button img_button" onclick="return show_word_stats()">
             </button>
             <div id="word_stats" class="panel">
-                <ul id="word_stats_list">
+                <ul id="word_stats_list" class="ul_stripe">
                     <li>
                         <div>
                             Document's word statistics

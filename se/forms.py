@@ -99,7 +99,7 @@ class SearchForm(forms.Form):
 
 class AddToQueueForm(forms.Form):
     url = forms.CharField(label='URL to crawl')
-    url.widget.attrs.update({'style': 'width: 100%'})
+    url.widget.attrs.update({'style': 'width: 100%; padding-right: 0'})
     crawl_depth = forms.IntegerField(min_value=0, required=False, help_text='Maximum depth of links to follow')
 
     def __init__(self, data=None, *args, **kwargs):

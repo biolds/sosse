@@ -321,7 +321,7 @@ table {
 td, th {
     font-size: 13px;
     line-height: 16px;
-    border-bottom: 1px solid var(--hairline-color);
+    /* border-bottom: 1px solid var(--hairline-color); */
     vertical-align: top;
     padding: 8px;
 }
@@ -480,6 +480,26 @@ table thead th.sorted .sortoptions a.descending:hover {
 
 /* FORM DEFAULTS */
 
+button,input,select {
+    font-size: 14px;
+    background-color: #e7f0ff;
+    border-style: solid;
+    border-width: 0px 0px 1px 0px;
+    border-color: #e7f0ff;
+    padding: 10px;
+    margin: 2px 0px 2px 0px;
+}
+button:focus,input:focus,select:focus {
+    outline: 0px;
+    border-style: solid;
+    border-bottom-width: 1px;
+    border-color: #6066bf;
+}
+button:hover,input:hover,select:hover {
+    background-color: #eee;
+    cursor: pointer;
+}
+
 /*
 input, textarea, select, .form-row p, form .button {
     margin: 2px 0;
@@ -500,7 +520,6 @@ textarea {
 input[type=text], input[type=password], input[type=email], input[type=url],
 input[type=number], input[type=tel], textarea, select, .vTextField {
     border: 1px solid var(--border-color);
-    border-radius: 4px;
     padding: 5px 6px;
     margin-top: 0;
     color: var(--body-fg);
@@ -533,7 +552,6 @@ select[multiple] {
     background: var(--button-bg);
     padding: 10px 15px;
     border: none;
-    border-radius: 4px;
     color: var(--button-fg);
     cursor: pointer;
     transition: background 0.15s;
@@ -661,7 +679,6 @@ ul.messagelist li.error {
     margin: 0 0 10px 0;
     color: var(--error-fg);
     border: 1px solid var(--error-fg);
-    border-radius: 4px;
     background-color: var(--body-bg);
     background-position: 5px 12px;
     overflow-wrap: break-word;
@@ -793,10 +810,6 @@ a.deletelink:focus, a.deletelink:hover {
     height: 16px;
 }
 
-.object-tools a {
-    border-radius: 15px;
-}
-
 .object-tools a:link, .object-tools a:visited {
     display: block;
     float: left;
@@ -820,7 +833,6 @@ a.deletelink:focus, a.deletelink:hover {
 .object-tools a.viewsitelink, .object-tools a.addlink {
     background-repeat: no-repeat;
     background-position: right 7px center;
-    padding-right: 26px;
 }
 
 .object-tools a.viewsitelink {
@@ -1030,7 +1042,6 @@ table#change-history tbody th {
 
 .delete-confirmation form input[type="submit"] {
     background: var(--delete-button-bg);
-    border-radius: 4px;
     padding: 10px 15px;
     color: var(--button-fg);
 }
@@ -1046,7 +1057,6 @@ table#change-history tbody th {
     vertical-align: middle;
     height: 15px;
     line-height: 15px;
-    border-radius: 4px;
     padding: 10px 15px;
     color: var(--button-fg);
     background: var(--close-button-bg);
@@ -1070,4 +1080,8 @@ table#change-history tbody th {
 
 .popup #header {
     padding: 10px 20px;
+}
+
+a.deletelink {
+    border-radius: 0;
 }

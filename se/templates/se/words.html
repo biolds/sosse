@@ -12,7 +12,7 @@
         <li>The document has {{ doc.vector.split|length }} unique words</li>
     </ul>
     <hr/>
-    <ul>
+    <ul class="ul_stripe">
         {% for word, weights in words %}
             <li><b>{{ word }}</b>: {{ weights }}</li>
         {% endfor %}

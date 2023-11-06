@@ -3,14 +3,15 @@ body {
     font-family: sans-serif;
     font-size: 14px;
 }
-input, button {
-    font-size: 14px;
+ul {
+    padding: 0;
+    margin: 0;
 }
 li {
     list-style-type: none;
     padding: 5px;
 }
-li:nth-of-type(2n + 1) {
+ul.ul_stripe li:nth-of-type(2n + 1) {
     background-color: #eee;
 }
 #top_bar {
@@ -33,7 +34,8 @@ li:nth-of-type(2n + 1) {
     color: black;
     text-decoration: none;
     display: inline-block;
-    height: 100%
+    height: 100%;
+    font-size: 17px;
 }
 #menu_username {
     top: 10px;
@@ -64,6 +66,23 @@ li:nth-of-type(2n + 1) {
 #search_button {
     background-image: url('/static/se/icon-search.svg');
 }
+#id_q {
+    padding: 11px;
+    min-width: 30%;
+    height: 16px;
+    border-right-style: none;
+}
+#id_q:hover + #clear_button {
+    background-color: #eee;
+}
+#id_q:focus + #clear_button {
+    outline: 0px;
+    border-color: #0010ff;
+}
+#id_q:focus {
+    border-right-style: none;
+}
+
 .menu {
     position: absolute;
     text-align: right;
@@ -72,7 +91,6 @@ li:nth-of-type(2n + 1) {
     padding: 4px 4px 4px 4px;
     border-color: #cfcbcb;
     border-style: solid;
-    border-radius: 4px;
     border-width: 1px;
     background-color: #fff;
     position: relative;
@@ -99,19 +117,23 @@ li:nth-of-type(2n + 1) {
     height: 35px;
     margin-bottom: 7px;
 }
-button,input,select {
+button,input,select,textarea {
+    font-size: 14px;
     background-color: #e7f0ff;
-    border-style: solid;
-    border-width: 0px 0px 1px 0px;
-    border-color: #e7f0ff;
-    padding: 10px;
-    margin: 2px 0px 2px 0px;
+    border-right: 1px solid #bcd4e2;
+    border-bottom: 1px solid #bcd4e2;
+    border-top: 1px solid #bde6ff;
+    border-left: 1px solid #bde6ff;
+    padding: 5px;
+}
+select {
+    margin-bottom: 5px;
 }
 button:focus,input:focus,select:focus {
     outline: 0px;
     border-style: solid;
     border-bottom-width: 1px;
-    border-color: #6066bf;
+    border-color: #0010ff;
 }
 button:hover,input:hover,select:hover {
     background-color: #eee;
@@ -121,11 +143,12 @@ button:hover,input:hover,select:hover {
     color: #000;
     text-decoration: none;
     background-color: #e7f0ff;
-    border-style: solid;
-    border-width: 0px 0px 1px 0px;
-    border-color: #e7f0ff;
     padding: 10px;
     margin: 2px 0px 2px 0px;
+    border-right: 1px solid #bcd4e2;
+    border-bottom: 1px solid #bcd4e2;
+    border-top: 1px solid #bde6ff;
+    border-left: 1px solid #bde6ff;
 }
 .a_button:hover {
     background-color: #eee;

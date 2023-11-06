@@ -1,6 +1,10 @@
 body {
     margin: 0;
     font-family: sans-serif;
+    font-size: 14px;
+}
+input, button {
+    font-size: 14px;
 }
 li {
     list-style-type: none;

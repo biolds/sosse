@@ -601,9 +601,16 @@ input[type=button][disabled].default {
 }
 */
 
+.module:nth-child(1) caption {
+    padding-top: 0px;
+}
+
+.module caption {
+    padding-top: 30px;
+}
+
 .module h2, .module caption, .inline-group h2 {
     margin: 0;
-    padding: 8px;
     font-weight: 300;
     font-size: 18px;
     text-align: left;

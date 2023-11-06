@@ -46,7 +46,7 @@ urlpatterns = [
     path('about/', about, name='about'),
     path('s/', search_redirect, name='search_redirect'),
     path('prefs/', prefs),
-    path('stats/', stats),
+    path('stats/', stats, name='stats'),
     path('atom/', atom),
     path('word_stats/', word_stats),
     path('history/', history, name='history'),

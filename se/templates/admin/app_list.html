@@ -11,19 +11,26 @@
           {% elif app.app_label == 'auth' %}
             <img src="{% static 'se/icon-user.svg' %}" style="width: 25px" />
           {% endif %}
-          <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
+          <a href="{{ app.app_url }}" class="section">{{ app.name }}</a>
         </caption>
         {% if app.app_label == 'se' %}
           {% if 'se.add_document' in perms %}
             <tr>
-              <th scope="row"><a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
+              <th scope="row">🕷 <a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
               <td></td>
               <td></td>
             </tr>
           {% endif %}
           {% if 'se.view_crawlerstats' in perms %}
             <tr>
-              <th scope="row"><a href="{% url 'admin:crawl_status' %}">Crawl status</a></th>
+               <th scope="row"><div style="display: inline; color: #1ce51c">✔ </div><a href="{% url 'admin:crawl_status' %}">Crawl status</a></th>
+              <td></td>
+              <td></td>
+            </tr>
+          {% endif %}
+          {% if request.user.is_staff and request.user.is_superuser %}
+            <tr>
+              <th scope="row">📊 <a href="{% url 'stats' %}">Statistics</a></th>
               <td></td>
               <td></td>
             </tr>
@@ -32,7 +39,7 @@
         {% for model in app.models %}
           <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
             {% if model.admin_url %}
-              <th scope="row"><a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
+              <th scope="row">{% if model.name == 'Crawl policies' %}⚡ {% endif %}<a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
             {% else %}
               <th scope="row">{{ model.name }}</th>
             {% endif %}
@@ -53,6 +60,17 @@
               <td></td>
             {% endif %}
           </tr>
+          {% if app.app_label == 'se' and model.name == 'Crawl policies' %}
+          {# hack to insert a title #}
+          </table>
+          </div>
+          <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}">
+            <table>
+              <caption>
+                <img src="{% static 'se/icon-cog.svg' %}" style="width: 25px" />
+                <a href="{{ app.app_url }}" class="section">Advanced</a>
+              </caption>
+          {% endif %}
         {% endfor %}
       </table>
     </div>

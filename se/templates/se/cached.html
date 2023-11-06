@@ -15,7 +15,7 @@
     <a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">🔗 Links from this page</a>
     {% if doc.redirect_url %}
         <br/>
-        This page redirects to <a href="{{ www_redirect_url }}">{{ doc.redirect_url }}</a> · <a href="{{ doc.redirect_url }}">🌍</a></li>
+        This page redirects to <a href="{{ www_redirect_url }}">{{ doc.redirect_url }}</a> · <a href="{{ doc.redirect_url }}">🌍</a>
     {% endif %}
     {% if doc.too_many_redirects %}
         <br/>

@@ -58,6 +58,12 @@ li:nth-of-type(2n + 1) {
 #conf_menu_button {
     background-image: url('/static/se/icon-cog.svg');
 }
+#clear_button {
+    background-image: url('/static/se/icon-clear.svg');
+}
+#search_button {
+    background-image: url('/static/se/icon-search.svg');
+}
 .menu {
     position: absolute;
     text-align: right;

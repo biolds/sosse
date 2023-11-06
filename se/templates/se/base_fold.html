@@ -50,6 +50,8 @@
         } else {
             top_bar.style.display = 'block';
             fold_button.innerHTML = fold_button.innerHTML.replace('Show', 'Hide')
+            const search_input = document.getElementById('id_q');
+            search_input.focus();
         }
     }
 {% endblock %}

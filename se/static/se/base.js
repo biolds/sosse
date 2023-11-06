@@ -36,6 +36,40 @@ document.addEventListener("DOMContentLoaded", function(event) {
             panel.style.display = panelDisplayed ? 'none': 'block';
         }, false);
     }
+
+    if (document.getElementById('search_form')) {
+        const langInput = document.getElementById('id_l');
+        langInput.value = getLang();
+
+        if (localStorage.getItem('sossePageSize')) {
+          const pageSize = document.getElementById('id_ps');
+          pageSize.value = getPageSize();
+        }
+
+        const cachedLinks = document.getElementById('id_c');
+        if (getCachedLinks()) {
+            cachedLinks.value = '1';
+        } else {
+            document.getElementById('search_field').removeChild(cachedLinks);
+        }
+
+        const search_field = document.getElementById('search_field');
+        const search_button = document.getElementById('search_button');
+        const search_input = document.getElementById('id_q');
+        const clear = document.createElement('input');
+        clear.id = 'clear_button';
+        clear.className = 'img_button';
+        clear.setAttribute('type', 'button');
+        clear.setAttribute('value', ' ');
+        clear.addEventListener('click', function(ev) {
+            search_input.focus();
+            search_input.value = '';
+        });
+        if (window.location.pathname !== '/') {
+            clear.style = 'height: 31px; width: 31px; padding-top: 6px; padding-block: 1px';
+        }
+        search_field.insertBefore(clear, search_button);
+    }
 });
 
 // Close menu panels on click outside

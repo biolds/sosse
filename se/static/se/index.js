@@ -1,39 +1,10 @@
 // when document is ready
 // https://stackoverflow.com/questions/799981/document-ready-equivalent-without-jquery
 document.addEventListener("DOMContentLoaded", function(event) {
-    const langInput = document.getElementById('id_l');
-    langInput.value = getLang();
-
-    if (localStorage.getItem('sossePageSize')) {
-      const pageSize = document.getElementById('id_ps');
-      pageSize.value = getPageSize();
-    }
-
-    const cachedLinks = document.getElementById('id_c');
-    if (getCachedLinks()) {
-        cachedLinks.value = '1';
-    } else {
-        document.getElementById('search_field').removeChild(cachedLinks);
-    }
-
     load_adv_search();
 
     const form = document.getElementById('search_form');
     form.addEventListener('submit', on_submit, false);
-
-    const search_field = document.getElementById('search_field');
-    const search_button = document.getElementById('search_button');
-    const search_input = document.getElementById('id_q');
-    const clear = document.createElement('input');
-    clear.id = 'clear_button';
-    clear.className = 'img_button';
-    clear.setAttribute('type', 'button');
-    clear.setAttribute('value', ' ');
-    clear.addEventListener('click', function(ev) {
-        search_input.focus();
-        search_input.value = '';
-    });
-    search_field.insertBefore(clear, search_button);
 });
 
 let adv_search_lines = 0;

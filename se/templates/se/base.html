@@ -4,8 +4,21 @@
 {% block body_base %}
     <div id="top_bar">
         <a href="/" id="logo">
-            <img src="{% static "se/logo.svg" %}">SOSSE
+            <img src="{% static "se/logo.svg" %}">{% if not search_form %}SOSSE{% endif %}
         </a>
+        {% if search_form %}
+            <form method="get" id="search_form" action="/" style="display: inline-block">
+                <div id="search_field" style="display: inline-block; margin-top: -6px">
+                    {% for field in search_form.hidden_fields %}
+                        {{ field }}
+                    {% endfor %}
+
+                    <input type="text" name="q" autofocus="" id="id_q" style="height: 10px" autofocus><!--
+                    --><input id="search_button" class="img_button" type="submit" value=" " style="margin-left: 3px; width: 31px; height: 31px; padding-top: 6px; padding-block: 1px">
+                </div>
+            </form>
+        {% endif %}
+
         {% if title and not hide_title %}
             <h3>{{ title }}</h3>
         {% endif %}

@@ -20,6 +20,7 @@ from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 
 from .document import Document, extern_link_flags
+from .forms import SearchForm
 from .models import CrawlPolicy
 from .url import sanitize_url, url_beautify
 from .utils import reverse_no_escape
@@ -100,7 +101,9 @@ def get_context(doc, view_name):
         'title': page_title,
         'beautified_url': beautified_url,
         'favicon': favicon,
-        'other_links': other_links
+        'other_links': other_links,
+        'show_search_input': True,
+        'search_form': SearchForm({})
     }
 
 

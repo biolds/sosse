@@ -1,20 +1,10 @@
 {% extends "admin/change_form.html" %}
-{% load static %}
+{% load i18n admin_urls static admin_modify %}
 
-{% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "se/admin-forms.css" %}">
-{% endblock %}
-
-{% block object-tools %}
-    <span style="text-align: right">
-        <form action="{% url "admin:doaction" object_id %}" method="post">
-            {% csrf_token %}
-            {% for action in actions %}
-                {% if action.0 and action.0 != 'delete_selected' %}
-                    <button type="submit" name="action" value="{{ action.0 }}">{{ action.1 }}</button>
-                {% endif %}
-            {% endfor %}
-        </form>
-    </span>
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Administration</a>
+&rsaquo; {% if has_view_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if add %}{% blocktranslate with name=opts.verbose_name %}Add {{ name }}{% endblocktranslate %}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+</div>
 {% endblock %}

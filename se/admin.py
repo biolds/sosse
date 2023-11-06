@@ -36,6 +36,9 @@ from .utils import human_datetime, human_dt, reverse_no_escape
 
 
 class SEAdminSite(admin.AdminSite):
+    enable_nav_sidebar = False
+    index_title = 'Administration'
+
     def get_app_list(self, request):
         MODELS_ORDER = (
             ('se', ('CrawlPolicy', 'Document', 'DomainSetting', 'Cookie', 'ExcludedUrl', 'SearchEngine', 'HTMLAsset')),
@@ -67,7 +70,6 @@ class SEAdminSite(admin.AdminSite):
 
 
 admin_site = SEAdminSite(name='admin')
-admin_site.enable_nav_sidebar = False
 
 
 def get_admin():

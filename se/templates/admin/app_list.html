@@ -6,12 +6,14 @@
     <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}">
       <table>
         <caption>
-          {% if app.app_label == 'se' %}
-            <img src="{% static 'se/icon-search.svg' %}" style="width: 25px" />
-          {% elif app.app_label == 'auth' %}
-            <img src="{% static 'se/icon-user.svg' %}" style="width: 25px" />
-          {% endif %}
-          <a href="{{ app.app_url }}" class="section">{{ app.name }}</a>
+          <h4>
+            {% if app.app_label == 'se' %}
+              <img src="{% static 'se/icon-search.svg' %}" style="width: 20px" />
+            {% elif app.app_label == 'auth' %}
+              <img src="{% static 'se/icon-user.svg' %}" style="width: 20px" />
+            {% endif %}
+            {{ app.name }}
+           </h4>
         </caption>
         {% if app.app_label == 'se' %}
           {% if 'se.add_document' in perms %}
@@ -67,8 +69,7 @@
           <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}">
             <table>
               <caption>
-                <img src="{% static 'se/icon-cog.svg' %}" style="width: 25px" />
-                <a href="{{ app.app_url }}" class="section">Advanced</a>
+                <h4><img src="{% static 'se/icon-cog.svg' %}" style="width: 20px; padding-right: 5px" />Advanced</h4>
               </caption>
           {% endif %}
         {% endfor %}

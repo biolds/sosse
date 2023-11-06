@@ -639,6 +639,7 @@ class Document(models.Model):
                         crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, page.redirect_count))
                         doc._schedule_next(doc.url != page.url, crawl_policy)
                         doc._clear_content()
+                        doc.set_error('')
                         doc.redirect_url = page.url
                         doc.save()
                         doc = Document.pick_or_create(page.url, worker_no)

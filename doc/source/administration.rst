@@ -11,6 +11,7 @@ Administration
    crawl/policies.rst
    crawl/crawl_depth.rst
    crawl/feeds.rst
+   crawl/statistics.rst
    archive.rst
    authentication.rst
    documents.rst

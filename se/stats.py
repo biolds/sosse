@@ -148,7 +148,7 @@ def dir_size(d):
 
 @login_required
 def stats(request):
-    if not request.user.is_staff and not request.user.is_superuser:
+    if not request.user.is_staff or not request.user.is_superuser:
         return redirect(reverse('search'))
     pygal_config = pygal.Config()
     pygal_config.js = (settings.STATIC_URL + '/se/pygal-tooltips.min.js',)
@@ -226,4 +226,4 @@ def stats(request):
 
     context.update(crawler_stats(pygal_config, pygal_style, MINUTELY))
     context.update(crawler_stats(pygal_config, pygal_style, DAILY))
-    return render(request, 'se/stats.html', context)
+    return render(request, 'admin/stats.html', context)

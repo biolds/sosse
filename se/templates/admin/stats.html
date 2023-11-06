@@ -1,4 +1,4 @@
-{% extends "se/base.html" %}
+{% extends "admin/base.html" %}
 
 {% block css %}
     .paragraph {
@@ -19,7 +19,7 @@
     }
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <h4>Index</h4>
     <span class="paragraph">
          {{ doc_count }} documents with {{ lang_count }} different languages are indexed.<br/>

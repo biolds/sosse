@@ -22,7 +22,7 @@ Screenshots
 .. figure:: ../../tests/robotframework/screenshots/statistics.png
    :class: sosse-screenshot
 
-   :doc:`Index statistics <user/statistics>`
+   :doc:`Index statistics <crawl/statistics>`
 
 .. raw:: html
 

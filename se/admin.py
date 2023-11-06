@@ -183,6 +183,7 @@ class DocumentAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         return [
             path('<path:object_id>/do_action/', self.admin_site.admin_view(self.do_action), name='doaction'),
+            path('stats/', self.admin_site.admin_view(self.stats), name='stats'),
             path('queue/', self.admin_site.admin_view(self.add_to_queue), name='queue'),
             path('queue_confirm/', self.admin_site.admin_view(self.add_to_queue_confirm), name='queue_confirm'),
             path('crawl_status/', self.admin_site.admin_view(self.crawl_status), name='crawl_status'),
@@ -339,6 +340,10 @@ class DocumentAdmin(admin.ModelAdmin):
             raise PermissionDenied
         context = self._crawl_status_context(request)
         return response.TemplateResponse(request, 'admin/crawl_status_content.html', context)
+
+    def stats(self, request):
+        from .stats import stats as stats_view
+        return stats_view(request)
 
     @staticmethod
     @admin.display(ordering='crawl_next')

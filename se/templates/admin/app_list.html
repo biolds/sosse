@@ -9,16 +9,17 @@
           <h4>
             {% if app.app_label == 'se' %}
               <img src="{% static 'se/icon-search.svg' %}" style="width: 20px" />
+              {{ app.name }}
             {% elif app.app_label == 'auth' %}
               <img src="{% static 'se/icon-user.svg' %}" style="width: 20px" />
+              Authentication
             {% endif %}
-            {{ app.name }}
            </h4>
         </caption>
         {% if app.app_label == 'se' %}
           {% if 'se.add_document' in perms %}
             <tr>
-              <th scope="row">🕷 <a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
+              <th scope="row">🌐  <a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
               <td></td>
               <td></td>
             </tr>

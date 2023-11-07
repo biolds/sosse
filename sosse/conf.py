@@ -197,7 +197,7 @@ DEFAULTS = OrderedDict([
         }],
         ['browsable_home', {
             'comment': 'Display entry point documents on the homepage.',
-            'default': False,
+            'default': True,
             'type': bool
         }],
         ['links_no_referrer', {

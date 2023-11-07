@@ -10,6 +10,7 @@ SOSSE's documentation!
    :maxdepth: 2
    :caption: 🐾 Contents:
 
+   introduction.md
    install.rst
    administration.rst
    config_file.rst

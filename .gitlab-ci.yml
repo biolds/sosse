@@ -100,6 +100,7 @@ doc_gen:
       - doc/source/*_generated.rst
       - doc/source/*/*_generated.rst
       - doc/source/CHANGELOG.md
+      - doc/source/introduction.md
   script:
     - make doc_gen
 

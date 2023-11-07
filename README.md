@@ -17,10 +17,10 @@
 SOSSE 🦦
 =======
 
-SOSSE (Selenium Open Source Search Engine) is a search engine and crawler written in Python, distributed under the [GNU-AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It is hosted on both [Gitlab](https://gitlab.com/biolds1/sosse) and [Github](https://github.com/biolds/sosse) site, please use any of them to open feature requests, bug report or merge requests, or [open a discussion](https://github.com/biolds/sosse/discussions).
+SOSSE (Selenium Open Source Search Engine) is a Web search engine, crawler and archiver written in Python, distributed under the [GNU-AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It is hosted on both [Gitlab](https://gitlab.com/biolds1/sosse) and [Github](https://github.com/biolds/sosse) site, please use any of them to open feature requests, bug report or merge requests, or [open a discussion](https://github.com/biolds/sosse/discussions).
 
 SOSSE main features are:
-- 🌍 Browser based crawling: the crawler can use [Mozilla Firefox](https://www.mozilla.org/firefox/), or [Google Chromium](https://www.chromium.org/Home) and [Selenium](https://www.selenium.dev/) to index pages that use Javascript. [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used for faster crawling
+- 🌍 Browser based crawling: SOSSE uses [Mozilla Firefox](https://www.mozilla.org/firefox/), or [Google Chromium](https://www.chromium.org/Home) and [Selenium](https://www.selenium.dev/) to index pages that use Javascript. [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used for faster crawling
 - 🏖 Low resources requirements: SOSSE is entirely written in Python and uses [PostgreSQL](https://www.postgresql.org/) for data storage
 - 🖼 Offline browsing: SOSSE can save HTML copy or take screenshots of crawled pages to create archives suitable for offline browsing
 - 🔓 Authentication: the crawlers can submit authentication forms with provided credentials

@@ -24,7 +24,7 @@
 |  | Page Should Not Contain | No crawlers running.
 |  | Page Should Not Contain | exited
 |  | Wait Until Page Contains | 4 documents to be recrawled | 2min
-|  | Page Should Contain | idle
+|  | Wait Until Page Contains | idle
 |  | Reload Page
 |  | Wait Until Page Contains | Crawl status
 |  | Scroll To Bottom

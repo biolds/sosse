@@ -14,7 +14,7 @@
             <p>
                 This URL will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
             </p>
-            <ul>
+            <ul class="ul_stripe">
                 {% if crawl_policy.condition == CrawlPolicy.CRAWL_ALL %}
                     <li>All URL matching the policy regexp will be crawled</li>
                     {% if crawl_policy.crawl_depth > 1 %}
@@ -39,7 +39,7 @@
                 {% if crawl_policy.condition == CrawlPolicy.CRAWL_ALL %}
                     <li>
                         {% if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE %}
-                            Crawled only once
+                            Pages won't be recrawled automatically
                         {% elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT %}
                             Crawled every {{ recrawl_every }}
                         {% else %}

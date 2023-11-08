@@ -292,6 +292,7 @@ div.help ul {
 p img, h1 img, h2 img, h3 img, h4 img, td img {
     vertical-align: middle;
 }
+*/
 
 .quiet, a.quiet:link, a.quiet:visited {
     color: var(--body-quiet-color);
@@ -309,7 +310,6 @@ p img, h1 img, h2 img, h3 img, h4 img, td img {
 .hidden {
     display: none;
 }
-*/
 
 /* TABLES */
 

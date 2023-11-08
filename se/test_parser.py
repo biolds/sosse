@@ -46,7 +46,7 @@ LINKS = ({
 }, {
     'descr': b'percent-encode ascii link',
     'link': b'http://test.com/%61%62%63/',
-    'expected_output': 'http://test.com/abc/',
+    'expected_output': 'http://test.com/%61%62%63/',
 }, {
     'descr': b'relative link',
     'link': b'http://test.com/test/../abc/',
@@ -54,7 +54,7 @@ LINKS = ({
 }, {
     'descr': b'percent-encoded relative link',
     'link': b'http://test.com/test/%2e%2e/abc/',
-    'expected_output': 'http://test.com/abc/'
+    'expected_output': 'http://test.com/test/%2e%2e/abc/'
 }, {
     'descr': b'space link',
     'link': b'http://test.com/test/a b c/',
@@ -63,13 +63,13 @@ LINKS = ({
     'descr': b'percent-encoded space link',
     'link': b'http://test.com/test/a%20b%20c/',
 }, {
-    'descr': b'special characters link',
+    'descr': b'reserved characters link',
     'link': b'http://test.com/, &/',
-    'expected_output': 'http://test.com/%2C%20%26/',
+    'expected_output': 'http://test.com/,%20&/',
 }, {
     'descr': b'percent-encoded slash link',
     'link': b'http://test.com/test/a%2fb/',
-    'expected_output': 'http://test.com/test/a/b/',
+    'expected_output': 'http://test.com/test/a%2fb/',
 }, {
     'descr': b'url parameters',
     'link': b'http://test.com/?a=b',

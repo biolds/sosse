@@ -73,8 +73,11 @@ def sanitize_url(_url):
         raise Exception(f'url has no netloc and no path ({_url})')
 
     # normalize percent-encoding
-    _path = unquote(url.path)
-    url = url._replace(path=quote(_path))
+    # (https://datatracker.ietf.org/doc/html/rfc3986.html#section-2.2)
+    # all reserved character ^ don't require escaping, and already escaped (with % encoding)
+    # characters must not be escaped a second time
+    _path = quote(url.path, safe='%_.-~:/?#[]@!$&\'()*+,;=')
+    url = url._replace(path=_path)
 
     _query = unquote_plus(url.query)
     url = url._replace(query=quote_plus(_query, safe='&='))

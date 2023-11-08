@@ -161,23 +161,25 @@ class UrlTest(TransactionTestCase):
                                ('./g/.', 'http://a/b/c/g/'),
                                ('g/./h', 'http://a/b/c/g/h'),
                                ('g/../h', 'http://a/b/c/h'),
-
-                               # ; and = is quoted in the result compared to the rfc,
-                               # because it's part of the path (same below)
-                               ('g;x=1/./y', 'http://a/b/c/g%3Bx%3D1/y'),
-
+                               ('g;x=1/./y', 'http://a/b/c/g;x=1/y'),
                                ('g;x=1/../y', 'http://a/b/c/y'),
                                ('./../g', 'http://a/b/g'),
                                ('./g/.', 'http://a/b/c/g/'),
                                ('g/./h', 'http://a/b/c/g/h'),
                                ('g/../h', 'http://a/b/c/h'),
-                               ('g;x=1/./y', 'http://a/b/c/g%3Bx%3D1/y'),
+                               ('g;x=1/./y', 'http://a/b/c/g;x=1/y'),
                                ('g;x=1/../y', 'http://a/b/c/y'),
                                ('g?y/./x', 'http://a/b/c/g?y%2F.%2Fx'),
                                ('g?y/../x', 'http://a/b/c/g?y%2F..%2Fx'),
                                ('g#s/./x', 'http://a/b/c/g#s/./x'),
                                ('g#s/../x', 'http://a/b/c/g#s/../x')):
             self.assertEqual(absolutize_url(base_url, link), expected, 'link: %s' % link)
+
+    def test_norm_url_path_colon(self):
+        # Seen on https://developer.mozilla.org/fr/docs/Web/CSS/WebKit_Extensions
+        self.assertEqual(absolutize_url('https://developer.mozilla.org',
+                                        '/fr/docs/Web/CSS/::-webkit-search-cancel-button'),
+                         'https://developer.mozilla.org/fr/docs/Web/CSS/::-webkit-search-cancel-button')
 
 
 class UrlBeautifyTest(TransactionTestCase):

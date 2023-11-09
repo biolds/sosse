@@ -892,7 +892,6 @@ class SeleniumBrowser(Browser):
         pid = p.children()[0].pid
         fd_dir = '/proc/%d/fd/' % pid
 
-        filename = os.path.join(cls._get_download_dir(), filename)
         for f in os.listdir(fd_dir):
             f = os.path.join(fd_dir, f)
             if os.readlink(f) == filename:

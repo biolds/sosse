@@ -15,9 +15,11 @@ unit_tests:
   stage: test
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
+    when: always
     paths:
       - se/migrations/*.py
       - htmlcov/*
+      - log/*
     reports:
       coverage_report:
         coverage_format: cobertura
@@ -30,21 +32,24 @@ unit_tests:
     - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
     - export PYTHONPATH="$CI_PROJECT_DIR"
     - /tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
-    - /tmp/sudo_sosse test -v3 --failfast
-    - /tmp/sudo_sosse load_se tests/opensearch.xml
-    - /tmp/sudo_sosse update_se
-    - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()'
-    - /tmp/sudo_sosse default_admin
-    - /tmp/sudo_sosse generate_secret
-    - /tmp/sudo_sosse extract_doc cli > /dev/null
-    - /tmp/sudo_sosse extract_doc conf > /dev/null
-    - /tmp/sudo_sosse extract_doc se > /dev/null
-    - python3 ./sosse/sosse_admin.py makemigrations
-    - /tmp/sudo_sosse migrate
-    - /tmp/sudo_sosse migrate se 0001
+    - failed=0
+    - /tmp/sudo_sosse test -v3 --failfast || failed=1
+    - /tmp/sudo_sosse load_se tests/opensearch.xml || failed=1
+    - /tmp/sudo_sosse update_se || failed=1
+    - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()' || failed=1
+    - /tmp/sudo_sosse default_admin || failed=1
+    - /tmp/sudo_sosse generate_secret || failed=1
+    - /tmp/sudo_sosse extract_doc cli > /dev/null || failed=1
+    - /tmp/sudo_sosse extract_doc conf > /dev/null || failed=1
+    - /tmp/sudo_sosse extract_doc se > /dev/null || failed=1
+    - python3 ./sosse/sosse_admin.py makemigrations || failed=1
+    - /tmp/sudo_sosse migrate || failed=1
+    - /tmp/sudo_sosse migrate se 0001 || failed=1
     - python3-coverage report
     - python3-coverage html
     - python3-coverage xml
+    - mv /var/log/sosse log
+    - exit $failed
 
 .functional_tests: &functional_tests
   image: biolds/sosse:pip-test

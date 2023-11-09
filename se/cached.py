@@ -116,6 +116,7 @@ def unknown_url_view(request):
         'beautified_url': beautified_url,
         'crawl_policy': CrawlPolicy.get_from_url(url),
         'extern_link_flags': extern_link_flags,
+        'search_form': SearchForm({})
     }
     return render(request, 'se/unknown_url.html', context)
 

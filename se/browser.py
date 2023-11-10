@@ -61,6 +61,11 @@ class SkipIndexing(Exception):
     pass
 
 
+class StalledDownload(SkipIndexing):
+    def __init__(self):
+        super().__init__('Download stalled')
+
+
 class PageTooBig(SkipIndexing):
     def __init__(self, size, conf_size):
         size = human_filesize(size)
@@ -680,9 +685,18 @@ class SeleniumBrowser(Browser):
         crawl_logger.debug('Download in progress: %s' % os.listdir(cls._get_download_dir()))
         crawl_logger.debug('Download file: %s' % filename)
         try:
+            _size = None
+            retry = settings.SOSSE_DL_CHECK_RETRY
             while True:
                 sleep(settings.SOSSE_DL_CHECK_TIME)
                 size = os.stat(filename).st_size
+                if _size == size:
+                    retry -= 1
+                    if retry <= 0:
+                        raise StalledDownload()
+                else:
+                    retry = settings.SOSSE_DL_CHECK_RETRY
+
                 if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
                     cls.destroy()  # cancel the download
                     raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
@@ -894,8 +908,11 @@ class SeleniumBrowser(Browser):
 
         for f in os.listdir(fd_dir):
             f = os.path.join(fd_dir, f)
-            if os.readlink(f) == filename:
-                return True
+            try:
+                if os.readlink(f) == filename:
+                    return True
+            except FileNotFoundError:
+                pass
         return False
 
 

@@ -14,7 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from copy import copy
-from urllib.parse import urlencode
+from urllib.parse import quote_plus, urlencode
 
 from django import forms
 from django.conf import settings
@@ -402,7 +402,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
     @staticmethod
     def cookies(obj):
-        return format_html('<a href="{}">Cookies</a>', reverse('admin:se_cookie_changelist') + '?q=' + obj.url)
+        return format_html('<a href="{}">Cookies</a>', reverse('admin:se_cookie_changelist') + '?q=' + quote_plus(obj.url))
 
     @staticmethod
     def lang(obj):

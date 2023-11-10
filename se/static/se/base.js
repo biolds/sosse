@@ -67,6 +67,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         });
         if (window.location.pathname !== '/') {
             clear.style = 'height: 31px; width: 31px; padding-top: 6px; padding-block: 1px; border-left-style: none';
+            search_input.style = 'height: 7px; min-height: 7px; border-right-style: none';
+        } else {
+            search_input.style = 'border-right-style: none';
         }
         search_field.insertBefore(clear, search_button);
     }

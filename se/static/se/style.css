@@ -70,7 +70,6 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
     padding: 11px;
     min-width: 30%;
     height: 16px;
-    border-right-style: none;
 }
 #id_q:hover + #clear_button {
     background-color: #eee;
@@ -78,9 +77,6 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
 #id_q:focus + #clear_button {
     outline: 0px;
     border-color: #0010ff;
-}
-#id_q:focus {
-    border-right-style: none;
 }
 
 .menu {

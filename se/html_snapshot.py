@@ -310,13 +310,13 @@ class HTMLSnapshot:
                     continue
 
                 url = absolutize_url(self.base_url, url)
-                if url == self.page.url:
-                    continue
 
                 if elem.name in ('a', 'frame', 'iframe'):
                     elem.attrs[attr] = '/html/' + url
                     break
                 else:
+                    if url == self.page.url:
+                        continue
                     if self.crawl_policy.snapshot_exclude_element_re and re.match(self.crawl_policy.snapshot_exclude_element_re, elem.name):
                         logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
                         filename_url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))

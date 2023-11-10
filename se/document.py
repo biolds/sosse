@@ -130,10 +130,13 @@ class Document(models.Model):
     def get_absolute_url(self):
         if self.screenshot_count or self.redirect_url:
             return reverse_no_escape('screenshot', args=(self.url,))
+
         if self.has_html_snapshot:
-            return reverse_no_escape('html', args=(self.url,))
-        else:
-            return reverse_no_escape('www', args=(self.url,))
+            asset = HTMLAsset.objects.filter(url=self.url).first()
+            if asset and os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
+                return reverse_no_escape('html', args=(self.url,))
+
+        return reverse_no_escape('www', args=(self.url,))
 
     def get_source_link(self):
         link = '<a href="{}"'

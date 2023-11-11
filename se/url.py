@@ -168,7 +168,7 @@ def absolutize_url(url, link):
 
 
 def validate_url(url):
-    URL_REGEXP = r'https?://[a-zA-Z0-9_-][a-zA-Z0-9\_\-\.]*(:[0-9]+)?/[a-zA-Z0-9\_\.\-\~\/\?\&\=\%\+]*$'
+    URL_REGEXP = r'https?://[a-zA-Z0-9_-][a-zA-Z0-9\_\-\.]*(:[0-9]+)?/[a-zA-Z0-9\%\_\.\-\~\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=]*$'
     if not re.match(URL_REGEXP, url):
         raise ValidationError('URL must match the regular expression: %s' % URL_REGEXP)
 

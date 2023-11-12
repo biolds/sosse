@@ -289,6 +289,7 @@ class DocumentAdmin(admin.ModelAdmin):
         queue_new_count = Document.objects.filter(crawl_last__isnull=True).count()
         queue_sched_count = Document.objects.filter(crawl_last__isnull=False,
                                                     crawl_next__isnull=False).count()
+        queue_pending_count = Document.objects.filter(models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now())).count()
 
         QUEUE_SIZE = 7
         queue = list(Document.objects.filter(worker_no__isnull=False).order_by('id')[:QUEUE_SIZE])
@@ -323,6 +324,7 @@ class DocumentAdmin(admin.ModelAdmin):
             'settings': settings,
             'queue_new_count': queue_new_count,
             'queue_sched_count': queue_sched_count,
+            'queue_pending_count': queue_pending_count
         })
         return context
 

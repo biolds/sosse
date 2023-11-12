@@ -40,10 +40,13 @@
 
 <ul>
   <li>
-    {{ queue_new_count }} document{{ queue_new_count|pluralize:"s" }} never crawled before
+    {{ queue_new_count }} new document{{ queue_new_count|pluralize:"s" }}
   </li>
   <li>
-    {{ queue_sched_count }} document{{ queue_sched_count|pluralize:"s" }} to be recrawled
+    {{ queue_pending_count }} pending document{{ queue_pending_count|pluralize:"s" }}
+  </li>
+  <li>
+    {{ queue_sched_count }} recurrent document{{ queue_sched_count|pluralize:"s" }}
   </li>
   <li>
     <a href="{% url 'admin:se_document_changelist' %}?is_queued=yes&o=8">Documents queued</a>

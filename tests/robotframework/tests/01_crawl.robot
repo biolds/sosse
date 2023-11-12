@@ -23,7 +23,8 @@
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_status/
 |  | Page Should Not Contain | No crawlers running.
 |  | Page Should Not Contain | exited
-|  | Wait Until Page Contains | 4 documents to be recrawled | 2min
+|  | Wait Until Page Contains | 4 recurrent documents | 2min
+|  | Wait Until Page Contains | 0 pending documents | 2min
 |  | Wait Until Page Contains | idle
 |  | Reload Page
 |  | Wait Until Page Contains | Crawl status

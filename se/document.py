@@ -515,7 +515,12 @@ class Document(models.Model):
     @staticmethod
     def queue(url, parent_policy, parent):
         from .models import CrawlPolicy, ExcludedUrl
-        if ExcludedUrl.objects.filter(url=url).first():
+        if ExcludedUrl.objects.filter(url=url, starting_with=False).first():
+            crawl_logger.debug('skipping ExcludedUrl %s', url)
+            return None
+
+        if ExcludedUrl.objects.filter(starting_with=True).extra(where=['starts_with(%s, url)'], params=[url]).first():
+            crawl_logger.debug('skipping ExcludedUrl %s', url)
             return None
 
         crawl_policy = CrawlPolicy.get_from_url(url)

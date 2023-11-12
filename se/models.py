@@ -885,6 +885,7 @@ class SearchHistory(models.Model):
 
 class ExcludedUrl(models.Model):
     url = models.TextField(unique=True)
+    starting_with = models.BooleanField(default=False, help_text='Exclude all urls starting with the url pattern')
     comment = models.TextField(blank=True, null=True)
 
     class Meta:

@@ -20,7 +20,7 @@ from django.test import TransactionTestCase, override_settings
 
 from .browser import AuthElemFailed, Page, SkipIndexing
 from .document import Document
-from .models import DomainSetting, Link, CrawlPolicy
+from .models import DomainSetting, ExcludedUrl, Link, CrawlPolicy
 from .test_mock import BrowserMock
 
 
@@ -477,3 +477,25 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.doc_from, doc)
         self.assertEqual(link.text, 'link')
         self.assertEqual(link.extern_url, 'http://[invalid IPV6/')
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_110_excluded_url(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': b'<html><body><a href="/page.html">link</a></body></html>'
+        })
+        ExcludedUrl.objects.create(url='http://127.0.0.1/page.html')
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_120_excluded_url_starts_with(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': b'<html><body><a href="/no/exclude.html">link</a><a href="/page.html">link</a></body></html>'
+        })
+        ExcludedUrl.objects.create(url='http://127.0.0.1/no/', starting_with=True)
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 2)
+        urls = Document.objects.values_list('url', flat=True).order_by('url')
+        self.assertEqual(list(urls), ['http://127.0.0.1/', 'http://127.0.0.1/page.html'])

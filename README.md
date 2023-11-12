@@ -9,6 +9,9 @@
   <a href="https://sosse.readthedocs.io/en/stable/" alt="Documentation">
     <img src="https://img.shields.io/readthedocs/sosse?style=flat-square">
   </a>
+  <a href="https://discord.gg/Vt9cMf7BGK" alt="Discord">
+    <img src="https://img.shields.io/discord/1102142186423844944?style=flat-square&color=%235865f2">
+  </a>
   <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License">
     <img src="https://img.shields.io/gitlab/license/biolds1/sosse?style=flat-square">
   </a>

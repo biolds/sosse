@@ -1,8 +1,5 @@
-- docker system prune -a
-- make docker_build
 - make docker_git_build
 - test (docker run -p 8005:80 biolds/sosse:git)
-- make docker_push
 - debian update: version + changelog
 - doc version update
 - update the CHANGELOG.md using the last changelog build it the main branch
@@ -19,10 +16,12 @@
   - cd /var/www/html/repo/apt/debian/
   - reprepro -V --keepunreferencedfiles includedeb bookworm `<path to the .deb>`
 - docker build:
-  - clear pip caches
-  - make docker_release_build APT_PROXY=http://192.168.1.24:3142/ PIP_INDEX_URL=http://192.168.3.3:5000/index/ PIP_TRUSTED_HOST=192.168.3.3
+  - docker system prune -a
+  - make docker_build
+  - make docker_release_build
   - test (docker run -p 8005:80 biolds/sosse:latest, version no check)
   - make docker_release_push
+  - make docker_push
   - docker tag biolds/sosse:latest biolds/sosse:X.X.X
   - docker push biolds/sosse:X.X.X
 - in case the README.md file was modified, update the description at https://hub.docker.com/repository/docker/biolds/sosse/general

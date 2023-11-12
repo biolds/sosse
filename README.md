@@ -1,18 +1,18 @@
 <p>
   <img src="https://raw.githubusercontent.com/biolds/sosse/main/se/static/se/logo.svg" width="64" align="right">
-  <a href="https://gitlab.com/biolds1/sosse/" alt="Gitlab code coverage">
+  <a href="https://gitlab.com/biolds1/sosse/" alt="Gitlab code coverage" style="text-decoration: none">
     <img src="https://img.shields.io/gitlab/pipeline-coverage/biolds1/sosse?branch=main&style=flat-square">
   </a>
-  <a href="https://gitlab.com/biolds1/sosse/-/pipelines" alt="Gitlab pipeline status">
+  <a href="https://gitlab.com/biolds1/sosse/-/pipelines" alt="Gitlab pipeline status" style="text-decoration: none">
     <img src="https://img.shields.io/gitlab/pipeline-status/biolds1/sosse?branch=main&style=flat-square">
   </a>
-  <a href="https://sosse.readthedocs.io/en/stable/" alt="Documentation">
+  <a href="https://sosse.readthedocs.io/en/stable/" alt="Documentation" style="text-decoration: none">
     <img src="https://img.shields.io/readthedocs/sosse?style=flat-square">
   </a>
-  <a href="https://discord.gg/Vt9cMf7BGK" alt="Discord">
+  <a href="https://discord.gg/Vt9cMf7BGK" alt="Discord" style="text-decoration: none">
     <img src="https://img.shields.io/discord/1102142186423844944?style=flat-square&color=%235865f2">
   </a>
-  <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License">
+  <a href="https://gitlab.com/biolds1/sosse/-/blob/main/LICENSE" alt="License" style="text-decoration: none">
     <img src="https://img.shields.io/gitlab/license/biolds1/sosse?style=flat-square">
   </a>
 </p>

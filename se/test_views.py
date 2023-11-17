@@ -118,7 +118,7 @@ class ViewsTest:
     def test_admin_views(self):
         for url in ('/admin/', '/admin/se/document/queue/', '/admin/se/document/crawl_status/', '/admin/se/document/crawl_status_content/',
                     '/admin/se/crawlpolicy/', '/admin/se/crawlpolicy/%s/change/' % self.crawl_policy.id,
-                    '/admin/se/document/', '/admin/se/document/?is_queued=yes', '/admin/se/document/?is_queued=no',
+                    '/admin/se/document/', '/admin/se/document/?queued=new', '/admin/se/document/?queued=pending', '/admin/se/document/?queued=recurring',
                     '/admin/se/document/?has_error=yes', '/admin/se/document/?has_error=no',
                     '/admin/se/document/%s/change/' % self.doc.id,
                     '/admin/se/domainsetting/', '/admin/se/domainsetting/%s/change/' % DomainSetting.get_from_url(CRAWL_URL).id,

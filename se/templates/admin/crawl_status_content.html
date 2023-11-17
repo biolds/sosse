@@ -1,8 +1,8 @@
 {% load static %}
 <h4>Crawlers</h4>
 {% if crawlers %}
-  <div class="results">
-    <table id="result_list">
+  <div id="crawlers" class="results">
+    <table>
       <thead>
         <th><div class="text">No</div></th>
         <th><div class="text">PID</div></th>
@@ -18,7 +18,6 @@
         {% endfor %}
       </tbody>
     </table>
-    <br/>
     {% if 'se.change_crawlerstats' in perms %}
       <form method="POST">
         {% csrf_token %}
@@ -38,31 +37,23 @@
   Crawl Queue
 </h4>
 
-<ul>
+<ul id="queue_links">
   <li>
-    {{ queue_new_count }} new document{{ queue_new_count|pluralize:"s" }}
+    🌟 <a href="{% url 'admin:se_document_changelist' %}?queued=new&o=8">{{ queue_new_count }} new document{{ queue_new_count|pluralize:"s" }}</a>
   </li>
   <li>
-    {{ queue_pending_count }} pending document{{ queue_pending_count|pluralize:"s" }}
+    ⌛ <a href="{% url 'admin:se_document_changelist' %}?queued=pending&o=8">{{ queue_pending_count }} pending document{{ queue_pending_count|pluralize:"s" }}</a>
   </li>
   <li>
-    {{ queue_sched_count }} recurrent document{{ queue_sched_count|pluralize:"s" }}
-  </li>
-  <li>
-    <a href="{% url 'admin:se_document_changelist' %}?is_queued=yes&o=8">Documents queued</a>
-  </li>
-  <li>
-    <a href="{% url 'admin:se_document_changelist' %}?o=-7">Documents last indexed</a>
+    🕑 <a href="{% url 'admin:se_document_changelist' %}?queued=recurring&o=8">{{ queue_recurring_count }} recurring document{{ queue_recurring_count|pluralize:"s" }}</a>
   </li>
 </ul>
 
-<h4>
-  Documents crawled
-</h4>
 {% if queue %}
   <div class="results">
     <table id="result_list" style="width: 100%">
       <thead>
+        <th class="favicon"></th>
         <th><div class="text">Url</div></th>
         <th><div class="text">Title</div></th>
         <th><div class="text">Status</div></th>
@@ -72,6 +63,13 @@
       <tbody>
         {% for doc in queue %}
           <tr {% if doc.pending %}class="{% if doc.worker_no is not None %}running{% elif doc.crawl_last is None or doc.crawl_next < now %}pending{% endif %}"{% endif %}>
+            <td class="favicon">
+              <a href="{% url 'admin:se_document_change' doc.id %}">
+                {% if doc.favicon and not doc.favicon.missing %}
+                    <img src="{% url 'favicon' doc.favicon.id %}" alt="icon">
+                {% endif %}
+              </a>
+            </td>
             <td>
               <a href="{% url 'admin:se_document_change' doc.id %}">
                 {{ doc.url }}

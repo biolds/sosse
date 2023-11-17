@@ -125,22 +125,25 @@ class DocumentErrorFilter(admin.SimpleListFilter):
 
 class DocumentQueueFilter(admin.SimpleListFilter):
     title = 'queued'
-    parameter_name = 'is_queued'
+    parameter_name = 'queued'
 
     def lookups(self, request, model_admin):
         return (
-            ('yes', 'Yes'),
-            ('no', 'No'),
+            ('new', 'New'),
+            ('pending', 'Pending'),
+            ('recurring', 'Recurring'),
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            queue = Document.objects.filter(crawl_last__isnull=True).order_by('id')
-            queue = queue | Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).order_by('crawl_next')
-            return queue
+        if self.value() == 'new':
+            return queryset.filter(crawl_last__isnull=True)
+        if self.value() == 'pending':
+            return queryset.filter(models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now()))
 
-        if self.value() == 'no':
-            return queryset.filter(crawl_next__isnull=True, crawl_last__isnull=False)
+        if self.value() == 'recurring':
+            return queryset.filter(crawl_last__isnull=False,
+                                   crawl_next__isnull=False)
+        return queryset
 
 
 @admin.action(description='Crawl now', permissions=['change'])
@@ -287,8 +290,8 @@ class DocumentAdmin(admin.ModelAdmin):
         )
 
         queue_new_count = Document.objects.filter(crawl_last__isnull=True).count()
-        queue_sched_count = Document.objects.filter(crawl_last__isnull=False,
-                                                    crawl_next__isnull=False).count()
+        queue_recurring_count = Document.objects.filter(crawl_last__isnull=False,
+                                                        crawl_next__isnull=False).count()
         queue_pending_count = Document.objects.filter(models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now())).count()
 
         QUEUE_SIZE = 7
@@ -323,7 +326,7 @@ class DocumentAdmin(admin.ModelAdmin):
             'queue': queue,
             'settings': settings,
             'queue_new_count': queue_new_count,
-            'queue_sched_count': queue_sched_count,
+            'queue_recurring_count': queue_recurring_count,
             'queue_pending_count': queue_pending_count
         })
         return context

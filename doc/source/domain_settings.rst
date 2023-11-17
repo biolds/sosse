@@ -17,8 +17,8 @@ is accessed, and this option is switched to either ``Chromium``, ``Firefox``  or
 
 .. _domain_ignore_robots:
 
-Ignore robots
-"""""""""""""
+Ignore robots.txt
+"""""""""""""""""
 
 By default the crawler will honor the ``robots.txt`` 🤖 of the domain and follow its rules depending on the :ref:`User Agent <conf_option_user_agent>`.
 When enabled, this option will ignore any ``robots.txt`` rule and crawl pages of the domain unconditionally.

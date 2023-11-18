@@ -10,7 +10,7 @@
                         <img src="{% static "se/logo.svg" %}" alt="icon">
                     {% endif %}
                 </div>
-                <h3 class="res-title">{{ r.title }}</h3>
+                <h3 class="res-title">{% if r.title %}{{ r.title }}{% else %}{{ r.url }}{% endif %}</h3>
                 <div class="res-home-fade-text"></div>
             </div>
         </a>

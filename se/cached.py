@@ -71,31 +71,32 @@ def get_context(doc, view_name):
     else:
         page_title = title
 
-    other_links = []
-    if view_name != 'www':
-        other_links.append({
-            'href': reverse_no_escape('www', args=[doc.url]),
-            'text': 'Text',
-            'text_icon': '✏️'
-        })
-    if doc.has_html_snapshot and view_name != 'html':
+    other_links = [{
+        'href': reverse_no_escape('www', args=[doc.url]),
+        'text': 'Text',
+        'text_icon': '✏️',
+        'name': 'www'
+    }]
+    if doc.has_html_snapshot:
         other_links.append({
             'href': reverse_no_escape('html', args=[doc.url]),
             'text': 'HTML',
-            'text_icon': '🔖'
+            'text_icon': '🔖',
+            'name': 'html'
         })
-    if doc.screenshot_count and view_name != 'screenshot':
+    if doc.screenshot_count:
         other_links.append({
             'href': reverse_no_escape('screenshot', args=[doc.url]),
             'text': 'Screenshot',
-            'text_icon': '📷'
+            'text_icon': '📷',
+            'name': 'screenshot'
         })
-    if view_name != 'words':
-        other_links.append({
-            'href': reverse_no_escape('words', args=[doc.url]),
-            'text': 'Words weight',
-            'text_icon': '📚'
-        })
+    other_links.append({
+        'href': reverse_no_escape('words', args=[doc.url]),
+        'text': 'Words weight',
+        'text_icon': '📚',
+        'name': 'words'
+    })
 
     return {
         'crawl_policy': crawl_policy,
@@ -107,7 +108,8 @@ def get_context(doc, view_name):
         'favicon': favicon,
         'other_links': other_links,
         'show_search_input': True,
-        'search_form': SearchForm({})
+        'search_form': SearchForm({}),
+        'view_name': view_name
     }
 
 

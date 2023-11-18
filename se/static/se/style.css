@@ -170,6 +170,21 @@ button:hover,input:hover,select:hover {
   display: block;
 }
 
-.cache_links > li {
+.cache_links * {
   display: inline;
+}
+
+.cache_links > li {
+  margin: 0px 2px 25px 2px;
+  padding: 8px;
+  border-width: 0px;
+}
+
+#cache_link_selected {
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+  border-color: #e7f0ff;
+  margin: 0px 2px 25px 2px;
+  padding: 8px;
+  box-shadow: 0px 0px 5px 5px #e3e5f6;
 }

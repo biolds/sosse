@@ -13,7 +13,7 @@
           <tr>
               <td>{{ crawler.worker_no }}</td>
               <td>{{ crawler.pid }}</td>
-              <td>{{ crawler.state }}</td>
+              <td><b>{{ crawler.state }}</b></td>
           </tr>
         {% endfor %}
       </tbody>
@@ -93,13 +93,15 @@
                <td>Pending</td>
             {% elif doc.crawl_next and doc.pending %}
               <td title="{{ doc.crawl_next }}">{{ doc.crawl_next_human }}</td>
+            {% elif doc.crawl_next and not doc.pending %}
+              <td title="{{ doc.crawl_next }}" style="opacity: 0.25">{{ doc.crawl_next_human }}</td>
             {% else %}
               <td></td>
             {% endif %}
             {% if doc.crawl_last %}
               <td title="{{ doc.crawl_last }}">{{ doc.crawl_last_human }}</td>
             {% else %}
-              <td></td>
+              <td style="opacity: 0.25">Never</td>
             {% endif %}
           </tr>
         {% endfor %}

@@ -397,7 +397,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
     @staticmethod
     def cache(obj):
-        return format_html('<a href="{}">🔗 Page in cache</a>', obj.get_absolute_url())
+        return format_html('🔗 <a href="{}">Page in cache</a>', obj.get_absolute_url())
 
     @staticmethod
     def domain(obj):

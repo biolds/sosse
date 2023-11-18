@@ -75,22 +75,26 @@ def get_context(doc, view_name):
     if view_name != 'www':
         other_links.append({
             'href': reverse_no_escape('www', args=[doc.url]),
-            'text': '✒ Text',
+            'text': 'Text',
+            'text_icon': '✏️'
         })
     if doc.has_html_snapshot and view_name != 'html':
         other_links.append({
             'href': reverse_no_escape('html', args=[doc.url]),
-            'text': '🔖 HTML',
+            'text': 'HTML',
+            'text_icon': '🔖'
         })
     if doc.screenshot_count and view_name != 'screenshot':
         other_links.append({
             'href': reverse_no_escape('screenshot', args=[doc.url]),
-            'text': '📷 Screenshot'
+            'text': 'Screenshot',
+            'text_icon': '📷'
         })
     if view_name != 'words':
         other_links.append({
             'href': reverse_no_escape('words', args=[doc.url]),
-            'text': '📚 Words weight',
+            'text': 'Words weight',
+            'text_icon': '📚'
         })
 
     return {

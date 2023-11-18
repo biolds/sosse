@@ -139,9 +139,9 @@ class Document(models.Model):
         return reverse_no_escape('www', args=(self.url,))
 
     def get_source_link(self):
-        link = '<a href="{}"'
+        link = '🌍 <a href="{}"'
         link += extern_link_flags()
-        link += '>🌍 Source page</a>'
+        link += '>Source page</a>'
         return format_html(link, self.url)
 
     def image_name(self):

@@ -10,11 +10,11 @@
       <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Pages linking here</a></li>
       <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from this page</a></li>
     </ul>
-    <ul class="cache_links">
+    <ul class="cache_links" style="margin-bottom: 10px">
       {% if other_links %}
         {% for link in other_links %}
           {% if view_name != link.name %}
-            <li>{{ link.text_icon }}<a href="{{ link.href }}">{{ link.text }}</a></li>
+            <li class="tab_link">{{ link.text_icon }}<a href="{{ link.href }}">{{ link.text }}</a></li>
           {% else %}
             <li id="cache_link_selected">
               <div>

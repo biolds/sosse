@@ -80,7 +80,7 @@
                 {{ doc.title }}
               </a>
             </td>
-            <td>
+            <td {% if not doc.in_history %}style="opacity: 0.3"{% endif %}>
                 {% if doc.error %}
                     <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
                 {% else %}
@@ -90,18 +90,16 @@
             {% if doc.worker_no is not None %}
                <td>In progress</td>
             {% elif doc.crawl_last is None or doc.crawl_next < now %}
-               <td>Pending</td>
-            {% elif doc.crawl_next and doc.pending %}
-              <td title="{{ doc.crawl_next }}">{{ doc.crawl_next_human }}</td>
-            {% elif doc.crawl_next and not doc.pending %}
-              <td title="{{ doc.crawl_next }}" style="opacity: 0.25">{{ doc.crawl_next_human }}</td>
+               <td {% if doc.in_history %}style="opacity: 0.3"{% endif %}>Pending</td>
+            {% elif doc.crawl_next %}
+               <td title="{{ doc.crawl_next }}" {% if doc.in_history %}style="opacity: 0.3"{% endif %}>{{ doc.crawl_next_human }}</td>
             {% else %}
-              <td></td>
+              <td {% if doc.in_history %}style="opacity: 0.3"{% endif %}>Never</td>
             {% endif %}
             {% if doc.crawl_last %}
-              <td title="{{ doc.crawl_last }}">{{ doc.crawl_last_human }}</td>
+              <td {% if not doc.in_history %}style="opacity: 0.3"{% endif %} title="{{ doc.crawl_last }}">{{ doc.crawl_last_human }}</td>
             {% else %}
-              <td style="opacity: 0.25">Never</td>
+              <td {% if not doc.in_history %}style="opacity: 0.3"{% endif %}>Never</td>
             {% endif %}
           </tr>
         {% endfor %}

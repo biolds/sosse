@@ -312,6 +312,8 @@ class DocumentAdmin(admin.ModelAdmin):
             if doc in history:
                 history.remove(doc)
 
+        for doc in history:
+            doc.in_history = True
         queue = queue + history
 
         for doc in queue:

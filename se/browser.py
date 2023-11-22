@@ -138,7 +138,7 @@ class Browser:
     def init(cls):
         if cls.inited:
             return
-        crawl_logger.info('Browser %s init' % cls.__name__)
+        crawl_logger.debug('Browser %s init' % cls.__name__)
         cls._init()
         cls.inited = True
 
@@ -146,7 +146,7 @@ class Browser:
     def destroy(cls):
         if not cls.inited:
             return
-        crawl_logger.info('Browser %s destroy' % cls.__name__)
+        crawl_logger.debug('Browser %s destroy' % cls.__name__)
         cls._destroy()
         cls.inited = False
 

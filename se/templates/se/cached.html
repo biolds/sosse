@@ -16,8 +16,8 @@
           {% if view_name != link.name %}
             <a class="tab_link"href="{{ link.href }}">{{ link.text_icon }} {{ link.text }}</a>
           {% else %}
-            <a class="tab_link" id="cache_link_selected">
-              {{ link.text_icon }} <b>{{ link.text }}</b>
+            <a class="tab_link" id="tab_selected">
+              {{ link.text_icon }} {{ link.text }}
             </a>
           {% endif %}
         {% endfor %}

@@ -172,14 +172,24 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
     list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage')
     search_fields = ['url__regex', 'title__regex']
-    fields = ['url', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cache', 'link', 'title', 'status',
-              '_error', 'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse',
-              'robotstxt_rejected', 'too_many_redirects', 'mimetype', '_lang_txt', '_content']
-    readonly_fields = copy(fields)
-    readonly_fields.remove('show_on_homepage')
     ordering = ('-crawl_last',)
     actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
+
+    fieldsets = (
+        ('📖 Main', {
+            'fields': ('title', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status', '_error')
+        }),
+        ('📂 Data', {
+            'fields': ('mimetype', '_lang_txt', '_content')
+        }),
+        ('🕑 Crawl info', {
+            'fields': ('crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse')
+        })
+    )
+    readonly_fields = ['title', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status',
+                       '_error', 'robotstxt_rejected', 'too_many_redirects', 'mimetype', '_lang_txt', '_content',
+                       'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse']
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -394,7 +404,7 @@ class DocumentAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="widgth: 16px; height: 16px">', reverse('favicon', args=(obj.favicon.id,)))
 
     @staticmethod
-    def link(obj):
+    def source(obj):
         return obj.get_source_link()
 
     @staticmethod
@@ -512,19 +522,19 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     search_fields = ('url_regex',)
     readonly_fields = ('documents',)
     fieldsets = (
-        (None, {
+        ('⚡ Main', {
             'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'mimetype_regex', 'keep_params', 'store_extern_links')
         }),
-        ('Browser', {
+        ('🌍  Browser', {
             'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'remove_nav_elements', 'script')
         }),
-        ('HTML snapshot', {
+        ('🔖 HTML snapshot', {
             'fields': ('snapshot_html', 'snapshot_exclude_url_re', 'snapshot_exclude_mime_re', 'snapshot_exclude_element_re')
         }),
-        ('Updates', {
+        ('🕑 Recurrence', {
             'fields': ('recrawl_mode', 'recrawl_dt_min', 'recrawl_dt_max', 'hash_mode')
         }),
-        ('Authentication', {
+        ('🔒 Authentication', {
             'fields': ('auth_login_url_re', 'auth_form_selector'),
         }),
     )

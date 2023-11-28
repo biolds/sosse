@@ -175,8 +175,9 @@ button:hover,input:hover,select:hover {
 }
 
 .tab_link {
-  margin: 0px 2px 25px 2px;
+  margin: 0px 2px 25px 3px;
   padding: 8px;
+  color: black;
   border-style: solid;
   border-color: #bcd4e2;
   text-decoration: none;
@@ -185,7 +186,11 @@ button:hover,input:hover,select:hover {
   box-shadow: 0px 0px 3px 3px #e3e5f6;
 }
 
-#cache_link_selected {
+.tab_link:hover {
+  box-shadow: 0px 0px 5px 5px #e3e5f6;
+}
+
+#tab_selected {
   border-width: 1px;
   box-shadow: none;
 }

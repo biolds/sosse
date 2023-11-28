@@ -36,30 +36,28 @@
 |  | Wait Until Element Is Visible | id=result_list
 |  | Capture Page Screenshot | crawl_policy_list.png
 |  | Click Element | xpath=//table[@id='result_list']//a[.='.*']
-|  | Scroll To Elem | //fieldset[1]
 |  | Capture Page Screenshot | crawl_policy_decision_no_hilight.png
-|  | Hilight | //fieldset[1]
+|  | Scroll To Elem | id=tabs
 |  | Capture Page Screenshot | crawl_policy_decision.png
 
 |  | Reload Page
-|  | Hilight | //h2[.='Browser']/..
-|  | Scroll To Elem | //h2[.='Browser']/..
+|  | Scroll To Elem | id=tabs
+|  | Click Link | 🌍 Browser
 |  | Capture Page Screenshot | crawl_policy_browser.png
 
 |  | Reload Page
-|  | Hilight | //h2[.='HTML snapshot']/..
-|  | Scroll To Elem | //h2[.='HTML snapshot']/..
+|  | Scroll To Elem | id=tabs
+|  | Click Link | 🔖 HTML snapshot
 |  | Capture Page Screenshot | crawl_policy_html_snapshot.png
 
 |  | Reload Page
-|  | Hilight | //h2[.='Updates']/..
-|  | Scroll To Elem | //h2[.='Updates']/..
+|  | Scroll To Elem | id=tabs
+|  | Click Link | 🕑 Recurrence
 |  | Capture Page Screenshot | crawl_policy_updates.png
 
 |  | Reload Page
-|  | Execute Javascript | auth_fields = document.getElementById('authfield_set-group'); document.getElementsByTagName('fieldset')[3].append(auth_fields)
-|  | Hilight | //h2[.='Authentication']/..
-|  | Scroll To Elem | //h2[.='Authentication']/..
+|  | Scroll To Elem | id=tabs
+|  | Click Link | 🔒 Authentication
 |  | Capture Page Screenshot | crawl_policy_auth.png
 
 | Crawl on depth
@@ -71,7 +69,6 @@
 |  | Wait Until Element Is Visible | id=id_url
 |  | Input Text | id=id_url | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
-|  | Hilight | id=id_crawl_depth
 |  | Capture Page Screenshot | crawl_on_depth_add.png
 
 |  | Go To | http://127.0.0.1/admin/se/crawlpolicy/add/

@@ -22,9 +22,9 @@
       <form method="POST">
         {% csrf_token %}
         {% if pause %}
-          <input type="submit" name="pause" value="Pause">
+          <input type="submit" name="pause" value="⏸ Pause">
         {% else %}
-          <input type="submit" name="resume" value="Resume">
+          <input type="submit" name="resume" value="⏵ Resume">
         {% endif %}
       </form>
     {% endif %}

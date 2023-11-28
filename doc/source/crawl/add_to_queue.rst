@@ -1,7 +1,7 @@
 Adding URLs to the crawl queue
 ==============================
 
-In the |conf_menu_button| menu, or in the :doc:`../admin_ui`, by clicking ``Crawl a new URL`` you can queue an URL that will be crawled when a worker is available.
+In the |conf_menu_button| menu, or in the :doc:`../admin_ui`, by clicking ``🌐 Crawl a new URL`` you can queue an URL that will be crawled when a worker is available.
 
 .. |conf_menu_button| image:: ../../../tests/robotframework/screenshots/conf_menu_button.png
    :class: sosse-inline-screenshot

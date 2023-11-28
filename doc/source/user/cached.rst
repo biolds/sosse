@@ -12,5 +12,5 @@ the cached page shows the rendered content and links to other indexed page can b
 .. image:: ../../../tests/robotframework/screenshots/cache_screenshot.png
    :class: sosse-screenshot
 
-The ``✒ Text version`` links to the text version of the page. The ``📚 Word weights`` shows the weight of
+The ``✏️ Text version`` links to the text version of the page. The ``📚 Word weights`` shows the weight of
 stemmed words in the page, these are used to calculate the score of the page in the :doc:`search results <search>`.

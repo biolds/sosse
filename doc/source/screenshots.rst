@@ -13,7 +13,7 @@ Screenshots
 .. figure:: ../../tests/robotframework/screenshots/cache_screenshot.png
    :class: sosse-screenshot
 
-   :doc:`Cached page with screenshots <user/cached>`
+   :doc:`Offline browsing <user/cached>`
 
 .. raw:: html
 

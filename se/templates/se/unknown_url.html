@@ -1,7 +1,7 @@
 {% extends "se/base.html" %}
 {% block body %}
 <ul class="ul_stripe">
-  <li>This page is unknown</li>
+  <li>This page not indexed</li>
   <li>This page follows the policy
     {% if 'se.view_crawlpolicy' in perms %}
       <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy.url_regex }}</a>

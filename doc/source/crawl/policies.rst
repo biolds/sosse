@@ -4,7 +4,7 @@ Crawl Policies
 Policy matching
 ---------------
 
-Crawl policies define which pages are indexed and how they are indexed. The policy list can be reached by clicking ``Crawl policies`` from the :doc:`../admin_ui`.
+Crawl policies define which pages are indexed and how they are indexed. The policy list can be reached by clicking ``⚡ Crawl policies`` from the :doc:`../admin_ui`.
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_list.png
    :class: sosse-screenshot
@@ -12,7 +12,7 @@ Crawl policies define which pages are indexed and how they are indexed. The poli
 When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to handle the link.
 The policy with the longest ``URL regex`` matching is selected. On last resort, the default policy ``.*`` is selected.
 
-You can see which policy would match by typing an URL in the search bar of the ``Crawl policies pages``, or in the ``Crawl a new URL`` page (see :doc:`add_to_queue`).
+You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the ``🌐 Crawl a new URL`` page (see :doc:`add_to_queue`).
 
 Indexing decision
 -----------------
@@ -174,8 +174,8 @@ Snapshot exclude element re
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a regexp of ``audio|video`` would make the crawler
 skip the download of medias.
 
-Updates
--------
+Recurrence
+----------
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_updates.png
    :class: sosse-screenshot
@@ -183,7 +183,7 @@ Updates
 Crawl frequency, Recrawl dt
 """""""""""""""""""""""""""
 
-How often pges should be reindexed:
+How often pages should be reindexed:
 
 * ``Once``: pages are not recrawled.
 * ``Constant``: pages are recrawled every ``Recrawl dt min``.

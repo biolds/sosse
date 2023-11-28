@@ -13,7 +13,7 @@ The text content of all crawled page is stored. This text cache retains links in
 HTML snapshots
 --------------
 
-By default, the crawlers store HTML pages and files it depends on (images, stylesheets...). This behaviour can be controlled in the :ref:`Crawl policy <policy_html_snapshot>`.
+By default, the crawlers store HTML pages and files it depends on (images, stylesheets...). This behaviour can be controlled in the :ref:`⚡ Crawl policy <policy_html_snapshot>`.
 
 It is possible to use a browser to take the snapshot, in this case the snapshot is taken after the page is rendered (after Javascript execution).
 
@@ -22,7 +22,7 @@ The HTML snapshoting process uses a cache that can be cleared with a :ref:`manag
 Page screenshots
 ----------------
 
-The crawlers can take screenshots of pages they browse. Pages saved this way also store link informations and can be browsed offline. Screenshots can be enabled in the :ref:`Crawl policy <policy_take_screenshot>`.
+The crawlers can take screenshots of pages they browse. Pages saved this way also store link informations and can be browsed offline. Screenshots can be enabled in the :ref:`⚡ Crawl policy <policy_take_screenshot>`.
 
 .. _browsable_home:
 

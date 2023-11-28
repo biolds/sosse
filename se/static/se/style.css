@@ -177,16 +177,15 @@ button:hover,input:hover,select:hover {
 .tab_link {
   margin: 0px 2px 25px 2px;
   padding: 8px;
-  border-width: 1px;
   border-style: solid;
   border-color: #bcd4e2;
+  text-decoration: none;
+
+  border-width: 0px 0px 1px 0px;
+  box-shadow: 0px 0px 3px 3px #e3e5f6;
 }
 
 #cache_link_selected {
-  border-style: solid;
-  border-width: 0px 0px 1px 0px;
-  border-color: #bcd4e2;
-  margin: 0px 2px 25px 2px;
-  padding: 8px;
-  box-shadow: 0px 0px 3px 3px #e3e5f6;
+  border-width: 1px;
+  box-shadow: none;
 }

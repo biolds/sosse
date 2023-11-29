@@ -129,7 +129,7 @@ For example, the following script could be used to click on a `GDPR <https://en.
 .. code-block:: javascript
 
    const BUTTON_TEXT = "I agree";
-   const XPATH_PATTERN = `//*[text()="${BUTTON_TEXT}"]`;
+   const XPATH_PATTERN = `//*[contains(., "${BUTTON_TEXT}")]`;
    const button = document.evaluate(XPATH_PATTERN, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
 
    if (button && button.singleNodeValue) {

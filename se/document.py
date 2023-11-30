@@ -364,9 +364,6 @@ class Document(models.Model):
 
     def _parse_text(self, page, crawl_policy, stats, verbose):
         crawl_logger.debug('parsing %s', self.url)
-
-        with open('/tmp/dump', 'wb') as f:
-            f.write(page.content)
         parsed = page.get_soup()
 
         self._index_log('get soup', stats, verbose)

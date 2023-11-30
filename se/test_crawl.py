@@ -499,3 +499,38 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 2)
         urls = Document.objects.values_list('url', flat=True).order_by('url')
         self.assertEqual(list(urls), ['http://127.0.0.1/', 'http://127.0.0.1/page.html'])
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.document.now')
+    def test_130_reschedule_no_change(self, now, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': b'<html><body>aaa 42</body></html>'})
+        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
+        self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
+        self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
+        self.crawl_policy.save()
+
+        now.side_effect = lambda: self.fake_now
+        self._crawl()
+        doc = Document.objects.get()
+        self.assertEqual(doc.content, 'aaa 42')
+        self.assertEqual(doc.crawl_dt, timedelta(hours=1))
+
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': b'<html><body><!-- content unchanged -->aaa 24</body></html>'})
+        now.side_effect = lambda: self.fake_next
+        self._crawl()
+        doc = Document.objects.get()
+        self.assertEqual(doc.content, 'aaa 24')
+        self.assertEqual(doc.crawl_dt, timedelta(hours=2))
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    @mock.patch('se.document.now')
+    def test_140_reschedule_with_change(self, now, RequestBrowser):
+        self.test_130_reschedule_no_change()
+
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': b'<html><body>bbb</body></html>'})
+
+        now.side_effect = lambda: self.fake_next2
+        self._crawl()
+        doc = Document.objects.get()
+        self.assertEqual(doc.content, 'bbb')
+        self.assertEqual(doc.crawl_dt, timedelta(hours=1))

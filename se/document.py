@@ -197,21 +197,19 @@ class Document(models.Model):
         return lang
 
     def _hash_content(self, content, crawl_policy):
-        assert isinstance(content, bytes)
+        assert isinstance(content, str)
         from .models import CrawlPolicy
         if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
             pass
         elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
             try:
-                content = content.decode('utf-8')
                 content = re.sub('[0-9]+', '0', content)
-                content = content.encode('utf-8')
             except UnicodeDecodeError:
                 pass
         else:
             raise Exception('HASH_MODE not supported')
 
-        return settings.HASHING_ALGO(content).hexdigest()
+        return settings.HASHING_ALGO(content.encode('utf-8')).hexdigest()
 
     def _index_log(self, s, stats, verbose):
         if not verbose:
@@ -325,7 +323,7 @@ class Document(models.Model):
                 elif links['text'][-1] != '\n':
                     links['text'] += '\n'
 
-    def _clear_content(self):
+    def _clear_base_content(self):
         from .models import Link
         self.redirect_url = None
         self.too_many_redirects = False
@@ -335,10 +333,12 @@ class Document(models.Model):
         self.normalized_title = ''
         self.robotstxt_rejected = False
         self.mimetype = ''
+        Link.objects.filter(doc_from=self).delete()
+
+    def _clear_dump_content(self):
         self.delete_html()
         self.delete_screenshot()
         self.delete_thumbnail()
-        Link.objects.filter(doc_from=self).delete()
 
     def _parse_xml(self, page, crawl_policy, stats, verbose):
         parsed = feedparser.parse(page.content)
@@ -394,18 +394,9 @@ class Document(models.Model):
     def index(self, page, crawl_policy, verbose=False, force=False):
         n = now()
         stats = {'prev': n}
-        content_hash = self._hash_content(page.content, crawl_policy)
-        self._index_log('hash', stats, verbose)
+        self._index_log('start', stats, verbose)
 
-        self.crawl_last = n
-        if not self.crawl_first:
-            self.crawl_first = n
-        self._schedule_next(self.content_hash != content_hash, crawl_policy)
-        if self.content_hash == content_hash and not force:
-            return
-
-        self._clear_content()
-        self.content_hash = content_hash
+        self._clear_base_content()
         self._index_log('queuing links', stats, verbose)
 
         beautified_url = url_beautify(page.url)
@@ -436,6 +427,19 @@ class Document(models.Model):
         if self.mimetype.startswith('text/'):
             links = self._parse_text(page, crawl_policy, stats, verbose)
 
+        content_hash = self._hash_content(self.content, crawl_policy)
+
+        self.crawl_last = n
+        if not self.crawl_first:
+            self.crawl_first = n
+        self._schedule_next(self.content_hash != content_hash, crawl_policy)
+        if self.content_hash == content_hash and not force:
+            return
+        self.content_hash = content_hash
+
+        self._clear_dump_content()
+
+        if self.mimetype.startswith('text/'):
             if crawl_policy.create_thumbnails:
                 crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
                 self.has_thumbnail = True
@@ -643,7 +647,8 @@ class Document(models.Model):
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, page.redirect_count))
                         doc._schedule_next(doc.url != page.url, crawl_policy)
-                        doc._clear_content()
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.set_error('')
                         doc.redirect_url = page.url
                         doc.save()

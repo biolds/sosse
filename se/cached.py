@@ -131,5 +131,4 @@ def cache_redirect(request):
     doc = get_document(request)
     if doc:
         return redirect(doc.get_absolute_url())
-    url = url_from_request(request)
-    return unknown_url_view(request, url)
+    return unknown_url_view(request)

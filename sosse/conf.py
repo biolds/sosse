@@ -79,6 +79,23 @@ DEFAULTS = OrderedDict([
             'comment': 'Default search engine to use.\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
             'default': '',
         }],
+        ['online_search_redirect', {
+            'comment': 'Search engine to use when the connectivity check succeeds (see `online_check_url`).\nLeave empty to use the `default_search_redirect` by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
+            'default': '',
+        }],
+        ['online_check_url', {
+            'comment': 'URL used to define online or offline mode.',
+            'default': 'https://google.com/',
+        }],
+        ['online_check_timeout', {
+            'comment': 'Timeout in seconds used to define online or offline mode.',
+            'default': 1.0,
+            'type': float,
+        }],
+        ['online_check_cache', {
+            'comment': 'Online check is done once every ``online_check_cache`` request. The special value ``once`` can be used to run the check only once, when the first request is done. ``0`` can be used to disable caching.\n\n.. note::\n   The cache is effective on a uwSGI worker basis, and as long as the uWSGI worker is alive. So even with a value of ``once`` a new request will be done everytime a new worker is spawned.',
+            'default': '10',
+        }],
         ['sosse_shortcut', {
             'comment': 'In case the default_shortcut is not empty this defines which shortcut searches SOSSE.',
             'default': '',
@@ -441,6 +458,23 @@ class Conf:
                 crawler_count = int(crawler_count)
             except ValueError:
                 raise Exception('Configuration parsing error: invalid "crawler_count", must be an integer or empty: %s' % crawler_count)
+
+        if settings.get('SOSSE_DEFAULT_SEARCH_REDIRECT') and settings.get('SOSSE_ONLINE_SEARCH_REDIRECT'):
+            raise Exception('Options "default_search_redirect" and "online_search_redirect" cannot be set at the same time.')
+
+        if not settings.get('SOSSE_ONLINE_CHECK_URL') and settings.get('SOSSE_ONLINE_SEARCH_REDIRECT'):
+            raise Exception('Options "online_check_url" is required when "online_search_redirect" is set.')
+
+        online_check_cache = settings.get('SOSSE_ONLINE_CHECK_CACHE')
+        if online_check_cache == 'once':
+            online_check_cache = None
+        else:
+            try:
+                online_check_cache = int(online_check_cache)
+            except ValueError:
+                raise Exception('Configuration parsing error: invalid "online_check_cache", must be an integer or "once": %s' % crawler_count)
+
+        settings['SOSSE_ONLINE_CHECK_CACHE'] = online_check_cache
 
         if settings.get('SOSSE_DEFAULT_BROWSER', 'firefox') not in ('firefox', 'chromium'):
             raise Exception('Configuration parsing error: invalid default_browser, must be one of "firefox" or "chromium"')

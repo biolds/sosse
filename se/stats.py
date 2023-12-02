@@ -222,7 +222,7 @@ def stats(request):
         'lang_parsable': [lang.title() for lang in sorted(Document.get_supported_langs())],
         'lang_chart': lang_chart,
         'hdd_pie': hdd_pie.render(),
-    })
+    }, request)
 
     context.update(crawler_stats(pygal_config, pygal_style, MINUTELY))
     context.update(crawler_stats(pygal_config, pygal_style, DAILY))

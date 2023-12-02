@@ -1,10 +1,25 @@
 {% load static %}
 <div id="user_menu" class="menu">
-    {% if user.has_usable_password %}
-        <div id="menu_username">
+    <div id="menu_username">
+        {% if online_status and settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
+            {% if online_status == 'online' %}
+                <div id="online_status" style="display: inline" title="Online">
+                    <svg height="12" width="12">
+                        <circle cx="6" cy="6" r="6" stroke="#96dd6f" stroke-width="1" fill="#78b159" />
+                    </svg>
+                </div>
+            {% elif online_status == 'offline' %}
+                <div id="online_status" style="display: inline" title="Offline">
+                    <svg height="12" width="12">
+                        <circle cx="6" cy="6" r="6" stroke="#fddc92" stroke-width="1" fill="#fdcb58" />
+                    </svg>
+                </div>
+            {% endif %}
+        {% endif %}
+        {% if user.has_usable_password %}
             {% firstof user.get_short_name user.get_username %}
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
     <button class="menu_button img_button" id="user_menu_button" title="User"></button>
     <div id="user_menu_panel" class="panel">
         <a href="/prefs/" class="links menu_links">Preferences</a>

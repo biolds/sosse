@@ -25,7 +25,7 @@ def words(request):
     if doc is None:
         return unknown_url_view(request)
 
-    context = get_context(doc, 'words')
+    context = get_context(doc, 'words', request)
     words = []
     for w in doc.vector.split():
         word, weights = w.split(':', 1)

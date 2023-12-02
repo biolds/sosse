@@ -28,6 +28,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .document import Document, extern_link_flags, remove_accent
 from .forms import SearchForm
 from .login import login_required
+from .online import online_status
 from .models import FavIcon, SearchEngine, SearchHistory
 from .search import add_headlines, get_documents
 
@@ -82,7 +83,7 @@ def get_pagination(request, paginated):
     return context
 
 
-def get_context(ctx):
+def get_context(ctx, request):
     animal = ''
     while not animal:
         # choice sometimes returns an empty string for an unknown reason
@@ -91,6 +92,7 @@ def get_context(ctx):
     ctx.update({
         'settings': settings,
         'animal': animal,
+        'online_status': online_status(request),
     })
     return ctx
 
@@ -105,11 +107,13 @@ def search(request):
     form = SearchForm(request.GET)
     if form.is_valid():
         q = form.cleaned_data['q']
-        redirect_url = SearchEngine.should_redirect(q)
         SearchHistory.save_history(request, q)
 
-        if redirect_url:
-            return redirect(redirect_url)
+        if q.strip():
+            redirect_url = SearchEngine.should_redirect(q, request)
+
+            if redirect_url:
+                return redirect(redirect_url)
 
         has_query, results, query = get_documents(request, form)
         paginator = Paginator(results, form.cleaned_data['ps'])
@@ -158,8 +162,8 @@ def search(request):
         'q': q,
         'title': q,
         'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres,
-        'extra_link_txt': extra_link_txt
-    })
+        'extra_link_txt': extra_link_txt,
+    }, request)
     context.update(get_pagination(request, paginated))
     return render(request, 'se/index.html', context)
 
@@ -167,8 +171,7 @@ def search(request):
 def about(request):
     context = get_context({
         'title': 'About',
-        'settings': settings,
-    })
+    }, request)
     return render(request, 'se/about.html', context)
 
 
@@ -203,7 +206,7 @@ def prefs(request):
     context = get_context({
         'title': 'Preferences',
         'supported_langs': supported_langs
-    })
+    }, request)
     return render(request, 'se/prefs.html', context)
 
 

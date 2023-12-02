@@ -29,6 +29,18 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     const cachedLinks = document.getElementById('cached_links');
     cachedLinks.checked = getCachedLinks();
+
+    {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
+    const selectedOnlineMode = getOnlineMode();
+    const onlineMode = document.getElementById('online_mode');
+    const onlineModeOpts = onlineMode.getElementsByTagName('option');
+    for (let i = 0; i < onlineModeOpts.length; i++) {
+        const node = onlineModeOpts[i];
+        if (node.getAttribute('value') === selectedOnlineMode) {
+            node.setAttribute('selected', '');
+        }
+    };
+    {% endif %}
 });
 
 function save() {
@@ -42,16 +54,47 @@ function save() {
     const cachedLinks = document.getElementById('cached_links');
     localStorage.setItem('sosseCachedLinks', cachedLinks.checked);
 
+    const onlineMode = document.getElementById('online_mode');
+    localStorage.setItem('sosseOnlineMode', onlineMode.value);
+
     window.location = '/';
 }
+
 function cancel() {
     window.location = '/';
 }
+
+function onlineCheck () {
+    const wait = document.getElementById('online_check_wait');
+    const result = document.getElementById('online_check');
+    result.innerHTML = '';
+    wait.style = 'display: inline-block';
+    fetch("{% url 'online_check' %}").then((response) => response.json()).then((response) => {
+        wait.style = 'display: none';
+        const url = '{{ settings.SOSSE_ONLINE_CHECK_URL|escapejs }}';
+        if (response.success) {
+            result.innerHTML = `<div style="color: green; display: inline-block;">✔</div> Request to ${url} succeeded.`;
+        } else {
+            result.innerHTML = `<div style="color: red; display: inline-block;">✖</div> Request to ${url} failed: ${response.status}`;
+        }
+    });
+}
+
 {% endblock %}
 
 {% block css %}
 .label {
     padding-bottom: 5px;
+    font-weight: bold;
+}
+
+@keyframes rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+#online_check_wait {
+    animation: rotate 1s linear infinite;
 }
 {% endblock %}
 
@@ -65,6 +108,20 @@ function cancel() {
     <input id="cached_links" type="checkbox">
     <label for="cached_links">Search result principal links point to cache</label>
     <br/><br/>
+
+    {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
+        <div class="label">Online mode</div>
+        <select id="online_mode">
+            <option value="">Autodetect</option>
+            <option value="o">Force online</option>
+            <option value="l">Force local</option>
+        </select>
+        <br/><br/>
+        <button onclick="onlineCheck()">Test autodetection</button>
+        <div id="online_check_wait" style="display: none;">🪃</div>
+        <div id="online_check"></div>
+        <br/><br/>
+    {% endif %}
 
     <button onclick="save()">Save</button>
     <button onclick="cancel()">Cancel</button>

@@ -43,6 +43,7 @@ class SearchForm(forms.Form):
     ps = forms.IntegerField(widget=forms.HiddenInput, initial=settings.SOSSE_DEFAULT_PAGE_SIZE, required=False)
     c = forms.ChoiceField(widget=forms.HiddenInput, choices=(('', ''), ('1', '1')), required=False)
     s = forms.ChoiceField(initial='-rank', choices=SORT, required=False)
+    o = forms.ChoiceField(widget=forms.HiddenInput, choices=(('', ''), ('o', 'o'), ('l', 'l')), required=False)
 
     def clean(self):
         cleaned_data = super().clean()

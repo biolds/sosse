@@ -22,6 +22,7 @@ from django.utils.html import format_html
 from .document import Document, extern_link_flags
 from .forms import SearchForm
 from .models import CrawlPolicy
+from .online import online_status
 from .url import sanitize_url, url_beautify
 from .utils import reverse_no_escape
 
@@ -59,7 +60,7 @@ def get_document(request):
     return Document.objects.filter(url=url).first()
 
 
-def get_context(doc, view_name):
+def get_context(doc, view_name, request):
     crawl_policy = CrawlPolicy.get_from_url(doc.url)
     beautified_url = url_beautify(doc.url)
     title = doc.title or beautified_url
@@ -109,7 +110,9 @@ def get_context(doc, view_name):
         'other_links': other_links,
         'show_search_input': True,
         'search_form': SearchForm({}),
-        'view_name': view_name
+        'view_name': view_name,
+        'settings': settings,
+        'online_status': online_status(request)
     }
 
 
@@ -122,7 +125,8 @@ def unknown_url_view(request):
         'beautified_url': beautified_url,
         'crawl_policy': CrawlPolicy.get_from_url(url),
         'extern_link_flags': extern_link_flags,
-        'search_form': SearchForm({})
+        'search_form': SearchForm({}),
+        'online_status': online_status(request)
     }
     return render(request, 'se/unknown_url.html', context)
 

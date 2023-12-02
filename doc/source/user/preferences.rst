@@ -29,3 +29,23 @@ Search result principal links point to cache
 When enabled, search result links point to the :doc:`cached versions <cached>` of pages. ``source`` links are displayed to access original websites.
 
 When disabled, search result links point to original websites. ``cached`` links are displayed to access :doc:`cached versions <cached>`.
+
+.. _pref_online_mode:
+
+Online mode
+-----------
+
+When :ref:`Online detection <online_detection>` is set up, searching locally or online can be overridden.
+
+.. image:: ../../../tests/robotframework/screenshots/online_mode.png
+   :class: sosse-screenshot
+
+Next to the user menu a dot displays the status of the online mode:
+
+.. image:: ../../../tests/robotframework/screenshots/online_mode_status.png
+   :class: sosse-screenshot
+
+* Green for online
+* Orange for offline
+* Purple when ``Force online`` is selected
+* Blue when ``Force local`` is selected

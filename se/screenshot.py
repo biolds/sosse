@@ -27,7 +27,7 @@ def screenshot(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    context = get_context(doc, 'screenshot')
+    context = get_context(doc, 'screenshot', request)
     context.update({
         'url': request.build_absolute_uri('/screenshot_full/') + url_from_request(request)
     })
@@ -40,7 +40,7 @@ def screenshot_full(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    context = get_context(doc, 'screenshot')
+    context = get_context(doc, 'screenshot', request)
     context.update({
         'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + doc.image_name(),
         'screenshot_size': doc.screenshot_size.split('x'),

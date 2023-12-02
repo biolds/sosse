@@ -37,7 +37,7 @@ def html(request):
     if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
         return redirect(doc.get_absolute_url())
 
-    context = get_context(doc, 'html')
+    context = get_context(doc, 'html', request)
     context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
     return render(request, 'se/embed.html', context)
 

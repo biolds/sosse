@@ -84,3 +84,12 @@
 |  | Run Command | killall | -s | HUP | uwsgi
 |  | Go To | http://127.0.0.1/
 |  | Capture Page Screenshot | browsable_home.png
+
+| Online mode
+|  | [Tags] | online_mode
+|  | Run Command | sed | -e | s/^#online_search_redirect.*/online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
+|  | Run Command | killall | -s | HUP | uwsgi
+|  | Go To | http://127.0.0.1/prefs/
+|  | Hilight | id=online_mode
+|  | Capture Page Screenshot | online_mode.png
+|  | Capture Element Screenshot | id=user_menu | online_mode_status.png

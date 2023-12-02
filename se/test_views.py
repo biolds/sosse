@@ -28,6 +28,7 @@ from se.cached import cache_redirect
 from se.document import Document
 from se.html import html, html_excluded
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
+from se.online import online_check
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
 from se.views import about, history, opensearch, prefs, search, search_redirect, word_stats
@@ -96,6 +97,7 @@ class ViewsTest:
                                   ('/words/' + CRAWL_URL, words, tuple()),
                                   ('/screenshot/' + CRAWL_URL, screenshot, tuple()),
                                   ('/screenshot_full/' + CRAWL_URL, screenshot_full, tuple()),
+                                  ('/online_check/' + CRAWL_URL, online_check, tuple()),
                                   (f'/html_excluded/{self.crawl_policy.id}/url', html_excluded, (self.crawl_policy.id, 'url'))):
 
             request = self._request_from_factory(url)
@@ -107,7 +109,7 @@ class ViewsTest:
 
     def test_new_urls(self):
         from sosse.urls import urlpatterns
-        self.assertEqual(len(urlpatterns), 20)
+        self.assertEqual(len(urlpatterns), 21)
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)

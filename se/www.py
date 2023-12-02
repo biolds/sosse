@@ -58,6 +58,6 @@ def www(request):
         content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
         content += format_html('{}<br/>', line)
 
-    context = get_context(doc, 'www')
+    context = get_context(doc, 'www', request)
     context['content'] = content
     return render(request, 'se/www.html', context)

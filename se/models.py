@@ -35,6 +35,7 @@ import requests
 
 from .browser import AuthElemFailed, ChromiumBrowser, FirefoxBrowser, RequestBrowser
 from .document import Document
+from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
 
 crawl_logger = logging.getLogger('crawler')
@@ -272,7 +273,7 @@ class SearchEngine(models.Model):
         return urllib.parse.urlunsplit(se_url)
 
     @classmethod
-    def should_redirect(cls, query):
+    def should_redirect(cls, query, request=None):
         se = None
         for i, w in enumerate(query.split()):
             if not w.startswith(settings.SOSSE_SEARCH_SHORTCUT_CHAR):
@@ -291,6 +292,9 @@ class SearchEngine(models.Model):
             query = ' '.join(q)
             break
         else:
+            if settings.SOSSE_ONLINE_SEARCH_REDIRECT and request and online_status(request) == 'online':
+                se = SearchEngine.objects.filter(short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
+
             # Follow the default redirect if a query was provided
             if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and query.strip():
                 se = SearchEngine.objects.filter(short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT).first()

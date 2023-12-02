@@ -35,6 +35,10 @@
         if (getCachedLinks()) {
           currentParams.append('c', '1');
         }
+
+        if (getOnlineMode()) {
+          currentParams.append('o', getOnlineMode());
+        }
         url = '{{ url }}?' + currentParams.toString();
         console.log('redirecting to', url);
         window.location = url;

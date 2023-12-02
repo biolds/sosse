@@ -31,7 +31,7 @@ unit_tests:
     - cp -r tests/pages/ /root/httpbin/httpbin/bin/static/
     - /usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
     - export PYTHONPATH="$CI_PROJECT_DIR"
-    - /tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" -e "s/#dl_check_time=.*/dl_check_time=1/" > /etc/sosse/sosse.conf
+    - /tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e 's,#online_check_url.*,online_check_url=http://localhost:8000/,' > /etc/sosse/sosse.conf
     - failed=0
     - /tmp/sudo_sosse test -v3 --failfast || failed=1
     - /tmp/sudo_sosse load_se tests/opensearch.xml || failed=1

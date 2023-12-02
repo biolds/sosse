@@ -35,6 +35,7 @@ from se.views import about, favicon, history, opensearch, prefs, search, search_
 from se.atom import atom
 from se.cached import cache_redirect
 from se.html import html, html_excluded
+from se.online import online_check
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
 from se.words import words
@@ -48,6 +49,7 @@ urlpatterns = [
     path('prefs/', prefs),
     path('stats/', stats, name='stats'),
     path('atom/', atom),
+    path('online_check/', online_check, name='online_check'),
     path('word_stats/', word_stats),
     path('history/', history, name='history'),
     path('login/', SELoginView.as_view(), name='login'),

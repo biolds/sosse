@@ -534,3 +534,31 @@ class CrawlerTest(TransactionTestCase):
         doc = Document.objects.get()
         self.assertEqual(doc.content, 'bbb')
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_150_link_nested_text(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({
+            'http://127.0.0.1/': b'Root <a href="/page1/"><span>Nested</span></a>',
+            'http://127.0.0.1/page1/': b'Page1',
+        })
+        self._crawl()
+        self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS + [mock.call('http://127.0.0.1/page1/')],
+                        RequestBrowser.call_args_list)
+
+        self.assertEqual(Document.objects.count(), 2)
+        docs = Document.objects.order_by('id')
+        self.assertEqual(docs[0].url, 'http://127.0.0.1/')
+        self.assertEqual(docs[0].content, 'Root Nested')
+        self.assertEqual(docs[0].crawl_recurse, 0)
+        self.assertEqual(docs[1].url, 'http://127.0.0.1/page1/')
+        self.assertEqual(docs[1].content, 'Page1')
+        self.assertEqual(docs[1].crawl_recurse, 0)
+
+        self.assertEqual(Link.objects.count(), 1)
+        link = Link.objects.get()
+        self.assertEqual(link.doc_from, docs[0])
+        self.assertEqual(link.doc_to, docs[1])
+        self.assertEqual(link.text, 'Nested')
+        self.assertEqual(link.pos, 5)
+        self.assertEqual(link.link_no, 0)
+

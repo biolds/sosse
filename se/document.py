@@ -245,7 +245,7 @@ class Document(models.Model):
                     s += _s
         return s
 
-    def _dom_walk(self, elem, crawl_policy, links, base_url):
+    def _dom_walk(self, elem, crawl_policy, links, base_url, in_nav=False):
         from .models import CrawlPolicy, Link
         if isinstance(elem, (Doctype, Comment)):
             return
@@ -254,13 +254,13 @@ class Document(models.Model):
             return
 
         if crawl_policy.remove_nav_elements != CrawlPolicy.REMOVE_NAV_NO and elem.name in ('nav', 'header', 'footer'):
-            return
+            in_nav = True
 
         s = self._get_elem_text(elem)
 
         # Keep the link if it has text, or if we take screenshots
         if elem.name in (None, 'a'):
-            if links['text'] and links['text'][-1] not in (' ', '\n') and s:
+            if links['text'] and links['text'][-1] not in (' ', '\n') and s and not in_nav:
                 links['text'] += ' '
 
             if elem.name == 'a':
@@ -285,7 +285,8 @@ class Document(models.Model):
                                             link_no=len(links['links']),
                                             doc_to=target_doc,
                                             text=s,
-                                            pos=len(links['text']))
+                                            pos=len(links['text']),
+                                            in_nav=in_nav)
 
                     store_extern_link = (not has_browsable_scheme(href) or target_doc is None)
                     if crawl_policy.store_extern_links and store_extern_link:
@@ -299,14 +300,15 @@ class Document(models.Model):
                                     link_no=len(links['links']),
                                     text=s,
                                     pos=len(links['text']),
-                                    extern_url=href)
+                                    extern_url=href,
+                                    in_nav=in_nav)
 
                     if link:
                         if crawl_policy.take_screenshots:
                             link.css_selector = self._build_selector(elem)
                         links['links'].append(link)
 
-            if s:
+            if s and not in_nav:
                 links['text'] += s
 
             if elem.name == 'a':
@@ -314,10 +316,10 @@ class Document(models.Model):
 
         if hasattr(elem, 'children'):
             for child in elem.children:
-                self._dom_walk(child, crawl_policy, links, base_url)
+                self._dom_walk(child, crawl_policy, links, base_url, in_nav)
 
         if elem.name in ('div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
-            if links['text']:
+            if links['text'] and not in_nav:
                 if links['text'][-1] == ' ':
                     links['text'] = links['text'][:-1] + '\n'
                 elif links['text'][-1] != '\n':

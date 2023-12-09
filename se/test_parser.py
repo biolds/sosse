@@ -24,6 +24,7 @@ from .browser import ChromiumBrowser, FirefoxBrowser, Page
 from .document import Document
 from .models import CrawlPolicy, Link
 from .utils import http_date_format, http_date_parser
+from .www import get_content
 
 
 LINKS = ({
@@ -195,20 +196,33 @@ class PageTest(TransactionTestCase):
             expected = LINKS[no].get('expected_output', LINKS[no]['link'].decode('utf-8'))
             self.assertEqual(link, expected, '%s failed' % LINKS[no]['descr'])
 
-    NAV_HTML = b'<html><body><header>header</header><nav>nav</nav>text<footer>footer</footer></body></html>'
+    NAV_HTML = b'<html><body><header>header</header><nav>nav<a href="link">link</a></nav>text<footer>footer</footer></body></html>'
 
     def test_20_no_nav_element(self):
         page = Page('http://test/', self.NAV_HTML, None)
-        doc = Document(url=page.url)
+        doc = Document.objects.create(url=page.url)
         doc.index(page, self.policy)
         self.assertEqual(doc.content, 'text')
+        links = Link.objects.order_by('id')
+        self.assertEqual(len(links), 1)
+        self.assertTrue(links[0].in_nav)
+
+        www_content = get_content(doc)
+        self.assertEqual(www_content, ' <a href="/www/http://test/link">link</a>text<br/>')
 
     def test_30_nav_element(self):
         page = Page('http://test/', self.NAV_HTML, None)
-        doc = Document(url=page.url)
+        doc = Document.objects.create(url=page.url)
         self.policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
         doc.index(page, self.policy)
-        self.assertEqual(doc.content, 'header nav text footer')
+        self.assertEqual(doc.content, 'header nav link text footer')
+
+        links = Link.objects.order_by('id')
+        self.assertEqual(len(links), 1)
+        self.assertFalse(links[0].in_nav)
+
+        www_content = get_content(doc)
+        self.assertEqual(www_content, 'header nav  <a href="/www/http://test/link">link</a> text footer<br/>')
 
     DATES = (
         ('Wed, 21 Oct 2015 07:28:00 GMT', datetime(2015, 10, 21, 7, 28, 0, tzinfo=timezone.utc)),

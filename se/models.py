@@ -49,6 +49,7 @@ class Link(models.Model):
     link_no = models.PositiveIntegerField()
     extern_url = models.TextField(null=True, blank=True)
     screen_pos = models.CharField(max_length=64, null=True, blank=True)
+    in_nav = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('doc_from', 'link_no')

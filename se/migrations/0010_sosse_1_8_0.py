@@ -30,4 +30,9 @@ class Migration(migrations.Migration):
             name='starting_with',
             field=models.BooleanField(default=False, help_text='Exclude all urls starting with the url pattern'),
         ),
+        migrations.AddField(
+            model_name='link',
+            name='in_nav',
+            field=models.BooleanField(default=False),
+        ),
     ]

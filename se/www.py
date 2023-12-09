@@ -22,12 +22,7 @@ from .login import login_required
 from .models import Link
 
 
-@login_required
-def www(request):
-    doc = get_cached_doc(request, 'www')
-    if isinstance(doc, HttpResponse):
-        return doc
-
+def get_content(doc):
     content = format_html('')
     content_pos = 0
 
@@ -39,17 +34,18 @@ def www(request):
             link = links[link_no]
             link_pos = link.pos - content_pos
             txt = line[:link_pos]
-            line = line[link_pos + len(link.text or ''):]
-            content_pos += len(txt) + len(link.text or '')
+            if not link.in_nav:
+                line = line[link_pos + len(link.text or ''):]
+                content_pos += len(txt) + len(link.text or '')
 
             if link.doc_to:
-                content += format_html('{}<a href="{}">{}</a> · <a href="{}">🌍</a>',
+                content += format_html('{} <a href="{}">{}</a>',
                                        txt,
                                        link.doc_to.get_absolute_url(),
                                        link.text or '<no text link>',
                                        link.doc_to.url)
             else:
-                content += format_html('{} [{}] · <a href="{}">🌍</a>',
+                content += format_html('{} <a href="{}">🌍</a>',
                                        txt,
                                        link.text or '<no text link>',
                                        link.extern_url)
@@ -57,7 +53,15 @@ def www(request):
 
         content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
         content += format_html('{}<br/>', line)
+    return content
+
+
+@login_required
+def www(request):
+    doc = get_cached_doc(request, 'www')
+    if isinstance(doc, HttpResponse):
+        return doc
 
     context = get_context(doc, 'www', request)
-    context['content'] = content
+    context['content'] = get_content(doc)
     return render(request, 'se/www.html', context)

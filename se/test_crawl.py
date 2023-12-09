@@ -561,4 +561,3 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.text, 'Nested')
         self.assertEqual(link.pos, 5)
         self.assertEqual(link.link_no, 0)
-

@@ -523,10 +523,10 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     readonly_fields = ('documents',)
     fieldsets = (
         ('⚡ Main', {
-            'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'mimetype_regex', 'keep_params', 'store_extern_links')
+            'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'remove_nav_elements')
         }),
         ('🌍  Browser', {
-            'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'remove_nav_elements', 'script')
+            'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'script')
         }),
         ('🔖 HTML snapshot', {
             'fields': ('snapshot_html', 'snapshot_exclude_url_re', 'snapshot_exclude_mime_re', 'snapshot_exclude_element_re')

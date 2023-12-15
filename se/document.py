@@ -654,6 +654,11 @@ class Document(models.Model):
                         doc.set_error('')
                         doc.redirect_url = page.url
                         doc.save()
+
+                        # Process the page if it's new, otherwise skip it since it'll be processed depending on `crawl_next`
+                        if Document.objects.filter(url=page.url).count():
+                            break
+
                         doc = Document.pick_or_create(page.url, worker_no)
                         if doc is None:
                             break

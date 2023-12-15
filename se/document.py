@@ -648,7 +648,7 @@ class Document(models.Model):
                         if not page.redirect_count:
                             raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
                         crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, page.redirect_count))
-                        doc._schedule_next(doc.url != page.url, crawl_policy)
+                        doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
                         doc._clear_base_content()
                         doc._clear_dump_content()
                         doc.set_error('')

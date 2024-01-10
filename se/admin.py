@@ -520,9 +520,6 @@ class CrawlPolicyForm(forms.ModelForm):
             if cleaned_data['script']:
                 self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to run a script')
                 self.add_error('script', 'Browsing mode must be set to Chromium or Firefox to run a script')
-            if cleaned_data['snapshot_html']:
-                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to take HTML snapshots')
-                self.add_error('snapshot_html', 'Browsing mode must be set to Chromium or Firefox to take HTML snapshots')
         return cleaned_data
 
 

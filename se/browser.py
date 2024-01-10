@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -40,6 +40,8 @@ from .url import absolutize_url, has_browsable_scheme, sanitize_url, url_remove_
 from .utils import human_filesize
 
 crawl_logger = logging.getLogger('crawler')
+
+NAV_ELEMENTS = ['nav', 'header', 'footer']
 
 
 def dict_merge(a, b):
@@ -129,6 +131,12 @@ class Page:
             base_url = absolutize_url(self.url, soup.head.base.get('href'))
             base_url = url_remove_fragment(base_url)
         return base_url
+
+    def remove_nav_elements(self):
+        soup = self.get_soup()
+        for elem_type in NAV_ELEMENTS:
+            for elem in soup.find_all(elem_type):
+                elem.extract()
 
 
 class Browser:
@@ -514,14 +522,14 @@ class SeleniumBrowser(Browser):
     @classmethod
     def remove_nav_elements(cls):
         cls.driver.execute_script('''
-        const tags = ['nav', 'header', 'footer'];
+        const tags = %s;
         tags.map((tag) => {
             const elems = document.getElementsByTagName(tag);
             for (no = 0; no < elems.length; no++) {
                 elems[no].remove();
             }
         });
-        ''')
+        ''' % json.dumps(NAV_ELEMENTS))
 
     @classmethod
     def _get_page(cls, url):

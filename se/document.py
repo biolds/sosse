@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -454,9 +454,7 @@ class Document(models.Model):
         if crawl_policy.snapshot_html:
             from .models import CrawlPolicy
             if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_FROM_ALL:
-                browser = crawl_policy.get_browser(url=self.url)
-                browser.remove_nav_elements()
-
+                page.remove_nav_elements()
             snapshot = HTMLSnapshot(page, crawl_policy)
             snapshot.snapshot()
             self.has_html_snapshot = True
@@ -481,6 +479,11 @@ class Document(models.Model):
             os.unlink(src)
 
     def screenshot_index(self, links, crawl_policy):
+        from .models import CrawlPolicy
+        if crawl_policy.remove_nav_elements in (CrawlPolicy.REMOVE_NAV_FROM_ALL, CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT):
+            browser = crawl_policy.get_browser(url=self.url)
+            browser.remove_nav_elements()
+
         browser = crawl_policy.get_browser(url=self.url)
         img_count = browser.take_screenshots(self.url, self.image_name())
         crawl_logger.debug('took %s screenshots for %s with %s', img_count, self.url, browser)

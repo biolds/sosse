@@ -1,3 +1,12 @@
+## 1.8.0 (2024-01-10)
+### Features (4 changes)
+- [HTML pages download with Requests](biolds1/sosse@6eb1eaebe33ecd2f47eab4c4aa291336fd600d7f) ([merge request](biolds1/sosse!79))
+- [online status detection to optionally search locally when offline](biolds1/sosse@bab9c400789259ad974d93890ce112d64ccc22de) ([merge request](biolds1/sosse!75))
+- [improve page changes detection](biolds1/sosse@7000ba3c99f0bd3c1411f516651e5905d0a574a0) ([merge request](biolds1/sosse!74))
+- [add a "starts with" option to excluded urls](biolds1/sosse@241107fcf670ec807678755ef1ac106fe7259a46) ([merge request](biolds1/sosse!67))
+### Bug fixes (1 change)
+- [avoid recrawling documents after a redirect](biolds1/sosse@c010e05ad95c6c66c0fd9a7aca02ed4815143bbf) ([merge request](biolds1/sosse!78))
+
 ## 1.7.0 (2023-11-10)
 ### Features (4 changes)
 - [navigation improvements](biolds1/sosse@36b51d5e5caeefbdfe62aa7f876fef2eb479d78f) ([merge request](biolds1/sosse!60))

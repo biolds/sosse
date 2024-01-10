@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from copy import copy
+from datetime import timedelta
 from urllib.parse import quote_plus, urlencode
 
 from django import forms
@@ -167,6 +168,12 @@ def convert_to_jpg(modeladmin, request, queryset):
         doc.save()
 
 
+@admin.action(description='Crawl later', permissions=['change'])
+def crawl_later(modeladmin, request, queryset):
+    queryset.update(crawl_next=now() + timedelta(days=1))
+    return redirect(reverse('admin:crawl_status'))
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
@@ -174,6 +181,8 @@ class DocumentAdmin(admin.ModelAdmin):
     search_fields = ['url__regex', 'title__regex']
     ordering = ('-crawl_last',)
     actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg]
+    if settings.DEBUG:
+        actions += [crawl_later]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
 
     fieldsets = (

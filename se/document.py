@@ -412,9 +412,12 @@ class Document(models.Model):
         self.normalized_title = remove_accent(self.title)
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
-        magic_head = page.content[:10].strip().lower()
-        is_html = isinstance(magic_head, str) and magic_head.startswith('<html')
-        is_html |= isinstance(magic_head, bytes) and magic_head.startswith(b'<html')
+        magic_head = page.content[:20].strip().lower()
+        is_html = False
+        for header in ('<html', '<!doctype html'):
+            is_html |= isinstance(magic_head, str) and magic_head.startswith(header)
+            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(header.encode('utf-8'))
+
         if is_html:
             self.mimetype = 'text/html'
         else:

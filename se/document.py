@@ -424,7 +424,13 @@ class Document(models.Model):
             from magic import from_buffer as magic_from_buffer
             self.mimetype = magic_from_buffer(page.content, mime=True)
 
+        self.crawl_last = n
+        if not self.crawl_first:
+            self.crawl_first = n
+
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):
+            self._schedule_next(False, crawl_policy)
+
             crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
             return
 
@@ -433,11 +439,8 @@ class Document(models.Model):
             links = self._parse_text(page, crawl_policy, stats, verbose)
 
         content_hash = self._hash_content(self.content, crawl_policy)
-
-        self.crawl_last = n
-        if not self.crawl_first:
-            self.crawl_first = n
         self._schedule_next(self.content_hash != content_hash, crawl_policy)
+
         if self.content_hash == content_hash and not force:
             return
         self.content_hash = content_hash

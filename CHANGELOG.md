@@ -1,3 +1,8 @@
+## 1.8.1 (2024-01-14)
+### Bug fixes (2 changes)
+- [fix skipping pages with mimetype to be skipped](biolds1/sosse@b67f2b263b388538251e078d752b6acaee72ef7b) ([merge request](biolds1/sosse!81))
+- [work-around to libmagic misidentifying some HTML page as application/javascript](biolds1/sosse@16d37ab9e08a2d10bdd68a67092e87d2f37eb19c) ([merge request](biolds1/sosse!81))
+
 ## 1.8.0 (2024-01-10)
 ### Features (4 changes)
 - [HTML pages download with Requests](biolds1/sosse@6eb1eaebe33ecd2f47eab4c4aa291336fd600d7f) ([merge request](biolds1/sosse!79))

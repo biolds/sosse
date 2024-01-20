@@ -759,6 +759,11 @@ class Document(models.Model):
                 os.unlink(f)
             self.has_thumbnail = False
 
+    def delete_all(self):
+        self.delete_html()
+        self.delete_screenshot()
+        self.delete_thumbnail()
+
     def default_domain_setting(self):
         from se.models import DomainSetting
         return DomainSetting.get_from_url(self.url)

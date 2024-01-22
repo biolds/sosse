@@ -62,7 +62,7 @@
 
 | Crawl on depth
 |  | Reload Page
-|  | Select From List By Label | id=id_condition | Depending on depth
+|  | Select From List By Label | id=id_recursion | Depending on depth
 |  | Capture Element Screenshot | //fieldset[1] | policy_on_depth.png
 |  | Click Element | xpath=//input[@value="Save"]
 |  | Go To | http://127.0.0.1/admin/se/document/queue/
@@ -74,7 +74,7 @@
 |  | Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Wait Until Element Is Visible | id=id_url_regex
 |  | Input Text | id=id_url_regex | https://en.wikipedia.org/.*
-|  | Input Text | id=id_crawl_depth | 2
+|  | Input Text | id=id_recursion_depth | 2
 |  | Capture Element Screenshot | //fieldset[1] | policy_all.png
 
 | Documents

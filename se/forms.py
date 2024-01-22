@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -101,12 +101,12 @@ class SearchForm(forms.Form):
 class AddToQueueForm(forms.Form):
     url = forms.CharField(label='URL to crawl')
     url.widget.attrs.update({'style': 'width: 100%; padding-right: 0'})
-    crawl_depth = forms.IntegerField(min_value=0, required=False, help_text='Maximum depth of links to follow')
+    recursion_depth = forms.IntegerField(min_value=0, required=False, help_text='Maximum depth of links to follow')
 
     def __init__(self, data=None, *args, **kwargs):
         if data and not data.get('confirmation'):
             data = data.copy()
-            data['crawl_depth'] = kwargs.get('initial', {}).get('crawl_depth')
+            data['recursion_depth'] = kwargs.get('initial', {}).get('recursion_depth')
 
         super().__init__(data, *args, **kwargs)
 

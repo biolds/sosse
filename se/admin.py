@@ -269,7 +269,7 @@ class DocumentAdmin(admin.ModelAdmin):
             return response.TemplateResponse(request, 'admin/add_to_queue.html', context)
 
         if request.POST.get('action') == 'Confirm':
-            crawl_recurse = form.cleaned_data.get('crawl_depth') or 0
+            crawl_recurse = form.cleaned_data.get('recursion_depth') or 0
             doc, created = Document.objects.get_or_create(url=form.cleaned_data['url'], defaults={'crawl_recurse': crawl_recurse})
             if not created:
                 doc.crawl_next = now()
@@ -282,7 +282,7 @@ class DocumentAdmin(admin.ModelAdmin):
             return redirect(reverse('admin:crawl_status'))
 
         crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data['url'])
-        form = AddToQueueForm(request.POST, initial={'crawl_depth': crawl_policy.crawl_depth})
+        form = AddToQueueForm(request.POST, initial={'recursion_depth': crawl_policy.recursion_depth})
         form.is_valid()
         context.update({
             'crawl_policy': crawl_policy,
@@ -525,12 +525,12 @@ class CrawlPolicyForm(forms.ModelForm):
 class CrawlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
-    list_display = ('url_regex', 'docs', 'condition', 'crawl_depth', 'default_browse_mode', 'recrawl_mode')
+    list_display = ('url_regex', 'docs', 'recursion', 'recursion_depth', 'default_browse_mode', 'recrawl_mode')
     search_fields = ('url_regex',)
     readonly_fields = ('documents',)
     fieldsets = (
         ('⚡ Main', {
-            'fields': ('url_regex', 'documents', 'condition', 'crawl_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'remove_nav_elements')
+            'fields': ('url_regex', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'remove_nav_elements')
         }),
         ('🌍  Browser', {
             'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'script')

@@ -15,12 +15,12 @@
                 This URL will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
             </p>
             <ul class="ul_stripe">
-                {% if crawl_policy.condition == CrawlPolicy.CRAWL_ALL %}
+                {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
                     <li>All URL matching the policy regexp will be crawled</li>
-                    {% if crawl_policy.crawl_depth > 1 %}
-                        <li>The crawler will recurse {{ crawl_policy.crawl_depth }} time{{ crawl_policy.crawl_depth|pluralize:'s' }} into URL when matching policies "Depending on depth"</li>
+                    {% if crawl_policy.recursion_depth > 1 %}
+                        <li>The crawler will recurse {{ crawl_policy.recursion_depth }} time{{ crawl_policy.recursion_depth|pluralize:'s' }} into URL when matching policies "Depending on depth"</li>
                     {% endif %}
-                {% elif crawl_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH %}
+                {% elif crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH %}
                     <li>The crawler will recurse into linked pages depending on depth</li>
                 {% else %}
                     <li>Only this URL will be crawled</li>
@@ -36,7 +36,7 @@
                         No browser will be used
                     {% endif %}
                 </li>
-                {% if crawl_policy.condition == CrawlPolicy.CRAWL_ALL %}
+                {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
                     <li>
                         {% if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE %}
                             Pages won't be recrawled automatically
@@ -58,11 +58,11 @@
                 <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ url|urlencode }}">Create a new policy</a>
             </p>
 
-            {% if crawl_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH %}
-                {{ form.crawl_depth.errors }}
-                {{ form.crawl_depth.label_tag }} {{ form.crawl_depth }}
-                {% if form.crawl_depth.help_text %}
-                    <small><p class="help">{{ form.crawl_depth.help_text|safe }}</p></small>
+            {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH %}
+                {{ form.recursion_depth.errors }}
+                {{ form.recursion_depth.label_tag }} {{ form.recursion_depth }}
+                {% if form.recursion_depth.help_text %}
+                    <small><p class="help">{{ form.recursion_depth.help_text|safe }}</p></small>
                 {% endif %}
             {% endif %}
             <input type="hidden" name="confirmation" value="1">

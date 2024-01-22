@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -33,13 +33,13 @@ class CrawlerTest(TransactionTestCase):
 
     def setUp(self):
         self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
-                                                      condition=CrawlPolicy.CRAWL_NEVER,
+                                                      recursion=CrawlPolicy.CRAWL_NEVER,
                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                                       snapshot_html=False,
                                                       create_thumbnails=False,
                                                       take_screenshots=False)
         self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
-                                                       condition=CrawlPolicy.CRAWL_ALL,
+                                                       recursion=CrawlPolicy.CRAWL_ALL,
                                                        default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                                        snapshot_html=False,
                                                        create_thumbnails=False,
@@ -107,7 +107,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.link_no, 0)
 
     @mock.patch('se.browser.RequestBrowser.get')
-    def test_003_crawl_depth(self, RequestBrowser):
+    def test_003_recursion_depth(self, RequestBrowser):
         RequestBrowser.side_effect = BrowserMock({
             'http://127.0.0.1/': b'Root <a href="/page1/">Link1</a>',
             'http://127.0.0.1/page1/': b'Page1 <a href="http://127.0.0.2/">Link1</a><a href="http://127.0.0.3/">Link3</a>',
@@ -116,11 +116,11 @@ class CrawlerTest(TransactionTestCase):
             'http://127.0.0.2/page2/': b'No 2 - Page2',
             'http://127.0.0.3/': b'Page3'
         })
-        self.crawl_policy.crawl_depth = 2
+        self.crawl_policy.recursion_depth = 2
         self.crawl_policy.save()
 
         CrawlPolicy.objects.create(url_regex='http://127.0.0.2/.*',
-                                   condition=CrawlPolicy.CRAWL_ON_DEPTH,
+                                   recursion=CrawlPolicy.CRAWL_ON_DEPTH,
                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                    snapshot_html=False,
                                    create_thumbnails=False,
@@ -176,7 +176,7 @@ class CrawlerTest(TransactionTestCase):
         })
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
-        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', condition=CrawlPolicy.CRAWL_NEVER)
+        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', recursion=CrawlPolicy.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
                         RequestBrowser.call_args_list)

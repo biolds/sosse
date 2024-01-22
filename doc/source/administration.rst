@@ -9,7 +9,7 @@ Administration
    crawl/add_to_queue.rst
    crawl/status.rst
    crawl/policies.rst
-   crawl/crawl_depth.rst
+   crawl/recursion_depth.rst
    crawl/feeds.rst
    crawl/statistics.rst
    archive.rst

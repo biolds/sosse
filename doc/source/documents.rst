@@ -28,7 +28,7 @@ The interval before the next recrawl of the document.
 Recursion remaining
 """""""""""""""""""
 
-The number of recursion level remaining, when the matching policy crawls :ref:`Depending on depth <crawl_depth_params>`.
+The number of recursion level remaining, when the matching policy crawls :ref:`Depending on depth <recursion_depth_params>`.
 
 Rejected by robots.txt
 """"""""""""""""""""""

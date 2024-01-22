@@ -536,29 +536,29 @@ class Document(models.Model):
             return None
 
         crawl_policy = CrawlPolicy.get_from_url(url)
-        crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.condition))
+        crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.recursion))
 
-        if crawl_policy.condition == CrawlPolicy.CRAWL_ALL or parent is None:
+        if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL or parent is None:
             crawl_logger.debug('%s -> always crawl' % url)
             return Document.objects.get_or_create(url=url)[0]
 
-        if crawl_policy.condition == CrawlPolicy.CRAWL_NEVER:
+        if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug('%s -> never crawl' % url)
             return Document.objects.filter(url=url).first()
 
         doc = None
         url_depth = None
 
-        if parent_policy.condition == CrawlPolicy.CRAWL_ALL and parent_policy.crawl_depth > 0:
+        if parent_policy.recursion == CrawlPolicy.CRAWL_ALL and parent_policy.recursion_depth > 0:
             doc = Document.objects.get_or_create(url=url)[0]
-            url_depth = max(parent_policy.crawl_depth, doc.crawl_recurse)
+            url_depth = max(parent_policy.recursion_depth, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse for %s' % (url, url_depth))
-        elif parent_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
+        elif parent_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
             doc = Document.objects.get_or_create(url=url)[0]
             url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse at %s' % (url, url_depth))
         else:
-            crawl_logger.debug('%s -> no recurse (from parent %s)' % (url, parent_policy.condition))
+            crawl_logger.debug('%s -> no recurse (from parent %s)' % (url, parent_policy.recursion))
 
         if doc and url_depth != doc.crawl_recurse:
             doc.crawl_recurse = url_depth
@@ -570,8 +570,8 @@ class Document(models.Model):
     def _schedule_next(self, changed, crawl_policy):
         from .models import CrawlPolicy
         stop = False
-        if crawl_policy.condition == CrawlPolicy.CRAWL_NEVER or \
-                (crawl_policy.condition == CrawlPolicy.CRAWL_ON_DEPTH and self.crawl_recurse == 0):
+        if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER or \
+                (crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and self.crawl_recurse == 0):
             stop = True
 
         if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE or stop:

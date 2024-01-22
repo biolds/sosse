@@ -30,20 +30,20 @@ Documents
 
 Shows the URLs in the database that match the regexp.
 
-.. _crawl_depth_params:
+.. _recursion_depth_params:
 
-Condition, Crawl depth
-""""""""""""""""""""""
+Recursion, recursion depth
+""""""""""""""""""""""""""
 
-``Condition`` and ``Crawl depth`` parameters define which links to recurse into.
+``Recursion`` and ``Recursion depth`` parameters define which links to recurse into.
 
-``Condition`` can be one of:
+``Recursion`` can be one of:
 
 * ``Crawl all pages``: URLs matching the policy will be crawled
-* ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see :doc:`crawl_depth`)
+* ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see :doc:`recursion_depth`)
 * ``Never crawl``: URLs matching the policy are not crawled unless they are queued manually (in this case, no recursion occurs)
 
-``Crawl depth`` is only relevant when the ``Condition`` is ``Crawl all pages`` and defines the recursion depth for links outside the policy. See :doc:`crawl_depth` for more explanations.
+``Recursion depth`` is only relevant when the ``Recursion`` is ``Crawl all pages`` and defines the recursion depth for links outside the policy. See :doc:`recursion_depth` for more explanations.
 
 Mimetype regex
 """"""""""""""

@@ -41,7 +41,7 @@ class FunctionalTest:
 
     def test_10_simple(self):
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
@@ -102,7 +102,7 @@ class FunctionalTest:
     def test_50_cookies(self):
         CrawlPolicy.objects.create(url_regex='.*',
                                    mimetype_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
@@ -138,14 +138,14 @@ class FunctionalTest:
 
     def test_70_authentication(self):
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
                                    create_thumbnails=False,
                                    take_screenshots=False)
         policy = CrawlPolicy.objects.create(url_regex='^%s.*' % TEST_SERVER_URL,
-                                            condition=CrawlPolicy.CRAWL_NEVER,
+                                            recursion=CrawlPolicy.CRAWL_NEVER,
                                             recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                             default_browse_mode=self.BROWSE_MODE,
                                             snapshot_html=False,
@@ -227,7 +227,7 @@ class FunctionalTest:
 
     def test_100_remove_nav_no(self):
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
@@ -254,7 +254,7 @@ class FunctionalTest:
 
     def test_110_remove_nav_from_index(self):
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    create_thumbnails=False,
@@ -279,7 +279,7 @@ class FunctionalTest:
 
     def test_120_remove_nav_from_screenshot(self):
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
@@ -304,7 +304,7 @@ class FunctionalTest:
 
     def test_130_remove_nav_from_all(self):
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
@@ -337,7 +337,7 @@ class BrowserBasedFunctionalTest:
         makedirs.side_effect = None
 
         CrawlPolicy.objects.create(url_regex='.*',
-                                   condition=CrawlPolicy.CRAWL_NEVER,
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,

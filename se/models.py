@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -724,9 +724,9 @@ class CrawlPolicy(models.Model):
     ]
 
     url_regex = models.TextField(unique=True, validators=[validate_regexp])
-    condition = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
+    recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default='text/.*')
-    crawl_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
+    recursion_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
     keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
 
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_CHROMIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')

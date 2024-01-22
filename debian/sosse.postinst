@@ -51,6 +51,9 @@ case "$1" in
     chmod 750 /etc/sosse/
     chmod 640 /etc/sosse/*
     chown -R root:www-data /etc/sosse
+    systemctl stop sosse-uwsgi 2>/dev/null >/dev/null ||:
+    systemctl stop sosse-crawler 2>/dev/null >/dev/null ||:
+
     sosse-admin collectstatic --noinput --clear
     sosse-admin migrate 2>/dev/null >/dev/null ||:
     sosse-admin update_se 2>/dev/null >/dev/null ||:

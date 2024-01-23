@@ -1,3 +1,8 @@
+## 1.8.2 (2024-01-23)
+### Bug fixes (2 changes)
+- [fix thumbnails deletion when deleting a document](biolds1/sosse@f5a3c984bc0d478d2232bf9a517d5d7ab1c424ca) ([merge request](biolds1/sosse!83))
+- [pin working Selenium version](biolds1/sosse@9fcd0eea668e4c301ed1f0b8ea5ad95df512d8a9) ([merge request](biolds1/sosse!89))
+
 ## 1.8.1 (2024-01-14)
 ### Bug fixes (2 changes)
 - [fix skipping pages with mimetype to be skipped](biolds1/sosse@b67f2b263b388538251e078d752b6acaee72ef7b) ([merge request](biolds1/sosse!81))

@@ -24,7 +24,7 @@ from datetime import datetime
 from time import sleep
 from urllib.parse import urlparse
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment, Doctype, Tag
 from django.conf import settings
 from PIL import Image
 import requests
@@ -137,6 +137,123 @@ class Page:
         for elem_type in NAV_ELEMENTS:
             for elem in soup.find_all(elem_type):
                 elem.extract()
+
+    def _get_elem_text(self, elem, recurse=False):
+        s = ''
+        if elem.name is None:
+            s = getattr(elem, 'string', '') or ''
+            s = s.strip(' \t\n\r')
+
+        if (elem.name == 'a' or recurse) and hasattr(elem, 'children'):
+            for child in elem.children:
+                _s = self._get_elem_text(child, True)
+                if _s:
+                    if s:
+                        s += ' '
+                    s += _s
+        return s
+
+    def _build_selector(self, elem):
+        no = 1
+        for sibling in elem.previous_siblings:
+            if isinstance(elem, Tag) and sibling.name == elem.name:
+                no += 1
+
+        selector = '/%s[%i]' % (elem.name, no)
+
+        if elem.name != 'html':
+            selector = self._build_selector(elem.parent) + selector
+        return selector
+
+    def _dom_walk(self, elem, crawl_policy, links, queue_links, document, in_nav=False):
+        assert queue_links == (document is not None), 'document parameter (%s) is required to queue links (%s)' % (document, queue_links)
+        from .models import CrawlPolicy, Document, Link
+        if isinstance(elem, (Doctype, Comment)):
+            return
+
+        if elem.name in ('[document]', 'title', 'script', 'style'):
+            return
+
+        if crawl_policy.remove_nav_elements != CrawlPolicy.REMOVE_NAV_NO and elem.name in ('nav', 'header', 'footer'):
+            in_nav = True
+
+        s = self._get_elem_text(elem)
+
+        # Keep the link if it has text, or if we take screenshots
+        if elem.name in (None, 'a'):
+            if links['text'] and links['text'][-1] not in (' ', '\n') and s and not in_nav:
+                links['text'] += ' '
+
+            if elem.name == 'a' and queue_links:
+                href = elem.get('href')
+                if href:
+                    link = None
+                    target_doc = None
+                    href = href.strip()
+
+                    if has_browsable_scheme(href):
+                        href_for_policy = absolutize_url(self.base_url(), href)
+                        child_policy = CrawlPolicy.get_from_url(href_for_policy)
+                        href = absolutize_url(self.base_url(), href)
+                        if not child_policy.keep_params:
+                            href = url_remove_query_string(href)
+                        href = url_remove_fragment(href)
+                        target_doc = Document.queue(href, crawl_policy, document)
+
+                        if target_doc != document:
+                            if target_doc:
+                                link = Link(doc_from=document,
+                                            link_no=len(links['links']),
+                                            doc_to=target_doc,
+                                            text=s,
+                                            pos=len(links['text']),
+                                            in_nav=in_nav)
+
+                    store_extern_link = (not has_browsable_scheme(href) or target_doc is None)
+                    if crawl_policy.store_extern_links and store_extern_link:
+                        href = elem.get('href').strip()
+                        try:
+                            href = absolutize_url(self.base_url(), href)
+                        except ValueError:
+                            # Store the url as is if it's invalid
+                            pass
+                        link = Link(doc_from=document,
+                                    link_no=len(links['links']),
+                                    text=s,
+                                    pos=len(links['text']),
+                                    extern_url=href,
+                                    in_nav=in_nav)
+
+                    if link:
+                        if crawl_policy.take_screenshots:
+                            link.css_selector = self._build_selector(elem)
+                        links['links'].append(link)
+
+            if s and not in_nav:
+                links['text'] += s
+
+            if elem.name == 'a':
+                return
+
+        if hasattr(elem, 'children'):
+            for child in elem.children:
+                self._dom_walk(child, crawl_policy, links, queue_links, document, in_nav)
+
+        if elem.name in ('div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
+            if links['text'] and not in_nav:
+                if links['text'][-1] == ' ':
+                    links['text'] = links['text'][:-1] + '\n'
+                elif links['text'][-1] != '\n':
+                    links['text'] += '\n'
+
+    def dom_walk(self, crawl_policy, queue_links, document):
+        links = {
+            'links': [],
+            'text': ''
+        }
+        for elem in self.get_soup().children:
+            self._dom_walk(elem, crawl_policy, links, queue_links, document, False)
+        return links
 
 
 class Browser:

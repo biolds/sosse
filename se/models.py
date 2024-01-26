@@ -810,8 +810,12 @@ class CrawlPolicy(models.Model):
         if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
             crawl_logger.debug('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
+            browser_content = page.dom_walk(self, False, None)
+            crawl_logger.debug('browser content: %s', browser_content)
+            requests_content = requests_page.dom_walk(self, False, None)
+            crawl_logger.debug('requests content: %s', requests_content)
 
-            if len(list(requests_page.get_links(self))) != len(list(page.get_links(self))):
+            if browser_content != requests_content:
                 new_mode = self._default_browser()
             else:
                 new_mode = DomainSetting.BROWSE_REQUESTS
@@ -830,14 +834,15 @@ class CrawlPolicy(models.Model):
         if url:
             domain_setting = DomainSetting.get_from_url(url, self.default_browse_mode)
 
+        browser_str = self.default_browse_mode
         if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
             if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
                 if no_detection:
                     raise Exception('browser mode is not yet known (%s)' % domain_setting)
-                return self._default_browser()
+                browser_str = self._default_browser()
             else:
-                return BROWSER_MAP[domain_setting.browse_mode]
-        return BROWSER_MAP[self.default_browse_mode]
+                browser_str = domain_setting.browse_mode
+        return BROWSER_MAP[browser_str]
 
 
 class SearchHistory(models.Model):

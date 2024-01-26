@@ -811,11 +811,9 @@ class CrawlPolicy(models.Model):
             crawl_logger.debug('browser detection on %s' % url)
             requests_page = RequestBrowser.get(url)
             browser_content = page.dom_walk(self, False, None)
-            crawl_logger.debug('browser content: %s', browser_content)
             requests_content = requests_page.dom_walk(self, False, None)
-            crawl_logger.debug('requests content: %s', requests_content)
 
-            if browser_content != requests_content:
+            if browser_content['text'] != requests_content['text']:
                 new_mode = self._default_browser()
             else:
                 new_mode = DomainSetting.BROWSE_REQUESTS

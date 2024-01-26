@@ -24,12 +24,13 @@ from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
 from .test_mock import CleanTest, FirefoxTest
 
 
-TEST_SERVER_URL = 'http://127.0.0.1:8000/'
+TEST_SERVER_DOMAIN = '127.0.0.1:8000'
+TEST_SERVER_URL = 'http://%s/' % TEST_SERVER_DOMAIN
 TEST_SERVER_USER = 'admin'
 TEST_SERVER_PASS = 'admin'
 
 
-class FunctionalTest:
+class BaseFunctionalTest:
     @classmethod
     def tearDownClass(cls):
         ChromiumBrowser.destroy()
@@ -39,6 +40,8 @@ class FunctionalTest:
         while Document.crawl(0):
             pass
 
+
+class FunctionalTest(BaseFunctionalTest):
     def test_10_simple(self):
         CrawlPolicy.objects.create(url_regex='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
@@ -382,3 +385,49 @@ class ChromiumFunctionalTest(FunctionalTest, CleanTest, BrowserBasedFunctionalTe
 class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
     BROWSER_CLASS = FirefoxBrowser
+
+
+class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
+    def test_10_detect_browser(self):
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=DomainSetting.BROWSE_DETECT,
+                                   snapshot_html=False,
+                                   create_thumbnails=False,
+                                   take_screenshots=False)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/browser_detect_js.html', None, None)
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.first()
+        self.assertEqual(doc.url, TEST_SERVER_URL + 'static/pages/browser_detect_js.html')
+        self.assertIn('has JS', doc.content)
+
+        self.assertEqual(DomainSetting.objects.count(), 1)
+        domain = DomainSetting.objects.first()
+        self.assertEqual(domain.domain, TEST_SERVER_DOMAIN)
+        self.assertEqual(domain.browse_mode, DomainSetting.BROWSE_CHROMIUM)
+
+    def test_20_detect_browser(self):
+        CrawlPolicy.objects.create(url_regex='.*',
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=DomainSetting.BROWSE_DETECT,
+                                   snapshot_html=False,
+                                   create_thumbnails=False,
+                                   take_screenshots=False)
+
+        Document.queue(TEST_SERVER_URL + 'static/pages/browser_detect_no_js.html', None, None)
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.first()
+        self.assertEqual(doc.url, TEST_SERVER_URL + 'static/pages/browser_detect_no_js.html')
+        self.assertIn('has no JS', doc.content)
+
+        self.assertEqual(DomainSetting.objects.count(), 1)
+        domain = DomainSetting.objects.first()
+        self.assertEqual(domain.domain, TEST_SERVER_DOMAIN)
+        self.assertEqual(domain.browse_mode, DomainSetting.BROWSE_REQUESTS)

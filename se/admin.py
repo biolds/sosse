@@ -582,6 +582,9 @@ class DomainSettingAdmin(admin.ModelAdmin):
     fields = ('domain', 'documents', 'browse_mode', 'ignore_robots', 'robots_status', 'robots_allow', 'robots_disallow')
     readonly_fields = ('domain', 'documents', 'robots_status', 'robots_allow', 'robots_disallow')
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
     @staticmethod
     def documents(obj):
         params = urlencode({'q': '^https?://%s/' % obj.domain})
@@ -618,3 +621,6 @@ if settings.DEBUG:
         search_fields = ('url', 'filename')
         ordering = ('url', 'filename', 'ref_count')
         exclude = tuple()
+
+        def has_add_permission(self, request, obj=None):
+            return False

@@ -96,11 +96,7 @@ class Page:
     def get_soup(self):
         if self.soup:
             return self.soup
-        try:
-            content = self.content.decode('utf-8')
-        except UnicodeDecodeError:
-            return None
-
+        content = self.content.decode('utf-8', errors='replace')
         self.soup = BeautifulSoup(content, 'html5lib')
 
         # Remove <template> tags as BS extract its text

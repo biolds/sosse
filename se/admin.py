@@ -551,6 +551,13 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('url_regex',)
         return self.readonly_fields
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if obj is None:
+            # Remove the "documents" field when the a object is new
+            fieldsets[0][1]['fields'] = tuple(filter(lambda x: x != 'documents', fieldsets[0][1]['fields']))
+        return fieldsets
+
     def has_delete_permission(self, request, obj=None):
         if obj and obj.url_regex == '.*':
             return False

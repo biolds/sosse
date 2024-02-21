@@ -33,7 +33,7 @@ from django.utils.timezone import now
 from publicsuffix2 import get_public_suffix, PublicSuffixList
 import requests
 
-from .browser import AuthElemFailed, ChromiumBrowser, FirefoxBrowser, RequestBrowser
+from .browser import AuthElemFailed, ChromiumBrowser, FirefoxBrowser, RequestBrowser, TooManyRedirects
 from .document import Document
 from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
@@ -495,7 +495,7 @@ class DomainSetting(models.Model):
             page = RequestBrowser.get(robots_url, check_status=True)
             crawl_logger.debug('%s: loading %s' % (self.domain, robots_url))
             self._parse_robotstxt(page.content.decode('utf-8'))
-        except requests.HTTPError:
+        except (requests.HTTPError, TooManyRedirects):
             self.robots_status = DomainSetting.ROBOTS_EMPTY
         else:
             self.robots_status = DomainSetting.ROBOTS_LOADED

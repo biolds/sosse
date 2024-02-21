@@ -27,7 +27,7 @@
                 {% endif %}
                 <li>
                     {% if crawl_policy.default_browse_mode == DomainSetting.BROWSE_DETECT %}
-                        Pages will be crawl with {{ settings.SOSSE_DEFAULT_BROWSER|title }} if necessary
+                        Pages will be crawled with {{ settings.SOSSE_DEFAULT_BROWSER|title }} if necessary
                     {% elif crawl_policy.default_browse_mode == DomainSetting.BROWSE_CHROMIUM %}
                         Chromium will be used
                     {% elif crawl_policy.default_browse_mode == DomainSetting.BROWSE_FIREFOX %}

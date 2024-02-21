@@ -263,7 +263,8 @@ class DocumentAdmin(admin.ModelAdmin):
         context = dict(
             self.admin_site.each_context(request),
             form=form,
-            title='Crawl a new URL'
+            title='Crawl a new URL',
+            settings=settings
         )
         if not form.is_valid():
             return response.TemplateResponse(request, 'admin/add_to_queue.html', context)

@@ -1,3 +1,12 @@
+## 1.9.0 (2024-03-10)
+### Features (2 changes)
+- [ignore robots.txt file when it redirects in a loop](biolds1/sosse@882dfc7cb4eea834744cc8c63e20b3eab020f16f) ([merge request](biolds1/sosse!98))
+- [CLI command to mass delete documents](biolds1/sosse@b24e64c051b82ec0e0ecc46c70c18eafd3048aaa) ([merge request](biolds1/sosse!84))
+### Bug fixes (3 changes)
+- [fixes for long upgrade time and slow crawler startup](biolds1/sosse@0f7be42efac1a0b251e6bc6d210ec1897fc5ce3b) ([merge request](biolds1/sosse!100))
+- [prevent user creation of Domain settings](biolds1/sosse@a5a9f1a5aa40e6f98a801e98c91f059b1ce37726) ([merge request](biolds1/sosse!95))
+- [fix browser mode detection](biolds1/sosse@df3a1fea5ff15a0fe87171dc070fb88b04b5f87d) ([merge request](biolds1/sosse!91))
+
 ## 1.8.2 (2024-01-23)
 ### Bug fixes (2 changes)
 - [fix thumbnails deletion when deleting a document](biolds1/sosse@f5a3c984bc0d478d2232bf9a517d5d7ab1c424ca) ([merge request](biolds1/sosse!83))

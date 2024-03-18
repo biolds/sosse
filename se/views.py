@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -26,11 +26,11 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .document import Document, extern_link_flags, remove_accent
-from .forms import SearchForm
+from .forms import SearchForm, FILTER_FIELDS
 from .login import login_required
 from .online import online_status
 from .models import FavIcon, SearchEngine, SearchHistory
-from .search import add_headlines, get_documents
+from .search import add_headlines, get_documents_from_request
 
 
 ANIMALS = '🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿'
@@ -115,7 +115,7 @@ def search(request):
             if redirect_url:
                 return redirect(redirect_url)
 
-        has_query, results, query = get_documents(request, form)
+        has_query, results, query = get_documents_from_request(request, form)
         paginator = Paginator(results, form.cleaned_data['ps'])
         page_number = request.GET.get('p')
         paginated = paginator.get_page(page_number)
@@ -163,6 +163,7 @@ def search(request):
         'title': q,
         'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres,
         'extra_link_txt': extra_link_txt,
+        'FILTER_FIELDS': FILTER_FIELDS
     }, request)
     context.update(get_pagination(request, paginated))
     return render(request, 'se/index.html', context)
@@ -182,7 +183,7 @@ def word_stats(request):
     if form.is_valid():
         q = form.cleaned_data['q']
         q = remove_accent(q)
-        _, doc_query, _ = get_documents(request, form, True)
+        _, doc_query, _ = get_documents_from_request(request, form, True)
         doc_query = doc_query.values('vector')
 
         # Hack to obtain final SQL query, as described there:

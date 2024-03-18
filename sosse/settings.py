@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'drf_spectacular',
+    'django_filters',
     'se.apps.SEConfig',
     'se.apps.SEAdminConfig',
 ]
@@ -86,6 +89,14 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 CONN_MAX_AGE = None
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PERMISSION_CLASSES': ['se.rest_permissions.LoginRequiredPermission'],
+    'PAGE_SIZE': 100
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -334,3 +345,11 @@ globals().update(Conf.get())
 
 SOSSE_VERSION_TAG = '0.dev5'
 SOSSE_VERSION_COMMIT = ''
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Sosse',
+    'DESCRIPTION': 'Selenium based Open Source Search Engine',
+    'VERSION': SOSSE_VERSION_TAG,
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': '/static/swagger'
+}

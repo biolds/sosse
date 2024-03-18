@@ -6,13 +6,13 @@ current_dir = $(shell pwd)
 	deb docker_run docker_build docker_push _build_doc build_doc \
 	doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
 	pip_pkg_check _pip_pkg_check _pip_functional_tests _pip_pkg_functional_tests _deb_pkg_functional_tests \
-	_common_pip_functional_tests _rf_functional_tests functional_tests
+	_common_pip_functional_tests _rf_functional_tests functional_tests install_swagger_ui
 
 # Empty default target, since the debian packagin runs `make`
 all:
 	@echo
 
-_pip_pkg:
+_pip_pkg: install_swagger_ui
 	virtualenv /venv
 	/venv/bin/pip install build
 	/venv/bin/python3 -m build .
@@ -32,7 +32,7 @@ _pip_pkg_push:
 pip_pkg_push:
 	docker run --rm -v $(current_dir):/sosse:ro -ti biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_pkg_push'
 
-_deb:
+_deb: install_swagger_ui
 	dpkg-buildpackage -us -uc
 	mv ../sosse*_amd64.deb /deb/
 
@@ -113,7 +113,7 @@ _pip_pkg_check:
 pip_pkg_check:
 	docker run --rm -v $(current_dir):/sosse:ro biolds/sosse:pip-base bash -c 'cd /sosse && make _pip_pkg_check'
 
-_pip_functional_tests:
+_pip_functional_tests: install_swagger_ui
 	make _common_pip_functional_tests
 	/etc/init.d/postgresql start &
 	bash ./tests/wait_for_pg.sh
@@ -154,6 +154,9 @@ _deb_pkg_functional_tests:
 
 _rf_functional_tests:
 	cat /etc/sosse/sosse.conf
+	cat /etc/nginx/sites-enabled/sosse.conf
+	ls /var/lib/sosse/static
+	ls /var/lib/sosse/static/swagger
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
 	cd ./tests/robotframework && /rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
@@ -165,3 +168,9 @@ static_checks:
 	flake8 --ignore=E501,W503,W504 --exclude=migrations,tests
 	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
 	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'
+
+install_swagger_ui:
+	npm install
+	rm -rf se/static/swagger/
+	cp -r node_modules/swagger-ui-dist/ se/static/swagger/
+	cp swagger-initializer.js se/static/swagger/

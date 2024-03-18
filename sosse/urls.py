@@ -30,12 +30,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
-from django.urls import path, re_path
+from django.urls import include, path, re_path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
 from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
 from se.atom import atom
 from se.cached import cache_redirect
 from se.html import html, html_excluded
 from se.online import online_check
+from se.rest_api import router
 from se.screenshot import screenshot, screenshot_full
 from se.stats import stats
 from se.words import words
@@ -55,6 +58,11 @@ urlpatterns = [
     path('login/', SELoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('opensearch.xml', opensearch, name='opensearch'),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/', include(router.urls)),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
     re_path(r'^favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
     re_path(r'^html/.*', html, name='html'),
     re_path(r'^screenshot/.*', screenshot, name='screenshot'),

@@ -85,6 +85,7 @@ migrations:
     - 'grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y'
     - /etc/init.d/postgresql start
     - export PYTHONPATH="$CI_PROJECT_DIR"
+    - chown www-data:www-data -R /var/log/sosse
     - /tmp/sudo_sosse default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
     - MIGRATION_COUNT="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - python3 ./sosse/sosse_admin.py makemigrations

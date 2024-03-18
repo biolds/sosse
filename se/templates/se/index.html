@@ -196,15 +196,9 @@
                 <option value="exc">Exclude</option>
             </select>
             <select name="ff">
-                <option value="doc">Document</option>
-                <option value="content">Content</option>
-                <option value="title">Title</option>
-                <option value="url">URL</option>
-                <option value="mimetype">Mimetype</option>
-                <option value="lto_url">Links to url</option>
-                <option value="lto_txt">Links to text</option>
-                <option value="lby_url">Linked by url</option>
-                <option value="lby_txt">Linked by text</option>
+                {% for value, title in FILTER_FIELDS %}
+                    <option value="{{ value }}">{{ title }}</option>
+                {% endfor %}
             </select>
             <select name="fo">
                 <option value="contain">Containing</option>

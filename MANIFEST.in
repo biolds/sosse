@@ -1,4 +1,5 @@
 include se/static/se/*
+include se/static/swagger/*
 include se/templates/admin/*
 include se/templates/se/*
 include sosse/search_engines.json

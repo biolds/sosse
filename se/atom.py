@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -23,7 +23,7 @@ from django.urls import reverse
 
 from .forms import SearchForm
 from .models import SearchEngine
-from .search import get_documents
+from .search import get_documents_from_request
 from .utils import reverse_no_escape
 
 
@@ -69,7 +69,7 @@ def atom(request):
         if redirect_url:
             return HttpResponse('External search cannot be performed', content_type='text/plain', status=400)
 
-        _, results, _ = get_documents(request, form)
+        _, results, _ = get_documents_from_request(request, form)
 
         key = request.GET.get('s', '')
         if key.startswith('-'):

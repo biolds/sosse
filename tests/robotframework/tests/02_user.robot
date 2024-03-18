@@ -93,3 +93,16 @@
 |  | Hilight | id=online_mode
 |  | Capture Page Screenshot | online_mode.png
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
+
+| Swagger
+|  | [Tags] | swagger
+|  | Go To | http://127.0.0.1/
+|  | Click Button | id=user_menu_button
+|  | Click Link | Rest API
+|  | Wait Until Element Is Visible | id=swagger-ui
+|  | Wait Until Element Is Visible | id=operations-api-api_document_list
+|  | Capture Page Screenshot | swagger.png
+|  | Click Element | id=operations-api-api_document_list
+|  | Click Button | class=try-out__btn
+|  | Click Button | class=execute
+|  | Element Should Contain | class=live-responses-table | Dummy static website

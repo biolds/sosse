@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -109,7 +109,7 @@ class ViewsTest:
 
     def test_new_urls(self):
         from sosse.urls import urlpatterns
-        self.assertEqual(len(urlpatterns), 21)
+        self.assertEqual(len(urlpatterns), 25)
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)

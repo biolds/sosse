@@ -20,7 +20,7 @@ from django.utils import timezone
 from .document import Document
 from .forms import SearchForm
 from .models import Link, SearchEngine
-from .search import add_headlines, get_documents
+from .search import add_headlines, get_documents_from_request
 
 
 class SearchTest(TransactionTestCase):
@@ -63,7 +63,7 @@ class SearchTest(TransactionTestCase):
         })
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())
-        return get_documents(request, form)[1]
+        return get_documents_from_request(request, form)[1]
 
     def test_001_q_search(self):
         docs = self._search_docs('q=hello')
@@ -174,7 +174,7 @@ class SearchTest(TransactionTestCase):
         })
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())
-        _, docs, query = get_documents(request, form)
+        _, docs, query = get_documents_from_request(request, form)
         docs = add_headlines(docs, query)
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)

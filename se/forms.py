@@ -33,6 +33,17 @@ SORT = (
     ('url', 'URL ascending'),
     ('-url', 'URL descending'),
 )
+FILTER_FIELDS = (
+    ('doc', 'Document'),
+    ('content', 'Content'),
+    ('title', 'Title'),
+    ('url', 'URL'),
+    ('mimetype', 'Mimetype'),
+    ('lto_url', 'Links to url'),
+    ('lto_txt', 'Links to text'),
+    ('lby_url', 'Linked by url'),
+    ('lby_txt', 'Linked by text')
+)
 
 
 class SearchForm(forms.Form):

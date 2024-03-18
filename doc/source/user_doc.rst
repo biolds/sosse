@@ -11,3 +11,4 @@ User documentation
    user/preferences.rst
    user/history.rst
    user/cached.rst
+   user/rest_api.rst

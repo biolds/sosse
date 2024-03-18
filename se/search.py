@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -24,6 +24,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
 from .document import Document, remove_accent
+from .forms import FILTER_FIELDS
 
 
 logger = logging.getLogger('web')
@@ -31,7 +32,22 @@ logger = logging.getLogger('web')
 FILTER_RE = '(ft|ff|fo|fv|fc)[0-9]+$'
 
 
-def get_documents(request, form, stats_call=False):
+def get_documents_from_request(request, form, stats_call=False):
+    filters = {}
+    for key, val in request.GET.items():
+        if not re.match(FILTER_RE, key):
+            continue
+
+        filter_no = key[2:]
+        f = filters.get(filter_no, {})
+        f[key[:2]] = val
+        filters[filter_no] = f
+    keys = sorted(filters.keys())
+    params = [filters[k] for k in keys]
+    return get_documents(params, form, stats_call)
+
+
+def get_documents(params, form, stats_call):
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
     results = Document.objects.all()
@@ -43,7 +59,9 @@ def get_documents(request, form, stats_call=False):
     if q:
         has_query = True
         lang = form.cleaned_data['l']
+
         query = SearchQuery(q, config=lang, search_type='websearch')
+        all_results = Document.objects.filter(vector=query)
         all_results = Document.objects.filter(vector=query).annotate(
             rank=SearchRank(models.F('vector'), query),
         )
@@ -57,17 +75,7 @@ def get_documents(request, form, stats_call=False):
     if settings.SOSSE_EXCLUDE_REDIRECT:
         results = results.filter(redirect_url__isnull=True)
 
-    filters = {}
-    for key, val in request.GET.items():
-        if not re.match(FILTER_RE, key):
-            continue
-
-        filter_no = key[2:]
-        f = filters.get(filter_no, {})
-        f[key[:2]] = val
-        filters[filter_no] = f
-
-    for f in filters.values():
+    for f in params:
         cont = True
         for k in REQUIRED_KEYS:
             if not f.get(k):
@@ -98,6 +106,9 @@ def get_documents(request, form, stats_call=False):
             param = '__iexact'
         else:
             raise Exception('Unknown operation %s' % operator)
+
+        if field not in list(dict(FILTER_FIELDS).keys()):
+            raise Exception('Invalid FILTER_FIELDS %s / %s' % (field, list(dict(FILTER_FIELDS).keys())))
 
         if field == 'doc':
             content_param = {'content' + param: value}

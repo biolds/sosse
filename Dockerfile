@@ -8,6 +8,7 @@ ADD pyproject.toml .
 ADD MANIFEST.in .
 ADD se/ se/
 ADD sosse/ sosse/
+RUN make install_swagger_ui
 RUN virtualenv /venv
 RUN /venv/bin/pip install ./ && /venv/bin/pip install uwsgi && /venv/bin/pip cache purge
 ADD debian/sosse.conf /etc/nginx/sites-enabled/default

@@ -15,6 +15,9 @@
 
 import json
 
+from collections import namedtuple
+from unittest import mock
+
 from django.contrib.auth.models import User
 from django.test import TransactionTestCase
 from django.test.client import Client
@@ -193,6 +196,27 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 SERIALIZED_CRAWLER_STATS[0] | {'id': self.crawler_stat1.id},
             ]
         })
+
+    @mock.patch('os.statvfs')
+    def test_hdd_stats(self, statvfs):
+        fakevfs = namedtuple('fakevfs', ['f_bsize', 'f_frsize', 'f_blocks', 'f_bfree', 'f_bavail', 'f_files', 'f_ffree', 'f_favail', 'f_flag', 'f_namemax'])
+        statvfs.side_effect = lambda x: fakevfs(f_bsize=4096, f_frsize=4096, f_blocks=51081736, f_bfree=30397904, f_bavail=27784887, f_files=13049856, f_ffree=11610989, f_favail=11610989, f_flag=4096, f_namemax=255)
+        response = self.client.get('/api/hdd_stats/')
+        self.assertEqual(response.status_code, 200, response.content)
+
+        content = json.loads(response.content)
+        self.assertEqual(json.loads(response.content), {
+            'db': content['db'],
+            'free': 113806897152,
+            'html': content['html'],
+            'other': content['other'],
+            'screenshots': content['screenshots']
+        })
+
+    def test_lang_stats(self):
+        response = self.client.get('/api/lang_stats/')
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(json.loads(response.content), [{'doc_count': 2, 'lang': 'En 🇬🇧'}])
 
     def test_search(self):
         response = self.client.post('/api/search/', {

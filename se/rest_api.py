@@ -13,11 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import os
+
+from django.db import connection, models
 from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_field, extend_schema_serializer, OpenApiExample, OpenApiTypes
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.settings import api_settings
 from rest_framework.permissions import DjangoObjectPermissions
+from rest_framework.response import Response
 
 from .document import Document
 from .forms import SearchForm, FILTER_FIELDS, SORT
@@ -32,10 +36,91 @@ class CrawlerStatsSerializer(serializers.ModelSerializer):
 
 
 class CrawlerStatsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = CrawlerStats.objects.all()
+    queryset = CrawlerStats.objects.order_by('t')
     serializer_class = CrawlerStatsSerializer
     filterset_fields = ('freq',)
     permission_classes = [DjangoObjectPermissions]
+
+
+class HddStatsSerializer(serializers.Serializer):
+    db = serializers.IntegerField(help_text='Size of the database')
+    screenshots = serializers.IntegerField(help_text='Size of the screenshots')
+    html = serializers.IntegerField(help_text='Size of HTML dumps')
+    other = serializers.IntegerField(help_text='Data not used by SOSSE')
+    free = serializers.IntegerField(help_text='Free space')
+
+
+class HddStatsViewSet(viewsets.ViewSet):
+    def has_permission(self, request, _):
+        return request.user and request.user.is_staff and request.user.is_superuser
+
+    def dir_size(self, d):
+        # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
+        size = 0
+        for dirpath, dirnames, filenames in os.walk(d):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    size += os.path.getsize(fp)
+        return size
+
+    @extend_schema(
+        description='HDD statistics',
+        responses={
+            200: HddStatsSerializer(),
+        }
+    )
+    def list(self, request):
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT pg_database_size(%s)', [settings.DATABASES['default']['NAME']])
+            db_size = cursor.fetchall()[0][0]
+
+        statvfs = os.statvfs('/var/lib')
+        hdd_size = statvfs.f_frsize * statvfs.f_blocks
+        hdd_free = statvfs.f_frsize * statvfs.f_bavail
+
+        screenshot_size = self.dir_size(settings.SOSSE_SCREENSHOTS_DIR)
+        html_size = self.dir_size(settings.SOSSE_HTML_SNAPSHOT_DIR)
+        hdd_other = hdd_size - hdd_free - db_size - screenshot_size - html_size
+        return Response({
+            'db': db_size,
+            'screenshots': screenshot_size,
+            'html': html_size,
+            'other': hdd_other,
+            'free': hdd_free
+        })
+
+
+class LangStatsSerializer(serializers.Serializer):
+    doc_count = serializers.IntegerField(help_text='Document count')
+    lang = serializers.CharField(help_text='Language')
+
+
+class LangStatsViewSet(viewsets.ViewSet):
+    def has_permission(self, request, _):
+        return request.user and request.user.is_staff and request.user.is_superuser
+
+    @extend_schema(
+        description='HDD statistics',
+        responses={
+            200: LangStatsSerializer(many=True),
+        }
+    )
+    def list(self, request):
+        langs = []
+        indexed_langs = Document.objects.exclude(lang_iso_639_1__isnull=True).values('lang_iso_639_1').annotate(count=models.Count('lang_iso_639_1')).order_by('-count')
+        if indexed_langs:
+            for lang in indexed_langs:
+                lang_iso = lang['lang_iso_639_1']
+                lang_desc = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {})
+                title = lang_iso.title()
+                if lang_desc.get('flag'):
+                    title = title + ' ' + lang_desc['flag']
+                langs.append({
+                    'lang': title,
+                    'doc_count': lang['count']
+                })
+        return Response(langs)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -139,3 +224,5 @@ router = routers.DefaultRouter()
 router.register('document', DocumentViewSet)
 router.register('search', SearchViewSet, basename='search')
 router.register('stats', CrawlerStatsViewSet)
+router.register('hdd_stats', HddStatsViewSet, basename='hdd_stats')
+router.register('lang_stats', LangStatsViewSet, basename='lang_stats')

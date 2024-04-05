@@ -15,7 +15,6 @@ pillow
 psutil
 psycopg2
 publicsuffix2
-pygal
 python-magic
 requests
 selenium<4.17

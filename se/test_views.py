@@ -30,8 +30,7 @@ from se.html import html, html_excluded
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.online import online_check
 from se.screenshot import screenshot, screenshot_full
-from se.stats import stats
-from se.views import about, history, opensearch, prefs, search, search_redirect, word_stats
+from se.views import about, history, opensearch, prefs, search, search_redirect, stats, word_stats
 from se.words import words
 from se.www import www
 

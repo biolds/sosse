@@ -87,15 +87,6 @@ function onlineCheck () {
     padding-bottom: 5px;
     font-weight: bold;
 }
-
-@keyframes rotate {
-    to {
-        transform: rotate(360deg);
-    }
-}
-#online_check_wait {
-    animation: rotate 1s linear infinite;
-}
 {% endblock %}
 
 {% block body %}
@@ -118,7 +109,7 @@ function onlineCheck () {
         </select>
         <br/><br/>
         <button onclick="onlineCheck()">Test autodetection</button>
-        <div id="online_check_wait" style="display: none;">🪃</div>
+        <div id="online_check_wait" class="loader" style="display: none;">🪃</div>
         <div id="online_check"></div>
         <br/><br/>
     {% endif %}

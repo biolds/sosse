@@ -11,3 +11,4 @@ docker/debian-test/requirements.txt
 docker/pip-release/uwsgi.*
 docker/pip-release/sosse.conf
 se/static/swagger/
+se/static/se/node_modules/

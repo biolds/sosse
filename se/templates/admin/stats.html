@@ -1,14 +1,37 @@
 {% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+    <script type="module" src="{% static 'se/node_modules/chart.js/dist/chart.umd.js' %}"></script>
+    <script src="{% static 'se/node_modules/luxon/build/global/luxon.min.js' %}"></script>
+    <script type="module" src="{% static 'se/node_modules/chartjs-adapter-luxon/dist/chartjs-adapter-luxon.umd.min.js' %}"></script>
+    <script type="module" src="{% static 'se/stats.js' %}"></script>
+{% endblock %}
 
 {% block css %}
-    .paragraph {
-        vertical-align: top;
-        display: inline-block;
-        width: 49%;
-    }
     .chart {
         display: inline-block;
         width: 24%;
+        vertical-align: middle;
+    }
+    .card {
+        vertical-align: top;
+        height: 100px;
+        color: #3f54ff;
+        font-size: x-large;
+        font-weight: 600;
+        background-color: #e7f0ff;
+        border-right: 1px solid #bcd4e2;
+        border-bottom: 1px solid #bcd4e2;
+        border-top: 1px solid #bde6ff;
+        border-left: 1px solid #bde6ff;
+    }
+    .card_text {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
     }
     .crawler_chart {
         display: inline-block;
@@ -20,33 +43,58 @@
 {% endblock %}
 
 {% block content %}
-    <h4>Index</h4>
-    <span class="paragraph">
-         {{ doc_count }} documents with {{ lang_count }} different languages are indexed.<br/>
-         Average document size is {{ doc_size }} for a total of {{ db_size }}.<br/>
-         {{ lang_recognizable }} languages can be recognized, {{ lang_parsable|length }} can be parsed:<br/>
-         {{ lang_parsable|join:", " }}.
+    <span class="chart card">
+        <div id="doc_count_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
+        <div id="doc_count" class="card_text">
+          Documents
+        </div>
     </span>
-    <span class="chart">{{ hdd_pie|safe }}</span>
-    {% if lang_chart %}
-        <span class="chart">{{ lang_chart|safe }}</span>
-    {% endif %}
+    <span class="chart card">
+        <div id="url_queued_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
+        <div id="url_queued" class="card_text">
+          URLs queued
+        </div>
+    </span>
+    <h4>Index</h4>
+    <span class="chart">
+        <div id="hdd_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <div style="position: relative">
+            <canvas id="hdd_chart" style="display: none;"></canvas>
+        </div>
+    </span>
+    <span class="chart">
+        <div id="lang_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <div style="position: relative">
+          <canvas id="lang_chart" style="display: none;"></canvas>
+        </div>
+    </span>
+
     <h4>Crawlers</h4>
     <h5>Last 24h</h5>
-    {% if m_doc_count %}
-        <span class="crawler_chart">{{ m_doc_count|safe }}</span>
-        <span class="crawler_chart">{{ m_idx_speed|safe }}</span>
-        <span class="crawler_chart">{{ m_url_queue|safe }}</span>
-    {% else %}
-        No data
-    {% endif %}
+    <span class="crawler_chart">
+        <div id="doc_count_24_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <canvas id="doc_count_24_chart" style="display: none;"></canvas>
+    </span>
+    <span class="crawler_chart">
+        <div id="speed_24_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <canvas id="speed_24_chart" style="display: none;"></canvas>
+    </span>
+    <span class="crawler_chart">
+        <div id="queue_24_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <canvas id="queue_24_chart" style="display: none;"></canvas>
+    </span>
     <br/>
     <h5>Last year</h5>
-    {% if d_doc_count %}
-        <span class="crawler_chart">{{ d_doc_count|safe }}</span>
-        <span class="crawler_chart">{{ d_idx_speed|safe }}</span>
-        <span class="crawler_chart">{{ d_url_queue|safe }}</span>
-    {% else %}
-        No data
-    {% endif %}
+    <span class="crawler_chart">
+        <div id="doc_count_365_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <canvas id="doc_count_365_chart" style="display: none;"></canvas>
+    </span>
+    <span class="crawler_chart">
+        <div id="speed_365_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <canvas id="speed_365_chart" style="display: none;"></canvas>
+    </span>
+    <span class="crawler_chart">
+        <div id="queue_365_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>
+        <canvas id="queue_365_chart" style="display: none;"></canvas>
+    </span>
 {% endblock %}

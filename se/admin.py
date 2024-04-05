@@ -373,7 +373,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return response.TemplateResponse(request, 'admin/crawl_status_content.html', context)
 
     def stats(self, request):
-        from .stats import stats as stats_view
+        from .views import stats as stats_view
         return stats_view(request)
 
     @staticmethod

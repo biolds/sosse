@@ -33,14 +33,13 @@ from django.contrib.auth.views import LogoutView
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
+from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, stats, word_stats, SELoginView
 from se.atom import atom
 from se.cached import cache_redirect
 from se.html import html, html_excluded
 from se.online import online_check
 from se.rest_api import router
 from se.screenshot import screenshot, screenshot_full
-from se.stats import stats
 from se.words import words
 from se.www import www
 

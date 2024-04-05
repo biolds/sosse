@@ -23,7 +23,7 @@ from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
 from django.db import connection
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, reverse
 
 from .document import Document, extern_link_flags, remove_accent
 from .forms import SearchForm, FILTER_FIELDS
@@ -261,6 +261,13 @@ def search_redirect(request):
         'settings': settings
     }
     return render(request, 'se/search_redirect.html', context)
+
+
+@login_required
+def stats(request):
+    if not request.user.is_staff or not request.user.is_superuser:
+        return redirect(reverse('search'))
+    return render(request, 'admin/stats.html', {'title': 'Statistics'})
 
 
 class SELoginView(LoginView):

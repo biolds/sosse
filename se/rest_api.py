@@ -20,12 +20,13 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_field, extend_schema_serializer, OpenApiExample, OpenApiTypes
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.settings import api_settings
-from rest_framework.permissions import DjangoObjectPermissions
 from rest_framework.response import Response
+
 
 from .document import Document
 from .forms import SearchForm, FILTER_FIELDS, SORT
 from .models import CrawlerStats
+from .rest_permissions import IsSuperUserOrStaff
 from .search import get_documents
 
 
@@ -39,7 +40,7 @@ class CrawlerStatsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CrawlerStats.objects.order_by('t')
     serializer_class = CrawlerStatsSerializer
     filterset_fields = ('freq',)
-    permission_classes = [DjangoObjectPermissions]
+    permission_classes = [IsSuperUserOrStaff]
 
 
 class HddStatsSerializer(serializers.Serializer):
@@ -51,8 +52,7 @@ class HddStatsSerializer(serializers.Serializer):
 
 
 class HddStatsViewSet(viewsets.ViewSet):
-    def has_permission(self, request, _):
-        return request.user and request.user.is_staff and request.user.is_superuser
+    permission_classes = [IsSuperUserOrStaff]
 
     def dir_size(self, d):
         # https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python
@@ -97,8 +97,7 @@ class LangStatsSerializer(serializers.Serializer):
 
 
 class LangStatsViewSet(viewsets.ViewSet):
-    def has_permission(self, request, _):
-        return request.user and request.user.is_staff and request.user.is_superuser
+    permission_classes = [IsSuperUserOrStaff]
 
     @extend_schema(
         description='HDD statistics',

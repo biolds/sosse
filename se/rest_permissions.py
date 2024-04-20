@@ -22,3 +22,8 @@ class LoginRequiredPermission(permissions.BasePermission):
         if settings.SOSSE_ANONYMOUS_SEARCH:
             return True
         return request.user.is_authenticated
+
+
+class IsSuperUserOrStaff(permissions.BasePermission):
+    def has_permission(self, request, _):
+        return request.user and (request.user.is_superuser or request.user.is_staff)

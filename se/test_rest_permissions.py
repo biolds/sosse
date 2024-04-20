@@ -61,6 +61,7 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(json.loads(response.content).get('count'), 1)
 
+    @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_crawler_stats_permission(self):
         response = self.client.get('/api/stats/')
         self.assertEqual(response.status_code, 403, response.content)
@@ -72,4 +73,20 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
         self.client.logout()
         self.client.login(username='admin', password='admin')
         response = self.client.get('/api/stats/')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content).get('count'), 2)
+
+    @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
+    def test_hdd_stats_permission(self):
+        response = self.client.get('/api/hdd_stats/')
+        self.assertEqual(response.status_code, 403, response.content)
+
+        self.client.login(username='user', password='user')
+        response = self.client.get('/api/hdd_stats/')
+        self.assertEqual(response.status_code, 403, response.content)
+
+        self.client.logout()
+        self.client.login(username='admin', password='admin')
+        response = self.client.get('/api/hdd_stats/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(json.loads(response.content).keys()), {'db', 'screenshots', 'html', 'other', 'free'})

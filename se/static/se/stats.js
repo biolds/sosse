@@ -168,7 +168,7 @@ loadChart('lang_chart', '/api/lang_stats/', function(data) {
 function loadDocCharts (dt) {
   const freq = dt === 24 ? 'M' : 'D';
   loadChart(`doc_count_${dt}_chart`, `/api/stats/?freq=${freq}&limit=1000`, function(data) {
-    if (dt === 24) {
+    if (dt === 24 && data.results.length) {
       const urlQueued = data.results[data.results.length - 1].queued_url;
       const panel = document.getElementById('url_queued');
       panel.innerText = `${urlQueued}\nURLs queued`;

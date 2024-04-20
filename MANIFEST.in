@@ -1,4 +1,9 @@
 include se/static/se/*
+include se/static/se/node_modules/@kurkle/color/dist/*.js
+include se/static/se/node_modules/chart.js/dist/*.js
+include se/static/se/node_modules/chart.js/dist/*/*.js
+include se/static/se/node_modules/chartjs-adapter-luxon/dist/*.min.js
+include se/static/se/node_modules/luxon/build/global.min.js
 include se/static/swagger/*
 include se/templates/admin/*
 include se/templates/se/*

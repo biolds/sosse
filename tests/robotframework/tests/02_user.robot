@@ -75,7 +75,7 @@
 |  | Select From List By Label | xpath=//select[@name='ff1'] | Linked by url
 |  | Select From List By Label | xpath=//select[@name='fo1'] | Equal to
 |  | Input Text | xpath=//input[@name='fv1'] | https://exemple.com/atom.xml
-|  | Capture Page Screenshot | 
+|  | Capture Page Screenshot |
 |  | Capture Element Screenshot | id=search_form | syndication_feed.png
 
 | Browsable home
@@ -107,4 +107,5 @@
 |  | Click Element | id=operations-api-api_document_list
 |  | Click Button | class=try-out__btn
 |  | Click Button | class=execute
+|  | Wait Until Element Is Visible | class=live-responses-table
 |  | Element Should Contain | class=live-responses-table | Dummy static website

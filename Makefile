@@ -6,9 +6,9 @@ current_dir = $(shell pwd)
 	deb docker_run docker_build docker_push _build_doc build_doc \
 	doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
 	pip_pkg_check _pip_pkg_check _pip_functional_tests _pip_pkg_functional_tests _deb_pkg_functional_tests \
-	_common_pip_functional_tests _rf_functional_tests functional_tests install_js_deps
+	_common_pip_functional_tests _rf_functional_tests _rf_functional_tests_deps functional_tests install_js_deps vrt
 
-# Empty default target, since the debian packagin runs `make`
+# Empty default target, since the debian packaging runs `make`
 all:
 	@echo
 
@@ -152,13 +152,15 @@ _deb_pkg_functional_tests:
 	bash -c 'uwsgi --uid www-data --gid www-data --plugin python3 --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log & sudo -u www-data sosse-admin crawl &'
 	bash ./tests/docker_run.sh docker/pip-test/Dockerfile
 
-_rf_functional_tests:
+_rf_functional_tests_deps:
 	cat /etc/sosse/sosse.conf
 	cat /etc/nginx/sites-enabled/sosse.conf
 	ls /var/lib/sosse/static
 	ls /var/lib/sosse/static/swagger
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
+
+_rf_functional_tests: _rf_functional_tests_deps
 	cd ./tests/robotframework && /rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
 
 functional_tests:
@@ -176,3 +178,6 @@ install_js_deps:
 	cp swagger-initializer.js se/static/swagger/
 	rm -rf se/static/se/node_modules
 	cp -r node_modules/ se/static/se/
+
+vrt:
+	docker run -v $(current_dir):/sosse -p 8001:80 -ti biolds/sosse:pip-test bash -c 'cd /sosse && echo "SOSSE_ADMIN: /opt/sosse-venv/bin/sosse-admin" > tests/robotframework/config.yaml && make _pip_functional_tests _rf_functional_tests_deps && /rf-venv/bin/pip install git+https://github.com/biolds/robotframework-VRTLibrary/ && git config --global --add safe.directory /sosse && bash -i'

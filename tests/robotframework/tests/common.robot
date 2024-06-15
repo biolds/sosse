@@ -2,7 +2,7 @@
 | Library | Process
 
 | *Keywords* |
-| Login
+| Login
 |  | Open Browser | http://127.0.0.1/ | browser=Firefox |  options=add_argument("--headless")
 #|  | Open Browser | http://127.0.0.1/ | browser=Chrome | options=add_argument("--no-sandbox");options=add_argument("--disable-dev-shm-usage");add_argument("--headless");add_argument('--enable-precise-memory-info');add_argument('--disable-default-apps')
 |  | Set Window Size | 1024 | 768

@@ -12,3 +12,6 @@ docker/pip-release/uwsgi.*
 docker/pip-release/sosse.conf
 se/static/swagger/
 se/static/se/node_modules/
+
+# genertated during VRT tests
+tests/robotframework/config.yaml

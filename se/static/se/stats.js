@@ -155,8 +155,11 @@ function loadDocCharts(dt) {
     `doc_count_${dt}_chart`,
     `/api/stats/?freq=${freq}&limit=1000`,
     function (data) {
-      if (dt === 24 && data.results.length) {
-        const urlQueued = data.results[data.results.length - 1].queued_url;
+      if (dt === 24) {
+        let urlQueued = 0;
+        if (data.results.length) {
+          urlQueued = data.results[data.results.length - 1].queued_url;
+        }
         const panel = document.getElementById("url_queued");
         panel.innerText = `${urlQueued}\nURLs queued`;
         showChart("url_queued_panel");

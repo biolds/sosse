@@ -54,8 +54,10 @@ function save() {
     const cachedLinks = document.getElementById('cached_links');
     localStorage.setItem('sosseCachedLinks', cachedLinks.checked);
 
+    {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
     const onlineMode = document.getElementById('online_mode');
     localStorage.setItem('sosseOnlineMode', onlineMode.value);
+    {% endif %}
 
     window.location = '/';
 }

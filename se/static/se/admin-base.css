@@ -1085,3 +1085,7 @@ table#change-history tbody th {
 a.deletelink {
     border-radius: 0;
 }
+
+body.dark-mode #image-magnifier {
+    filter: invert(1);
+}

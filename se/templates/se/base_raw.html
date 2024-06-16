@@ -28,7 +28,34 @@
         {% endblock %}
     </script>
 </head>
-<body>
+
+<body class="light-mode">
+    <script type="text/javascript">
+      function setTheme(colorScheme) {
+        const other = colorScheme === 'dark' ? 'light-mode' : 'dark-mode';
+        colorScheme = `${colorScheme}-mode`;
+        if (document.body.classList.contains(other)) {
+          document.body.classList.remove(other);
+        }
+        if (!document.body.classList.contains(colorScheme)) {
+          document.body.classList.add(colorScheme);
+        }
+      }
+
+      const theme = localStorage.getItem('sosseTheme') || auto;
+
+      if (theme === 'auto') {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          setTheme('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+          const newColorScheme = event.matches ? 'dark' : 'light';
+          setTheme(newColorScheme);
+        });
+      } else {
+        setTheme(theme);
+      }
+    </script>
     {% block body_base %}
     {% endblock %}
 </body>

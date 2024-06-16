@@ -11,6 +11,11 @@ To reach the Preferences user interface, click the |user_menu_button| button, th
 
 Preferences are stored in the browser's `Local storage <https://en.wikipedia.org/wiki/Web_storage#Local_and_session_storage>`_, so they are not shared across users, devices, or browsers.
 
+Theme
+-----
+
+The theme option lets you choose light theme, dark theme or let it switch automatically depending on the browser configuration.
+
 Search terms parsing language
 -----------------------------
 

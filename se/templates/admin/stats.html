@@ -20,11 +20,14 @@
         color: #3f54ff;
         font-size: x-large;
         font-weight: 600;
-        background-color: #e7f0ff;
-        border-right: 1px solid #bcd4e2;
-        border-bottom: 1px solid #bcd4e2;
-        border-top: 1px solid #bde6ff;
-        border-left: 1px solid #bde6ff;
+        background-color: var(--input-bg);
+        border-right: 1px solid var(--input-bg-br);
+        border-bottom: 1px solid var(--input-bg-br);
+        border-top: 1px solid var(--input-bg-tl);
+        border-left: 1px solid var(--input-bg-tl);
+    }
+    body.dark-mode .card {
+        color: #7b92a7;
     }
     .card_text {
         text-align: center;

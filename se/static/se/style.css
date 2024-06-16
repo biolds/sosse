@@ -1,7 +1,35 @@
+body.light-mode {
+    --bg: #fff;
+    --text: #000;
+    --input-bg: #e7f0ff;
+    --input-bg-hover: #eee;
+    --input-border-br: #bcd4e2;
+    --input-border-tl: #bde6ff;
+    --input-focus: #0010ff;
+    --shadow: #e3e5f6;
+}
+body.dark-mode {
+    --bg: #000;
+    --text: #fff;
+    --input-bg: #132749;
+    --input-bg-hover: #081324;
+    --input-border-br: #1d3e51;
+    --input-border-tl: #253741;
+    --input-focus: #545eff;
+    --shadow: #121532;
+}
 body {
     margin: 0;
     font-family: sans-serif;
     font-size: 14px;
+    background-color: var(--bg);
+    color: var(--text);
+}
+body.dark-mode a {
+    color: #7b92a7;
+}
+body.dark-mode a:visited {
+    color: #946ca3;
 }
 ul {
     padding: 0;
@@ -12,15 +40,15 @@ li {
     padding: 5px;
 }
 ul.ul_stripe li:nth-of-type(2n + 1) {
-    background-color: #eee;
+    background-color: var(--input-bg-hover);
 }
 #top_bar {
     border-style: solid;
     border-width: 0px 0px 1px 0px;
-    border-color: #e7f0ff;
+    border-color: var(--input-bg);
     margin: 0px 0px 25px 0px;
     padding: 8px;
-    box-shadow: 0px 5px 5px 0px #e3e5f6;
+    box-shadow: 0px 5px 5px 0px var(--shadow);
 }
 #top_bar_links a {
     margin-left: 3px
@@ -31,7 +59,7 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
     margin-right: 5px;
 }
 #logo {
-    color: black;
+    color: var(--text);
     text-decoration: none;
     display: inline-block;
     height: 100%;
@@ -72,7 +100,7 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
     height: 16px;
 }
 #id_q:hover + #clear_button {
-    background-color: #eee;
+    background-color: var(--input-bg-hover);
 }
 #id_q:focus + #clear_button {
     outline: 0px;
@@ -88,7 +116,7 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
     border-color: #cfcbcb;
     border-style: solid;
     border-width: 1px;
-    background-color: #fff;
+    background-color: var(--bg);
     position: relative;
     z-index: 999;
     display: none;
@@ -100,10 +128,10 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
     display: block;
     font-size: 16px;
     text-decoration: none;
-    color: #000;
+    color: var(--text);
 }
 .links:hover {
-    background-color: #e7f0ff;
+    background-color: var(--input-bg);
 }
 .img_button {
     background-size: 15px 15px;
@@ -115,11 +143,12 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
 }
 button,input,select,textarea {
     font-size: 14px;
-    background-color: #e7f0ff;
-    border-right: 1px solid #bcd4e2;
-    border-bottom: 1px solid #bcd4e2;
-    border-top: 1px solid #bde6ff;
-    border-left: 1px solid #bde6ff;
+    background-color: var(--input-bg);
+    color: var(--text);
+    border-right: 1px solid var(--input-border-br);
+    border-bottom: 1px solid var(--input-border-br);
+    border-top: 1px solid var(--input-border-tl);
+    border-left: 1px solid var(--input-border-tl);
     padding: 5px;
 }
 select {
@@ -132,25 +161,25 @@ button:focus,input:focus,select:focus {
     border-color: #0010ff;
 }
 button:hover,input:hover,select:hover {
-    background-color: #eee;
+    background-color: var(--input-bg-hover);
     cursor: pointer;
 }
 .a_button {
-    color: #000;
+    color: var(--text);
     text-decoration: none;
-    background-color: #e7f0ff;
+    background-color: var(--input-bg);
     padding: 10px;
     margin: 2px 0px 2px 0px;
-    border-right: 1px solid #bcd4e2;
-    border-bottom: 1px solid #bcd4e2;
-    border-top: 1px solid #bde6ff;
-    border-left: 1px solid #bde6ff;
+    border-right: 1px solid var(--input-border-br);
+    border-bottom: 1px solid var(--input-border-br);
+    border-top: 1px solid var(--input-border-tl);
+    border-left: 1px solid var(--input-border-tl);
 }
 .a_button:hover {
-    background-color: #eee;
+    background-color: var(--input-bg-hover);
 }
 .a_button_disabled {
-    background-color: #eee;
+    background-color: var(--input-bg-hover);
     color: #737373;
 }
 .pagination {
@@ -179,15 +208,15 @@ button:hover,input:hover,select:hover {
   padding: 8px;
   color: black;
   border-style: solid;
-  border-color: #bcd4e2;
+  border-color: var(--input-border-br);
   text-decoration: none;
 
   border-width: 0px 0px 1px 0px;
-  box-shadow: 0px 0px 3px 3px #e3e5f6;
+  box-shadow: 0px 0px 3px 3px var(--shadow);
 }
 
 .tab_link:hover {
-  box-shadow: 0px 0px 5px 5px #e3e5f6;
+  box-shadow: 0px 0px 5px 5px var(--shadow);
 }
 
 #tab_selected {

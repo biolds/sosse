@@ -8,7 +8,7 @@
         <caption>
           <h4>
             {% if app.app_label == 'se' %}
-              <img src="{% static 'se/icon-search.svg' %}" style="width: 20px" />
+              <img id="image-magnifier" src="{% static 'se/icon-search.svg' %}" style="width: 20px" />
               {{ app.name }}
             {% elif app.app_label == 'auth' %}
               <img src="{% static 'se/icon-user.svg' %}" style="width: 20px" />

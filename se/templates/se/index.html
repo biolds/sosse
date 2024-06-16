@@ -12,8 +12,11 @@
         padding: 10px 10px 10px 10px;
         border-radius: 10px;
     }
-    .res:hover {
+    body.light-mode .res:hover {
         background-color: #f4f4f4;
+    }
+    body.dark-mode .res:hover {
+        background-color: #1a1a1a;
     }
     .res-img {
         height: 16px;
@@ -83,21 +86,29 @@
       height: 24px;
     }
 
-    .res .res-home-fade-text {
+    body.light-mode .res .res-home-fade-text {
       background-image: linear-gradient(to bottom, transparent, white);
     }
 
-    .res:hover .res-home-fade-text {
+    body.light-mode .res:hover .res-home-fade-text {
       background-image: linear-gradient(to bottom, transparent, #f4f4f4);
+    }
+
+    body.dark-mode .res .res-home-fade-text {
+      background-image: linear-gradient(to bottom, #00000000, #000000ff);
+    }
+
+    body.dark-mode .res:hover .res-home-fade-text {
+      background-image: linear-gradient(to bottom, #00000000, #1a1a1a);
     }
 
     #search_field {
         text-align: center;
     }
     #more {
-        color: #000;
         text-decoration: none;
         font-size: 13px;
+        color: var(--text);
     }
     #adv_search {
         padding-top: 20px;

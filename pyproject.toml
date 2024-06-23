@@ -29,5 +29,8 @@ se = ["*.html", "*.svg", "*.js", "*.css"]
 version = {attr = "sosse.settings.SOSSE_VERSION_TAG"}
 dependencies = {file = ["requirements.txt"]}
 
+[tool.autopep8]
+max_line_length = 1000
+
 [project.scripts]
 sosse-admin = "sosse.sosse_admin:main"

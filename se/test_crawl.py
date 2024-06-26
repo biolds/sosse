@@ -75,6 +75,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.url, 'http://127.0.0.1/')
         self.assertEqual(doc.content, 'Hello world')
         self.assertEqual(doc.crawl_recurse, 0)
+        self.assertFalse(doc.hidden)
 
         self.assertEqual(Link.objects.count(), 0)
 
@@ -561,3 +562,16 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.text, 'Nested')
         self.assertEqual(link.pos, 5)
         self.assertEqual(link.link_no, 0)
+
+    @mock.patch('se.browser.RequestBrowser.get')
+    def test_160_hidden(self, RequestBrowser):
+        RequestBrowser.side_effect = BrowserMock({'http://127.0.0.1/': b'Hello world'})
+        self.crawl_policy.hide_documents = True
+        self.crawl_policy.save()
+
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, 'http://127.0.0.1/')
+        self.assertTrue(doc.hidden)

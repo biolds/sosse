@@ -42,6 +42,7 @@ SERIALIZED_DOC1 = {
     'favicon': None,
     'has_html_snapshot': False,
     'has_thumbnail': False,
+    'hidden': False,
     'lang_iso_639_1': 'en',
     'mimetype': None,
     'normalized_content': 'content',
@@ -140,6 +141,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                     'favicon': None,
                     'has_html_snapshot': False,
                     'has_thumbnail': False,
+                    'hidden': False,
                     'id': self.doc2.id,
                     'lang_iso_639_1': 'en',
                     'mimetype': None,
@@ -259,5 +261,46 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 'score': None,
                 'title': 'Title2',
                 'url': 'http://127.0.0.1/test2'
+            }]
+        })
+
+    def test_search_hidden(self):
+        self.doc2.hidden = True
+        self.doc2.save()
+
+        response = self.client.post('/api/search/', {'query': 'http'})
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(json.loads(response.content), {
+            'count': 1,
+            'next': None,
+            'previous': None,
+            'results': [{
+                'doc_id': self.doc1.id,
+                'score': 0.6079271,
+                'title': 'Title',
+                'url': 'http://127.0.0.1/test'
+            }]
+        })
+
+    def test_search_hidden_included(self):
+        self.doc2.hidden = True
+        self.doc2.save()
+
+        response = self.client.post('/api/search/', {'query': 'http', 'include_hidden': True})
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(json.loads(response.content), {
+            'count': 2,
+            'next': None,
+            'previous': None,
+            'results': [{
+                'doc_id': self.doc1.id,
+                'url': 'http://127.0.0.1/test',
+                'title': 'Title',
+                'score': 0.6079271
+            }, {
+                'doc_id': self.doc2.id,
+                'url': 'http://127.0.0.1/test2',
+                'title': 'Title2',
+                'score': 0.6079271
             }]
         })

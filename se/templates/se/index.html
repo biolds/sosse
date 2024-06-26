@@ -232,6 +232,11 @@
                 </select>
 
                 Sort {{ form.s }}
+
+                {% if perms.se.can_change_document %}
+                    {{ form.i }}
+                    <label for="id_i">Include hidden documents</label>
+                {% endif %}
             </div>
         </div>
     </form>

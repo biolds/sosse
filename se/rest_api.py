@@ -176,6 +176,7 @@ class SearchQuery(serializers.Serializer):
     query = serializers.CharField(default='', allow_blank=True, help_text='Search terms')
     lang = serializers.ChoiceField(default='en', choices=[(key, val['name'].title()) for key, val in settings.SOSSE_LANGDETECT_TO_POSTGRES.items()], help_text='Search terms language')
     sort = serializers.ChoiceField(default='-rank', choices=SORT, help_text='Results sorting')
+    include_hidden = serializers.BooleanField(default=False, help_text='Include hidden documents, requires the permission "Can change documents"')
     adv_params = SearchAdvancedQuery(many=True, default=[], help_text='Advanced search parameters')
 
     def validate(self, data):
@@ -207,13 +208,15 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         query = SearchQuery(data=request.data)
         query.is_valid(raise_exception=True)
+        # ×raise Exception(query.validated_data)
         f = SearchForm(data={
             'q': query.validated_data['query'],
             'l': query.validated_data['lang'],
-            's': query.validated_data['sort']
+            's': query.validated_data['sort'],
+            'i': 'on' if query.validated_data['include_hidden'] else ''
         })
         f.is_valid()
-        _, documents, _ = get_documents(query.validated_data['adv_params'], f, False)
+        _, documents, _ = get_documents(request, query.validated_data['adv_params'], f, False)
         page = self.paginate_queryset(documents)
         serializer = SearchResult(page, many=True)
         return self.get_paginated_response(serializer.data)

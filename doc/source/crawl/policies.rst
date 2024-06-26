@@ -61,6 +61,11 @@ Store extern links
 
 When enabled, links to non-indexed pages are stored.
 
+Hide documents
+""""""""""""""
+
+Documents indexed will be hidden from search results. The hidden state can later be changed from the :doc:`document's settings <../documents>`.
+
 Remove nav elements
 """""""""""""""""""
 

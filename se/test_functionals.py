@@ -71,6 +71,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIsNone(doc.favicon.content)
         self.assertIsNone(doc.favicon.mimetype)
         self.assertTrue(doc.favicon.missing)
+        self.assertFalse(doc.hidden)
         self.assertFalse(doc.robotstxt_rejected)
         self.assertIsNone(doc.redirect_url)
         self.assertFalse(doc.too_many_redirects)
@@ -85,7 +86,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIsNone(doc.worker_no)
         self.assertFalse(doc.has_html_snapshot)
         self.assertFalse(doc.has_thumbnail)
-        self.assertEqual(len(Document._meta.get_fields()), 32)
+        self.assertEqual(len(Document._meta.get_fields()), 33)
 
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
@@ -192,7 +193,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIsNone(doc.worker_no)
         self.assertFalse(doc.has_html_snapshot)
         self.assertFalse(doc.has_thumbnail)
-        self.assertEqual(len(Document._meta.get_fields()), 32)
+        self.assertEqual(len(Document._meta.get_fields()), 33)
 
         self.assertEqual(Cookie.objects.count(), 2)
         cookies = Cookie.objects.order_by('name').values()

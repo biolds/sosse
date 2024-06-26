@@ -44,10 +44,10 @@ def get_documents_from_request(request, form, stats_call=False):
         filters[filter_no] = f
     keys = sorted(filters.keys())
     params = [filters[k] for k in keys]
-    return get_documents(params, form, stats_call)
+    return get_documents(request, params, form, stats_call)
 
 
-def get_documents(params, form, stats_call):
+def get_documents(request, params, form, stats_call):
     REQUIRED_KEYS = ('ft', 'ff', 'fo', 'fv')
 
     results = Document.objects.all()
@@ -61,7 +61,6 @@ def get_documents(params, form, stats_call):
         lang = form.cleaned_data['l']
 
         query = SearchQuery(q, config=lang, search_type='websearch')
-        all_results = Document.objects.filter(vector=query)
         all_results = Document.objects.filter(vector=query).annotate(
             rank=SearchRank(models.F('vector'), query),
         )
@@ -69,6 +68,11 @@ def get_documents(params, form, stats_call):
 
         if results.count() == 0:
             results = all_results
+
+    include_hidden = form.cleaned_data.get('i', False) and True
+
+    if not request.user.has_perm('se.document_change') or not include_hidden:
+        results = results.exclude(hidden=True)
 
     if settings.SOSSE_EXCLUDE_NOT_INDEXED:
         results = results.exclude(crawl_last__isnull=True)

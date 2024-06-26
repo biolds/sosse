@@ -47,3 +47,8 @@ Show on homepage
 """"""""""""""""
 
 When the :ref:`browsable home option <conf_option_browsable_home>` is enabled, this parameter can switch availability of the document from the homepage. (See :doc:`archive`)
+
+Hidden
+""""""
+
+The document does not appear in search results.

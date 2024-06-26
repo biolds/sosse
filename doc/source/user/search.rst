@@ -21,7 +21,11 @@ More search options are available when clicking on ``Params``:
 .. image:: ../../../tests/robotframework/screenshots/extended_search.png
    :class: sosse-screenshot
 
-These perform exact text match as opposed to the search bar that has natural-language processing features (word stemming, diactric removal, ...).
+- ``Language``: select document which detected language matches
+- ``Sort``: sort order of matching documents
+- ``Include hidden documents``: show hidden documents in results, requires the "Can change documents" permission
+
+Below, more field can be added to perform exact text match as opposed to the search bar that has natural-language processing features (word stemming, diactric removal, ...).
 Any number of extra filter can be added using the |plus_button| button. Each field in the filter is:
 
 .. |plus_button| image:: ../../../tests/robotframework/screenshots/extended_search_plus_button.png

@@ -174,20 +174,28 @@ def crawl_later(modeladmin, request, queryset):
     return redirect(reverse('admin:crawl_status'))
 
 
+@admin.action(description='Switch hidden', permissions=['change'])
+def switch_hidden(modeladmin, request, queryset):
+    queryset.update(hidden=models.Case(
+        models.When(hidden=True, then=models.Value(False)),
+        models.When(hidden=False, then=models.Value(True)),
+    ))
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('_url', 'fav', 'title', 'lang', 'status', 'err', '_crawl_last', '_crawl_next', 'crawl_dt')
-    list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage')
+    list_filter = (DocumentQueueFilter, 'lang_iso_639_1', DocumentErrorFilter, 'show_on_homepage', 'hidden')
     search_fields = ['url__regex', 'title__regex']
     ordering = ('-crawl_last',)
-    actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg]
+    actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg, switch_hidden]
     if settings.DEBUG:
         actions += [crawl_later]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
 
     fieldsets = (
         ('📖 Main', {
-            'fields': ('title', 'show_on_homepage', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status', '_error')
+            'fields': ('title', 'show_on_homepage', 'hidden', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status', '_error')
         }),
         ('📂 Data', {
             'fields': ('mimetype', '_lang_txt', '_content')
@@ -530,8 +538,8 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     search_fields = ('url_regex',)
     readonly_fields = ('documents',)
     fieldsets = (
-        ('⚡ Main', {
-            'fields': ('url_regex', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'remove_nav_elements')
+        ('⚡ Index', {
+            'fields': ('url_regex', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'hide_documents', 'remove_nav_elements')
         }),
         ('🌍  Browser', {
             'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'script')

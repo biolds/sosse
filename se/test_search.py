@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from django.contrib.auth.models import User
 from django.core.handlers.wsgi import WSGIRequest
 from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
@@ -51,16 +52,25 @@ class SearchTest(TransactionTestCase):
                                                link_no=0,
                                                extern_url='http://perdu.com')
 
+        self.admin = User.objects.create(username='admin', is_superuser=True, is_staff=True)
+        self.admin.set_password('admin')
+        self.admin.save()
+
+        self.user = User.objects.create(username='user')
+        self.user.set_password('user')
+        self.user.save()
+
     def tearDown(self):
         self.root.delete()
         self.page.delete()
 
-    def _search_docs(self, params):
+    def _search_docs(self, params, user=None):
         request = WSGIRequest({
             'REQUEST_METHOD': 'GET',
             'QUERY_STRING': params,
             'wsgi.input': ''
         })
+        request.user = user or self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())
         return get_documents_from_request(request, form)[1]
@@ -172,6 +182,7 @@ class SearchTest(TransactionTestCase):
             'QUERY_STRING': 'q=tele',
             'wsgi.input': ''
         })
+        request.user = self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())
         _, docs, query = get_documents_from_request(request, form)
@@ -179,6 +190,28 @@ class SearchTest(TransactionTestCase):
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
         self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Télé</span>')
+
+    def test_030_hidden(self):
+        self.root.hidden = True
+        self.root.save()
+        docs = self._search_docs('q="world"')
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
+        docs = self._search_docs('q="world"', user=self.user)
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
+    def test_040_hidden_included(self):
+        self.root.hidden = True
+        self.root.save()
+        docs = self._search_docs('q="world"&i=on')
+        self.assertEqual(docs.count(), 2)
+        self.assertEqual(list(docs), [self.page, self.root])
+
+        docs = self._search_docs('q="world"&i=on', user=self.user)
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
 
 
 class ShortcutTest(TransactionTestCase):

@@ -728,6 +728,7 @@ class CrawlPolicy(models.Model):
     mimetype_regex = models.TextField(default='text/.*')
     recursion_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
     keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
+    hide_documents = models.BooleanField(default=False, help_text='Hide documents from search results')
 
     default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_CHROMIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
 

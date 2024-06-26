@@ -87,6 +87,7 @@ class Document(models.Model):
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True, verbose_name='Language')
     vector_lang = RegConfigField(default='simple')
     mimetype = models.CharField(max_length=64, null=True, blank=True)
+    hidden = models.BooleanField(default=False, help_text='Hide this document from search results')
 
     favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
     robotstxt_rejected = models.BooleanField(default=False, verbose_name='Rejected by robots.txt')
@@ -292,6 +293,7 @@ class Document(models.Model):
             self.title = beautified_url
 
         self.normalized_title = remove_accent(self.title)
+        self.hidden = crawl_policy.hide_documents
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
         magic_head = page.content[:20].strip().lower()
@@ -422,7 +424,7 @@ class Document(models.Model):
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL or parent is None:
             crawl_logger.debug('%s -> always crawl' % url)
-            return Document.objects.get_or_create(url=url)[0]
+            return Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug('%s -> never crawl' % url)
@@ -432,11 +434,11 @@ class Document(models.Model):
         url_depth = None
 
         if parent_policy.recursion == CrawlPolicy.CRAWL_ALL and parent_policy.recursion_depth > 0:
-            doc = Document.objects.get_or_create(url=url)[0]
+            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent_policy.recursion_depth, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse for %s' % (url, url_depth))
         elif parent_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
-            doc = Document.objects.get_or_create(url=url)[0]
+            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse at %s' % (url, url_depth))
         else:

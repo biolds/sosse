@@ -3,7 +3,7 @@
 */
 
 /* VARIABLE DEFINITIONS */
-:root {
+:root body.light-mode {
   --primary: #79aec8;
   --secondary: #417690;
   --accent: #f5dd5d;
@@ -55,8 +55,7 @@
   --object-tools-hover-bg: var(--close-button-hover-bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+:root body.dark-mode {
     --primary: #264b5d;
     --primary-fg: #eee;
 
@@ -86,7 +85,6 @@
 
     --close-button-bg: #333333;
     --close-button-hover-bg: #666666;
-  }
 }
 
 /*

@@ -63,16 +63,29 @@ setInterval(refresh, {{ settings.SOSSE_CRAWL_STATUS_AUTOREFRESH }} * 1000);
   text-overflow: ellipsis;
 }
 
-#result_list tr.running {
+body.dark-mode #result_list tr.running {
+  background-color: #9cd78b;
+  font-weight: bold;
+}
+
+body.dark-mode #result_list tr.pending:nth-child(2n) {
+  background-color: #1e350a;
+}
+
+body.dark-mode #result_list tr.pending:nth-child(2n+1) {
+  background-color: #245000;
+}
+
+body.light-mode #result_list tr.running {
   background-color: #d9fabe;
   font-weight: bold;
 }
 
-#result_list tr.pending:nth-child(2n) {
+body.light-mode #result_list tr.pending:nth-child(2n) {
   background-color: #ecffdc;
 }
 
-#result_list tr.pending:nth-child(2n+1) {
+body.light-mode #result_list tr.pending:nth-child(2n+1) {
   background-color: #dceecd;
 }
 {% endblock %}

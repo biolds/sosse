@@ -16,7 +16,7 @@ body.dark-mode {
     --input-border-br: #1d3e51;
     --input-border-tl: #253741;
     --input-focus: #545eff;
-    --shadow: #121532;
+    --shadow: #272b58;
 }
 body {
     margin: 0;
@@ -29,7 +29,7 @@ body.dark-mode a {
     color: #7b92a7;
 }
 body.dark-mode a:visited {
-    color: #946ca3;
+    color: #3563d1;
 }
 ul {
     padding: 0;

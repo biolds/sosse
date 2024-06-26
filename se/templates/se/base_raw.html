@@ -42,7 +42,7 @@
         }
       }
 
-      const theme = localStorage.getItem('sosseTheme') || auto;
+      const theme = localStorage.getItem('sosseTheme') || 'auto';
 
       if (theme === 'auto') {
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {

@@ -25,6 +25,7 @@ unit_tests:
         coverage_format: cobertura
         path: coverage.xml
   script:
+    - apt update
     - 'grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y'
     - /etc/init.d/postgresql start
     - mkdir -p /var/lib/sosse/screenshots /var/lib/sosse/html /var/lib/sosse/log /root/httpbin/httpbin/bin/static/ && chown -R www-data:www-data /var/lib/sosse/ /var/log/sosse
@@ -82,6 +83,7 @@ migrations:
   image: biolds/sosse:debian-test
   stage: test
   script:
+    - apt update
     - 'grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y'
     - /etc/init.d/postgresql start
     - export PYTHONPATH="$CI_PROJECT_DIR"

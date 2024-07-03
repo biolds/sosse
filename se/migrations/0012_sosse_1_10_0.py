@@ -35,4 +35,9 @@ class Migration(migrations.Migration):
             name='hidden',
             field=models.BooleanField(default=False, help_text='Hide this document from search results'),
         ),
+        migrations.AddField(
+            model_name='crawlpolicy',
+            name='enabled',
+            field=models.BooleanField(default=True),
+        ),
     ]

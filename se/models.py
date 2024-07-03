@@ -724,6 +724,7 @@ class CrawlPolicy(models.Model):
     ]
 
     url_regex = models.TextField(unique=True, validators=[validate_regexp])
+    enabled = models.BooleanField(default=True)
     recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default='text/.*')
     recursion_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
@@ -759,6 +760,11 @@ class CrawlPolicy(models.Model):
     def __str__(self):
         return f'「{self.url_regex}」'
 
+    def save(self, *args, **kwargs):
+        if self.url_regex == '.*':
+            self.enabled = True
+        return super().save(*args, **kwargs)
+
     @staticmethod
     def create_default():
         # mandatory default policy
@@ -769,6 +775,8 @@ class CrawlPolicy(models.Model):
     def get_from_url(url, queryset=None):
         if queryset is None:
             queryset = CrawlPolicy.objects.all()
+        queryset = queryset.filter(enabled=True)
+
         policy = queryset.extra(where=['%s ~ url_regex'], params=[url]).annotate(
             url_regex_len=models.functions.Length('url_regex')
         ).order_by('-url_regex_len').first()

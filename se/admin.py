@@ -530,16 +530,33 @@ class CrawlPolicyForm(forms.ModelForm):
         return cleaned_data
 
 
+@admin.action(description='Enable/disable', permissions=['change'])
+def crawl_policy_enable_disable(modeladmin, request, queryset):
+    queryset.exclude(url_regex='.*').update(enabled=models.Case(
+        models.When(enabled=True, then=models.Value(False)),
+        models.When(enabled=False, then=models.Value(True)),
+    ))
+
+
+@admin.action(description='Copy', permissions=['change'])
+def crawl_policy_switch(modeladmin, request, queryset):
+    for crawl_policy in queryset.all():
+        crawl_policy.id = None
+        crawl_policy.url_regex = f'Copy of {crawl_policy.url_regex}'
+        crawl_policy.save()
+
+
 @admin.register(CrawlPolicy)
 class CrawlPolicyAdmin(admin.ModelAdmin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
-    list_display = ('url_regex', 'docs', 'recursion', 'recursion_depth', 'default_browse_mode', 'recrawl_mode')
+    list_display = ('url_regex', 'enabled', 'docs', 'recursion', 'recursion_depth', 'default_browse_mode', 'recrawl_mode')
+    list_filter = ('enabled',)
     search_fields = ('url_regex',)
     readonly_fields = ('documents',)
     fieldsets = (
         ('⚡ Index', {
-            'fields': ('url_regex', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'hide_documents', 'remove_nav_elements')
+            'fields': ('url_regex', 'enabled', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'hide_documents', 'remove_nav_elements')
         }),
         ('🌍  Browser', {
             'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'script')
@@ -554,10 +571,11 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             'fields': ('auth_login_url_re', 'auth_form_selector'),
         }),
     )
+    actions = [crawl_policy_enable_disable, crawl_policy_switch]
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.url_regex == '.*':
-            return self.readonly_fields + ('url_regex',)
+            return self.readonly_fields + ('url_regex', 'enabled')
         return self.readonly_fields
 
     def get_fieldsets(self, request, obj=None):

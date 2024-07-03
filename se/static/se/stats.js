@@ -114,7 +114,7 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
 
   const langs = data.filter((l) => l.doc_count).slice(0, 8);
   const chart = document.getElementById("lang_chart");
-  new Chart(chart, {
+  const langChartJS = new Chart(chart, {
     type: "bar",
     data: {
       labels: langs.map((l) => l.lang),
@@ -147,6 +147,17 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
       },
     },
   });
+
+  // https://stackoverflow.com/questions/45980436/chart-js-link-to-other-page-when-click-on-specific-section-in-chart
+  document.getElementById("lang_chart").onclick = function(e){
+    let bars = langChartJS.getElementsAtEventForMode(e, 'nearest', {intersect: true}, true);
+    if (bars.length) {
+      const bar = bars[0];
+      const lang = langs[bar.index];
+      const isoLang = lang.lang.replace(/ .*/, '').toLowerCase();
+      window.location = `/admin/se/document/?lang_iso_639_1=${isoLang}`;
+    }
+  };
 });
 
 function loadDocCharts(dt) {

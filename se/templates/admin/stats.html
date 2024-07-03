@@ -43,20 +43,27 @@
     #top_bar {
         padding-bottom: 0px;
     }
+    #lang_chart {
+        cursor: pointer;
+    }
 {% endblock %}
 
 {% block content %}
     <span class="chart card">
-        <div id="doc_count_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
-        <div id="doc_count" class="card_text">
-          Documents
-        </div>
+        <a href="{% url "admin:se_document_changelist" %}" style="text-decoration: none">
+            <div id="doc_count_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
+            <div id="doc_count" class="card_text">
+              Documents
+            </div>
+        </a>
     </span>
     <span class="chart card">
-        <div id="url_queued_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
-        <div id="url_queued" class="card_text">
-          URLs queued
-        </div>
+        <a href="{% url "admin:crawl_status" %}" style="text-decoration: none">
+            <div id="url_queued_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
+            <div id="url_queued" class="card_text">
+              URLs queued
+            </div>
+        </a>
     </span>
     <h4>Index</h4>
     <span class="chart">

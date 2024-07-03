@@ -53,6 +53,7 @@ build_doc:
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc:/sosse/doc biolds/sosse:doc bash -c 'cd /sosse && make _build_doc'
 
 doc_gen:
+	apt update
 	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
 	./sosse-admin extract_doc conf > doc/source/config_file_generated.rst
 	./sosse-admin extract_doc cli > doc/source/cli_generated.rst

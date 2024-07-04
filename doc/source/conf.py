@@ -26,7 +26,7 @@ import sys
 project = 'SOSSE'
 copyright = '2022-2024, Laurent Defert'
 author = 'Laurent Defert'
-release = '1.9'
+release = '1.10'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

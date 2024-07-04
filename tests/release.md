@@ -1,7 +1,7 @@
 - make docker_git_build
 - test (docker run -p 8005:80 biolds/sosse:git)
-- debian update: version + changelog
-- doc version update
+- debian update: version + changelog : dch -i
+- doc version update in doc/source/conf.py
 - update the CHANGELOG.md using the last changelog build it the main branch
 - MR
 - create tag "vX.X.X"

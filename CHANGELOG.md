@@ -1,3 +1,12 @@
+## 1.10.0 (2024-07-04)
+### Features (5 changes)
+
+- [crawl policies enable/disable, copy](https://gitlab.com/biolds1/sosse/-/commit/6a79a1b8771a935b9ba388722441236000f0e41a) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/109))
+- [document hiding](https://gitlab.com/biolds1/sosse/-/commit/2930b03d7ebc97cec2441c5361a9275bc9be9214) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/108) / [ticket](https://github.com/biolds/sosse/issues/5))
+- [UI dark theme](https://gitlab.com/biolds1/sosse/-/commit/8c599190a5f1384abeb7e673c72dd756e48ebe25) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/108))
+- [Statistics page rework](https://gitlab.com/biolds1/sosse/-/commit/20caec242ae3c9e5fb58ada519542845700ccb4c) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/103))
+- [Rest API](https://gitlab.com/biolds1/sosse/-/commit/127f6498efa5cadc83dee8ef74ec34bd3dcafc64) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/102))
+
 ## 1.9.0 (2024-03-10)
 ### Features (2 changes)
 - [ignore robots.txt file when it redirects in a loop](biolds1/sosse@882dfc7cb4eea834744cc8c63e20b3eab020f16f) ([merge request](biolds1/sosse!98))

@@ -1,6 +1,5 @@
 ## 1.10.0 (2024-07-04)
 ### Features (5 changes)
-
 - [crawl policies enable/disable, copy](https://gitlab.com/biolds1/sosse/-/commit/6a79a1b8771a935b9ba388722441236000f0e41a) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/109))
 - [document hiding](https://gitlab.com/biolds1/sosse/-/commit/2930b03d7ebc97cec2441c5361a9275bc9be9214) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/108) / [ticket](https://github.com/biolds/sosse/issues/5))
 - [UI dark theme](https://gitlab.com/biolds1/sosse/-/commit/8c599190a5f1384abeb7e673c72dd756e48ebe25) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/108))

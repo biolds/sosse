@@ -48,7 +48,7 @@ class FunctionalTest(BaseFunctionalTest):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL, None, None)
@@ -146,7 +146,7 @@ class FunctionalTest(BaseFunctionalTest):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
         policy = CrawlPolicy.objects.create(url_regex='^%s.*' % TEST_SERVER_URL,
                                             recursion=CrawlPolicy.CRAWL_NEVER,
@@ -154,7 +154,7 @@ class FunctionalTest(BaseFunctionalTest):
                                             default_browse_mode=self.BROWSE_MODE,
                                             snapshot_html=False,
                                             take_screenshots=False,
-                                            create_thumbnails=False,
+                                            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                             auth_login_url_re='%sadmin/login/.*' % TEST_SERVER_URL,
                                             auth_form_selector='#login-form')
         AuthField.objects.create(key='username', value=TEST_SERVER_USER, crawl_policy=policy)
@@ -235,7 +235,7 @@ class FunctionalTest(BaseFunctionalTest):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS,
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_NO,
                                    screenshot_format=Document.SCREENSHOT_PNG)
@@ -261,7 +261,7 @@ class FunctionalTest(BaseFunctionalTest):
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS,
                                    snapshot_html=True,
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_INDEX,
@@ -287,7 +287,7 @@ class FunctionalTest(BaseFunctionalTest):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS,
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
                                    screenshot_format=Document.SCREENSHOT_PNG)
@@ -312,7 +312,7 @@ class FunctionalTest(BaseFunctionalTest):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS,
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_ALL,
                                    screenshot_format=Document.SCREENSHOT_PNG)
@@ -345,7 +345,7 @@ class BrowserBasedFunctionalTest:
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=True,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL + 'static/pages/css_in_js.html', None, None)
@@ -395,7 +395,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=DomainSetting.BROWSE_DETECT,
                                    snapshot_html=False,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL + 'static/pages/browser_detect_js.html', None, None)
@@ -417,7 +417,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=DomainSetting.BROWSE_DETECT,
                                    snapshot_html=False,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
         Document.queue(TEST_SERVER_URL + 'static/pages/browser_detect_no_js.html', None, None)

@@ -35,7 +35,7 @@ class HTMLSnapshotTest:
     def setUp(self):
         self.policy = CrawlPolicy.create_default()
         self.policy.default_browse_mode = DomainSetting.BROWSE_REQUESTS
-        self.policy.create_thumbnails = False
+        self.policy.thumbnail_mode = CrawlPolicy.THUMBNAIL_MODE_NONE
         self.policy.save()
 
     def test_010_html_dump(self):

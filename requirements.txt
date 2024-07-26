@@ -13,7 +13,7 @@ lxml
 markdown
 pillow
 psutil
-psycopg2
+psycopg2-binary
 publicsuffix2
 python-magic
 requests

@@ -23,9 +23,14 @@ https://docs.djangoproject.com/en/2.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
+from pathlib import Path
 
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sosse.settings')
+
+linkpreview = Path(__file__).parent.parent / 'se/deps/linkpreview'
+sys.path.insert(0, str(linkpreview))
 
 application = get_wsgi_application()

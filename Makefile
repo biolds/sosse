@@ -168,9 +168,9 @@ functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'
 
 static_checks:
-	flake8 --ignore=E501,W503,W504 --exclude=migrations,tests
-	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
-	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'
+	flake8 --ignore=E501,W503,W504 --exclude=migrations,tests,se/deps
+	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$ | grep -v se/deps/) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
+	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$ | grep -v se/deps/) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'
 
 install_js_deps:
 	npm install

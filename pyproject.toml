@@ -15,7 +15,16 @@ classifiers = ["Framework :: Django", "Programming Language :: Python :: 3"]
 dynamic = ["version", "dependencies"]
 
 [tool.setuptools]
-packages = ["se", "se.migrations", "se.management", "se.management.commands", "sosse"]
+packages = [
+  "se",
+  "se.deps.linkpreview",
+  "se.deps.linkpreview.linkpreview",
+  "se.deps.linkpreview.linkpreview.preview",
+  "se.migrations",
+  "se.management",
+  "se.management.commands",
+  "sosse",
+]
 
 [tool.setuptools.package-data]
 se = ["*.html", "*.svg", "*.js", "*.css"]

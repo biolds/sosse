@@ -43,11 +43,6 @@
     .res-highlight {
         background-color: #c6dcff;
     }
-    .res-preview {
-        float: right;
-        width: 160px;
-        height: 100px;
-    }
 
     #home-grid {
         display: grid;
@@ -73,9 +68,13 @@
         padding-top: 30%;
         width: 100%;
     }
-    .res-home-icon > img {
+    .res-home-icon > img.res-home-icon-img {
         width: 64px;
         height: 64px;
+    }
+    img.res-home-title-icon {
+        width: 16px;
+        height: 16px;
     }
     .res-home-fade-text {
       position: absolute;
@@ -220,7 +219,7 @@
             <input name="fc" type="checkbox" id="fc">
             <label for="fc">Case sensitive</label>
         </template>
-        
+
         <div id="adv_search" style="display: none">
             <div>
                 Language
@@ -284,9 +283,9 @@
                     {% if r.has_thumbnail or r.screenshot_count %}
                         <a href="{{ r.link }}" {{ r.link_flag }}>
                             {% if r.has_thumbnail %}
-                                <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" class="res-preview" />
+                                <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" class="cache-preview" />
                             {% else %}
-                                <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" class="res-preview" />
+                                <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" class="cache-preview" />
                             {% endif %}
                         </a>
                     {% endif %}

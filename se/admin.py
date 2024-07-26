@@ -518,9 +518,9 @@ class CrawlPolicyForm(forms.ModelForm):
                 self.add_error(key, 'This field must be null when using this recrawl mode')
 
         if cleaned_data['default_browse_mode'] not in (DomainSetting.BROWSE_CHROMIUM, DomainSetting.BROWSE_FIREFOX):
-            if cleaned_data['create_thumbnails']:
-                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to create thumbnails')
-                self.add_error('create_thumbnails', 'Browsing mode must be set to Chromium or Firefox to create thumbnails')
+            if cleaned_data['thumbnail_mode'] in (CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT, CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN):
+                self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to take screenshot as thumbnails')
+                self.add_error('thumbnail_mode', 'Browsing mode must be set to Chromium or Firefox to take screenshot as thumbnails')
             if cleaned_data['take_screenshots']:
                 self.add_error('default_browse_mode', 'Browsing mode must be set to Chromium or Firefox to take screenshots')
                 self.add_error('take_screenshots', 'Browsing mode must be set to Chromium or Firefox to take screenshots')
@@ -556,10 +556,11 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     readonly_fields = ('documents',)
     fieldsets = (
         ('⚡ Index', {
-            'fields': ('url_regex', 'enabled', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params', 'store_extern_links', 'hide_documents', 'remove_nav_elements')
+            'fields': ('url_regex', 'enabled', 'documents', 'recursion', 'recursion_depth', 'mimetype_regex', 'keep_params',
+                       'store_extern_links', 'hide_documents', 'remove_nav_elements', 'thumbnail_mode')
         }),
         ('🌍  Browser', {
-            'fields': ('default_browse_mode', 'create_thumbnails', 'take_screenshots', 'screenshot_format', 'script')
+            'fields': ('default_browse_mode', 'take_screenshots', 'screenshot_format', 'script')
         }),
         ('🔖 HTML snapshot', {
             'fields': ('snapshot_html', 'snapshot_exclude_url_re', 'snapshot_exclude_mime_re', 'snapshot_exclude_element_re')

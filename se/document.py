@@ -36,6 +36,7 @@ from PIL import Image
 import feedparser
 
 from .browser import AuthElemFailed, SkipIndexing
+from .document_meta import DocumentMeta
 from .html_cache import HTMLAsset
 from .html_snapshot import HTMLSnapshot
 from .url import url_beautify, validate_url
@@ -277,6 +278,8 @@ class Document(models.Model):
         return links
 
     def index(self, page, crawl_policy, verbose=False, force=False):
+        from .models import CrawlPolicy
+
         n = now()
         stats = {'prev': n}
         self._index_log('start', stats, verbose)
@@ -332,7 +335,11 @@ class Document(models.Model):
         self._clear_dump_content()
 
         if self.mimetype.startswith('text/'):
-            if crawl_policy.create_thumbnails:
+            if crawl_policy.thumbnail_mode in (CrawlPolicy.THUMBNAIL_MODE_PREVIEW, CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN):
+                if DocumentMeta.create_preview(page, crawl_policy, self.image_name()):
+                    self.has_thumbnail = True
+
+            if not self.has_thumbnail and crawl_policy.thumbnail_mode in (CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN, CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT):
                 crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
                 self.has_thumbnail = True
 

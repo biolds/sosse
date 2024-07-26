@@ -36,13 +36,13 @@ class CrawlerTest(TransactionTestCase):
                                                       recursion=CrawlPolicy.CRAWL_NEVER,
                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                                       snapshot_html=False,
-                                                      create_thumbnails=False,
+                                                      thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                                       take_screenshots=False)
         self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
                                                        recursion=CrawlPolicy.CRAWL_ALL,
                                                        default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                                        snapshot_html=False,
-                                                       create_thumbnails=False,
+                                                       thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                                        take_screenshots=False)
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
@@ -124,7 +124,7 @@ class CrawlerTest(TransactionTestCase):
                                    recursion=CrawlPolicy.CRAWL_ON_DEPTH,
                                    default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                    snapshot_html=False,
-                                   create_thumbnails=False,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
         self._crawl()
 

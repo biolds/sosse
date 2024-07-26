@@ -723,6 +723,16 @@ class CrawlPolicy(models.Model):
         (REMOVE_NAV_NO, 'No')
     ]
 
+    THUMBNAIL_MODE_PREVIEW = 'preview'
+    THUMBNAIL_MODE_PREV_OR_SCREEN = 'prevscreen'
+    THUMBNAIL_MODE_SCREENSHOT = 'screenshot'
+    THUMBNAIL_MODE_NONE = 'none'
+    THUMBNAIL_MODE = (
+        (THUMBNAIL_MODE_PREVIEW, 'Page preview from metadata'),
+        (THUMBNAIL_MODE_PREV_OR_SCREEN, 'Preview from meta, screenshot as fallback'),
+        (THUMBNAIL_MODE_SCREENSHOT, 'Take a screenshot'),
+        (THUMBNAIL_MODE_NONE, 'No thumbnail'),
+    )
     url_regex = models.TextField(unique=True, validators=[validate_regexp])
     enabled = models.BooleanField(default=True)
     recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
@@ -738,7 +748,7 @@ class CrawlPolicy(models.Model):
     snapshot_exclude_mime_re = models.TextField(blank=True, default='', help_text='Regexp of mimetypes to skip asset saving')
     snapshot_exclude_element_re = models.TextField(blank=True, default='', help_text='Regexp of elements to skip asset downloading')
 
-    create_thumbnails = models.BooleanField(default=True, help_text='Create thumbnails to display in search results')
+    thumbnail_mode = models.CharField(default=THUMBNAIL_MODE_PREV_OR_SCREEN, help_text='Save thumbnails to display in search results', choices=THUMBNAIL_MODE, max_length=10)
     take_screenshots = models.BooleanField(default=False, help_text='Store pages as screenshots', verbose_name='Take screenshots 📷')
     screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
 

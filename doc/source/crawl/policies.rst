@@ -76,6 +76,21 @@ This option removes HTML elements `<nav>`, `<header>` and `<footer>` before proc
 * ``From index, screens and HTML snaps``: as above, but also removes the elements from the HTML snapshot.
 * ``No``: the elements are not removed and are handled like regular elements.
 
+Thumbnail mode
+""""""""""""""
+
+Defines the source for pages thumbnails displayed in the search results and home page:
+
+* ``Page preview from metadata``: the thumbnail is extracted from the page metadata (using `Linkpreview <https://github.com/meyt/linkpreview>`_).
+* ``Preview from meta, screenshot as fallback``: the thumbnail is extracted from metadata if available, a screenshot is taken otherwise.
+* ``Take a screenshot``: a screenshot is used as thumbnail.
+* ``No thumbnail``: no thumbnail is saved.
+
+.. note::
+   To take screenshot as thumbnails, the ``Default browse mode`` needs to be ``Chromium`` or ``Firefox``.
+
+.. _policy_take_screenshot:
+
 Browser
 -------
 
@@ -95,16 +110,6 @@ Can be one of:
 * ``Python Requests``: Python Requests is used.
 
 .. _policy_create_thumbnails:
-
-Create thumbnails
-"""""""""""""""""
-
-Make thumbnails of pages. These thumbnails are displayed in search results.
-
-.. note::
-   This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
-
-.. _policy_take_screenshot:
 
 Take screenshots
 """"""""""""""""

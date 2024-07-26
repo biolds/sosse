@@ -1,5 +1,8 @@
 <div id="top_bar_links">
-    <p style="color: #080; font-size: 13px">
+    {% if doc.has_thumbnail %}
+        <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ doc.image_name }}.jpg" class="cache-preview" />
+    {% endif %}
+    <p style="color: #081; font-size: 13px">
         {{ beautified_url }}
     </p>
     <ul class="cache_links" style="margin-bottom: 20px">

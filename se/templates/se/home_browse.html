@@ -1,18 +1,29 @@
 {% load static %}
 <div id="home-grid">
     {% for r in home_entries %}
-        <a href="{{ r.get_absolute_url }}">
-            <div class="res res-home">
-                <div class="res-home-icon">
-                    {% if r.favicon and not r.favicon.missing %}
-                        <img src="{% url 'favicon' r.favicon.id %}" alt="icon">
+    <a href="{{ r.get_absolute_url }}">
+        <div class="res res-home">
+            <div class="res-home-icon">
+                {% if r.has_thumbnail or r.screenshot_count %}
+                    {% if r.has_thumbnail %}
+                        <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" />
                     {% else %}
-                        <img src="{% static "se/logo.svg" %}" alt="icon">
+                        <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" />
                     {% endif %}
-                </div>
-                <h3 class="res-title">{% if r.title %}{{ r.title }}{% else %}{{ r.url }}{% endif %}</h3>
-                <div class="res-home-fade-text"></div>
+                {% elif r.favicon and not r.favicon.missing %}
+                    <img src="{% url 'favicon' r.favicon.id %}" alt="icon" class="res-home-icon-img">
+                {% else %}
+                    <img src="{% static "se/logo.svg" %}" alt="icon" class="res-home-icon-img">
+                {% endif %}
             </div>
-        </a>
+            {% if r.has_thumbnail or r.screenshot_count %}
+                {% if r.favicon and not r.favicon.missing %}
+                    <img src="{% url 'favicon' r.favicon.id %}" alt="icon" class="res-home-title-icon">
+                {% endif %}
+            {% endif %}
+            <h3 class="res-title">{% if r.title %}{{ r.title }}{% else %}{{ r.url }}{% endif %}</h3>
+            <div class="res-home-fade-text"></div>
+        </div>
+    </a>
     {% endfor %}
 </div>

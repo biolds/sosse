@@ -188,6 +188,7 @@ button:hover,input:hover,select:hover {
     text-align: center;
 }
 
+/* _url column in the Document list view of the admin page */
 .field-_url > a {
     display: inline-block;
     width: 500px;
@@ -202,6 +203,14 @@ button:hover,input:hover,select:hover {
 
 .cache_links * {
   display: inline;
+}
+
+.cache-preview {
+  float: right;
+  max-width: 160px;
+  max-height: 100px;
+  box-shadow: 0px 5px 10px 0px var(--shadow);
+  border-radius: 3px;
 }
 
 .tab_link {

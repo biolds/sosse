@@ -1,0 +1,3 @@
+[submodule "se/deps/linkpreview"]
+	path = se/deps/linkpreview
+	url = https://github.com/meyt/linkpreview/

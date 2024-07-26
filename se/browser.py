@@ -395,7 +395,7 @@ class RequestBrowser(Browser):
         return r
 
     @classmethod
-    def get(cls, url, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs):
+    def get(cls, url, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs) -> Page:
         REDIRECT_CODE = (301, 302, 307, 308)
         page = None
         redirect_count = 0

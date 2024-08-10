@@ -14,7 +14,7 @@
       {% if other_links %}
         {% for link in other_links %}
           {% if view_name != link.name %}
-            <a class="tab_link"href="{{ link.href }}">{{ link.text_icon }} {{ link.text }}</a>
+            <a class="tab_link" href="{{ link.href }}">{{ link.text_icon }} {{ link.text }}</a>
           {% else %}
             <a class="tab_link" id="tab_selected">
               {{ link.text_icon }} {{ link.text }}

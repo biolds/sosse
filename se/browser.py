@@ -579,7 +579,7 @@ class SeleniumBrowser(Browser):
         return sanitize_url(cls.driver.current_url)
 
     @classmethod
-    def _driver_get(cls):
+    def _driver_get(cls, url):
         raise NotImplementedError()
 
     @classmethod

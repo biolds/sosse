@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import hashlib
+import os
 import sys
 
 from collections import OrderedDict
@@ -420,7 +421,11 @@ class Conf:
                 if key not in DEFAULTS[section]:
                     raise Exception('Invalid option "%s" found in section %s' % (key, section))
 
-                var_name = DEFAULTS[section][key].get('var', 'SOSSE_' + key.upper())
+                default_var_name = 'SOSSE_' + key.upper()
+                if default_var_name in os.environ:
+                    value = os.environ[default_var_name]
+
+                var_name = DEFAULTS[section][key].get('var', default_var_name)
                 var_type = DEFAULTS[section][key].get('type', str)
 
                 if var_type == bool:

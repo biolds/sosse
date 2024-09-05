@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -283,6 +283,10 @@ DEFAULTS = OrderedDict([
         ['tmp_dl_dir', {
             'comment': 'Base directory where files are temporarily downloaded.',
             'default': '/var/lib/sosse/downloads'
+        }],
+        ['browser_config_dir', {
+            'comment': 'Base directory where browser configuration files and profiles are stored.',
+            'default': '/var/lib/sosse/browser_config'
         }],
         ['dl_check_time', {
             'comment': 'Download detection will every ``dl_check_time`` seconds for a started download.',

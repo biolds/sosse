@@ -543,6 +543,9 @@ class SeleniumBrowser(Browser):
         # Force HOME directory as it used for Firefox profile loading
         os.environ['HOME'] = '/var/www'
 
+        config_dir = settings.SOSSE_BROWSER_CONFIG_DIR
+        os.environ['XDG_CONFIG_HOME'] = config_dir
+
         opt_key = 'SOSSE_%s_OPTIONS' % cls.name.upper()
         opts = shlex.split(getattr(settings, opt_key))
         opts.append('--window-size=%s,%s' % cls.screen_size())

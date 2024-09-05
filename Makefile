@@ -182,3 +182,18 @@ install_js_deps:
 
 vrt:
 	docker run -v $(current_dir):/sosse -p 8001:80 -ti biolds/sosse:pip-test bash -c 'cd /sosse && echo "SOSSE_ADMIN: /opt/sosse-venv/bin/sosse-admin" > tests/robotframework/config.yaml && make _pip_functional_tests _rf_functional_tests_deps && /rf-venv/bin/pip install git+https://github.com/biolds/robotframework-VRTLibrary/ && git config --global --add safe.directory /sosse && bash -i'
+
+_docker_unit_test_prepare:
+	echo 'sudo --preserve-env=PYTHONPATH -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$$@"' > /tmp/sudo_sosse
+	chmod 755 /tmp/sudo_sosse
+	apt update
+	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
+	/etc/init.d/postgresql start
+	mkdir -p /var/lib/sosse/screenshots /var/lib/sosse/html /var/lib/sosse/log /var/lib/sosse/browser_config /root/httpbin/httpbin/bin/static/
+	chown -R www-data:www-data /var/lib/sosse/ /var/log/sosse /var/lib/sosse/browser_config
+	cp -r tests/pages/ /root/httpbin/httpbin/bin/static/
+	/usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
+	/tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
+
+docker_unit_test_prepare:
+	docker run -v $(current_dir):/sosse -ti biolds/sosse:debian-test bash -c 'cp -r /sosse /sosse-rw ; export PYTHONPATH=/sosse-rw ; cd /sosse-rw ; make _docker_unit_test_prepare ; bash -i'

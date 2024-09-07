@@ -793,6 +793,8 @@ class SeleniumBrowser(Browser):
                         # Firefox first create an empty file, then renames it to download into it
                         break
                 except FileNotFoundError:
+                    sleep(settings.SOSSE_DL_CHECK_TIME)
+                    retry -= 1
                     continue
 
             crawl_logger.debug('no download in progress (%s)', filename)

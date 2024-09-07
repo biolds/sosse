@@ -724,7 +724,7 @@ class SeleniumBrowser(Browser):
             # if the browser is initially on about:blank,
             # and then loads a download url, it'll stay on about:blank
             # which does not accept cookie loading
-            crawl_logger.debug('could not go to %s to load cookies, nav is stuck on %s', target_url.netloc, current_url)
+            crawl_logger.debug('could not go to %s to load cookies, nav is stuck on %s (%s)', target_url.netloc, current_url, cls.driver.current_url)
             return
 
         crawl_logger.debug('clearing cookies')
@@ -770,7 +770,7 @@ class SeleniumBrowser(Browser):
 
         if ((current_url != url and cls.driver.current_url == current_url)  # If we got redirected to the url that was previously set in the browser
                 or cls.driver.current_url == 'data:,'):  # The url can be "data:," during a few milliseconds when the download starts
-            crawl_logger.debug('download starting')
+            crawl_logger.debug('download starting (%s)', cls.driver.current_url)
             page = cls._handle_download(url)
             if page:
                 return page
@@ -795,7 +795,7 @@ class SeleniumBrowser(Browser):
                 except FileNotFoundError:
                     continue
 
-            crawl_logger.debug('no download in progress')
+            crawl_logger.debug('no download in progress (%s)', filename)
             sleep(settings.SOSSE_DL_CHECK_TIME)
             retry -= 1
         else:

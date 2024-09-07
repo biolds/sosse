@@ -370,7 +370,7 @@ class BrowserBasedFunctionalTest:
                               secure=False)
         FILE_SIZE = 1024
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
-        self.assertEqual(len(page.content), FILE_SIZE)
+        self.assertEqual(len(page.content), FILE_SIZE, page.content)
 
 
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):

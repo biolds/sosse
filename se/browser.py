@@ -551,11 +551,18 @@ class SeleniumBrowser(Browser):
         opts.append('--window-size=%s,%s' % cls.screen_size())
         opts += cls._get_options()
 
+        has_incognito = False
         options = cls._get_options_obj()
         for opt in opts:
             if cls.first_init:
                 crawl_logger.info('Passing option %s', opt)
             options.add_argument(opt)
+
+            if '--incognito' in opt:
+                has_incognito = True
+
+        if cls.first_init and has_incognito:
+            crawl_logger.warning('Passing --incognito breaks file downloads on some versions of Chromium')
 
         cls.first_init = False
         cls._driver = cls._get_driver(options)
@@ -1050,6 +1057,13 @@ class ChromiumBrowser(SeleniumBrowser):
     def _get_options_obj(cls):
         options = ChromiumOptions()
         options.binary_location = '/usr/bin/chromium'
+        prefs = {
+            'profile.default_content_settings.popups': 0,
+            'download.default_directory': cls._get_download_dir(),
+            'download.prompt_for_download': False,
+            'download.directory_upgrade': True
+        }
+        options.add_experimental_option("prefs", prefs)
         return options
 
     @classmethod
@@ -1077,6 +1091,7 @@ class ChromiumBrowser(SeleniumBrowser):
     @classmethod
     def _get_download_file(cls):
         d = os.listdir(cls._get_download_dir())
+        d = [x for x in d if not x.startswith('.')]
         if len(d) == 0:
             return None
         return os.path.join(cls._get_download_dir(), d[0])

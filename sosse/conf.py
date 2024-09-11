@@ -265,7 +265,7 @@ DEFAULTS = OrderedDict([
         }],
         ['chromium_options', {
             'comment': "Options passed to Chromium's command line.\nYou may need to add ``--no-sandbox`` to run the crawler as root,\nor ``--disable-dev-shm-usage`` to run in a virtualized container.",
-            'default': '--enable-precise-memory-info --disable-default-apps --incognito --headless'
+            'default': '--enable-precise-memory-info --disable-default-apps --headless'
         }],
         ['firefox_options', {
             'comment': "Options passed to Firefox's command line.",

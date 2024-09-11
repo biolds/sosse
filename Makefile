@@ -133,7 +133,7 @@ _pip_pkg_functional_tests:
 _common_pip_functional_tests:
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'sosse-admin default_conf' /tmp/code_blocks.json
-	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.chromium_options=.*/chromium_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox --disable-dev-shm-usage/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.crawler_count=.*/crawler_count=1/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -e \\"s/^.default_browser=.*/default_browser=$(BROWSER)/\\" -i /tmp/code_blocks.json # add --no-sandbox --disable-dev-shm-usage to chromium's command line
+	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.chromium_options=.*/chromium_options=--enable-precise-memory-info --disable-default-apps --headless --no-sandbox --disable-dev-shm-usage/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.crawler_count=.*/crawler_count=1/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -e \\"s/^.default_browser=.*/default_browser=$(BROWSER)/\\" -i /tmp/code_blocks.json # add --no-sandbox --disable-dev-shm-usage to chromium's command line
 	echo 'SOSSE_ADMIN: /opt/sosse-venv/bin/sosse-admin' > tests/robotframework/config.yaml
 
 _deb_pkg_functional_tests:
@@ -144,7 +144,7 @@ _deb_pkg_functional_tests:
 	grep -q 'apt install -y sosse' /tmp/code_blocks.json
 	sed -e 's#apt install -y sosse#apt install -y sudo; dpkg -i deb/*.deb ; /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
-	sed -e 's/^.chromium_options=.*/chromium_options=--enable-precise-memory-info --disable-default-apps --incognito --headless --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf # add --no-sandbox --disable-dev-shm-usage to chromium's command line
+	sed -e 's/^.chromium_options=.*/chromium_options=--enable-precise-memory-info --disable-default-apps --headless --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf # add --no-sandbox --disable-dev-shm-usage to chromium's command line
 	sed -e 's/^.browser_crash_retry=.*/browser_crash_retry=3/' -i /etc/sosse/sosse.conf
 	sed -e 's/^.debug=.*/debug=true/' -i /etc/sosse/sosse.conf
 	sed -e 's/^.crawler_count=.*/crawler_count=1/' -i /etc/sosse/sosse.conf

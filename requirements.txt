@@ -17,4 +17,4 @@ psycopg2
 publicsuffix2
 python-magic
 requests
-selenium<4.17
+selenium<4.9

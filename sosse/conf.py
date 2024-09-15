@@ -397,12 +397,6 @@ class Conf:
     def get(cls):
         settings = {}
 
-        # Set defaults
-        for section, conf in DEFAULTS.items():
-            for key, val in conf.items():
-                var_name = val.get('var', 'SOSSE_' + key.upper())
-                settings[var_name] = val['default']
-
         # Read the real conf
         conf = ConfigParser()
         try:
@@ -410,8 +404,6 @@ class Conf:
         except FileNotFoundError:
             if 'default_conf' in sys.argv:
                 print('WARNING: Configuration file %s is missing' % CONF_FILE, file=sys.stderr)
-                return settings
-            raise
 
         for section in conf.sections():
             if section not in DEFAULTS:
@@ -421,9 +413,19 @@ class Conf:
                 if key not in DEFAULTS[section]:
                     raise Exception('Invalid option "%s" found in section %s' % (key, section))
 
+        for section, default_conf in DEFAULTS.items():
+            for key, val in default_conf.items():
+                # Set defaults
+                var_name = val.get('var', 'SOSSE_' + key.upper())
+                settings[var_name] = val['default']
+
                 default_var_name = 'SOSSE_' + key.upper()
                 if default_var_name in os.environ:
                     value = os.environ[default_var_name]
+                elif section in conf.sections() and key in conf[section]:
+                    value = conf[section][key]
+                else:
+                    continue
 
                 var_name = DEFAULTS[section][key].get('var', default_var_name)
                 var_type = DEFAULTS[section][key].get('type', str)

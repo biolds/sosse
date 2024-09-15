@@ -320,7 +320,7 @@ DEFAULTS = OrderedDict([
             'type': int
         }],
         ['browser_crash_sleep', {
-            'comment': 'Sleep ``browser_crash_sleep`` seconsds before retrying after the browser crashed.',
+            'comment': 'Sleep ``browser_crash_sleep`` seconds before retrying after the browser crashed.',
             'default': 1.0,
             'type': float
         }],

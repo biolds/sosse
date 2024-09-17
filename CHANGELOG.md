@@ -1,3 +1,11 @@
+## 1.10.1 (2024-09-16)
+### Features (1 change)
+- [allow setting configurations option via environment variables](https://gitlab.com/biolds1/sosse/-/commit/c03bd26e5bc5d3ac29d7f7a2579952a7e490b170) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/113))
+### Bug fixes (3 changes)
+- [fix running Chromium](https://gitlab.com/biolds1/sosse/-/commit/b6598316a898f72f3b23f2ba6118e39a5781891b) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/113))
+- [fix Chromium file downloads](https://gitlab.com/biolds1/sosse/-/commit/73cb84ecf5ce394db281549c074b117ee80f43f4) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/113))
+- [pin a Selenium version < 4.9 to prevent Selenium Manager to trigger](https://gitlab.com/biolds1/sosse/-/commit/f5f093c2c22bf102d45a621c4d5824b92e90abec) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/114)) / [ticket](https://github.com/biolds/sosse/issues/6)
+
 ## 1.10.0 (2024-07-04)
 ### Features (5 changes)
 - [crawl policies enable/disable, copy](https://gitlab.com/biolds1/sosse/-/commit/6a79a1b8771a935b9ba388722441236000f0e41a) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/109))

@@ -4,18 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sosse"
-authors = [
-    {name = "Laurent Defert", email = "laurent_defert@yahoo.fr"},
-]
+authors = [{ name = "Laurent Defert", email = "laurent_defert@yahoo.fr" }]
 readme = "README.md"
 description = "Selenium Open Source Search Engine"
 requires-python = ">=3.9"
 keywords = ["search engine", "crawler"]
-license = {text = "GNU Affero General Public License v3"}
-classifiers = [
-    "Framework :: Django",
-    "Programming Language :: Python :: 3",
-]
+license = { text = "GNU Affero General Public License v3" }
+classifiers = ["Framework :: Django", "Programming Language :: Python :: 3"]
 
 dynamic = ["version", "dependencies"]
 
@@ -26,8 +21,8 @@ packages = ["se", "se.migrations", "se.management", "se.management.commands", "s
 se = ["*.html", "*.svg", "*.js", "*.css"]
 
 [tool.setuptools.dynamic]
-version = {attr = "sosse.settings.SOSSE_VERSION_TAG"}
-dependencies = {file = ["requirements.txt"]}
+version = { attr = "sosse.settings.SOSSE_VERSION_TAG" }
+dependencies = { file = ["requirements.txt"] }
 
 [tool.autopep8]
 max_line_length = 1000

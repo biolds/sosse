@@ -10,7 +10,7 @@ Crawl policies define which pages are indexed and how they are indexed. The poli
    :class: sosse-screenshot
 
 When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to handle the link.
-The policy with the longest ``URL regex`` matching is selected. On last resort, the default policy ``.*`` is selected.
+The policy having the ``URL regex`` matching the longest part of the link URL is selected. On last resort, the default policy ``(default)`` is selected.
 
 You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the ``🌐 Crawl a new URL`` page (see :doc:`add_to_queue`).
 
@@ -23,7 +23,8 @@ Indexing decision
 URL regexp
 """"""""""
 
-The regexp matched against URL to crawl. The default ``.*`` policy's regexp cannot be modified.
+The regexp matched against URLs to crawl. Multiple regexp can be set, one by line. Lines starting with a ``#`` are treated as comments.
+The default ``(default)`` policy's regexp cannot be modified.
 
 Documents
 """""""""

@@ -43,7 +43,8 @@ class BaseFunctionalTest:
 
 class FunctionalTest(BaseFunctionalTest):
     def test_10_simple(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -104,7 +105,8 @@ class FunctionalTest(BaseFunctionalTest):
         self._check_key_val(b'deflated', b'true', page.content)
 
     def test_50_cookies(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    mimetype_regex='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
@@ -141,7 +143,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(Cookie.objects.count(), 0)
 
     def test_70_authentication(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -230,7 +233,8 @@ class FunctionalTest(BaseFunctionalTest):
             self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
 
     def test_100_remove_nav_no(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -257,7 +261,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b'</nav>', html_open.mock_calls[2].args[0])
 
     def test_110_remove_nav_from_index(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -282,7 +287,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b'</nav>', html_open.mock_calls[2].args[0])
 
     def test_120_remove_nav_from_screenshot(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -307,7 +313,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b'</nav>', html_open.mock_calls[2].args[0])
 
     def test_130_remove_nav_from_all(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -340,7 +347,8 @@ class BrowserBasedFunctionalTest:
 
         makedirs.side_effect = None
 
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -390,7 +398,8 @@ class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, BrowserBasedFunctionalT
 
 class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
     def test_10_detect_browser(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=DomainSetting.BROWSE_DETECT,
@@ -412,7 +421,8 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self.assertEqual(domain.browse_mode, DomainSetting.BROWSE_CHROMIUM)
 
     def test_20_detect_browser(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=DomainSetting.BROWSE_DETECT,

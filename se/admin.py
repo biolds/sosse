@@ -532,7 +532,7 @@ class CrawlPolicyForm(forms.ModelForm):
 
 @admin.action(description='Enable/disable', permissions=['change'])
 def crawl_policy_enable_disable(modeladmin, request, queryset):
-    queryset.exclude(url_regex='.*').update(enabled=models.Case(
+    queryset.exclude(url_regex='(default)').update(enabled=models.Case(
         models.When(enabled=True, then=models.Value(False)),
         models.When(enabled=False, then=models.Value(True)),
     ))
@@ -575,7 +575,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     actions = [crawl_policy_enable_disable, crawl_policy_switch]
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and obj.url_regex == '.*':
+        if obj and obj.url_regex == '(default)':
             return self.readonly_fields + ('url_regex', 'enabled')
         return self.readonly_fields
 
@@ -587,19 +587,19 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
         return fieldsets
 
     def has_delete_permission(self, request, obj=None):
-        if obj and obj.url_regex == '.*':
+        if obj and obj.url_regex == '(default)':
             return False
         return super().has_delete_permission(request, obj)
 
     @staticmethod
     def documents(obj):
-        params = urlencode({'q': obj.url_regex})
+        params = urlencode({'q': obj.url_regex_pg})
         return format_html('<a href="{}">Matching documents</a>', reverse('admin:se_document_changelist') + '?' + params)
 
     @staticmethod
     def docs(obj):
-        count = Document.objects.filter(url__regex=obj.url_regex).count()
-        params = urlencode({'q': obj.url_regex})
+        count = Document.objects.filter(url__regex=obj.url_regex_pg).count()
+        params = urlencode({'q': obj.url_regex_pg})
         return format_html('<a href="{}">{}</a>', reverse('admin:se_document_changelist') + '?' + params, count)
 
     def get_search_results(self, request, queryset, search_term):

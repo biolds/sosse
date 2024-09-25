@@ -547,7 +547,8 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_url_re='http://127.0.0.1/excluded.*')
+        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
+                                            snapshot_exclude_url_re='http://127.0.0.1/excluded.*')
         HTML = b'''<html><head></head><body>
             <img src="/excluded.png"/>
             <img src="/image.png"/>
@@ -581,7 +582,8 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_mime_re='image/jpe?g')
+        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
+                                            snapshot_exclude_mime_re='image/jpe?g')
         HTML = b'''<html><head></head><body>
             <img src="/image.jpg"/>
             <img src="/image.png"/>
@@ -616,7 +618,8 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open('/dev/null', *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*', snapshot_exclude_element_re='aud.*')
+        policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
+                                            snapshot_exclude_element_re='aud.*')
         HTML = b'''<html><head></head><body>
             <audio src="/audio.wav"></audio>
             <video src="/video.mp4"></video>

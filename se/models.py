@@ -677,13 +677,24 @@ BROWSER_MAP = {
 
 
 @transaction.atomic
-def validate_regexp(val):
+def validate_url_regexp(val):
+    if val == '(default)':
+        raise ValidationError('"(default)" policy is reserved')
     cursor = connection.cursor()
-    try:
-        # Try the regexp on Psql
-        cursor.execute('SELECT 1 FROM se_document WHERE url ~ %s', params=[val])
-    except DataError as e:
-        raise ValidationError(e.__cause__)
+    for line_no, line in enumerate(val.splitlines()):
+        line = line.strip()
+        if line.startswith('#') or not line:
+            continue
+
+        try:
+            # Try the regexp on Psql
+            cursor.execute('SELECT 1 FROM se_document WHERE url ~ %s', params=[val])
+        except DataError as e:
+            if len(val.splitlines()) == 1:
+                error = e.__cause__
+            else:
+                error = f'Regexp on line {line_no + 1} failed: {e.__cause__}'
+            raise ValidationError(error)
 
 
 class CrawlPolicy(models.Model):
@@ -733,7 +744,8 @@ class CrawlPolicy(models.Model):
         (THUMBNAIL_MODE_SCREENSHOT, 'Take a screenshot'),
         (THUMBNAIL_MODE_NONE, 'No thumbnail'),
     )
-    url_regex = models.TextField(unique=True, validators=[validate_regexp])
+    url_regex = models.TextField(validators=[validate_url_regexp], help_text='URL regular expressions for this policy. (one by line, lines starting with # are ignored)')
+    url_regex_pg = models.TextField()
     enabled = models.BooleanField(default=True)
     recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default='text/.*')
@@ -768,17 +780,31 @@ class CrawlPolicy(models.Model):
         verbose_name_plural = 'crawl policies'
 
     def __str__(self):
-        return f'「{self.url_regex}」'
+        if not self.url_regex:
+            return '「<empty>」'
+        title = self.url_regex.splitlines()[0]
+        return f'「{title}」'
 
     def save(self, *args, **kwargs):
-        if self.url_regex == '.*':
+        if self.url_regex == '(default)':
+            self.url_regex_pg == '.*'
             self.enabled = True
+        else:
+            url_regexs = [line.strip() for line in self.url_regex.splitlines()]
+            url_regexs = [line for line in url_regexs if not line.startswith('#') and line]
+            match len(url_regexs):
+                case 0:
+                    self.url_regex_pg = ''
+                case 1:
+                    self.url_regex_pg = url_regexs[0]
+                case _:
+                    self.url_regex_pg = '(' + '|'.join(url_regexs) + ')'
         return super().save(*args, **kwargs)
 
     @staticmethod
     def create_default():
         # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='.*')
+        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='(default)', defaults={'url_regex_pg': '.*'})
         return policy
 
     @staticmethod
@@ -786,13 +812,21 @@ class CrawlPolicy(models.Model):
         if queryset is None:
             queryset = CrawlPolicy.objects.all()
         queryset = queryset.filter(enabled=True)
+        queryset = queryset.exclude(url_regex='(default)')
+        queryset = queryset.exclude(url_regex_pg='')
 
-        policy = queryset.extra(where=['%s ~ url_regex'], params=[url]).annotate(
-            url_regex_len=models.functions.Length('url_regex')
-        ).order_by('-url_regex_len').first()
+        policy = (queryset.annotate(match_len=models.functions.Length(models.Func(
+            models.Value(url),
+            models.F('url_regex_pg'),
+            function="REGEXP_SUBSTR",
+            output_field=models.TextField()
+        )))
+            .filter(match_len__gt=0)
+            .order_by('-match_len').first())
 
         if policy is None:
             return CrawlPolicy.create_default()
+
         return policy
 
     @staticmethod

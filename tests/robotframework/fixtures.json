@@ -3,7 +3,8 @@
     "model": "se.crawlpolicy",
     "pk": 1,
     "fields": {
-      "url_regex": ".*",
+      "url_regex": "(default)",
+      "url_regex_pg": ".*",
       "recursion": "always",
       "mimetype_regex": "text/.*",
       "recursion_depth": 0,

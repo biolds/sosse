@@ -32,13 +32,14 @@ class CrawlerTest(TransactionTestCase):
     ]
 
     def setUp(self):
-        self.root_policy = CrawlPolicy.objects.create(url_regex='.*',
+        self.root_policy = CrawlPolicy.objects.create(url_regex='(default)',
+                                                      url_regex_pg='.*',
                                                       recursion=CrawlPolicy.CRAWL_NEVER,
                                                       default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                                       snapshot_html=False,
                                                       thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                                       take_screenshots=False)
-        self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/.*',
+        self.crawl_policy = CrawlPolicy.objects.create(url_regex='http://127.0.0.1/',
                                                        recursion=CrawlPolicy.CRAWL_ALL,
                                                        default_browse_mode=DomainSetting.BROWSE_REQUESTS,
                                                        snapshot_html=False,
@@ -177,7 +178,8 @@ class CrawlerTest(TransactionTestCase):
         })
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
-        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/', recursion=CrawlPolicy.CRAWL_NEVER)
+        CrawlPolicy.objects.create(url_regex='http://127.0.0.1/page1/',
+                                   recursion=CrawlPolicy.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(RequestBrowser.call_args_list == self.DEFAULT_GETS,
                         RequestBrowser.call_args_list)
@@ -372,6 +374,7 @@ class CrawlerTest(TransactionTestCase):
         })
 
         self.crawl_policy.url_regex = 'http://127.0.0.1/$'
+        self.crawl_policy.url_regex_pg = 'http://127.0.0.1/$'
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
 
@@ -389,6 +392,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.extern_url, 'http://127.0.0.1/extern.html')
 
         self.crawl_policy.url_regex = 'http://127.0.0.1/.*$'
+        self.crawl_policy.url_regex_pg = 'http://127.0.0.1/.*$'
         self.crawl_policy.save()
 
         self._crawl('http://127.0.0.1/extern.html')

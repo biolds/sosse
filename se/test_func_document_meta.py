@@ -81,7 +81,8 @@ class FunctionalTest(BaseFunctionalTest):
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, color)
 
     def test_10_thumbnail_preview(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -92,7 +93,8 @@ class FunctionalTest(BaseFunctionalTest):
         self._test_preview()
 
     def test_20_thumbnail_preview_missing(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -112,7 +114,8 @@ class FunctionalTest(BaseFunctionalTest):
 
 class BrowserBasedFunctionalTest(BaseFunctionalTest):
     def test_10_thumbnail_screenshot(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -132,7 +135,8 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, (255, 255, 255))
 
     def test_20_thumbnail_fallback_preview(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,
@@ -143,7 +147,8 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
         self._test_preview()
 
     def test_30_thumbnail_fallback_screenshot(self):
-        CrawlPolicy.objects.create(url_regex='.*',
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
                                    recursion=CrawlPolicy.CRAWL_NEVER,
                                    recrawl_mode=CrawlPolicy.RECRAWL_NONE,
                                    default_browse_mode=self.BROWSE_MODE,

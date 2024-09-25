@@ -35,7 +35,7 @@
 |  | Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Wait Until Element Is Visible | id=result_list
 |  | Capture Page Screenshot | crawl_policy_list.png
-|  | Click Element | xpath=//table[@id='result_list']//a[.='.*']
+|  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
 |  | Capture Page Screenshot | crawl_policy_decision_no_hilight.png
 |  | Scroll To Elem | id=tabs
 |  | Capture Page Screenshot | crawl_policy_decision.png

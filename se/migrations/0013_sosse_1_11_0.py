@@ -21,12 +21,14 @@ import se.models
 
 def migrate_thumbnail(apps, schema_editor):
     CrawlPolicy = apps.get_model('se', 'CrawlPolicy')
-    CrawlPolicy.objects.filter(create_thumbnails=False).update(thumbnail_mode='none')
+    CrawlPolicy.objects.filter(
+        create_thumbnails=False).update(thumbnail_mode='none')
 
 
 def reverse_thumbnail(apps, schema_editor):
     CrawlPolicy = apps.get_model('se', 'CrawlPolicy')
-    CrawlPolicy.objects.filter(thumbnail_mode='none').update(create_thumbnails=False)
+    CrawlPolicy.objects.filter(thumbnail_mode='none').update(
+        create_thumbnails=False)
 
 
 def url_regex_pg(apps, schema_editor):
@@ -46,7 +48,8 @@ def reverse_url_regex_pg(apps, schema_editor):
             policy.url_regex = '.*'
         else:
             regexs = policy.url_regex.splitlines()
-            regexs = [regex for regex in regexs if regex and not regex.startsiwth('#')]
+            regexs = [
+                regex for regex in regexs if regex and not regex.startsiwth('#')]
             policy.url_regex = regexs[0]
 
         policy.save()
@@ -63,7 +66,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='crawlpolicy',
             name='thumbnail_mode',
-            field=models.CharField(choices=[('preview', 'Page preview from metadata'), ('prevscreen', 'Preview from meta, screenshot as fallback'), ('screenshot', 'Take a screenshot'), ('none', 'No thumbnail')], default='prevscreen', help_text='Save thumbnails to display in search results', max_length=10),
+            field=models.CharField(choices=[('preview', 'Page preview from metadata'), ('prevscreen', 'Preview from meta, screenshot as fallback'), (
+                'screenshot', 'Take a screenshot'), ('none', 'No thumbnail')], default='prevscreen', help_text='Save thumbnails to display in search results', max_length=10),
         ),
         migrations.RunPython(migrate_thumbnail, reverse_thumbnail),
         migrations.RemoveField(
@@ -80,7 +84,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='crawlpolicy',
             name='url_regex',
-            field=models.TextField(help_text='URL regular expressions for this policy. (one by line, lines starting with # are ignored)', validators=[se.models.validate_url_regexp]),
+            field=models.TextField(help_text='URL regular expressions for this policy. (one by line, lines starting with # are ignored)', validators=[
+                                   se.models.validate_url_regexp]),
         ),
         migrations.RunPython(url_regex_pg, reverse_url_regex_pg),
+        migrations.RunSQL(
+            "CREATE INDEX home_idx ON se_document (show_on_homepage, title ASC) WHERE show_on_homepage",
+            "DROP INDEX home_idx",
+        ),
     ]

@@ -119,7 +119,10 @@ class Document(models.Model):
     supported_langs = None
 
     class Meta:
-        indexes = [GinIndex(fields=(('vector',)))]
+        indexes = [
+            GinIndex(fields=(('vector',))),
+            models.Index(models.F('show_on_homepage') == True, models.F('title').asc(), name='home_idx')
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

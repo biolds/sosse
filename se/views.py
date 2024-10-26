@@ -124,11 +124,8 @@ def search(request):
         form = SearchForm({})
         form.is_valid()
 
-    sosse_langdetect_to_postgres = OrderedDict()
-    for key, val in sorted(settings.SOSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']):
-        if not Document.objects.filter(lang_iso_639_1=key).exists():
-            continue
-        sosse_langdetect_to_postgres[key] = val
+    sosse_langdetect_to_postgres = OrderedDict(sorted(
+        settings.SOSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']))
 
     if paginated:
         for r in paginated:

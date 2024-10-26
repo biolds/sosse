@@ -113,7 +113,8 @@ class FunctionalTest(BaseFunctionalTest):
                                    default_browse_mode=self.BROWSE_MODE,
                                    snapshot_html=False,
                                    take_screenshots=False)
-        Document.queue(TEST_SERVER_URL + 'cookies/set?test_key=test_value', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'cookies/set?test_key=test_value', None, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 2)
@@ -160,8 +161,10 @@ class FunctionalTest(BaseFunctionalTest):
                                             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                             auth_login_url_re='%sadmin/login/.*' % TEST_SERVER_URL,
                                             auth_form_selector='#login-form')
-        AuthField.objects.create(key='username', value=TEST_SERVER_USER, crawl_policy=policy)
-        AuthField.objects.create(key='password', value=TEST_SERVER_PASS, crawl_policy=policy)
+        AuthField.objects.create(
+            key='username', value=TEST_SERVER_USER, crawl_policy=policy)
+        AuthField.objects.create(
+            key='password', value=TEST_SERVER_PASS, crawl_policy=policy)
 
         Document.queue(TEST_SERVER_URL + 'admin/', None, None)
         self._crawl()
@@ -171,7 +174,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(doc.url, TEST_SERVER_URL + 'admin/')
         self.assertEqual(doc.normalized_url, '127.0.0.1:8000 admin')
         self.assertEqual(doc.title, 'Site administration | Django site admin')
-        self.assertEqual(doc.normalized_title, 'Site administration | Django site admin')
+        self.assertEqual(doc.normalized_title,
+                         'Site administration | Django site admin')
         self.assertIn('Welcome, admin .', doc.content)
         self.assertIn('Welcome, admin .', doc.normalized_content)
         self.assertIsNotNone(doc.content_hash)
@@ -226,11 +230,13 @@ class FunctionalTest(BaseFunctionalTest):
 
     def test_80_file_too_big(self):
         FILE_SIZE = settings.SOSSE_MAX_FILE_SIZE * 1024
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
+        page = self.BROWSER_CLASS.get(
+            TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
         self.assertEqual(len(page.content), FILE_SIZE)
 
         with self.assertRaises(SkipIndexing):
-            self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
+            self.BROWSER_CLASS.get(
+                TEST_SERVER_URL + 'download/?filesize=%i' % (FILE_SIZE + 1))
 
     def test_100_remove_nav_no(self):
         CrawlPolicy.objects.create(url_regex='(default)',
@@ -244,7 +250,8 @@ class FunctionalTest(BaseFunctionalTest):
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_NO,
                                    screenshot_format=Document.SCREENSHOT_PNG)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/nav_elements.html', None, None)
 
         html_open = mock.mock_open()
         browser_open = mock.mock_open()
@@ -272,7 +279,8 @@ class FunctionalTest(BaseFunctionalTest):
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_INDEX,
                                    screenshot_format=Document.SCREENSHOT_PNG)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/nav_elements.html', None, None)
 
         html_open = mock.mock_open()
         with mock.patch('se.html_cache.open', html_open):
@@ -298,7 +306,8 @@ class FunctionalTest(BaseFunctionalTest):
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
                                    screenshot_format=Document.SCREENSHOT_PNG)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/nav_elements.html', None, None)
 
         html_open = mock.mock_open()
         with mock.patch('se.html_cache.open', html_open):
@@ -324,7 +333,8 @@ class FunctionalTest(BaseFunctionalTest):
                                    remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_ALL,
                                    screenshot_format=Document.SCREENSHOT_PNG)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/nav_elements.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/nav_elements.html', None, None)
 
         html_open = mock.mock_open()
         with mock.patch('se.html_cache.open', html_open):
@@ -356,16 +366,19 @@ class BrowserBasedFunctionalTest:
                                    thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/css_in_js.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/css_in_js.html', None, None)
 
         mock_open = mock.mock_open()
         with mock.patch('se.html_cache.open', mock_open):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertIn(b'<style>body { background-color: black; }\n</style>\n  <style>body { color: white; }\n</style>', mock_open.mock_calls[2].args[0])
+        self.assertIn(
+            b'<style>body { background-color: black; }\n</style>\n  <style>body { color: white; }\n</style>', mock_open.mock_calls[2].args[0])
         self.assertNotIn(b'style id="test"', mock_open.mock_calls[2].args[0])
-        self.assertEqual(mock_open.mock_calls[0].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/127.0.0.1,3A8000/static/pages/css_in_js.html_405fd23df0.html')
+        self.assertEqual(mock_open.mock_calls[0].args[0], settings.SOSSE_HTML_SNAPSHOT_DIR +
+                         'http,3A/127.0.0.1,3A8000/static/pages/css_in_js.html_405fd23df0.html')
 
     def test_140_file_download_from_blank(self):
         ChromiumBrowser.destroy()
@@ -377,7 +390,8 @@ class BrowserBasedFunctionalTest:
                               inc_subdomain=False,
                               secure=False)
         FILE_SIZE = 1024
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
+        page = self.BROWSER_CLASS.get(
+            TEST_SERVER_URL + 'download/?filesize=%i' % FILE_SIZE)
         self.assertEqual(len(page.content), FILE_SIZE, page.content)
 
 
@@ -407,12 +421,14 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
                                    thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/browser_detect_js.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/browser_detect_js.html', None, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.first()
-        self.assertEqual(doc.url, TEST_SERVER_URL + 'static/pages/browser_detect_js.html')
+        self.assertEqual(doc.url, TEST_SERVER_URL +
+                         'static/pages/browser_detect_js.html')
         self.assertIn('has JS', doc.content)
 
         self.assertEqual(DomainSetting.objects.count(), 1)
@@ -430,12 +446,14 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
                                    thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
                                    take_screenshots=False)
 
-        Document.queue(TEST_SERVER_URL + 'static/pages/browser_detect_no_js.html', None, None)
+        Document.queue(TEST_SERVER_URL +
+                       'static/pages/browser_detect_no_js.html', None, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.first()
-        self.assertEqual(doc.url, TEST_SERVER_URL + 'static/pages/browser_detect_no_js.html')
+        self.assertEqual(doc.url, TEST_SERVER_URL +
+                         'static/pages/browser_detect_no_js.html')
         self.assertIn('has no JS', doc.content)
 
         self.assertEqual(DomainSetting.objects.count(), 1)

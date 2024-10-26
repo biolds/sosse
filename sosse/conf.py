@@ -403,7 +403,8 @@ class Conf:
             conf.read_file(open(CONF_FILE), CONF_FILE)
         except FileNotFoundError:
             if 'default_conf' in sys.argv:
-                print('WARNING: Configuration file %s is missing' % CONF_FILE, file=sys.stderr)
+                print('WARNING: Configuration file %s is missing' %
+                      CONF_FILE, file=sys.stderr)
 
         for section in conf.sections():
             if section not in DEFAULTS:
@@ -411,7 +412,8 @@ class Conf:
 
             for key, value in conf[section].items():
                 if key not in DEFAULTS[section]:
-                    raise Exception('Invalid option "%s" found in section %s' % (key, section))
+                    raise Exception(
+                        'Invalid option "%s" found in section %s' % (key, section))
 
         for section, default_conf in DEFAULTS.items():
             for key, val in default_conf.items():
@@ -431,7 +433,8 @@ class Conf:
                 var_type = DEFAULTS[section][key].get('type', str)
 
                 if var_type == bool:
-                    settings[var_name] = value.lower() not in ('false', 'no', '')
+                    settings[var_name] = value.lower() not in (
+                        'false', 'no', '')
                 elif var_type in (int, float):
                     try:
                         settings[var_name] = var_type(value)
@@ -440,7 +443,8 @@ class Conf:
                             int: 'integer',
                             float: 'float number'
                         }[var_type]
-                        raise Exception('Configuration parsing error: in section "%s", "%s" option is not a valid %s: %s' % (section, key, t, value))
+                        raise Exception('Configuration parsing error: in section "%s", "%s" option is not a valid %s: %s' % (
+                            section, key, t, value))
                 else:
                     settings[var_name] = value
 
@@ -455,11 +459,13 @@ class Conf:
             except TypeError:
                 pass
         if hash_algo not in algos:
-            raise Exception('Configuration parsing error: invalid hashing_algo value "%s", must be one of %s' % (hash_algo, ', '.join(sorted(algos))))
+            raise Exception('Configuration parsing error: invalid hashing_algo value "%s", must be one of %s' % (
+                hash_algo, ', '.join(sorted(algos))))
 
         css_parser = settings.get('SOSSE_CSS_PARSER')
         if css_parser not in ('internal', 'cssutils'):
-            raise Exception('Configuration parsing error: invalid css_parser value "%s", it must be either "internal" or "cssutils"')
+            raise Exception(
+                'Configuration parsing error: invalid css_parser value "%s", it must be either "internal" or "cssutils"')
 
         crawler_count = settings.pop('SOSSE_CRAWLER_COUNT')
         if not crawler_count:
@@ -468,13 +474,16 @@ class Conf:
             try:
                 crawler_count = int(crawler_count)
             except ValueError:
-                raise Exception('Configuration parsing error: invalid "crawler_count", must be an integer or empty: %s' % crawler_count)
+                raise Exception(
+                    'Configuration parsing error: invalid "crawler_count", must be an integer or empty: %s' % crawler_count)
 
         if settings.get('SOSSE_DEFAULT_SEARCH_REDIRECT') and settings.get('SOSSE_ONLINE_SEARCH_REDIRECT'):
-            raise Exception('Options "default_search_redirect" and "online_search_redirect" cannot be set at the same time.')
+            raise Exception(
+                'Options "default_search_redirect" and "online_search_redirect" cannot be set at the same time.')
 
         if not settings.get('SOSSE_ONLINE_CHECK_URL') and settings.get('SOSSE_ONLINE_SEARCH_REDIRECT'):
-            raise Exception('Options "online_check_url" is required when "online_search_redirect" is set.')
+            raise Exception(
+                'Options "online_check_url" is required when "online_search_redirect" is set.')
 
         online_check_cache = settings.get('SOSSE_ONLINE_CHECK_CACHE')
         if online_check_cache == 'once':
@@ -483,12 +492,14 @@ class Conf:
             try:
                 online_check_cache = int(online_check_cache)
             except ValueError:
-                raise Exception('Configuration parsing error: invalid "online_check_cache", must be an integer or "once": %s' % crawler_count)
+                raise Exception(
+                    'Configuration parsing error: invalid "online_check_cache", must be an integer or "once": %s' % crawler_count)
 
         settings['SOSSE_ONLINE_CHECK_CACHE'] = online_check_cache
 
         if settings.get('SOSSE_DEFAULT_BROWSER', 'firefox') not in ('firefox', 'chromium'):
-            raise Exception('Configuration parsing error: invalid default_browser, must be one of "firefox" or "chromium"')
+            raise Exception(
+                'Configuration parsing error: invalid default_browser, must be one of "firefox" or "chromium"')
 
         if settings['DEBUG']:
             for key, logger in LOGGING['loggers'].items():
@@ -541,7 +552,8 @@ class Conf:
                 else:
                     comment += '\n'
                 comment += 'Default: %s' % opt['default']
-                comment = '\n'.join('# ' + line for line in comment.splitlines() if line)
+                comment = '\n'.join(
+                    '# ' + line for line in comment.splitlines() if line)
                 if var_no != 0:
                     s += '\n'
                 s += f'{comment}\n'

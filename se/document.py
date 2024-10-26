@@ -85,13 +85,17 @@ class Document(models.Model):
     normalized_content = models.TextField()
     content_hash = models.TextField(null=True, blank=True)
     vector = SearchVectorField(null=True, blank=True)
-    lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True, verbose_name='Language')
+    lang_iso_639_1 = models.CharField(
+        max_length=6, null=True, blank=True, verbose_name='Language')
     vector_lang = RegConfigField(default='simple')
     mimetype = models.CharField(max_length=64, null=True, blank=True)
-    hidden = models.BooleanField(default=False, help_text='Hide this document from search results')
+    hidden = models.BooleanField(
+        default=False, help_text='Hide this document from search results')
 
-    favicon = models.ForeignKey('FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
-    robotstxt_rejected = models.BooleanField(default=False, verbose_name='Rejected by robots.txt')
+    favicon = models.ForeignKey(
+        'FavIcon', null=True, blank=True, on_delete=models.SET_NULL)
+    robotstxt_rejected = models.BooleanField(
+        default=False, verbose_name='Rejected by robots.txt')
     has_html_snapshot = models.BooleanField(default=False)
 
     # HTTP status
@@ -99,20 +103,27 @@ class Document(models.Model):
     too_many_redirects = models.BooleanField(default=False)
 
     screenshot_count = models.PositiveIntegerField(default=0)
-    screenshot_format = models.CharField(max_length=3, choices=SCREENSHOT_FORMAT)
+    screenshot_format = models.CharField(
+        max_length=3, choices=SCREENSHOT_FORMAT)
     screenshot_size = models.CharField(max_length=16)
 
     has_thumbnail = models.BooleanField(default=False)
 
     # Crawling info
-    crawl_first = models.DateTimeField(blank=True, null=True, verbose_name='Crawled first')
-    crawl_last = models.DateTimeField(blank=True, null=True, verbose_name='Crawled last')
-    crawl_next = models.DateTimeField(blank=True, null=True, verbose_name='Crawl next')
-    crawl_dt = models.DurationField(blank=True, null=True, verbose_name='Crawl DT')
-    crawl_recurse = models.PositiveIntegerField(default=0, verbose_name='Recursion remaining')
+    crawl_first = models.DateTimeField(
+        blank=True, null=True, verbose_name='Crawled first')
+    crawl_last = models.DateTimeField(
+        blank=True, null=True, verbose_name='Crawled last')
+    crawl_next = models.DateTimeField(
+        blank=True, null=True, verbose_name='Crawl next')
+    crawl_dt = models.DurationField(
+        blank=True, null=True, verbose_name='Crawl DT')
+    crawl_recurse = models.PositiveIntegerField(
+        default=0, verbose_name='Recursion remaining')
     error = models.TextField(blank=True, default='')
     error_hash = models.TextField(blank=True, default='')
-    show_on_homepage = models.BooleanField(default=False, help_text='Display this document on the homepage')
+    show_on_homepage = models.BooleanField(
+        default=False, help_text='Display this document on the homepage')
 
     worker_no = models.PositiveIntegerField(blank=True, null=True)
 
@@ -121,7 +132,8 @@ class Document(models.Model):
     class Meta:
         indexes = [
             GinIndex(fields=(('vector',))),
-            models.Index(models.F('show_on_homepage') == True, models.F('title').asc(), name='home_idx')
+            # models.Index(models.F('show_on_homepage') == models.Value(True),
+            #             models.F('title').asc(), name='home_idx')
         ]
 
     def __init__(self, *args, **kwargs):
@@ -161,7 +173,8 @@ class Document(models.Model):
             return cls.supported_langs
 
         with connection.cursor() as cursor:
-            cursor.execute("SELECT cfgname FROM pg_catalog.pg_ts_config WHERE cfgname != 'simple'")
+            cursor.execute(
+                "SELECT cfgname FROM pg_catalog.pg_ts_config WHERE cfgname != 'simple'")
             row = cursor.fetchall()
 
         cls.supported_langs = [r[0] for r in row]
@@ -183,7 +196,8 @@ class Document(models.Model):
         except LangDetectException:
             lang_iso = None
 
-        lang_pg = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get('name')
+        lang_pg = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(
+            lang_iso, {}).get('name')
         if lang_pg not in cls.get_supported_langs():
             lang_pg = settings.SOSSE_FAIL_OVER_LANG
 
@@ -194,7 +208,8 @@ class Document(models.Model):
         flag = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('flag')
 
         if full:
-            lang = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang, {}).get('name', lang)
+            lang = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(
+                lang, {}).get('name', lang)
         if flag:
             lang = f'{flag} {lang}'
 
@@ -246,7 +261,8 @@ class Document(models.Model):
 
         for entry in parsed['entries']:
             if entry.get('updated_parsed'):
-                entry['updated_datetime'] = datetime.fromtimestamp(mktime(entry['updated_parsed']))
+                entry['updated_datetime'] = datetime.fromtimestamp(
+                    mktime(entry['updated_parsed']))
 
         if getattr(parsed.feed, 'title', None):
             page.title = parsed.feed.title
@@ -259,18 +275,21 @@ class Document(models.Model):
         page.content = template.render(context).encode('utf-8')
         page.soup = None
         page.mimetype = 'text/html'
-        crawl_logger.debug('%s is a rss/atom feed with %s items', self.url, len(parsed['entries']))
+        crawl_logger.debug('%s is a rss/atom feed with %s items',
+                           self.url, len(parsed['entries']))
 
     def _parse_text(self, page, crawl_policy, stats, verbose):
         crawl_logger.debug('parsing %s', self.url)
         links = page.dom_walk(crawl_policy, True, self)
         text = links['text']
 
-        self._index_log('text / %i links extraction' % len(links['links']), stats, verbose)
+        self._index_log('text / %i links extraction' %
+                        len(links['links']), stats, verbose)
 
         self.content = text
         self.normalized_content = remove_accent(text)
-        self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or '') + '\n' + text)
+        self.lang_iso_639_1, self.vector_lang = self._get_lang(
+            (page.title or '') + '\n' + text)
         self._index_log('remove accent', stats, verbose)
 
         # The bulk request triggers a deadlock
@@ -291,7 +310,8 @@ class Document(models.Model):
         self._index_log('queuing links', stats, verbose)
 
         beautified_url = url_beautify(page.url)
-        normalized_url = beautified_url.split('://', 1)[1].replace('/', ' ').strip()
+        normalized_url = beautified_url.split(
+            '://', 1)[1].replace('/', ' ').strip()
         self.normalized_url = remove_accent(normalized_url)
         if page.title:
             self.title = page.title
@@ -305,8 +325,10 @@ class Document(models.Model):
         magic_head = page.content[:20].strip().lower()
         is_html = False
         for header in ('<html', '<!doctype html'):
-            is_html |= isinstance(magic_head, str) and magic_head.startswith(header)
-            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(header.encode('utf-8'))
+            is_html |= isinstance(
+                magic_head, str) and magic_head.startswith(header)
+            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(
+                header.encode('utf-8'))
 
         if is_html:
             self.mimetype = 'text/html'
@@ -321,7 +343,8 @@ class Document(models.Model):
         if not re.match(crawl_policy.mimetype_regex, self.mimetype):
             self._schedule_next(False, crawl_policy)
 
-            crawl_logger.debug('skipping %s due to mimetype %s' % (self.url, self.mimetype))
+            crawl_logger.debug('skipping %s due to mimetype %s' %
+                               (self.url, self.mimetype))
             return
 
         self._parse_xml(page, crawl_policy, stats, verbose)
@@ -343,7 +366,8 @@ class Document(models.Model):
                     self.has_thumbnail = True
 
             if not self.has_thumbnail and crawl_policy.thumbnail_mode in (CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN, CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT):
-                crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
+                crawl_policy.get_browser(url=self.url).create_thumbnail(
+                    self.url, self.image_name())
                 self.has_thumbnail = True
 
         if self.mimetype.startswith('text/'):
@@ -386,7 +410,8 @@ class Document(models.Model):
 
         browser = crawl_policy.get_browser(url=self.url)
         img_count = browser.take_screenshots(self.url, self.image_name())
-        crawl_logger.debug('took %s screenshots for %s with %s', img_count, self.url, browser)
+        crawl_logger.debug('took %s screenshots for %s with %s',
+                           img_count, self.url, browser)
         self.screenshot_count = img_count
         self.screenshot_format = crawl_policy.screenshot_format
         self.screenshot_size = '%sx%s' % browser.screen_size()
@@ -430,7 +455,8 @@ class Document(models.Model):
             return None
 
         crawl_policy = CrawlPolicy.get_from_url(url)
-        crawl_logger.debug('%s matched %s, %s' % (url, crawl_policy.url_regex, crawl_policy.recursion))
+        crawl_logger.debug('%s matched %s, %s' % (
+            url, crawl_policy.url_regex, crawl_policy.recursion))
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL or parent is None:
             crawl_logger.debug('%s -> always crawl' % url)
@@ -444,15 +470,18 @@ class Document(models.Model):
         url_depth = None
 
         if parent_policy.recursion == CrawlPolicy.CRAWL_ALL and parent_policy.recursion_depth > 0:
-            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            doc = Document.objects.get_or_create(
+                url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent_policy.recursion_depth, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse for %s' % (url, url_depth))
         elif parent_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
-            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            doc = Document.objects.get_or_create(
+                url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug('%s -> recurse at %s' % (url, url_depth))
         else:
-            crawl_logger.debug('%s -> no recurse (from parent %s)' % (url, parent_policy.recursion))
+            crawl_logger.debug('%s -> no recurse (from parent %s)' %
+                               (url, parent_policy.recursion))
 
         if doc and url_depth != doc.crawl_recurse:
             doc.crawl_recurse = url_depth
@@ -478,9 +507,11 @@ class Document(models.Model):
             if self.crawl_dt is None:
                 self.crawl_dt = crawl_policy.recrawl_dt_min
             elif not changed:
-                self.crawl_dt = min(crawl_policy.recrawl_dt_max, self.crawl_dt * 2)
+                self.crawl_dt = min(
+                    crawl_policy.recrawl_dt_max, self.crawl_dt * 2)
             else:
-                self.crawl_dt = max(crawl_policy.recrawl_dt_min, self.crawl_dt / 2)
+                self.crawl_dt = max(
+                    crawl_policy.recrawl_dt_min, self.crawl_dt / 2)
             self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
@@ -495,24 +526,30 @@ class Document(models.Model):
             worker_stats.update_state('running')
 
         crawl_logger.debug('Worker:%i Queued:%i Indexed:%i Id:%i %s ...' % (worker_no,
-                           Document.objects.filter(crawl_last__isnull=True).count(),
-                           Document.objects.filter(crawl_last__isnull=False).count(),
+                           Document.objects.filter(
+                               crawl_last__isnull=True).count(),
+                           Document.objects.filter(
+                               crawl_last__isnull=False).count(),
                            doc.id, doc.url))
 
         while True:
             # Loop until we stop redirecting
             crawl_policy = CrawlPolicy.get_from_url(doc.url)
-            crawl_logger.debug('Crawling %s with policy %s', doc.url, crawl_policy)
+            crawl_logger.debug('Crawling %s with policy %s',
+                               doc.url, crawl_policy)
             try:
-                WorkerStats.objects.filter(id=worker_stats.id).update(doc_processed=models.F('doc_processed') + 1)
+                WorkerStats.objects.filter(id=worker_stats.id).update(
+                    doc_processed=models.F('doc_processed') + 1)
                 doc.worker_no = None
                 doc.crawl_last = now()
 
                 if doc.url.startswith('http://') or doc.url.startswith('https://'):
-                    domain_setting = DomainSetting.get_from_url(doc.url, crawl_policy.default_browse_mode)
+                    domain_setting = DomainSetting.get_from_url(
+                        doc.url, crawl_policy.default_browse_mode)
 
                     if not domain_setting.robots_authorized(doc.url):
-                        crawl_logger.debug('%s rejected by robots.txt' % doc.url)
+                        crawl_logger.debug(
+                            '%s rejected by robots.txt' % doc.url)
                         doc.robotstxt_rejected = True
                         n = now()
                         doc.crawl_last = n
@@ -530,9 +567,11 @@ class Document(models.Model):
                     except AuthElemFailed as e:
                         doc.content = e.page.content.decode('utf-8')
                         doc._schedule_next(True, crawl_policy)
-                        doc.set_error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
+                        doc.set_error(
+                            f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         doc.save()
-                        crawl_logger.error(f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
+                        crawl_logger.error(
+                            f'Locating authentication element failed at {e.page.url}:\n{e.args[0]}')
                         break
                     except SkipIndexing as e:
                         doc._schedule_next(False, crawl_policy)
@@ -545,13 +584,17 @@ class Document(models.Model):
                         doc.index(page, crawl_policy)
                         doc.set_error('')
                         doc.save()
-                        Link.objects.filter(extern_url=doc.url).update(extern_url=None, doc_to=doc)
+                        Link.objects.filter(extern_url=doc.url).update(
+                            extern_url=None, doc_to=doc)
                         break
                     else:
                         if not page.redirect_count:
-                            raise Exception('redirect not set %s -> %s' % (doc.url, page.url))
-                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' % (worker_no, doc.url, page.url, page.redirect_count))
-                        doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
+                            raise Exception(
+                                'redirect not set %s -> %s' % (doc.url, page.url))
+                        crawl_logger.debug('%i redirect %s -> %s (redirect no %i)' %
+                                           (worker_no, doc.url, page.url, page.redirect_count))
+                        doc._schedule_next(
+                            doc.redirect_url != page.url, crawl_policy)
                         doc._clear_base_content()
                         doc._clear_dump_content()
                         doc.set_error('')
@@ -648,7 +691,8 @@ class Document(models.Model):
 
     def delete_thumbnail(self):
         if self.has_thumbnail:
-            f = os.path.join(settings.SOSSE_THUMBNAILS_DIR, self.image_name()) + '.jpg'
+            f = os.path.join(settings.SOSSE_THUMBNAILS_DIR,
+                             self.image_name()) + '.jpg'
             if os.path.exists(f):
                 os.unlink(f)
             self.has_thumbnail = False

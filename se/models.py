@@ -42,8 +42,10 @@ crawl_logger = logging.getLogger('crawler')
 
 
 class Link(models.Model):
-    doc_from = models.ForeignKey(Document, null=True, blank=True, on_delete=models.SET_NULL, related_name='links_to')
-    doc_to = models.ForeignKey(Document, null=True, blank=True, on_delete=models.CASCADE, related_name='linked_from')
+    doc_from = models.ForeignKey(
+        Document, null=True, blank=True, on_delete=models.SET_NULL, related_name='links_to')
+    doc_to = models.ForeignKey(Document, null=True, blank=True,
+                               on_delete=models.CASCADE, related_name='linked_from')
     text = models.TextField(null=True, blank=True)
     pos = models.PositiveIntegerField()
     link_no = models.PositiveIntegerField()
@@ -81,7 +83,8 @@ class Link(models.Model):
 
 
 class AuthField(models.Model):
-    key = models.CharField(max_length=256, verbose_name='<input> name attribute')
+    key = models.CharField(
+        max_length=256, verbose_name='<input> name attribute')
     value = models.CharField(max_length=256)
     crawl_policy = models.ForeignKey('CrawlPolicy', on_delete=models.CASCADE)
 
@@ -114,7 +117,8 @@ class WorkerStats(models.Model):
         return cls.objects.update_or_create(worker_no=worker_no, defaults={'pid': os.getpid()})[0]
 
     def update_state(self, state):
-        WorkerStats.objects.filter(worker_no=self.worker_no).exclude(state='paused').update(state=state)
+        WorkerStats.objects.filter(worker_no=self.worker_no).exclude(
+            state='paused').update(state=state)
 
     @classmethod
     def live_state(cls):
@@ -149,17 +153,22 @@ class CrawlerStats(models.Model):
 
     @staticmethod
     def create(t):
-        CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=MINUTELY).delete()
-        CrawlerStats.objects.filter(t__lt=t - timedelta(days=365), freq=DAILY).delete()
+        CrawlerStats.objects.filter(
+            t__lt=t - timedelta(hours=24), freq=MINUTELY).delete()
+        CrawlerStats.objects.filter(
+            t__lt=t - timedelta(days=365), freq=DAILY).delete()
 
-        doc_processed = WorkerStats.objects.filter().aggregate(s=models.Sum('doc_processed')).get('s', 0) or 0
+        doc_processed = WorkerStats.objects.filter().aggregate(
+            s=models.Sum('doc_processed')).get('s', 0) or 0
         WorkerStats.objects.update(doc_processed=0)
 
         doc_count = Document.objects.count()
-        queued_url = Document.objects.filter(crawl_last__isnull=True).count() + Document.objects.filter(crawl_next__lte=now()).count()
+        queued_url = Document.objects.filter(crawl_last__isnull=True).count(
+        ) + Document.objects.filter(crawl_next__lte=now()).count()
 
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)
-        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={'doc_count': 0, 'queued_url': 0, 'indexing_speed': 0})
+        entry, _ = CrawlerStats.objects.get_or_create(t=today, freq=DAILY, defaults={
+                                                      'doc_count': 0, 'queued_url': 0, 'indexing_speed': 0})
         entry.indexing_speed += doc_processed
         entry.doc_count = doc_count
         entry.queued_url = max(queued_url, entry.queued_url)
@@ -174,14 +183,17 @@ class CrawlerStats(models.Model):
 
 def validate_search_url(value):
     if '{searchTerms}' not in value and '{searchTermsBase64}' not in value:
-        raise ValidationError('This field must contain the search url with a {searchTerms} or a {searchTermsBase64} string parameter')
+        raise ValidationError(
+            'This field must contain the search url with a {searchTerms} or a {searchTermsBase64} string parameter')
 
 
 class SearchEngine(models.Model):
-    short_name = models.CharField(unique=True, max_length=32, blank=True, default='')
+    short_name = models.CharField(
+        unique=True, max_length=32, blank=True, default='')
     long_name = models.CharField(max_length=48, blank=True, default='')
     description = models.CharField(max_length=1024, blank=True, default='')
-    html_template = models.CharField(max_length=2048, validators=[validate_search_url])
+    html_template = models.CharField(
+        max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
 
     def __str__(self):
@@ -239,7 +251,8 @@ class SearchEngine(models.Model):
             return urllib.parse.urlunsplit(se_url)
 
         if '{searchTermsBase64}' in se_url.path:
-            query = urllib.parse.quote_plus(b64encode(query.encode('utf-8')).decode('utf-8'))
+            query = urllib.parse.quote_plus(
+                b64encode(query.encode('utf-8')).decode('utf-8'))
             se_url_path = se_url.path.replace('{searchTermsBase64}', query)
             se_url = se_url._replace(path=se_url_path)
             return urllib.parse.urlunsplit(se_url)
@@ -252,7 +265,8 @@ class SearchEngine(models.Model):
             return urllib.parse.urlunsplit(se_url)
 
         if '{searchTermsBase64}' in se_url.fragment:
-            se_url_frag = se_url.fragment.replace('{searchTermsBase64}', b64encode(query.encode('utf-8')).decode('utf-8'))
+            se_url_frag = se_url.fragment.replace(
+                '{searchTermsBase64}', b64encode(query.encode('utf-8')).decode('utf-8'))
             se_url = se_url._replace(fragment=se_url_frag)
             return urllib.parse.urlunsplit(se_url)
 
@@ -264,10 +278,12 @@ class SearchEngine(models.Model):
                 se_params[key] = [val.replace('{searchTerms}', query)]
                 break
             if '{searchTermsBase64}' in val:
-                se_params[key] = [val.replace('{searchTermsBase64}', b64encode(query.encode('utf-8')).decode('utf-8'))]
+                se_params[key] = [val.replace('{searchTermsBase64}', b64encode(
+                    query.encode('utf-8')).decode('utf-8'))]
                 break
         else:
-            raise Exception('could not find {searchTerms} or {searchTermsBase64} parameter')
+            raise Exception(
+                'could not find {searchTerms} or {searchTermsBase64} parameter')
 
         se_url_query = urllib.parse.urlencode(se_params, doseq=True)
         se_url = se_url._replace(query=se_url_query)
@@ -294,11 +310,13 @@ class SearchEngine(models.Model):
             break
         else:
             if settings.SOSSE_ONLINE_SEARCH_REDIRECT and request and online_status(request) == 'online':
-                se = SearchEngine.objects.filter(short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
+                se = SearchEngine.objects.filter(
+                    short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
 
             # Follow the default redirect if a query was provided
             if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and query.strip():
-                se = SearchEngine.objects.filter(short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT).first()
+                se = SearchEngine.objects.filter(
+                    short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT).first()
 
         if se:
             return se.get_search_url(query)
@@ -352,9 +370,11 @@ class FavIcon(models.Model):
     @classmethod
     def _get_url(cls, page):
         parsed = page.get_soup()
-        links = parsed.find_all('link', rel=re.compile('shortcut icon', re.IGNORECASE))
+        links = parsed.find_all('link', rel=re.compile(
+            'shortcut icon', re.IGNORECASE))
         if links == []:
-            links = parsed.find_all('link', rel=re.compile('icon', re.IGNORECASE))
+            links = parsed.find_all(
+                'link', rel=re.compile('icon', re.IGNORECASE))
 
         if len(links) == 0:
             return None
@@ -394,18 +414,24 @@ class DomainSetting(models.Model):
     ROBOTS_TXT_USER_AGENT = 'user-agent'
     ROBOTS_TXT_ALLOW = 'allow'
     ROBOTS_TXT_DISALLOW = 'disallow'
-    ROBOTS_TXT_KEYS = (ROBOTS_TXT_USER_AGENT, ROBOTS_TXT_ALLOW, ROBOTS_TXT_DISALLOW)
+    ROBOTS_TXT_KEYS = (ROBOTS_TXT_USER_AGENT,
+                       ROBOTS_TXT_ALLOW, ROBOTS_TXT_DISALLOW)
 
     UA_HASH = None
 
-    browse_mode = models.CharField(max_length=10, choices=BROWSE_MODE, default=BROWSE_DETECT)
+    browse_mode = models.CharField(
+        max_length=10, choices=BROWSE_MODE, default=BROWSE_DETECT)
     domain = models.TextField(unique=True)
 
-    robots_status = models.CharField(max_length=10, choices=ROBOTS_STATUS, default=ROBOTS_UNKNOWN, verbose_name='robots.txt status')
+    robots_status = models.CharField(
+        max_length=10, choices=ROBOTS_STATUS, default=ROBOTS_UNKNOWN, verbose_name='robots.txt status')
     robots_ua_hash = models.CharField(max_length=32, default='', blank=True)
-    robots_allow = models.TextField(default='', blank=True, verbose_name='robots.txt allow rules')
-    robots_disallow = models.TextField(default='', blank=True, verbose_name='robots.txt disallow rules')
-    ignore_robots = models.BooleanField(default=False, verbose_name='Ignore robots.txt')
+    robots_allow = models.TextField(
+        default='', blank=True, verbose_name='robots.txt allow rules')
+    robots_disallow = models.TextField(
+        default='', blank=True, verbose_name='robots.txt disallow rules')
+    ignore_robots = models.BooleanField(
+        default=False, verbose_name='Ignore robots.txt')
 
     def __str__(self):
         return self.domain
@@ -482,8 +508,10 @@ class DomainSetting(models.Model):
         else:
             rules = []
 
-        self.robots_allow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_ALLOW])
-        self.robots_disallow = '\n'.join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
+        self.robots_allow = '\n'.join(
+            [val for key, val in rules if key == self.ROBOTS_TXT_ALLOW])
+        self.robots_disallow = '\n'.join(
+            [val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
 
     def _load_robotstxt(self, url):
         self.robots_ua_hash = self.ua_hash()
@@ -499,7 +527,8 @@ class DomainSetting(models.Model):
             self.robots_status = DomainSetting.ROBOTS_EMPTY
         else:
             self.robots_status = DomainSetting.ROBOTS_LOADED
-        crawl_logger.debug('%s: robots.txt %s' % (self.domain, self.robots_status))
+        crawl_logger.debug('%s: robots.txt %s' %
+                           (self.domain, self.robots_status))
 
     def robots_authorized(self, url):
         if self.ignore_robots:
@@ -520,7 +549,8 @@ class DomainSetting(models.Model):
             if not pattern:
                 continue
             if re.match(pattern, url):
-                crawl_logger.debug('%s: matched robots.txt disallow: %s' % (url, pattern))
+                crawl_logger.debug(
+                    '%s: matched robots.txt disallow: %s' % (url, pattern))
                 disallow_length = max(disallow_length or 0, len(pattern))
 
         if disallow_length is None:
@@ -532,7 +562,8 @@ class DomainSetting(models.Model):
                 continue
             if re.match(pattern, url):
                 if len(pattern) > disallow_length:
-                    crawl_logger.debug('%s: robots.txt authorized by allow rule' % url)
+                    crawl_logger.debug(
+                        '%s: robots.txt authorized by allow rule' % url)
                     return True
 
         crawl_logger.debug('%s: robots.txt denied' % url)
@@ -562,14 +593,16 @@ class Cookie(models.Model):
         (SAME_SITE_NONE, SAME_SITE_NONE)
     )
     domain = models.TextField(help_text='Domain name')
-    domain_cc = models.TextField(help_text='Domain name attribute from the cookie', null=True, blank=True)
+    domain_cc = models.TextField(
+        help_text='Domain name attribute from the cookie', null=True, blank=True)
     inc_subdomain = models.BooleanField()
     name = models.TextField(blank=True)
     value = models.TextField(blank=True)
     path = models.TextField(default='/')
     expires = models.DateTimeField(null=True, blank=True)
     secure = models.BooleanField()
-    same_site = models.CharField(max_length=6, choices=SAME_SITE, default=SAME_SITE_LAX)
+    same_site = models.CharField(
+        max_length=6, choices=SAME_SITE, default=SAME_SITE_LAX)
     http_only = models.BooleanField(default=False)
 
     class Meta:
@@ -640,13 +673,15 @@ class Cookie(models.Model):
                 inc_subdomain = True
 
                 if get_public_suffix(cookie_dom) != get_public_suffix(domain):
-                    crawl_logger.warning('%s is trying to set a cookie (%s) for a different domain %s' % (url, name, cookie_dom))
+                    crawl_logger.warning(
+                        '%s is trying to set a cookie (%s) for a different domain %s' % (url, name, cookie_dom))
                     continue
 
                 domain = cookie_dom
 
             if domain in cls.TLDS:
-                crawl_logger.warning('%s is trying to set a cookie (%s) for a TLD (%s)' % (url, name, domain))
+                crawl_logger.warning(
+                    '%s is trying to set a cookie (%s) for a TLD (%s)' % (url, name, domain))
                 continue
 
             c['inc_subdomain'] = inc_subdomain
@@ -655,7 +690,8 @@ class Cookie(models.Model):
 
             if not c.get('same_site'):
                 c['same_site'] = Cookie._meta.get_field('same_site').default
-            cookie, created = Cookie.objects.update_or_create(domain=domain, path=path, name=name, defaults=c)
+            cookie, created = Cookie.objects.update_or_create(
+                domain=domain, path=path, name=name, defaults=c)
 
             if created:
                 new_cookies.append(cookie)
@@ -688,7 +724,8 @@ def validate_url_regexp(val):
 
         try:
             # Try the regexp on Psql
-            cursor.execute('SELECT 1 FROM se_document WHERE url ~ %s', params=[val])
+            cursor.execute(
+                'SELECT 1 FROM se_document WHERE url ~ %s', params=[val])
         except DataError as e:
             if len(val.splitlines()) == 1:
                 error = e.__cause__
@@ -744,37 +781,59 @@ class CrawlPolicy(models.Model):
         (THUMBNAIL_MODE_SCREENSHOT, 'Take a screenshot'),
         (THUMBNAIL_MODE_NONE, 'No thumbnail'),
     )
-    url_regex = models.TextField(validators=[validate_url_regexp], help_text='URL regular expressions for this policy. (one by line, lines starting with # are ignored)')
+    url_regex = models.TextField(validators=[
+                                 validate_url_regexp], help_text='URL regular expressions for this policy. (one by line, lines starting with # are ignored)')
     url_regex_pg = models.TextField()
     enabled = models.BooleanField(default=True)
-    recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
+    recursion = models.CharField(
+        max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default='text/.*')
-    recursion_depth = models.PositiveIntegerField(default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
-    keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters', help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
-    hide_documents = models.BooleanField(default=False, help_text='Hide documents from search results')
+    recursion_depth = models.PositiveIntegerField(
+        default=0, help_text='Level of external links (links that don\'t match the regex) to recurse into')
+    keep_params = models.BooleanField(default=True, verbose_name='Index URL parameters',
+                                      help_text='When disabled, URL parameters (parameters after "?") are removed from URLs, this can be useful if some parameters are random, change sorting or filtering, ...')
+    hide_documents = models.BooleanField(
+        default=False, help_text='Hide documents from search results')
 
-    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_CHROMIUM, help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
+    default_browse_mode = models.CharField(max_length=8, choices=DomainSetting.BROWSE_MODE, default=DomainSetting.BROWSE_CHROMIUM,
+                                           help_text='Python Request is faster, but can\'t execute Javascript and may break pages')
 
-    snapshot_html = models.BooleanField(default=True, help_text='Store pages as HTML and download requisite assets', verbose_name='Snapshot HTML 🔖')
-    snapshot_exclude_url_re = models.TextField(blank=True, default='', help_text='Regexp of URL to skip asset downloading')
-    snapshot_exclude_mime_re = models.TextField(blank=True, default='', help_text='Regexp of mimetypes to skip asset saving')
-    snapshot_exclude_element_re = models.TextField(blank=True, default='', help_text='Regexp of elements to skip asset downloading')
+    snapshot_html = models.BooleanField(
+        default=True, help_text='Store pages as HTML and download requisite assets', verbose_name='Snapshot HTML 🔖')
+    snapshot_exclude_url_re = models.TextField(
+        blank=True, default='', help_text='Regexp of URL to skip asset downloading')
+    snapshot_exclude_mime_re = models.TextField(
+        blank=True, default='', help_text='Regexp of mimetypes to skip asset saving')
+    snapshot_exclude_element_re = models.TextField(
+        blank=True, default='', help_text='Regexp of elements to skip asset downloading')
 
-    thumbnail_mode = models.CharField(default=THUMBNAIL_MODE_PREV_OR_SCREEN, help_text='Save thumbnails to display in search results', choices=THUMBNAIL_MODE, max_length=10)
-    take_screenshots = models.BooleanField(default=False, help_text='Store pages as screenshots', verbose_name='Take screenshots 📷')
-    screenshot_format = models.CharField(max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
+    thumbnail_mode = models.CharField(default=THUMBNAIL_MODE_PREV_OR_SCREEN,
+                                      help_text='Save thumbnails to display in search results', choices=THUMBNAIL_MODE, max_length=10)
+    take_screenshots = models.BooleanField(
+        default=False, help_text='Store pages as screenshots', verbose_name='Take screenshots 📷')
+    screenshot_format = models.CharField(
+        max_length=3, choices=Document.SCREENSHOT_FORMAT, default=Document.SCREENSHOT_JPG)
 
-    remove_nav_elements = models.CharField(default=REMOVE_NAV_FROM_INDEX, help_text='Remove navigation related elements', choices=REMOVE_NAV, max_length=4)
-    script = models.TextField(default='', help_text='Javascript code to execute after the page is loaded', blank=True)
-    store_extern_links = models.BooleanField(default=False, help_text='Store links to non-indexed pages')
+    remove_nav_elements = models.CharField(
+        default=REMOVE_NAV_FROM_INDEX, help_text='Remove navigation related elements', choices=REMOVE_NAV, max_length=4)
+    script = models.TextField(
+        default='', help_text='Javascript code to execute after the page is loaded', blank=True)
+    store_extern_links = models.BooleanField(
+        default=False, help_text='Store links to non-indexed pages')
 
-    recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency', help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')
-    recrawl_dt_min = models.DurationField(blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(days=1))
-    recrawl_dt_max = models.DurationField(blank=True, null=True, help_text='Max. time before recrawling a page', default=timedelta(days=365))
-    hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS, help_text='Page content hashing method used to detect changes in the content')
+    recrawl_mode = models.CharField(max_length=8, choices=RECRAWL_MODE, default=RECRAWL_ADAPTIVE, verbose_name='Crawl frequency',
+                                    help_text='Adaptive frequency will increase delay between two crawls when the page stays unchanged')
+    recrawl_dt_min = models.DurationField(
+        blank=True, null=True, help_text='Min. time before recrawling a page', default=timedelta(days=1))
+    recrawl_dt_max = models.DurationField(
+        blank=True, null=True, help_text='Max. time before recrawling a page', default=timedelta(days=365))
+    hash_mode = models.CharField(max_length=10, choices=HASH_MODE, default=HASH_NO_NUMBERS,
+                                 help_text='Page content hashing method used to detect changes in the content')
 
-    auth_login_url_re = models.TextField(null=True, blank=True, verbose_name='Login URL regexp', help_text='A redirection to an URL matching the regexp will trigger authentication')
-    auth_form_selector = models.TextField(null=True, blank=True, verbose_name='Form selector', help_text='CSS selector pointing to the authentication &lt;form&gt; element')
+    auth_login_url_re = models.TextField(null=True, blank=True, verbose_name='Login URL regexp',
+                                         help_text='A redirection to an URL matching the regexp will trigger authentication')
+    auth_form_selector = models.TextField(null=True, blank=True, verbose_name='Form selector',
+                                          help_text='CSS selector pointing to the authentication &lt;form&gt; element')
 
     class Meta:
         verbose_name_plural = 'crawl policies'
@@ -791,7 +850,8 @@ class CrawlPolicy(models.Model):
             self.enabled = True
         else:
             url_regexs = [line.strip() for line in self.url_regex.splitlines()]
-            url_regexs = [line for line in url_regexs if not line.startswith('#') and line]
+            url_regexs = [
+                line for line in url_regexs if not line.startswith('#') and line]
             match len(url_regexs):
                 case 0:
                     self.url_regex_pg = ''
@@ -804,7 +864,8 @@ class CrawlPolicy(models.Model):
     @staticmethod
     def create_default():
         # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(url_regex='(default)', defaults={'url_regex_pg': '.*'})
+        policy, _ = CrawlPolicy.objects.get_or_create(
+            url_regex='(default)', defaults={'url_regex_pg': '.*'})
         return policy
 
     @staticmethod
@@ -836,14 +897,17 @@ class CrawlPolicy(models.Model):
         return DomainSetting.BROWSE_FIREFOX
 
     def url_get(self, url, domain_setting=None):
-        domain_setting = domain_setting or DomainSetting.get_from_url(url, self.default_browse_mode)
-        browser = self.get_browser(domain_setting=domain_setting, no_detection=False)
+        domain_setting = domain_setting or DomainSetting.get_from_url(
+            url, self.default_browse_mode)
+        browser = self.get_browser(
+            domain_setting=domain_setting, no_detection=False)
         page = browser.get(url)
 
         if page.redirect_count:
             # The request was redirected, check if we need auth
             try:
-                crawl_logger.debug('may auth %s / %s' % (page.url, self.auth_login_url_re))
+                crawl_logger.debug('may auth %s / %s' %
+                                   (page.url, self.auth_login_url_re))
                 if self.auth_login_url_re and \
                         self.auth_form_selector and \
                         re.search(self.auth_login_url_re, page.url):
@@ -883,13 +947,15 @@ class CrawlPolicy(models.Model):
             raise Exception('Either url or domain_setting must be provided')
 
         if url:
-            domain_setting = DomainSetting.get_from_url(url, self.default_browse_mode)
+            domain_setting = DomainSetting.get_from_url(
+                url, self.default_browse_mode)
 
         browser_str = self.default_browse_mode
         if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
             if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
                 if no_detection:
-                    raise Exception('browser mode is not yet known (%s)' % domain_setting)
+                    raise Exception(
+                        'browser mode is not yet known (%s)' % domain_setting)
                 browser_str = self._default_browser()
             else:
                 browser_str = domain_setting.browse_mode
@@ -932,7 +998,8 @@ class SearchHistory(models.Model):
         qs = qd.urlencode()
 
         if not request.user.is_anonymous:
-            last = SearchHistory.objects.filter(user=request.user).order_by('date').last()
+            last = SearchHistory.objects.filter(
+                user=request.user).order_by('date').last()
             if last and last.querystring == qs:
                 return
 
@@ -946,7 +1013,8 @@ class SearchHistory(models.Model):
 
 class ExcludedUrl(models.Model):
     url = models.TextField(unique=True)
-    starting_with = models.BooleanField(default=False, help_text='Exclude all urls starting with the url pattern')
+    starting_with = models.BooleanField(
+        default=False, help_text='Exclude all urls starting with the url pattern')
     comment = models.TextField(blank=True, null=True)
 
     class Meta:

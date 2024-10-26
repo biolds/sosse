@@ -146,7 +146,8 @@ def search(request):
 
     home_entries = None
     if not has_query and settings.SOSSE_BROWSABLE_HOME:
-        home_entries = Document.objects.filter(show_on_homepage=True).order_by('title')
+        home_entries = Document.objects.filter(
+            show_on_homepage=True).order_by('title')
 
     context = get_context({
         'hide_title': True,
@@ -191,8 +192,10 @@ def word_stats(request):
         raw_query = cursor.db.ops.last_executed_query(cursor, sql, params)
         raw_query = raw_query[len('EXPLAIN '):]
 
-        results = Document.objects.raw('SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100', (raw_query,))
-        results = [(e.word, human_nb(e.ndoc), format_url(request, 'q=%s %s' % (q, e.word))[len('/word_stats'):]) for e in list(results)]
+        results = Document.objects.raw(
+            'SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100', (raw_query,))
+        results = [(e.word, human_nb(e.ndoc), format_url(request, 'q=%s %s' % (
+            q, e.word))[len('/word_stats'):]) for e in list(results)]
         results = json.dumps(results)
 
     return HttpResponse(results, content_type='application/json')
@@ -223,7 +226,8 @@ def history(request):
             for key, val in request.POST.items():
                 if key.startswith('del_'):
                     key = int(key[4:])
-                    obj = SearchHistory.objects.filter(id=key, user=request.user).first()
+                    obj = SearchHistory.objects.filter(
+                        id=key, user=request.user).first()
                     if obj:
                         obj.delete()
 

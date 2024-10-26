@@ -19,7 +19,7 @@ from io import BytesIO
 from django.conf import settings
 from linkpreview import Link, LinkPreview
 from magic import from_buffer as magic_from_buffer
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 
 from .browser import Page, RequestBrowser
@@ -62,13 +62,18 @@ class DocumentMeta:
             if not mimetype.startswith('image/'):
                 continue
 
-            thumb_jpg = os.path.join(settings.SOSSE_THUMBNAILS_DIR, image_name + '.jpg')
+            thumb_jpg = os.path.join(
+                settings.SOSSE_THUMBNAILS_DIR, image_name + '.jpg')
             dir_name = os.path.dirname(thumb_jpg)
             os.makedirs(dir_name, exist_ok=True)
 
-            with Image.open(BytesIO(img_page.content)) as img:
-                img = img.convert('RGB')  # Remove alpha channel from the png
-                img.thumbnail((160, 100))
-                img.save(thumb_jpg, 'jpeg')
+            try:
+                with Image.open(BytesIO(img_page.content)) as img:
+                    # Remove alpha channel from the png
+                    img = img.convert('RGB')
+                    img.thumbnail((160, 100))
+                    img.save(thumb_jpg, 'jpeg')
+            except UnidentifiedImageError:
+                continue
 
             return thumb_jpg

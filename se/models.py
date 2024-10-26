@@ -31,6 +31,7 @@ from django.db import connection, models, transaction, DataError
 from django.http import QueryDict
 from django.utils.timezone import now
 from publicsuffix2 import get_public_suffix, PublicSuffixList
+import fake_useragent
 import requests
 
 from .browser import AuthElemFailed, ChromiumBrowser, FirefoxBrowser, RequestBrowser, TooManyRedirects
@@ -39,6 +40,30 @@ from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
 
 crawl_logger = logging.getLogger('crawler')
+
+
+UA_STR = None
+
+
+def user_agent():
+    global UA_STR
+    if UA_STR:
+        return UA_STR
+
+    if settings.SOSSE_USER_AGENT:
+        UA_STR = settings.SOSSE_USER_AGENT
+    else:
+        fua_params = {}
+        if settings.SOSSE_FAKE_USER_AGENT_BROWSER:
+            fua_params['browsers'] = settings.SOSSE_FAKE_USER_AGENT_BROWSER
+        if settings.SOSSE_FAKE_USER_AGENT_OS:
+            fua_params['os'] = settings.SOSSE_FAKE_USER_AGENT_OS
+        if settings.SOSSE_FAKE_USER_AGENT_PLATFORM:
+            fua_params['platforms'] = settings.SOSSE_FAKE_USER_AGENT_PLATFORM
+
+        fua = fake_useragent.UserAgent(**fua_params)
+        UA_STR = fua.random
+    return UA_STR
 
 
 class Link(models.Model):
@@ -439,8 +464,9 @@ class DomainSetting(models.Model):
     @classmethod
     def ua_hash(cls):
         if cls.UA_HASH is None:
-            if settings.SOSSE_USER_AGENT is not None:
-                cls.UA_HASH = md5(settings.SOSSE_USER_AGENT.encode('ascii')).hexdigest()
+            ua = user_agent()
+            if ua is not None:
+                cls.UA_HASH = md5(ua.encode('ascii')).hexdigest()
         return cls.UA_HASH
 
     def _parse_line(self, line):
@@ -467,7 +493,7 @@ class DomainSetting(models.Model):
         return key, val
 
     def _ua_matches(self, val):
-        return val.lower() in settings.SOSSE_USER_AGENT.lower()
+        return val.lower() in user_agent().lower()
 
     def _parse_robotstxt(self, content):
         ua_rules = []

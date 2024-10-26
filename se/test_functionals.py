@@ -16,7 +16,7 @@
 from unittest import mock
 
 from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 
 from .document import Document
 from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexing
@@ -92,9 +92,42 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
 
+    def _reset_user_agent(self):
+        from se import models
+        models.UA_STR = None
+        self.BROWSER_CLASS.destroy()
+
     def test_20_user_agent(self):
+        self._reset_user_agent()
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
-        self._check_key_val(b'user-agent', b'"%s"' % settings.SOSSE_USER_AGENT.encode('utf-8'), page.content)
+        self._check_key_val(b'user-agent', b'"%s"' %
+                            settings.SOSSE_USER_AGENT.encode('utf-8'), page.content)
+
+    @override_settings(SOSSE_USER_AGENT='')
+    @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['chrome'])
+    @override_settings(SOSSE_FAKE_USER_AGENT_OS=['windows'])
+    @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['pc'])
+    def test_21_fake_ua_chrome(self):
+        self._reset_user_agent()
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
+        self.assertRegex(page.content, b"Mozilla.*Windows.*Chrome")
+
+    @override_settings(SOSSE_USER_AGENT='')
+    @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['firefox'])
+    @override_settings(SOSSE_FAKE_USER_AGENT_OS=['linux'])
+    @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['pc'])
+    def test_22_fake_ua_firefox(self):
+        self._reset_user_agent()
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
+        self.assertRegex(page.content, b"Mozilla.*Linux.*Firefox")
+
+    @override_settings(SOSSE_USER_AGENT='')
+    @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['safari'])
+    @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['tablet'])
+    def test_23_fake_ua_safari(self):
+        self._reset_user_agent()
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
+        self.assertRegex(page.content, b"Mozilla.*Safari")
 
     def test_30_gzip(self):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'gzip')

@@ -354,11 +354,12 @@ class RequestBrowser(Browser):
 
     @classmethod
     def _requests_params(cls):
+        from .models import user_agent
         params = {
             'stream': True,
             'allow_redirects': False,
             'headers': {
-                'User-Agent': settings.SOSSE_USER_AGENT,
+                'User-Agent': user_agent(),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             }
         }
@@ -1101,10 +1102,11 @@ class ChromiumBrowser(SeleniumBrowser):
 
     @classmethod
     def _get_options(cls):
+        from .models import user_agent
         opts = []
         if settings.SOSSE_PROXY:
             opts.append('--proxy-server=%s' % settings.SOSSE_PROXY.rstrip('/'))
-        opts.append('--user-agent=%s' % settings.SOSSE_USER_AGENT)
+        opts.append('--user-agent=%s' % user_agent())
         opts.append('--start-maximized')
         opts.append('--start-fullscreen')
         return opts
@@ -1140,6 +1142,7 @@ class FirefoxBrowser(SeleniumBrowser):
 
     @classmethod
     def _get_options_obj(cls):
+        from .models import user_agent
         options = FirefoxOptions()
         options.set_preference(
             'browser.download.dir', settings.SOSSE_TMP_DL_DIR + '/firefox/' + str(cls._worker_no))
@@ -1150,7 +1153,7 @@ class FirefoxBrowser(SeleniumBrowser):
         options.set_preference('browser.helperApps.alwaysAsk.force', False)
         options.set_preference('browser.helperApps.neverAsk.saveToDisk',
                                'application/pdf;text/plain;application/text;text/xml;application/xml;application/octet-stream')
-        options.set_preference('general.useragent.override', settings.SOSSE_USER_AGENT)
+        options.set_preference('general.useragent.override', user_agent())
 
         # Ensure more secure cookie defaults, and be cosistent with Chromium's behavior
         # See https://hacks.mozilla.org/2020/08/changes-to-samesite-cookie-behavior/

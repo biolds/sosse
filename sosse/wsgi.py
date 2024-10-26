@@ -32,5 +32,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sosse.settings')
 
 linkpreview = Path(__file__).parent.parent / 'se/deps/linkpreview'
 sys.path.insert(0, str(linkpreview))
+fake_useragent = Path(__file__).parent.parent / 'se/deps/fake-useragent/src'
+sys.path.insert(0, str(fake_useragent))
 
 application = get_wsgi_application()

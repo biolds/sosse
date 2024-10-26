@@ -242,6 +242,33 @@ DEFAULTS = OrderedDict([
             'comment': 'User agent sent by crawlers.',
             'default': 'SOSSE'
         }],
+        ['fake_user_agent_browser', {
+            'comment': '''Use a preset UA using the `fake-useragent <https://github.com/fake-useragent/fake-useragent>`_ library.
+The UA will be selected among the provided browser, specified as a comma-separated list of values among: `chrome`, `edge`, `firefox`, `safari`.
+
+.. note::
+   To enable fake-useragent, the ``user_agent`` option must be set to empty.
+''',
+            'default': '',
+        }],
+        ['fake_user_agent_os', {
+            'comment': '''Use a preset UA using the `fake-useragent <https://github.com/fake-useragent/fake-useragent>`_ library.
+The UA will be selected among the provided operating system, specified as a comma-separated list of values among: `windows`, `linux`, `macos`.
+
+.. note::
+   To enable fake-useragent, the ``user_agent`` option must be set to empty.
+''',
+            'default': '',
+        }],
+        ['fake_user_agent_platform', {
+            'comment': '''Use a preset UA using the `fake-useragent <https://github.com/fake-useragent/fake-useragent>`_ library.
+The UA will be selected among the provided platform, specified as a comma-separated list of values among: `pc`, `mobile`, `tablet`.
+
+.. note::
+   To enable fake-useragent, the ``user_agent`` option must be set to empty.
+''',
+            'default': '',
+        }],
         ['requests_timeout', {
             'comment': 'Timeout in secounds when retrieving pages with Requests (no timeout if 0).',
             'default': 10,
@@ -500,6 +527,36 @@ class Conf:
         if settings.get('SOSSE_DEFAULT_BROWSER', 'firefox') not in ('firefox', 'chromium'):
             raise Exception(
                 'Configuration parsing error: invalid default_browser, must be one of "firefox" or "chromium"')
+
+        if settings['SOSSE_USER_AGENT']:
+            for var in ('fake_user_agent_browser', 'fake_user_agent_os', 'fake_user_agent_platform'):
+                key = 'SOSSE_' + var.upper()
+                if settings[key]:
+                    raise Exception(
+                        'Configuration parsing error: "user_agent" must be empty when using "%s"' % var)
+
+        settings['SOSSE_FAKE_USER_AGENT_BROWSER'] = settings['SOSSE_FAKE_USER_AGENT_BROWSER'].split(
+            ',')
+        if set(settings['SOSSE_FAKE_USER_AGENT_BROWSER']) - {'', 'chrome', 'edge', 'firefox', 'safari'}:
+            raise Exception(
+                'Configuration parsing error: fake_user_agent_browser only accepts values "chrome", "edge", "firefox", "safari"')
+
+        settings['SOSSE_FAKE_USER_AGENT_OS'] = settings['SOSSE_FAKE_USER_AGENT_OS'].split(
+            ',')
+        if set(settings['SOSSE_FAKE_USER_AGENT_OS']) - {'', 'windows', 'linux', 'macos'}:
+            raise Exception(
+                'Configuration parsing error: fake_user_agent_os only accepts values "windows", "linux", "macos"')
+
+        settings['SOSSE_FAKE_USER_AGENT_PLATFORM'] = settings['SOSSE_FAKE_USER_AGENT_PLATFORM'].split(
+            ',')
+        if set(settings['SOSSE_FAKE_USER_AGENT_PLATFORM']) - {'', 'pc', 'mobile', 'tablet'}:
+            raise Exception(
+                'Configuration parsing error: fake_user_agent_platform only accepts values "pc", "mobile", "tablet"')
+
+        for fua_key in 'BROWSER', 'OS', 'PLATFORM':
+            key = f'SOSSE_FAKE_USER_AGENT_{fua_key}'
+            if settings[key] == ['']:
+                settings[key] = []
 
         if settings['DEBUG']:
             for key, logger in LOGGING['loggers'].items():

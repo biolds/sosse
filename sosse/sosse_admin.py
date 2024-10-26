@@ -33,6 +33,9 @@ def main():
 
     linkpreview = Path(__file__).parent.parent / 'se/deps/linkpreview'
     sys.path.insert(0, str(linkpreview))
+    fake_useragent = Path(__file__).parent.parent / \
+        'se/deps/fake-useragent/src'
+    sys.path.insert(0, str(fake_useragent))
     execute_from_command_line(sys.argv)
 
 

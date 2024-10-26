@@ -13,6 +13,7 @@ SOSSE's documentation!
    introduction.md
    install.rst
    administration.rst
+   guides.rst
    config_file.rst
    cli.rst
    user_doc.rst

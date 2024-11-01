@@ -6,9 +6,9 @@
             <div class="res-home-icon">
                 {% if r.has_thumbnail or r.screenshot_count %}
                     {% if r.has_thumbnail %}
-                        <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" />
+                        <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" class="home-preview" />
                     {% else %}
-                        <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" />
+                        <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" class="home-preview" />
                     {% endif %}
                 {% elif r.favicon and not r.favicon.missing %}
                     <img src="{% url 'favicon' r.favicon.id %}" alt="icon" class="res-home-icon-img">

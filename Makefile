@@ -197,3 +197,8 @@ _docker_unit_test_prepare:
 
 docker_unit_test_prepare:
 	docker run -v $(current_dir):/sosse -ti biolds/sosse:debian-test bash -c 'cp -r /sosse /sosse-rw ; export PYTHONPATH=/sosse-rw ; cd /sosse-rw ; make _docker_unit_test_prepare ; bash -i'
+
+git_submodules:
+	git submodule init
+	git submodule update --recursive --remote
+	sed -e 's/^__version__.*/__version__ = "1.0.0"/' -i se/deps/fake-useragent/src/fake_useragent/settings.py

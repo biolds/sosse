@@ -362,7 +362,7 @@ class Document(models.Model):
 
         if self.mimetype.startswith('text/'):
             if crawl_policy.thumbnail_mode in (CrawlPolicy.THUMBNAIL_MODE_PREVIEW, CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN):
-                if DocumentMeta.create_preview(page, crawl_policy, self.image_name()):
+                if DocumentMeta.create_preview(page, self.image_name()):
                     self.has_thumbnail = True
 
             if not self.has_thumbnail and crawl_policy.thumbnail_mode in (CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN, CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT):

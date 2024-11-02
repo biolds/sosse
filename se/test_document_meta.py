@@ -14,6 +14,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
+import tempfile
+from hashlib import md5
+
 from django.test import TransactionTestCase
 
 from .document_meta import DocumentMeta
@@ -42,3 +45,19 @@ class DocumentMetaTest(TransactionTestCase):
         ''', None)
         image_url = list(DocumentMeta.get_preview_url(page))
         self.assertEqual(image_url, ['http://graphics8.nytimes.com/images/2012/02/19/us/19whitney-span/19whitney-span-articleLarge.jpg'])
+
+    def test_data_image(self):
+        page = Page('http://127.0.0.1/', b'''
+            <html prefix="og: https://ogp.me/ns#">
+                <head>
+                    <meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" />
+                </head>
+            </html>
+        ''', None)
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            with self.settings(SOSSE_THUMBNAILS_DIR=tmpdirname):
+                image = DocumentMeta.create_preview(page, "test")
+                with open(image, 'rb') as fd:
+                    checksum = md5(fd.read()).hexdigest()
+                    self.assertEqual(checksum, '137bfd4864f4b4267fcd40e42c9d781e')

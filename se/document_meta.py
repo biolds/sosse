@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
+from base64 import b64decode
 from io import BytesIO
 
 from django.conf import settings
@@ -37,7 +38,7 @@ class DocumentMeta:
             yield link_preview.image
 
         for attr in ('image', 'description'):
-            url: str = getattr(link_preview, attr)
+            url: str | None = getattr(link_preview, attr)
 
             if url is None:
                 continue
@@ -46,21 +47,33 @@ class DocumentMeta:
                 yield url.split(' ', 1)[0]
 
     @classmethod
-    def create_preview(cls, page: Page, crawl_policy, image_name: str) -> str | None:
+    def create_preview(cls, page: Page, image_name: str) -> str | None:
         for url in cls.get_preview_url(page):
             url = absolutize_url(page.url, url)
 
-            img_page = RequestBrowser.get(url, headers={
-                'User-Agent': settings.SOSSE_USER_AGENT,
-                'Accept': 'image/*',
-            })
+            if url.startswith('data:'):
+                content = url.lstrip('data:')
+                if not content.startswith('image/'):
+                    continue
+                mimetype, content = content.split(',', 1)
 
-            if img_page.status_code != 200:
-                continue
+                if not mimetype.endswith(';base64'):
+                    continue
 
-            mimetype = magic_from_buffer(img_page.content, mime=True)
-            if not mimetype.startswith('image/'):
-                continue
+                content = b64decode(content)
+            else:
+                img_page = RequestBrowser.get(url, headers={
+                    'User-Agent': settings.SOSSE_USER_AGENT,
+                    'Accept': 'image/*',
+                })
+
+                if img_page.status_code != 200:
+                    continue
+
+                mimetype = magic_from_buffer(img_page.content, mime=True)
+                if not mimetype.startswith('image/'):
+                    continue
+                content = img_page.content
 
             thumb_jpg = os.path.join(
                 settings.SOSSE_THUMBNAILS_DIR, image_name + '.jpg')
@@ -68,7 +81,7 @@ class DocumentMeta:
             os.makedirs(dir_name, exist_ok=True)
 
             try:
-                with Image.open(BytesIO(img_page.content)) as img:
+                with Image.open(BytesIO(content)) as img:
                     # Remove alpha channel from the png
                     img = img.convert('RGB')
                     img.thumbnail((160, 100))

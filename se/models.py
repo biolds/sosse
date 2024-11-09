@@ -865,10 +865,11 @@ class CrawlPolicy(models.Model):
         verbose_name_plural = 'crawl policies'
 
     def __str__(self):
-        if not self.url_regex:
-            return '「<empty>」'
-        title = self.url_regex.splitlines()[0]
-        return f'「{title}」'
+        if self.url_regex:
+            lines = [line for line in self.url_regex.splitlines() if not line.startswith('#')]
+            if lines:
+                return f'「{lines[0]}」'
+        return '「<empty>」'
 
     def save(self, *args, **kwargs):
         if self.url_regex == '(default)':

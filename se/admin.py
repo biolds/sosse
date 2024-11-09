@@ -33,7 +33,7 @@ from .document import Document
 from .forms import AddToQueueForm
 from .html_asset import HTMLAsset
 from .models import AuthField, DomainSetting, CrawlPolicy, SearchEngine, Cookie, ExcludedUrl, WorkerStats
-from .utils import human_datetime, human_dt, reverse_no_escape
+from .utils import human_datetime, human_dt, mimetype_icon, reverse_no_escape
 
 
 class SEAdminSite(admin.AdminSite):
@@ -198,14 +198,14 @@ class DocumentAdmin(admin.ModelAdmin):
             'fields': ('title', 'show_on_homepage', 'hidden', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status', '_error')
         }),
         ('📂 Data', {
-            'fields': ('mimetype', '_lang_txt', '_content')
+            'fields': ('_mimetype', '_lang_txt', '_content')
         }),
         ('🕑 Crawl info', {
             'fields': ('crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse')
         })
     )
     readonly_fields = ['title', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status',
-                       '_error', 'robotstxt_rejected', 'too_many_redirects', 'mimetype', '_lang_txt', '_content',
+                       '_error', 'robotstxt_rejected', 'too_many_redirects', '_mimetype', '_lang_txt', '_content',
                        'crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse']
 
     def has_add_permission(self, request, obj=None):
@@ -468,6 +468,12 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(description='Error')
     def _error(obj):
         return format_html('<pre>{}</pre>', obj.error)
+
+    @staticmethod
+    @admin.display(description='Mimetype')
+    def _mimetype(obj):
+        icon = mimetype_icon(obj.mimetype)
+        return f'{icon} {obj.mimetype}'
 
     @staticmethod
     @admin.display(description='Language')

@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -13,7 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import json
+import re
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from django.shortcuts import reverse
 from django.utils.html import mark_safe
@@ -159,3 +162,20 @@ def http_date_format(d):
     s = f'{dow}, {d.day} {month} {d.year}'
     s += ' %02d:%02d:%02d GMT' % (d.hour, d.minute, d.second)
     return s
+
+
+MIMETYPE_ICONS = None
+
+
+def mimetype_icon(mime: str | None) -> str:
+    global MIMETYPE_ICONS
+    if not MIMETYPE_ICONS:
+        mime_file = Path(__file__).parent / 'deps/unicode_mime_icons/unicode_mime_icons.json'
+        with open(mime_file, 'rb') as fd:
+            MIMETYPE_ICONS = json.load(fd)
+
+    if mime:
+        for regex, icon in MIMETYPE_ICONS.items():
+            if re.match(regex, mime):
+                return icon
+    return '🗎'

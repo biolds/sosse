@@ -4,3 +4,6 @@
 [submodule "se/deps/fake-useragent"]
 	path = se/deps/fake-useragent
 	url = https://github.com/fake-useragent/fake-useragent.git
+[submodule "se/deps/unicode_mime_icons"]
+	path = se/deps/unicode_mime_icons
+	url = https://github.com/biolds/unicode_mime_icons.git

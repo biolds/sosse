@@ -1,3 +1,4 @@
+include se/deps/unicode_mime_icons/*
 include se/static/se/*
 include se/static/se/node_modules/@kurkle/color/dist/*.js
 include se/static/se/node_modules/chart.js/dist/*.js

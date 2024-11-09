@@ -198,7 +198,7 @@ class DocumentAdmin(admin.ModelAdmin):
             'fields': ('title', 'show_on_homepage', 'hidden', 'crawl_policy', 'domain', 'cookies', 'cache', 'source', 'status', '_error')
         }),
         ('📂 Data', {
-            'fields': ('_mimetype', '_lang_txt', '_content')
+            'fields': ('robotstxt_rejected', 'too_many_redirects', '_mimetype', '_lang_txt', '_content')
         }),
         ('🕑 Crawl info', {
             'fields': ('crawl_first', '_crawl_last_txt', '_crawl_next_txt', 'crawl_dt', 'crawl_recurse')

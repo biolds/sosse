@@ -123,7 +123,6 @@ class FunctionalTest(BaseFunctionalTest):
 
     @override_settings(SOSSE_USER_AGENT='')
     @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['safari'])
-    @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['tablet'])
     def test_23_fake_ua_safari(self):
         self._reset_user_agent()
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')

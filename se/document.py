@@ -37,7 +37,7 @@ import feedparser
 
 from .browser import AuthElemFailed, SkipIndexing
 from .document_meta import DocumentMeta
-from .html_cache import HTMLAsset
+from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
 from .url import url_beautify, validate_url
 from .utils import reverse_no_escape
@@ -150,9 +150,14 @@ class Document(models.Model):
         if self.has_html_snapshot:
             asset = HTMLAsset.objects.filter(url=self.url).first()
             if asset and os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
-                return reverse_no_escape('html', args=(self.url,))
+                if self.mimetype.startswith('text/'):
+                    return reverse_no_escape('html', args=(self.url,))
+                else:
+                    return reverse_no_escape('download', args=(self.url,))
 
-        return reverse_no_escape('www', args=(self.url,))
+        if self.mimetype.startswith('text/'):
+            return reverse_no_escape('www', args=(self.url,))
+        return reverse_no_escape('words', args=(self.url,))
 
     def get_source_link(self):
         link = '🌍 <a href="{}"'
@@ -375,13 +380,17 @@ class Document(models.Model):
             FavIcon.extract(self, page)
             self._index_log('favicon', stats, verbose)
 
-        if crawl_policy.snapshot_html:
-            from .models import CrawlPolicy
-            if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_FROM_ALL:
-                page.remove_nav_elements()
-            snapshot = HTMLSnapshot(page, crawl_policy)
-            snapshot.snapshot()
-            self.has_html_snapshot = True
+            if crawl_policy.snapshot_html:
+                from .models import CrawlPolicy
+                if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_FROM_ALL:
+                    page.remove_nav_elements()
+                snapshot = HTMLSnapshot(page, crawl_policy)
+                snapshot.snapshot()
+                self.has_html_snapshot = True
+        else:
+            if crawl_policy.snapshot_html:
+                HTMLCache.write_asset(self.url, page.content, page, mimetype=self.mimetype)
+                self.has_html_snapshot = True
 
         if self.mimetype.startswith('text/'):
             if crawl_policy.take_screenshots:
@@ -676,7 +685,11 @@ class Document(models.Model):
 
     def delete_html(self):
         if self.has_html_snapshot:
-            HTMLAsset.html_delete_url(self.url)
+            if self.mimetype and self.mimetype.startswith('text/'):
+                HTMLAsset.html_delete_url(self.url)
+            else:
+                for asset in HTMLAsset.objects.filter(url=self.url):
+                    asset.remove_ref()
             self.has_html_snapshot = False
 
     def delete_screenshot(self):

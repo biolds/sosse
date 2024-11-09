@@ -26,6 +26,7 @@ from se.atom import atom
 from se.browser import ChromiumBrowser, FirefoxBrowser
 from se.cached import cache_redirect
 from se.document import Document
+from se.download import download
 from se.html import html, html_excluded
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.online import online_check
@@ -94,6 +95,7 @@ class ViewsTest:
                                   ('/www/' + CRAWL_URL, www, tuple()),
                                   ('/www/http://unknown/', www, tuple()),
                                   ('/words/' + CRAWL_URL, words, tuple()),
+                                  ('/download/' + CRAWL_URL, download, tuple()),
                                   ('/screenshot/' + CRAWL_URL, screenshot, tuple()),
                                   ('/screenshot_full/' + CRAWL_URL, screenshot_full, tuple()),
                                   ('/online_check/' + CRAWL_URL, online_check, tuple()),
@@ -108,7 +110,7 @@ class ViewsTest:
 
     def test_new_urls(self):
         from sosse.urls import urlpatterns
-        self.assertEqual(len(urlpatterns), 25)
+        self.assertEqual(len(urlpatterns), 26)
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)

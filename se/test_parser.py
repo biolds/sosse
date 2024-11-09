@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -208,7 +208,7 @@ class PageTest(TransactionTestCase):
         self.assertTrue(links[0].in_nav)
 
         www_content = get_content(doc)
-        self.assertEqual(www_content, ' <a href="/www/http://test/link">link</a>text<br/>')
+        self.assertEqual(www_content, ' <a href="/words/http://test/link">link</a>text<br/>')
 
     def test_30_nav_element(self):
         page = Page('http://test/', self.NAV_HTML, None)
@@ -222,7 +222,7 @@ class PageTest(TransactionTestCase):
         self.assertFalse(links[0].in_nav)
 
         www_content = get_content(doc)
-        self.assertEqual(www_content, 'header nav  <a href="/www/http://test/link">link</a> text footer<br/>')
+        self.assertEqual(www_content, 'header nav  <a href="/words/http://test/link">link</a> text footer<br/>')
 
     DATES = (
         ('Wed, 21 Oct 2015 07:28:00 GMT', datetime(2015, 10, 21, 7, 28, 0, tzinfo=timezone.utc)),

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -14,25 +14,23 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
+from urllib.parse import unquote
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
 from .cached import get_cached_doc, get_context, url_from_request
 from .html_asset import HTMLAsset
 from .login import login_required
-from .models import CrawlPolicy
+from .utils import mimetype_icon
 
 
 @login_required
-def html(request):
+def download(request: HttpRequest) -> HttpResponse:
     doc = get_cached_doc(request, 'html')
     if isinstance(doc, HttpResponse):
         return doc
-
-    if not doc.mimetype.startswith('text/'):
-        return redirect(doc.get_absolute_url())
 
     url = url_from_request(request)
     asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
@@ -40,20 +38,21 @@ def html(request):
     if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
         return redirect(doc.get_absolute_url())
 
-    context = get_context(doc, 'html', request)
-    context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
-    return render(request, 'se/embed.html', context)
+    asset_path = settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename
 
+    filename = url.rstrip('/').rsplit('/', 1)[1]
+    filename = unquote(filename)
+    if '.' in filename:
+        filename = filename.rsplit('.', 1)[0]
 
-@login_required
-def html_excluded(request, crawl_policy, method):
-    if method == 'mime':
-        method = 'mimetype'
-    elif method == 'element':
-        method = 'target element'
-    crawl_policy = CrawlPolicy.objects.filter(id=crawl_policy).first()
-    context = {
-        'crawl_policy': crawl_policy,
-        'method': method
-    }
-    return render(request, 'se/html_excluded.html', context)
+    extension = asset.filename.rsplit('.', 1)[1]
+    filename = f'{filename}.{extension}'
+
+    context = get_context(doc, 'download', request)
+    context.update({
+        'url': request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
+        'filename': filename,
+        'filesize': os.path.getsize(asset_path),
+        'icon': mimetype_icon(doc.mimetype)
+    })
+    return render(request, 'se/download.html', context)

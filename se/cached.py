@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -72,26 +72,37 @@ def get_context(doc, view_name, request):
     else:
         page_title = title
 
-    other_links = [{
-        'href': reverse_no_escape('www', args=[doc.url]),
-        'text': 'Text',
-        'text_icon': '✏️',
-        'name': 'www'
-    }]
-    if doc.has_html_snapshot:
-        other_links.append({
-            'href': reverse_no_escape('html', args=[doc.url]),
-            'text': 'HTML',
-            'text_icon': '🔖',
-            'name': 'html'
-        })
-    if doc.screenshot_count:
-        other_links.append({
-            'href': reverse_no_escape('screenshot', args=[doc.url]),
-            'text': 'Screenshot',
-            'text_icon': '📷',
-            'name': 'screenshot'
-        })
+    other_links = []
+    if doc.mimetype.startswith('text/'):
+        other_links = [{
+            'href': reverse_no_escape('www', args=[doc.url]),
+            'text': 'Text',
+            'text_icon': '✏️',
+            'name': 'www'
+        }]
+        if doc.has_html_snapshot:
+            other_links.append({
+                'href': reverse_no_escape('html', args=[doc.url]),
+                'text': 'HTML',
+                'text_icon': '🔖',
+                'name': 'html'
+            })
+        if doc.screenshot_count:
+            other_links.append({
+                'href': reverse_no_escape('screenshot', args=[doc.url]),
+                'text': 'Screenshot',
+                'text_icon': '📷',
+                'name': 'screenshot'
+            })
+    else:
+        if doc.has_html_snapshot:
+            other_links = [{
+                'href': reverse_no_escape('download', args=[doc.url]),
+                'text': 'Download',
+                'text_icon': '📂 ',
+                'name': 'download'
+            }]
+
     other_links.append({
         'href': reverse_no_escape('words', args=[doc.url]),
         'text': 'Words weight',

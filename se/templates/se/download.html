@@ -1,0 +1,15 @@
+{% extends "se/base.html" %}
+{% load static %}
+
+{% block top_bar %}
+    {% include "se/cached.html" %}
+{% endblock %}
+
+{% block body %}
+    <h3 style="margin-bottom: 0">{{ icon }} {{ filename }} ({{ filesize|filesizeformat }})</h3>
+    <small>{{ doc.mimetype }}</small>
+    <div style="padding-top: 20px">
+        <a href="{{ url }}" download="{{ filename }}" style="text-decoration: none">📥 </a>
+        <a href="{{ url }}" download="{{ filename }}">Download</a>
+    </div>
+{% endblock %}

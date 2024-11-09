@@ -155,7 +155,7 @@ class Document(models.Model):
                 else:
                     return reverse_no_escape('download', args=(self.url,))
 
-        if self.mimetype.startswith('text/'):
+        if self.mimetype and self.mimetype.startswith('text/'):
             return reverse_no_escape('www', args=(self.url,))
         return reverse_no_escape('words', args=(self.url,))
 
@@ -273,13 +273,11 @@ class Document(models.Model):
             page.title = parsed.feed.title
             self.title = parsed.feed.title
 
-        self.mimetype = 'text/html'
-
         template = get_template('se/feed.html')
         context = {'feed': parsed}
         page.content = template.render(context).encode('utf-8')
         page.soup = None
-        page.mimetype = 'text/html'
+
         crawl_logger.debug('%s is a rss/atom feed with %s items',
                            self.url, len(parsed['entries']))
 
@@ -324,22 +322,8 @@ class Document(models.Model):
             self.title = beautified_url
 
         self.normalized_title = remove_accent(self.title)
+        self.mimetype = page.mimetype
         self.hidden = crawl_policy.hide_documents
-
-        # dirty hack to avoid some errors (as triggered since bookworm during tests)
-        magic_head = page.content[:20].strip().lower()
-        is_html = False
-        for header in ('<html', '<!doctype html'):
-            is_html |= isinstance(
-                magic_head, str) and magic_head.startswith(header)
-            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(
-                header.encode('utf-8'))
-
-        if is_html:
-            self.mimetype = 'text/html'
-        else:
-            from magic import from_buffer as magic_from_buffer
-            self.mimetype = magic_from_buffer(page.content, mime=True)
 
         self.crawl_last = n
         if not self.crawl_first:
@@ -352,8 +336,9 @@ class Document(models.Model):
                                (self.url, self.mimetype))
             return
 
-        self._parse_xml(page, crawl_policy, stats, verbose)
         if self.mimetype.startswith('text/'):
+            self._parse_xml(page, crawl_policy, stats, verbose)
+
             links = self._parse_text(page, crawl_policy, stats, verbose)
 
         content_hash = self._hash_content(self.content, crawl_policy)

@@ -253,7 +253,7 @@ class PageTest(TransactionTestCase):
             self.assertEqual(doc.url, page.url)
             self.assertEqual(doc.title, 'Feed title')
             self.assertEqual(doc.content, 'Feed title\nFeed description\n08/29/2023 10:13 a.m. Entry one\n08/29/2023 10:09 a.m. Entry two\n')
-            self.assertEqual(doc.mimetype, 'text/html')
+            self.assertIn(doc.mimetype, ('text/xml', 'text/html'))
 
             links = Link.objects.order_by('id')
             self.assertEqual(links.count(), 3)

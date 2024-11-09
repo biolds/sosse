@@ -21,6 +21,7 @@ import psutil
 import shlex
 import traceback
 from datetime import datetime
+from magic import from_buffer as magic_from_buffer
 from time import sleep
 from urllib.parse import urlparse
 
@@ -83,7 +84,7 @@ class TooManyRedirects(SkipIndexing):
 
 
 class Page:
-    def __init__(self, url, content, browser, mimetype=None, headers=None, status_code=None):
+    def __init__(self, url, content, browser, headers=None, status_code=None):
         assert isinstance(content, bytes)
         self.url = sanitize_url(url)
         self.content = content
@@ -91,13 +92,28 @@ class Page:
         self.title = None
         self.soup = None
         self.browser = browser
-        self.mimetype = mimetype
         self.headers = headers or {}
         self.status_code = status_code
+
+        # dirty hack to avoid some errors (as triggered since bookworm during tests)
+        magic_head = self.content[:20].strip().lower()
+        is_html = False
+        for header in ('<html', '<!doctype html'):
+            is_html |= isinstance(
+                magic_head, str) and magic_head.startswith(header)
+            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(
+                header.encode('utf-8'))
+
+        if is_html:
+            self.mimetype = 'text/html'
+        else:
+            self.mimetype = magic_from_buffer(self.content, mime=True)
 
     def get_soup(self):
         if self.soup:
             return self.soup
+        if not self.mimetype or not self.mimetype.startswith('text/'):
+            return None
         content = self.content.decode('utf-8', errors='replace')
         self.soup = BeautifulSoup(content, 'html5lib')
 
@@ -300,11 +316,8 @@ class RequestBrowser(Browser):
     @classmethod
     def _page_from_request(cls, r):
         content = r._content
-        mimetype = r.headers.get('content-type') or 'application/octet-stream'
-        if ';' in mimetype:
-            mimetype, _ = mimetype.split(';', 1)
+        page = Page(r.url, content, cls, r.headers, r.status_code)
 
-        page = Page(r.url, content, cls, mimetype, r.headers, r.status_code)
         soup = page.get_soup()
         if soup:
             page.title = soup.title and soup.title.string
@@ -391,7 +404,7 @@ class RequestBrowser(Browser):
             raise PageTooBig(content_length, max_file_size)
 
         content = b''
-        for chunk in r.iter_content(chunk_size=1024):
+        for chunk in r.iter_content(chunk_size=1024 * 1024):
             content += chunk
             if len(content) / 1024 >= max_file_size:
                 break

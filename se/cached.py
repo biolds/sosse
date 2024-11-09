@@ -73,7 +73,7 @@ def get_context(doc, view_name, request):
         page_title = title
 
     other_links = []
-    if doc.mimetype.startswith('text/'):
+    if doc.mimetype and doc.mimetype.startswith('text/'):
         other_links = [{
             'href': reverse_no_escape('www', args=[doc.url]),
             'text': 'Text',

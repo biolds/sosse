@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -74,8 +74,9 @@ class BrowserMock:
             else:
                 content, headers, status_code = content
 
-        mimetype = guess_type(url)[0]
-        return Page(url, content, BrowserMock, mimetype, headers, status_code)
+        page = Page(url, content, BrowserMock, headers, status_code)
+        page.mimetype = guess_type(url)[0] or 'text/html'
+        return page
 
 
 class BrowserTest:

@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from functools import partialmethod
+from hashlib import md5
 from unittest import mock
 
 from django.conf import settings
@@ -20,6 +22,7 @@ from django.test import TransactionTestCase, override_settings
 
 from .document import Document
 from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexing
+from .html_asset import HTMLAsset
 from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
 from .test_mock import CleanTest, FirefoxTest
 
@@ -379,6 +382,53 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertNotIn(b'</nav>', html_open.mock_calls[2].args[0])
+
+    BIN_FILES = (
+        ('test.pdf', 'application/pdf', '6756a021648506e4f25696e226be863c'),
+        ('test.zip', 'application/zip', 'f2d04a4dfe9671f6a83d06fa6e2910e0'),
+        ('test.wav', 'audio/x-wav', '842484461172b87fa2a02e541b279a68'),
+        ('test.png', 'image/png', '71a50dbba44c78128b221b7df7bb51f1'),
+        ('test.jpg', 'image/jpeg', 'fdfac8a675b1a869c0e35bea25612806'),
+        ('test.mp4', 'video/mp4', 'b7507d23d616df2640065edb8b9e2504'),
+    )
+
+    def _test_bin_file_download(self, filename, mimetype, checksum):
+        bin_url = TEST_SERVER_URL + 'static/pages/' + filename
+        CrawlPolicy.objects.create(url_regex='(default)',
+                                   url_regex_pg='.*',
+                                   mimetype_regex='.*',
+                                   recursion=CrawlPolicy.CRAWL_NEVER,
+                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+                                   default_browse_mode=self.BROWSE_MODE,
+                                   snapshot_html=True,
+                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+                                   take_screenshots=False)
+
+        Document.queue(bin_url, None, None)
+
+        html_open = mock.mock_open()
+        with mock.patch('se.html_cache.open', html_open):
+            self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.content, '')
+        self.assertEqual(doc.mimetype, mimetype)
+
+        self.assertEqual(HTMLAsset.objects.count(), 1)
+        asset = HTMLAsset.objects.get()
+        self.assertEqual(asset.url, bin_url)
+        self.assertEqual(asset.ref_count, 1)
+
+        self.assertEqual(len(html_open.mock_calls), 4)
+        content_hash = md5(html_open.mock_calls[2].args[0]).hexdigest()
+        self.assertEqual(content_hash, checksum)
+
+
+for filename, mimetype, checksum in FunctionalTest.BIN_FILES:
+    setattr(FunctionalTest,
+            'test_140_file_download_%s' % mimetype.replace('/', '_').replace('-', '_'),
+            partialmethod(FunctionalTest._test_bin_file_download, filename, mimetype, checksum))
 
 
 class BrowserBasedFunctionalTest:

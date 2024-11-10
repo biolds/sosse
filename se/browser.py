@@ -16,6 +16,7 @@
 import json
 import logging
 import os
+import re
 import pytz
 import psutil
 import shlex
@@ -550,6 +551,7 @@ class SeleniumBrowser(Browser):
     cookie_loaded = []
     COOKIE_LOADED_SIZE = 1024
     first_init = True
+    CONTENT_HANDLERS = tuple()
 
     @classmethod
     @property
@@ -687,6 +689,17 @@ class SeleniumBrowser(Browser):
         ''' % json.dumps(NAV_ELEMENTS))
 
     @classmethod
+    def _escape_content_handler(cls, content):
+        content_url = None
+        for content_re in cls.CONTENT_HANDLERS:
+            m = re.match(content_re, content)
+            if m:
+                content_url = m.group('url').decode('utf-8')
+                page = RequestBrowser.get(content_url)
+                return page.content
+        return content
+
+    @classmethod
     def _get_page(cls, url):
         from .models import CrawlPolicy
         redirect_count = cls._wait_for_ready(url)
@@ -698,6 +711,7 @@ class SeleniumBrowser(Browser):
             cls._wait_for_ready(url)
 
         content = cls.driver.page_source.encode('utf-8')
+        content = cls._escape_content_handler(content)
         page = Page(current_url,
                     content,
                     cls)
@@ -1100,6 +1114,28 @@ class ChromiumBrowser(SeleniumBrowser):
     DRIVER_CLASS = webdriver.Chrome
     name = 'chromium'
 
+    CONTENT_HANDLERS = (b'''<html>
+<head>
+<meta name="viewport" content="width=device-width">
+</head>
+<body>
+<video controls="" autoplay="" name="media">
+<source src="(?P<url>[^"]+)" type="[^"]+">
+</video>
+</body>
+</html>'''.replace(b'\n', b''),
+
+        b'''<html style="height: 100%;">
+<head>
+<meta ((content="width=device-width, minimum-scale=0.1"|name="viewport") ?){2}>
+<title>[^<]*</title>
+</head>
+<body style="margin: 0px; height: 100%; background-color: rgb\\(14, 14, 14\\);">
+<img ((style="display: block;-webkit-user-select: none;margin: auto;background-color: hsl\\(0, 0%, 90%\\);transition: background-color 300ms;"|src="(?P<url>[^"]+)") ?){2}>
+</body>
+</html>'''.replace(b'\n', b'')
+    )
+
     @classmethod
     def _get_options_obj(cls):
         options = ChromiumOptions()
@@ -1108,7 +1144,8 @@ class ChromiumBrowser(SeleniumBrowser):
             'profile.default_content_settings.popups': 0,
             'download.default_directory': cls._get_download_dir(),
             'download.prompt_for_download': False,
-            'download.directory_upgrade': True
+            'download.directory_upgrade': True,
+            'plugins.always_open_pdf_externally': True
         }
         options.add_experimental_option("prefs", prefs)
         return options
@@ -1153,6 +1190,20 @@ class FirefoxBrowser(SeleniumBrowser):
     DRIVER_CLASS = webdriver.Firefox
     name = 'firefox'
 
+    # img tag matches on 2 or 3 match because class="transparent" is set for PNG, but not for JPEG
+    CONTENT_HANDLERS = (b'''<html>
+<head>
+<meta name="viewport" content="width=device-width; height=device-height;">
+<link rel="stylesheet" href="resource://content-accessible/ImageDocument.css">
+<link rel="stylesheet" href="resource://content-accessible/TopLevelImageDocument.css">
+<title>[^<]*</title>
+</head>
+<body>
+<img ((src="(?P<url>[^"]+)"|alt="[^"]+"|class="transparent") ?){2,3}>
+</body>
+</html>'''.replace(b'\n', b''),
+    )
+
     @classmethod
     def _get_options_obj(cls):
         from .models import user_agent
@@ -1173,6 +1224,8 @@ class FirefoxBrowser(SeleniumBrowser):
         options.set_preference('network.cookie.sameSite.laxByDefault', True)
         options.set_preference(
             'network.cookie.sameSite.noneRequiresSecure', True)
+        options.set_preference('pdfjs.disabled', True)
+        options.set_preference('media.play-stand-alone', False)
 
         if settings.SOSSE_PROXY:
             url = urlparse(settings.SOSSE_PROXY)

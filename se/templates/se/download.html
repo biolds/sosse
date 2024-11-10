@@ -12,4 +12,14 @@
         <a href="{{ url }}" download="{{ filename }}" style="text-decoration: none">📥 </a>
         <a href="{{ url }}" download="{{ filename }}">Download</a>
     </div>
+
+    <div style="padding-top: 10px">
+        {% if mimebase == 'image' %}
+            <img src="{{ url }}"/>
+        {% elif mimebase == 'video' %}
+            <video src="{{ url }}" controls/>
+        {% elif mimebase == 'audio' %}
+            <audio src="{{ url }}" controls/>
+        {% endif %}
+    </div>
 {% endblock %}

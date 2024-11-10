@@ -53,6 +53,7 @@ def download(request: HttpRequest) -> HttpResponse:
         'url': request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
         'filename': filename,
         'filesize': os.path.getsize(asset_path),
-        'icon': mimetype_icon(doc.mimetype)
+        'icon': mimetype_icon(doc.mimetype),
+        'mimebase': doc.mimetype.split('/', 1)[0]
     })
     return render(request, 'se/download.html', context)

@@ -49,6 +49,8 @@ class DocumentMeta:
     @classmethod
     def create_preview(cls, page: Page, image_name: str) -> str | None:
         for url in cls.get_preview_url(page):
+            if url.startswith('blob:'):
+                continue
             url = absolutize_url(page.url, url)
 
             if url.startswith('data:'):

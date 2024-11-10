@@ -23,5 +23,30 @@
       "auth_login_url_re": null,
       "auth_form_selector": null
     }
+  },
+  {
+    "model": "se.crawlpolicy",
+    "pk": 2,
+    "fields": {
+      "url_regex": ".*\\.zip$",
+      "url_regex_pg": ".*\\.zip$",
+      "recursion": "always",
+      "mimetype_regex": ".*",
+      "recursion_depth": 0,
+      "keep_params": true,
+      "default_browse_mode": "requests",
+      "snapshot_html": true,
+      "take_screenshots": false,
+      "screenshot_format": "jpg",
+      "remove_nav_elements": "idx",
+      "script": "",
+      "store_extern_links": false,
+      "recrawl_mode": "once",
+      "recrawl_dt_min": null,
+      "recrawl_dt_max": null,
+      "hash_mode": "no_numbers",
+      "auth_login_url_re": null,
+      "auth_form_selector": null
+    }
   }
 ]

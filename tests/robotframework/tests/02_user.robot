@@ -67,6 +67,11 @@
 |  | Capture Page Screenshot | cache_screenshot.png
 |  | Unselect Frame
 
+| Binary cache
+|  | Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
+|  | Wait Until Page Contains | Download
+|  | Capture Page Screenshot | cache_download.png
+
 | Syndication feed
 |  | [Tags] | syndication_feed
 |  | Go To | http://127.0.0.1/

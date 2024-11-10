@@ -31,6 +31,24 @@
 |  | Scroll To Bottom
 |  | Capture Page Screenshot | crawl_status.png
 
+| Crawl a binary URL
+|  | Go To | http://127.0.0.1/admin/se/document/queue/
+|  | Wait Until Element Is Visible | id=id_url
+|  | Input Text | id=id_url | http://127.0.0.1/static/Cat%20photos.zip
+|  | Click Element | xpath=//input[@value='Check and queue']
+|  | Wait Until Page Contains | Create a new policy
+|  | Click Element | xpath=//input[@value='Confirm']
+|  | Wait Until Page Contains | Crawl status
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_status/
+|  | Page Should Not Contain | No crawlers running.
+|  | Page Should Not Contain | exited
+|  | Wait Until Page Contains | 0 pending documents | 2min
+|  | Wait Until Page Contains | idle
+|  | Reload Page
+|  | Wait Until Page Contains | Crawl status
+|  | Scroll To Bottom
+
 | Crawl policies
 |  | Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Wait Until Element Is Visible | id=result_list
@@ -82,7 +100,7 @@
 |  | Wait Until Element Is Visible | id=result_list
 |  | Capture Page Screenshot | documents_list.png
 |  | ${doc_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
-|  | Should Be Equal As Numbers | ${doc_count} | 4
+|  | Should Be Equal As Numbers | ${doc_count} | 5
 
 | Domain
 |  | Go To | http://127.0.0.1/admin/se/domainsetting/

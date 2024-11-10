@@ -19,6 +19,15 @@ Screenshots
 
    <br/>
 
+.. figure:: ../../tests/robotframework/screenshots/cache_download.png
+   :class: sosse-screenshot
+
+   :doc:`File scraping <user/cached>`
+
+.. raw:: html
+
+   <br/>
+
 .. figure:: ../../tests/robotframework/screenshots/statistics.png
    :class: sosse-screenshot
 

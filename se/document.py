@@ -359,6 +359,12 @@ class Document(models.Model):
                 crawl_policy.get_browser(url=self.url).create_thumbnail(
                     self.url, self.image_name())
                 self.has_thumbnail = True
+        elif self.mimetype.startswith('image/'):
+            if crawl_policy.thumbnail_mode in (CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
+                                               CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+                                               CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT):
+                if DocumentMeta.preview_file_from_url(self.url, self.image_name()):
+                    self.has_thumbnail = True
 
         if self.mimetype.startswith('text/'):
             from .models import FavIcon

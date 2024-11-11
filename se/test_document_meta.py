@@ -32,7 +32,7 @@ class DocumentMetaTest(TransactionTestCase):
                 </head>
             </html>
         ''', None)
-        image_url = list(DocumentMeta.get_preview_url(page))
+        image_url = list(DocumentMeta.get_preview_urls(page))
         self.assertEqual(image_url, ['https://ia.media-imdb.com/images/rock.jpg'])
 
     def test_twitter_image(self):
@@ -43,7 +43,7 @@ class DocumentMetaTest(TransactionTestCase):
                 </head>
             </html>
         ''', None)
-        image_url = list(DocumentMeta.get_preview_url(page))
+        image_url = list(DocumentMeta.get_preview_urls(page))
         self.assertEqual(image_url, ['http://graphics8.nytimes.com/images/2012/02/19/us/19whitney-span/19whitney-span-articleLarge.jpg'])
 
     def test_data_image(self):

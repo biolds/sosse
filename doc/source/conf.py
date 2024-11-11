@@ -36,6 +36,8 @@ extensions = ['code_blocks', 'myst_parser']
 test_code_output = 'code_blocks.json'
 
 linkcheck_ignore = [r'http://192\.168\.0\.1:8080/', 'https://github.com/.*']
+linkcheck_retries = 3
+linkcheck_timeout = 60
 
 source_suffix = {
     '.rst': 'restructuredtext',

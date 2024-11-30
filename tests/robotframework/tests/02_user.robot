@@ -43,7 +43,7 @@
 | Statistics
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../document-ja.json | shell=True
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import CrawlerStats ; from django.utils.timezone import now ; CrawlerStats.create(now()) | shell=True
-|  | Go To | http://127.0.0.1/stats/
+|  | Go To | http://127.0.0.1/admin/se/document/stats/
 |  | Wait Until Page Does Not Contain | xpath=//*[@class='loader'] | timeout=5 min
 |  | Sleep | 5s
 |  | Capture Page Screenshot | statistics.png

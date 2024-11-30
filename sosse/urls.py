@@ -33,7 +33,7 @@ from django.contrib.auth.views import LogoutView
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, stats, word_stats, SELoginView
+from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
 from se.atom import atom
 from se.cached import cache_redirect
 from se.download import download
@@ -50,7 +50,6 @@ urlpatterns = [
     path('about/', about, name='about'),
     path('s/', search_redirect, name='search_redirect'),
     path('prefs/', prefs),
-    path('stats/', stats, name='stats'),
     path('atom/', atom),
     path('online_check/', online_check, name='online_check'),
     path('word_stats/', word_stats),

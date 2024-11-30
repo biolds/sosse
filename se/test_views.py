@@ -31,7 +31,7 @@ from se.html import html, html_excluded
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.online import online_check
 from se.screenshot import screenshot, screenshot_full
-from se.views import about, history, opensearch, prefs, search, search_redirect, stats, word_stats
+from se.views import about, history, opensearch, prefs, search, search_redirect, word_stats
 from se.words import words
 from se.www import www
 
@@ -83,7 +83,6 @@ class ViewsTest:
         for (url, view, args) in (('/?q=page', search, tuple()),
                                   ('/about/', about, tuple()),
                                   ('/prefs/', prefs, tuple()),
-                                  ('/stats/', stats, tuple()),
                                   ('/history/', history, tuple()),
                                   ('/?q=page', search, tuple()),
                                   ('/s/?q=page', search_redirect, tuple()),
@@ -110,7 +109,7 @@ class ViewsTest:
 
     def test_new_urls(self):
         from sosse.urls import urlpatterns
-        self.assertEqual(len(urlpatterns), 26)
+        self.assertEqual(len(urlpatterns), 25)
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)

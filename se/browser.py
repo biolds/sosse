@@ -621,7 +621,7 @@ class SeleniumBrowser(Browser):
         return sanitize_url(cls.driver.current_url)
 
     @classmethod
-    def _driver_get(cls, url):
+    def _driver_get(cls, url, force_reload=False):
         raise NotImplementedError()
 
     @classmethod
@@ -822,7 +822,9 @@ class SeleniumBrowser(Browser):
         crawl_logger.debug('loading cookies')
         cls._load_cookies(url)
         crawl_logger.debug('driver get')
-        cls._driver_get(url)
+
+        # Force reload to use the new cookies
+        cls._driver_get(url, force_reload=True)
 
         if ((current_url != url and cls.driver.current_url == current_url)  # If we got redirected to the url that was previously set in the browser
                 or cls.driver.current_url == 'data:,'):  # The url can be "data:," during a few milliseconds when the download starts
@@ -1166,8 +1168,8 @@ class ChromiumBrowser(SeleniumBrowser):
         return webdriver.Chrome(options=options)
 
     @classmethod
-    def _driver_get(cls, url):
-        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)):
+    def _driver_get(cls, url, force_reload=False):
+        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)) and not force_reload:
             return
         dl_dir_files = cls.page_change_wait_setup()
         cls.driver.get(url)
@@ -1256,8 +1258,8 @@ class FirefoxBrowser(SeleniumBrowser):
         return webdriver.Firefox(options=options, **service)
 
     @classmethod
-    def _driver_get(cls, url):
-        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)):
+    def _driver_get(cls, url, force_reload=False):
+        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)) and not force_reload:
             return
         dl_dir_files = cls.page_change_wait_setup()
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769

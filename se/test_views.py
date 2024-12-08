@@ -17,9 +17,7 @@ from urllib.parse import quote
 import os
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.test import RequestFactory, TransactionTestCase
-from django.test.client import Client
+from django.test import TransactionTestCase
 from django.utils import timezone
 
 from se.atom import atom
@@ -31,6 +29,7 @@ from se.html import html, html_excluded
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.online import online_check
 from se.screenshot import screenshot, screenshot_full
+from se.test_views_mixin import ViewsTestMixin
 from se.views import about, history, opensearch, prefs, search, search_redirect, word_stats
 from se.words import words
 from se.www import www
@@ -41,9 +40,7 @@ CRAWL_URL = 'http://127.0.0.1:8000/cookies'
 
 class ViewsTest:
     def setUp(self):
-        self.user = User.objects.create(username='admin', is_superuser=True, is_staff=True)
-        self.user.set_password('admin')
-        self.user.save()
+        super().setUp()
         self.crawl_policy = CrawlPolicy.create_default()
         self.crawl_policy.default_browse_mode = self.BROWSER
         self.crawl_policy.take_screenshots = True
@@ -52,10 +49,6 @@ class ViewsTest:
         self.doc = Document.objects.create(url=CRAWL_URL)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
-
-        self.factory = RequestFactory()
-        self.client = Client(HTTP_USER_AGENT='Mozilla/5.0')
-        self.assertTrue(self.client.login(username='admin', password='admin'))
 
     @classmethod
     def tearDownClass(cls):
@@ -70,14 +63,6 @@ class ViewsTest:
             os.rmdir(settings.SOSSE_HTML_SNAPSHOT_DIR + 'http,3A/')
         except OSError:
             pass
-
-    def _request_from_factory(self, url):
-        request = self.factory.get(url)
-        request.META['REQUEST_URI'] = url
-        request.META['REQUEST_SCHEME'] = 'http'
-        request.META['HTTP_HOST'] = '127.0.0.1'
-        request.user = self.user
-        return request
 
     def test_views(self):
         for (url, view, args) in (('/?q=page', search, tuple()),
@@ -153,9 +138,9 @@ class ViewsTest:
         self.assertEqual(response.status_code, 302, response)
 
 
-class ChromiumViewTest(ViewsTest, TransactionTestCase):
+class ChromiumViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):
     BROWSER = DomainSetting.BROWSE_CHROMIUM
 
 
-class FirefoxViewTest(ViewsTest, TransactionTestCase):
+class FirefoxViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):
     BROWSER = DomainSetting.BROWSE_FIREFOX

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import os
 from hashlib import md5
 from lxml.etree import Element, tostring
 
@@ -22,6 +23,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 
 from .forms import SearchForm
+from .html_asset import HTMLAsset
 from .models import SearchEngine
 from .search import get_documents_from_request
 from .utils import reverse_no_escape
@@ -103,7 +105,18 @@ def atom(request):
             if cached_page == '0':
                 url = doc.url
             else:
-                url = base_url + reverse_no_escape('www', args=[doc.url])
+                if settings.SOSSE_ATOM_CACHED_BIN_PASSTHROUGH and not doc.mimetype.startswith('text/'):
+                    asset = HTMLAsset.objects.filter(url=doc.url).order_by('download_date').last()
+                    if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
+                        url = base_url + reverse_no_escape('www', args=[doc.url])
+                    else:
+                        url = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
+                else:
+                    if doc.mimetype.startswith('text/'):
+                        view_name = 'www'
+                    else:
+                        view_name = 'download'
+                    url = base_url + reverse_no_escape(view_name, args=[doc.url])
             entry.append(elem('link', None, href=url))
             entry.append(elem('id', str_to_uuid(url)))
             entry.append(elem('updated', getattr(doc, key).isoformat()))

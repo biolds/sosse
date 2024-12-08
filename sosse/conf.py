@@ -68,10 +68,6 @@ DEFAULTS = OrderedDict([
             'default': False,
             'type': bool
         }],
-        ['atom_access_token', {
-            'comment': 'When anonymous search are disabled a token can be used to access Atom feeds without authenticating.\nThe token can be passed to HTTP requests as an url parameter, for example ``?token=<Atom access token>``.\nSetting an empty string disables token access.',
-            'default': '',
-        }],
         ['search_shortcut_char', {
             'comment': 'Special character used as search shortcut.',
             'default': '!',
@@ -179,10 +175,19 @@ DEFAULTS = OrderedDict([
             'default': 1000,
             'type': int
         }],
+        ['atom_access_token', {
+            'comment': 'When anonymous search are disabled a token can be used to access Atom feeds without authenticating.\nThe token can be passed to HTTP requests as an url parameter, for example ``?token=<Atom access token>``.\nSetting an empty string disables token access.',
+            'default': '',
+        }],
         ['atom_feed_size', {
             'comment': 'Number of result returned by Atom feeds.',
             'default': 200,
             'type': int
+        }],
+        ['atom_cached_bin_passthrough', {
+            'comment': 'Cached links from the Atom feed to binary files returns binary files instead of\nthe related metadata cached page (`http://x.x.x.x/html/<url>`).',
+            'default': True,
+            'type': bool
         }],
         ['exclude_not_indexed', {
             'comment': 'Exclude page queued for indexing but not yet indexed from search results.',

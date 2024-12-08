@@ -50,7 +50,7 @@ urlpatterns = [
     path('about/', about, name='about'),
     path('s/', search_redirect, name='search_redirect'),
     path('prefs/', prefs),
-    path('atom/', atom),
+    path('atom/', atom, name='atom'),
     path('online_check/', online_check, name='online_check'),
     path('word_stats/', word_stats),
     path('history/', history, name='history'),

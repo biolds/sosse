@@ -15,6 +15,7 @@
 
 from datetime import timedelta
 import feedparser
+import tempfile
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
@@ -24,6 +25,7 @@ from django.utils import timezone
 
 from .atom import atom
 from .document import Document
+from .html_asset import HTMLAsset
 from .test_views_mixin import ViewsTestMixin
 
 
@@ -44,6 +46,8 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
                                 mimetype='application/octet-stream',
                                 crawl_first=yesterday,
                                 crawl_last=now)
+        HTMLAsset.objects.create(url='http://127.0.0.1/bin',
+                                 filename='bin')
 
     def _atom_get(self, url: str) -> HttpResponse:
         request = self._request_from_factory(url)
@@ -74,10 +78,17 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_cached(self):
-        entries = self._atom_get_parsed('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&cached=1')
+        for bin_passthrough in (True, False):
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                with open(f'{tmp_dir}/bin', 'w') as f:
+                    f.write('test')
 
-        self.assertEqual(len(entries), 2)
-        self.assertEqual(entries[0]['link'], 'http://127.0.0.1/www/http://127.0.0.1')
-        self.assertEqual(entries[1]['link'], 'http://127.0.0.1/www/http://127.0.0.1/bin')
+                with self.settings(SOSSE_HTML_SNAPSHOT_DIR=tmp_dir + '/', SOSSE_ATOM_CACHED_BIN_PASSTHROUGH=bin_passthrough):
+                    entries = self._atom_get_parsed('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&cached=1')
 
-
+            self.assertEqual(len(entries), 2)
+            self.assertEqual(entries[0]['link'], 'http://127.0.0.1/www/http://127.0.0.1')
+            if bin_passthrough:
+                self.assertEqual(entries[1]['link'], 'http://127.0.0.1/snap/bin')
+            else:
+                self.assertEqual(entries[1]['link'], 'http://127.0.0.1/download/http://127.0.0.1/bin')

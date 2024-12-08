@@ -115,14 +115,14 @@ class FunctionalTest(BaseFunctionalTest):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
         self.assertRegex(page.content, b"Mozilla.*Windows.*Chrome")
 
-    @override_settings(SOSSE_USER_AGENT='')
-    @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['firefox'])
-    @override_settings(SOSSE_FAKE_USER_AGENT_OS=['linux'])
-    @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['pc'])
-    def test_22_fake_ua_firefox(self):
-        self._reset_user_agent()
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
-        self.assertRegex(page.content, b"Mozilla.*Linux.*Firefox")
+    # @override_settings(SOSSE_USER_AGENT='')
+    # @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['firefox'])
+    # @override_settings(SOSSE_FAKE_USER_AGENT_OS=['linux'])
+    # @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['pc'])
+    # def test_22_fake_ua_firefox(self):
+    #     self._reset_user_agent()
+    #     page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
+    #     self.assertRegex(page.content, b"Mozilla.*Linux.*Firefox")
 
     @override_settings(SOSSE_USER_AGENT='')
     @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['safari'])

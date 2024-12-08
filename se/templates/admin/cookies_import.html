@@ -1,0 +1,20 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" action="{% url 'admin:cookies_import' %}">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <p>{{ form.cookies.label_tag }}</p>
+    <p>{{ form.cookies }}</p>
+    <p>{{ form.cookies.errors }}</p>
+    <p>{{ form.cookies_file.label_tag }}</p>
+    <p>{{ form.cookies_file }}</p>
+    <p>{{ form.cookies_file.errors }}</p>
+    <p><button type="submit">Import</button></p>
+</form>
+{% endblock %}

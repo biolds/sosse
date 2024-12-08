@@ -325,30 +325,6 @@ class RequestBrowser(Browser):
         return page
 
     @classmethod
-    def _set_cookies(cls, url, cookies):
-        from .models import Cookie
-        _cookies = []
-
-        for cookie in cookies:
-            expires = cookie.expires
-            if expires:
-                expires = datetime.fromtimestamp(expires, pytz.utc)
-
-            c = {
-                'domain': cookie.get_nonstandard_attr('Domain'),
-                'name': cookie.name,
-                'value': cookie.value,
-                'path': cookie.path,
-                'expires': expires,
-                'secure': cookie.secure,
-                'same_site': cookie.get_nonstandard_attr('SameSite'),
-                'http_only': cookie.has_nonstandard_attr('HttpOnly')
-            }
-            _cookies.append(c)
-
-        Cookie.set(url, _cookies)
-
-    @classmethod
     def _get_cookies(cls, url):
         from .models import Cookie
         jar = requests.cookies.RequestsCookieJar()
@@ -389,6 +365,7 @@ class RequestBrowser(Browser):
 
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):
+        from .models import Cookie
         jar = cls._get_cookies(url)
         crawl_logger.debug('from the jar: %s', jar)
         s = requests.Session()
@@ -397,7 +374,7 @@ class RequestBrowser(Browser):
         func = getattr(s, method)
         kwargs = dict_merge(cls._requests_params(), kwargs)
         r = func(url, **kwargs)
-        cls._set_cookies(url, s.cookies)
+        Cookie.set_from_jar(url, s.cookies)
 
         content_length = int(r.headers.get('content-length', 0))
         if content_length / 1024 > max_file_size:

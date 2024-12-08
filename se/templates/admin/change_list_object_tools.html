@@ -1,0 +1,19 @@
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+  {% if has_add_permission %}
+  <li>
+    {% url cl.opts|admin_urlname:'add' as add_url %}
+    <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink">
+      {% blocktranslate with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktranslate %}
+    </a>
+  </li>
+    {% if cl.opts.verbose_name == 'cookie' %}
+    <li>
+      <a href="{% url 'admin:cookies_import' %}" class="addlink">
+        Import cookies
+      </a>
+    </li>
+    {% endif %}
+  {% endif %}
+{% endblock %}

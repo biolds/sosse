@@ -158,7 +158,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(cookie.name, 'test_key')
         self.assertEqual(cookie.value, 'test_value')
         self.assertEqual(cookie.domain, '127.0.0.1')
-        self.assertIsNone(cookie.domain_cc)
+        self.assertEqual(cookie.domain_cc, None)
         self.assertIsNone(cookie.expires)
         self.assertFalse(cookie.http_only)
         self.assertFalse(cookie.inc_subdomain)

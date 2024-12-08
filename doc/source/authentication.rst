@@ -1,7 +1,7 @@
 Authentication handling
 =======================
 
-Authentication can be handled in various way described below:
+Authentication can be handled in various ways described below:
 
 Submitting forms
 ----------------

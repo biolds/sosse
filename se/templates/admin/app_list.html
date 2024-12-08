@@ -48,7 +48,12 @@
             {% endif %}
 
             {% if model.add_url %}
-              <td><a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a></td>
+              <td>
+                <a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a>
+                {% if model.name == 'Cookies' %}
+                  <a href="{% url 'admin:cookies_import' %}" class="addlink">{% translate 'Import' %}</a>
+                {% endif %}
+              </td>
             {% else %}
               <td></td>
             {% endif %}

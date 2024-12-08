@@ -647,6 +647,16 @@ class CookieAdmin(admin.ModelAdmin):
             return _cookies, False
         return super().get_search_results(request, queryset, search_term)
 
+    def get_urls(self):
+        urls = super().get_urls()
+        return [
+            path('import/', self.admin_site.admin_view(self.cookies_import), name='cookies_import'),
+        ] + urls
+
+    def cookies_import(self, request):
+        from .cookies_import import cookies_import
+        return cookies_import(request)
+
 
 @admin.register(ExcludedUrl)
 class ExcludedUrlAdmin(admin.ModelAdmin):

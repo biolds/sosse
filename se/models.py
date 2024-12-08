@@ -13,13 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import os
+import pytz
 import re
 import urllib.parse
-import logging
 
 from base64 import b64encode, b64decode
-from datetime import timedelta
+from http.cookiejar import Cookie as HttpJarCookie
+from http.cookiejar import CookieJar
+from datetime import datetime, timedelta
 from defusedxml import ElementTree
 from hashlib import md5
 from urllib.parse import urlparse
@@ -634,6 +637,9 @@ class Cookie(models.Model):
     class Meta:
         unique_together = ('domain', 'name', 'path')
 
+    def __str__(self):
+        return f'{self.domain} - {self.name}'
+
     @classmethod
     def get_from_url(cls, url, queryset=None, expire=True):
         if not url.startswith('http:') and not url.startswith('https:'):
@@ -679,36 +685,42 @@ class Cookie(models.Model):
         return cookies
 
     @classmethod
-    def set(cls, url, cookies):
+    def set(cls, url: str | None, cookies: list[HttpJarCookie]):
         crawl_logger.debug('saving cookies for %s: %s', url, cookies)
         new_cookies = []
-        parsed_url = urlparse(url)
         set_cookies = [c['name'] for c in cookies]
 
         for c in cookies:
             name = c.pop('name')
             path = c.pop('path', '') or ''
-            domain = parsed_url.hostname
             domain_cc = None
 
             cookie_dom = c.pop('domain', None)
             inc_subdomain = False
-            if cookie_dom:
-                domain_cc = cookie_dom
-                cookie_dom = cookie_dom.lstrip('.')
-                inc_subdomain = True
 
-                if get_public_suffix(cookie_dom) != get_public_suffix(domain):
+            if url:
+                parsed_url = urlparse(url)
+                domain = parsed_url.hostname
+                if cookie_dom:
+                    domain_cc = cookie_dom
+                    cookie_dom = cookie_dom.lstrip('.')
+                    inc_subdomain = True
+
+                    if get_public_suffix(cookie_dom) != get_public_suffix(domain):
+                        crawl_logger.warning(
+                            '%s is trying to set a cookie (%s) for a different domain %s' % (url, name, cookie_dom))
+                        continue
+
+                    domain = cookie_dom
+                if domain in cls.TLDS:
                     crawl_logger.warning(
-                        '%s is trying to set a cookie (%s) for a different domain %s' % (url, name, cookie_dom))
+                        '%s is trying to set a cookie (%s) for a TLD (%s)' % (url, name, domain))
                     continue
-
-                domain = cookie_dom
-
-            if domain in cls.TLDS:
-                crawl_logger.warning(
-                    '%s is trying to set a cookie (%s) for a TLD (%s)' % (url, name, domain))
-                continue
+            else:
+                domain = c.pop('domain_from_url').lstrip('.')
+                inc_subdomain = c.pop('domain_specified')
+                if inc_subdomain:
+                    domain_cc = domain
 
             c['inc_subdomain'] = inc_subdomain
             c['domain'] = domain
@@ -722,13 +734,42 @@ class Cookie(models.Model):
             if created:
                 new_cookies.append(cookie)
 
-        # delete missing cookies
-        current = cls.get_from_url(url)
-        for c in current:
-            if c.name not in set_cookies:
-                crawl_logger.debug('%s not in %s', c.name, set_cookies)
-                c.delete()
+        if url:
+            # delete missing cookies
+            current = cls.get_from_url(url)
+            for c in current:
+                if c.name not in set_cookies:
+                    crawl_logger.debug('%s not in %s', c.name, set_cookies)
+                    c.delete()
         return new_cookies
+
+    @classmethod
+    def set_from_jar(cls, url: str | None, cookie_jar: CookieJar):
+        _cookies = []
+
+        for cookie in cookie_jar:
+            expires = cookie.expires
+            if expires:
+                expires = datetime.fromtimestamp(expires, pytz.utc)
+
+            c = {
+                'domain': cookie.get_nonstandard_attr('Domain'),
+                'name': cookie.name,
+                'value': cookie.value,
+                'path': cookie.path,
+                'expires': expires,
+                'secure': cookie.secure,
+                'same_site': cookie.get_nonstandard_attr('SameSite'),
+                # Requests has "HttpOnly", while loading from FileCookieJar has HTTPOnly"
+                'http_only': cookie.has_nonstandard_attr('HttpOnly') or cookie.has_nonstandard_attr('HTTPOnly')
+            }
+            if url is None:
+                c['domain_from_url'] = cookie.domain
+                c['domain_specified'] = cookie.domain_specified
+
+            _cookies.append(c)
+
+        cls.set(url, _cookies)
 
 
 BROWSER_MAP = {

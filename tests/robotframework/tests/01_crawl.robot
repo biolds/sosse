@@ -117,6 +117,8 @@
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${dom_count} | 3
 |  | Capture Page Screenshot | cookies_list.png
+|  | Click Link | Import cookies
+|  | Capture Page Screenshot | cookies_import.png
 
 | Excluded URLs
 |  | Go To | http://127.0.0.1/admin/se/excludedurl/add/

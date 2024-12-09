@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -26,7 +26,7 @@ import sys
 project = 'SOSSE'
 copyright = '2022-2024, Laurent Defert'
 author = 'Laurent Defert'
-release = '1.10'
+release = '1.11'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

@@ -1,8 +1,9 @@
 - make docker_git_build
-- test (docker run -p 8005:80 biolds/sosse:git)
-- debian update: version + changelog : dch -i
+- test (docker run -p 8005:80 -e SOSSE_CRAWLER_COUNT=1 biolds/sosse:git)
+- debian update: version + changelog : dch -i (available in the devscripts deb package)
 - doc version update in doc/source/conf.py
 - update the CHANGELOG.md using the last changelog build it the main branch
+- commit as "v1.10.1 release"
 - MR
 - create tag "vX.X.X"
 - update the `stable` branch for the release (to update the `stable` version of readthedoc)

@@ -48,4 +48,4 @@ sosse-admin collectstatic --noinput \n \
 sosse-admin crawl & \n \
 tail -F /var/log/sosse/crawler.log' > /run.sh ; chmod +x /run.sh
 RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf
-CMD /run.sh
+CMD ["/usr/bin/bash", "/run.sh"]

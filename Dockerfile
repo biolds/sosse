@@ -42,4 +42,4 @@ chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse \n \
 /etc/init.d/nginx start \n \
 /venv/bin/sosse-admin crawl & \n \
 tail -F /var/log/sosse/crawler.log' > /run.sh ; chmod +x /run.sh
-CMD /run.sh
+CMD ["/usr/bin/bash", "/run.sh"]

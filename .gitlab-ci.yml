@@ -211,7 +211,7 @@ doc_test_pip:
     - doc_code_extract
   script:
     - apt update
-    - apt install -y make jq
+    - apt install -y make jq libmagic1
     - make _doc_test_pip
 
 .debian_pkg_check: &debian_pkg_check

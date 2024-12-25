@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -321,10 +321,16 @@ class HTMLSnapshot:
                         logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
                         filename_url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
                     else:
-                        filename_url = self.download_asset(url)
+                        force_mime = None
+                        if elem.name == 'link' and 'stylesheet' in elem.attrs.get('rel', []):
+                            # Force the mime since because libmagic sometimes fials to identify it correctly
+                            force_mime = 'text/css'
+
+                        logger.debug(f'downloading asset from {attr} attribute / {elem.name}')
+                        filename_url = self.download_asset(url, force_mime)
                     elem.attrs[attr] = filename_url
 
-    def download_asset(self, url):
+    def download_asset(self, url, force_mime=None):
         if getattr(settings, 'TEST_HTML_ERROR_HANDLING', False) and url == 'http://127.0.0.1/test-exception':
             raise Exception('html_error_handling test')
 
@@ -338,7 +344,7 @@ class HTMLSnapshot:
                     return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
             raise Exception('asset not found')
 
-        logger.debug('download_asset %s' % url)
+        logger.debug(f'download_asset {url} (forced mime {force_mime})')
         mimetype = None
         extension = None
         page = None
@@ -346,7 +352,7 @@ class HTMLSnapshot:
         try:
             page = HTMLCache.download(url, settings.SOSSE_MAX_HTML_ASSET_SIZE)
             content = page.content
-            mimetype = page.mimetype
+            mimetype = force_mime or page.mimetype
 
             if mimetype == 'text/html':
                 return '/html/' + url

@@ -20,7 +20,7 @@
   - docker system prune -a
   - make docker_build
   - make docker_release_build
-  - test (docker run -p 8005:80 biolds/sosse:latest, version no check)
+  - test (docker run -p 8005:80 -e SOSSE_CRAWLER_COUNT=1 biolds/sosse:latest, version no check)
   - make docker_release_push
   - make docker_push
   - docker tag biolds/sosse:latest biolds/sosse:X.X.X

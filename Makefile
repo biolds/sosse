@@ -99,7 +99,7 @@ doc_test_debian:
 	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
 
 _doc_test_pip:
-	apt install -y chromium chromium-driver postgresql libpq-dev nginx python3-dev python3-pip virtualenv
+	apt install -y chromium chromium-driver postgresql libpq-dev nginx python3-dev python3-pip virtualenv libmagic1
 	/etc/init.d/postgresql start &
 	bash ./tests/wait_for_pg.sh
 	bash ./tests/doc_test.sh doc/code_blocks.json install/pip

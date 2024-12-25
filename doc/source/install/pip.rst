@@ -13,6 +13,7 @@ Before installing SOSSE, you'll need to manually install the following softwares
 - `Geckodriver <https://github.com/mozilla/geckodriver/>`_
 - `Google Chromium <https://www.chromium.org/Home>`_
 - `ChromeDriver <https://chromedriver.chromium.org/>`_
+- ``libmagic``, see the documentation of `python-magic <https://pypi.org/project/python-magic/>`_ for an installation procedure
 
 Package install
 ---------------

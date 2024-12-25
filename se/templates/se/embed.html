@@ -18,5 +18,5 @@
 
 {% block body_no_margin %}
     {{ block.super }}
-    <iframe src="{{ url }}" sandbox="allow-top-navigation allow-same-origin allow-scripts" onload="frame_loaded()"></iframe>
+    <iframe src="{{ url }}" sandbox="allow-top-navigation allow-same-origin{% if allow_scripts %} allow-scripts{% endif %}" onload="frame_loaded()"></iframe>
 {% endblock %}

@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2024 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -29,7 +29,8 @@ def screenshot(request):
 
     context = get_context(doc, 'screenshot', request)
     context.update({
-        'url': request.build_absolute_uri('/screenshot_full/') + url_from_request(request)
+        'url': request.build_absolute_uri('/screenshot_full/') + url_from_request(request),
+        'allow_scripts': True
     })
     return render(request, 'se/embed.html', context)
 

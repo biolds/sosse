@@ -41,7 +41,10 @@ def html(request):
         return redirect(doc.get_absolute_url())
 
     context = get_context(doc, 'html', request)
-    context['url'] = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
+    context.update({
+        'url': request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
+        'allow_scripts': False
+    })
     return render(request, 'se/embed.html', context)
 
 

@@ -1,3 +1,9 @@
+## 1.11.1 (2024-12-26)
+### Bug fixes (3 changes)
+- [avoid an exception when showing a cached page being crawled](https://gitlab.com/biolds1/sosse/-/commit/b45a146b8c0b5ae883728ee12dbc93587df355f6) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/126))
+- [prevent execution of scripts in cached pages](https://gitlab.com/biolds1/sosse/-/commit/7ad77cfca66f5d6213267f500117add242d7fd41) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/124))
+- [fix saving some CSS stylesheets](https://gitlab.com/biolds1/sosse/-/commit/b675ca3295f13d1e0952fe801b36db2acb7d62bb) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/124))
+
 ## 1.11.0 (2024-12-09)
 ### Features (6 changes)
 - [store file downloads](https://gitlab.com/biolds1/sosse/-/commit/395af4961c81c17a99a43922eaa8a0057571c9ea) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/121))

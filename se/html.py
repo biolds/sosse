@@ -31,7 +31,7 @@ def html(request):
     if isinstance(doc, HttpResponse):
         return doc
 
-    if not doc.mimetype.startswith('text/'):
+    if not doc.mimetype or not doc.mimetype.startswith('text/'):
         return redirect(doc.get_absolute_url())
 
     url = url_from_request(request)

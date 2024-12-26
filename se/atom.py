@@ -105,7 +105,7 @@ def atom(request):
             if cached_page == '0':
                 url = doc.url
             else:
-                if settings.SOSSE_ATOM_CACHED_BIN_PASSTHROUGH and not doc.mimetype.startswith('text/'):
+                if settings.SOSSE_ATOM_CACHED_BIN_PASSTHROUGH and (not doc.mimetype or not doc.mimetype.startswith('text/')):
                     asset = HTMLAsset.objects.filter(url=doc.url).order_by('download_date').last()
                     if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
                         url = base_url + reverse_no_escape('www', args=[doc.url])

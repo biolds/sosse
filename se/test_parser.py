@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -24,7 +24,7 @@ from .browser import ChromiumBrowser, FirefoxBrowser, Page
 from .document import Document
 from .models import CrawlPolicy, Link
 from .utils import http_date_format, http_date_parser
-from .www import get_content
+from .www import WWWView
 
 
 LINKS = ({
@@ -207,7 +207,10 @@ class PageTest(TransactionTestCase):
         self.assertEqual(len(links), 1)
         self.assertTrue(links[0].in_nav)
 
-        www_content = get_content(doc)
+        view = WWWView()
+        view.doc = doc
+        view.request = None
+        www_content = view._get_content()
         self.assertEqual(www_content, ' <a href="/words/http://test/link">link</a>text<br/>')
 
     def test_30_nav_element(self):
@@ -221,7 +224,9 @@ class PageTest(TransactionTestCase):
         self.assertEqual(len(links), 1)
         self.assertFalse(links[0].in_nav)
 
-        www_content = get_content(doc)
+        view = WWWView()
+        view.doc = doc
+        www_content = view._get_content()
         self.assertEqual(www_content, 'header nav  <a href="/words/http://test/link">link</a> text footer<br/>')
 
     DATES = (

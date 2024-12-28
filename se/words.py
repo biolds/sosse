@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -13,27 +13,27 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
-from .cached import get_document, get_context, unknown_url_view
+from .cached import CacheMixin
 from .login import login_required
 
 
-@login_required
-def words(request):
-    doc = get_document(request)
-    if doc is None:
-        return unknown_url_view(request)
+@method_decorator(login_required, name='dispatch')
+class WordsView(CacheMixin, TemplateView):
+    template_name = 'se/words.html'
+    view_name = 'words'
 
-    context = get_context(doc, 'words', request)
-    words = []
-    for w in doc.vector.split():
-        word, weights = w.split(':', 1)
-        word = word.strip("'")
-        words.append((word, weights))
+    def get_context_data(self, *args, **kwargs):
+        words = []
+        for w in self.doc.vector.split():
+            word, weights = w.split(':', 1)
+            word = word.strip("'")
+            words.append((word, weights))
 
-    context.update({
-        'words': words,
-        'lang': doc.lang_flag(True)
-    })
-    return render(request, 'se/words.html', context)
+        context = super().get_context_data(*args, **kwargs)
+        return context | {
+            'words': words,
+            'lang': self.doc.lang_flag(True)
+        }

@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -23,7 +23,7 @@ from django.http import HttpResponse
 from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
 
-from .atom import atom
+from .atom import AtomView
 from .document import Document
 from .html_asset import HTMLAsset
 from .test_views_mixin import ViewsTestMixin
@@ -51,7 +51,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
 
     def _atom_get(self, url: str) -> HttpResponse:
         request = self._request_from_factory(url)
-        return atom(request)
+        return AtomView.as_view()(request)
 
     def _atom_get_parsed(self, url: str) -> list[dict]:
         response = self._atom_get(url)
@@ -69,12 +69,12 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
     def test_auth(self):
         request = self._request_from_factory('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content', AnonymousUser())
         with self.assertRaises(PermissionDenied):
-            atom(request)
+            AtomView.as_view()(request)
 
     @override_settings(SOSSE_ATOM_ACCESS_TOKEN='token42')
     def test_auth_token(self):
         request = self._request_from_factory('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&token=token42', AnonymousUser())
-        response = atom(request)
+        response = AtomView.as_view()(request)
         self.assertEqual(response.status_code, 200)
 
     def test_cached(self):

@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -13,55 +13,56 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.utils.html import format_html
+from django.views.generic import TemplateView
 
-from .cached import get_cached_doc, get_context
+from .cached import CacheMixin
 from .login import login_required
 from .models import Link
 
 
-def get_content(doc):
-    content = format_html('')
-    content_pos = 0
+@method_decorator(login_required, name='dispatch')
+class WWWView(CacheMixin, TemplateView):
+    template_name = "se/www.html"
+    view_name = "www"
 
-    links = Link.objects.filter(doc_from=doc).order_by('link_no')
-    links_count = Link.objects.filter(doc_from=doc).count()
-    link_no = 0
-    for line in doc.content.splitlines():
-        while link_no < links_count and links[link_no].pos < content_pos + len(line):
-            link = links[link_no]
-            link_pos = link.pos - content_pos
-            txt = line[:link_pos]
-            if not link.in_nav:
-                line = line[link_pos + len(link.text or ''):]
-                content_pos += len(txt) + len(link.text or '')
+    def _get_content(self):
+        content = format_html('')
+        content_pos = 0
 
-            if link.doc_to:
-                content += format_html('{} <a href="{}">{}</a>',
-                                       txt,
-                                       link.doc_to.get_absolute_url(),
-                                       link.text or '<no text link>',
-                                       link.doc_to.url)
-            else:
-                content += format_html('{} <a href="{}">🌍</a>',
-                                       txt,
-                                       link.text or '<no text link>',
-                                       link.extern_url)
-            link_no += 1
+        links = Link.objects.filter(doc_from=self.doc).order_by('link_no')
+        links_count = Link.objects.filter(doc_from=self.doc).count()
+        link_no = 0
+        for line in self.doc.content.splitlines():
+            while link_no < links_count and links[link_no].pos < content_pos + len(line):
+                link = links[link_no]
+                link_pos = link.pos - content_pos
+                txt = line[:link_pos]
+                if not link.in_nav:
+                    line = line[link_pos + len(link.text or ''):]
+                    content_pos += len(txt) + len(link.text or '')
 
-        content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
-        content += format_html('{}<br/>', line)
-    return content
+                if link.doc_to:
+                    content += format_html('{} <a href="{}">{}</a>',
+                                           txt,
+                                           link.doc_to.get_absolute_url(),
+                                           link.text or '<no text link>',
+                                           link.doc_to.url)
+                else:
+                    content += format_html('{} <a href="{}">🌍</a>',
+                                           txt,
+                                           link.text or '<no text link>',
+                                           link.extern_url)
+                link_no += 1
 
+            content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
+            content += format_html('{}<br/>', line)
+        return content
 
-@login_required
-def www(request):
-    doc = get_cached_doc(request, 'www')
-    if isinstance(doc, HttpResponse):
-        return doc
-
-    context = get_context(doc, 'www', request)
-    context['content'] = get_content(doc)
-    return render(request, 'se/www.html', context)
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        content = self._get_content()
+        return context | {
+            'content': content
+        }

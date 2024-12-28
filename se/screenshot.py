@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -14,40 +14,38 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
-from .cached import get_cached_doc, get_context, url_from_request
+from .cached import CacheMixin
 from .login import login_required
 
 
-@login_required
-def screenshot(request):
-    doc = get_cached_doc(request, 'screenshot')
-    if isinstance(doc, HttpResponse):
-        return doc
+@method_decorator(login_required, name='dispatch')
+class ScreenshotView(CacheMixin, TemplateView):
+    template_name = 'se/embed.html'
+    view_name = 'screenshot'
 
-    context = get_context(doc, 'screenshot', request)
-    context.update({
-        'url': request.build_absolute_uri('/screenshot_full/') + url_from_request(request),
-        'allow_scripts': True
-    })
-    return render(request, 'se/embed.html', context)
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        return context | {
+            'url': self.request.build_absolute_uri('/screenshot_full/') + self._url_from_request(),
+            'allow_scripts': True
+        }
 
 
-@login_required
-def screenshot_full(request):
-    doc = get_cached_doc(request, 'screenshot')
-    if isinstance(doc, HttpResponse):
-        return doc
+@method_decorator(login_required, name='dispatch')
+class ScreenshotFullView(CacheMixin, TemplateView):
+    template_name = 'se/screenshot_full.html'
+    view_name = 'screenshot_full'
 
-    context = get_context(doc, 'screenshot', request)
-    context.update({
-        'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + doc.image_name(),
-        'screenshot_size': doc.screenshot_size.split('x'),
-        'screenshot_format': doc.screenshot_format,
-        'screenshot_mime': 'image/png' if doc.screenshot_format == 'png' else 'image/jpeg',
-        'links': doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
-        'screens': range(doc.screenshot_count)
-    })
-    return render(request, 'se/screenshot_full.html', context)
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        return context | {
+            'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + self.doc.image_name(),
+            'screenshot_size': self.doc.screenshot_size.split('x'),
+            'screenshot_format': self.doc.screenshot_format,
+            'screenshot_mime': 'image/png' if self.doc.screenshot_format == 'png' else 'image/jpeg',
+            'links': self.doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
+            'screens': range(self.doc.screenshot_count)
+        }

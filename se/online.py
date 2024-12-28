@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -17,9 +17,12 @@ import requests
 
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 from .browser import RequestBrowser
 from .forms import SearchForm
+from .login import login_required
 
 
 check_cache_count = 0
@@ -55,10 +58,12 @@ def online_status(request):
     return check_cache_value
 
 
-def online_check(request):
-    try:
-        RequestBrowser.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)
-    except requests.exceptions.RequestException as e:
-        return JsonResponse({'status': e.__doc__, 'success': False})
+@method_decorator(login_required, name='dispatch')
+class OnlineCheckView(View):
+    def get(self, request):
+        try:
+            RequestBrowser.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)
+        except requests.exceptions.RequestException as e:
+            return JsonResponse({'status': e.__doc__, 'success': False})
 
-    return JsonResponse({'status': 'Success', 'success': True})
+        return JsonResponse({'status': 'Success', 'success': True})

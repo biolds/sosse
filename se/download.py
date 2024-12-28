@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -17,43 +17,43 @@ import os
 from urllib.parse import unquote
 
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
-from .cached import get_cached_doc, get_context, url_from_request
+from .cached import CacheMixin
 from .html_asset import HTMLAsset
 from .login import login_required
 from .utils import mimetype_icon
+from .views import RedirectException
 
 
-@login_required
-def download(request: HttpRequest) -> HttpResponse:
-    doc = get_cached_doc(request, 'html')
-    if isinstance(doc, HttpResponse):
-        return doc
+@method_decorator(login_required, name='dispatch')
+class DownloadView(CacheMixin, TemplateView):
+    template_name = 'se/download.html'
+    view_name = 'download'
 
-    url = url_from_request(request)
-    asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
+    def get_context_data(self, *args, **kwargs) -> dict:
+        url = self._url_from_request()
+        asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
 
-    if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
-        return redirect(doc.get_absolute_url())
+        if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
+            raise RedirectException(self.doc.get_absolute_url())
 
-    asset_path = settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename
+        asset_path = settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename
 
-    filename = url.rstrip('/').rsplit('/', 1)[1]
-    filename = unquote(filename)
-    if '.' in filename:
-        filename = filename.rsplit('.', 1)[0]
+        filename = url.rstrip('/').rsplit('/', 1)[1]
+        filename = unquote(filename)
+        if '.' in filename:
+            filename = filename.rsplit('.', 1)[0]
 
-    extension = asset.filename.rsplit('.', 1)[1]
-    filename = f'{filename}.{extension}'
+        extension = asset.filename.rsplit('.', 1)[1]
+        filename = f'{filename}.{extension}'
 
-    context = get_context(doc, 'download', request)
-    context.update({
-        'url': request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
-        'filename': filename,
-        'filesize': os.path.getsize(asset_path),
-        'icon': mimetype_icon(doc.mimetype),
-        'mimebase': doc.mimetype.split('/', 1)[0]
-    })
-    return render(request, 'se/download.html', context)
+        context = super().get_context_data()
+        return context | {
+            'url': self.request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
+            'filename': filename,
+            'filesize': os.path.getsize(asset_path),
+            'icon': mimetype_icon(self.doc.mimetype),
+            'mimebase': self.doc.mimetype.split('/', 1)[0]
+        }

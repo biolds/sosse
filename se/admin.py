@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -381,8 +381,8 @@ class DocumentAdmin(admin.ModelAdmin):
         return response.TemplateResponse(request, 'admin/crawl_status_content.html', context)
 
     def stats(self, request):
-        from .views import stats as stats_view
-        return stats_view(request)
+        from .views import StatisticsView
+        return StatisticsView.as_view()(request)
 
     @staticmethod
     @admin.display(ordering='crawl_next')

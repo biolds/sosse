@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -33,42 +33,42 @@ from django.contrib.auth.views import LogoutView
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from se.views import about, favicon, history, opensearch, prefs, search, search_redirect, word_stats, SELoginView
-from se.atom import atom
-from se.cached import cache_redirect
-from se.download import download
-from se.html import html, html_excluded
-from se.online import online_check
+from se.views import AboutView, FavIconView, HistoryView, OpensearchView, PreferencesView, SearchView, SearchRedirectView, WordStatsView, SELoginView
+from se.atom import AtomView
+from se.cached import CacheRedirectView
+from se.download import DownloadView
+from se.html import HTMLView, HTMLExcludedView
+from se.online import OnlineCheckView
 from se.rest_api import router
-from se.screenshot import screenshot, screenshot_full
-from se.words import words
-from se.www import www
+from se.screenshot import ScreenshotView, ScreenshotFullView
+from se.words import WordsView
+from se.www import WWWView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', search, name='search'),
-    path('about/', about, name='about'),
-    path('s/', search_redirect, name='search_redirect'),
-    path('prefs/', prefs),
-    path('atom/', atom, name='atom'),
-    path('online_check/', online_check, name='online_check'),
-    path('word_stats/', word_stats),
-    path('history/', history, name='history'),
+    path('', SearchView.as_view(), name='search'),
+    path('about/', AboutView.as_view(), name='about'),
+    path('s/', SearchRedirectView.as_view(), name='search_redirect'),
+    path('prefs/', PreferencesView.as_view()),
+    path('atom/', AtomView.as_view(), name='atom'),
+    path('online_check/', OnlineCheckView.as_view(), name='online_check'),
+    path('word_stats/', WordStatsView.as_view()),
+    path('history/', HistoryView.as_view(), name='history'),
     path('login/', SELoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('opensearch.xml', opensearch, name='opensearch'),
+    path('opensearch.xml', OpensearchView.as_view(), name='opensearch'),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(router.urls)),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
-    re_path(r'^favicon/(?P<favicon_id>[0-9]+)', favicon, name='favicon'),
-    re_path(r'^html/.*', html, name='html'),
-    re_path(r'^screenshot/.*', screenshot, name='screenshot'),
-    re_path(r'^screenshot_full/.*', screenshot_full, name='screenshot_full'),
-    re_path(r'^www/.*', www, name='www'),
-    re_path(r'^words/.*', words, name='words'),
-    re_path(r'^cache/.*', cache_redirect, name='cache'),
-    re_path(r'^download/.*', download, name='download'),
-    re_path(r'^html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$', html_excluded, name='html_excluded'),
+    re_path(r'^favicon/(?P<favicon_id>[0-9]+)', FavIconView.as_view(), name='favicon'),
+    re_path(r'^html/.*', HTMLView.as_view(), name=HTMLView.view_name),
+    re_path(r'^screenshot/.*', ScreenshotView.as_view(), name=ScreenshotView.view_name),
+    re_path(r'^screenshot_full/.*', ScreenshotFullView.as_view(), name='screenshot_full'),
+    re_path(r'^www/.*', WWWView.as_view(), name=WWWView.view_name),
+    re_path(r'^words/.*', WordsView.as_view(), name=WordsView.view_name),
+    re_path(r'^cache/.*', CacheRedirectView.as_view(), name='cache'),
+    re_path(r'^download/.*', DownloadView.as_view(), name=DownloadView.view_name),
+    re_path(r'^html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$', HTMLExcludedView.as_view(), name='html_excluded'),
 ]

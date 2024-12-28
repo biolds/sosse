@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -17,22 +17,23 @@ from urllib.parse import quote
 import os
 
 from django.conf import settings
+from django.template.response import SimpleTemplateResponse
 from django.test import TransactionTestCase
 from django.utils import timezone
 
-from se.atom import atom
+from se.atom import AtomView
 from se.browser import ChromiumBrowser, FirefoxBrowser
-from se.cached import cache_redirect
+from se.cached import CacheRedirectView
 from se.document import Document
-from se.download import download
-from se.html import html, html_excluded
+from se.download import DownloadView
+from se.html import HTMLView, HTMLExcludedView
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
-from se.online import online_check
-from se.screenshot import screenshot, screenshot_full
+from se.online import OnlineCheckView
+from se.screenshot import ScreenshotView, ScreenshotFullView
 from se.test_views_mixin import ViewsTestMixin
-from se.views import about, history, opensearch, prefs, search, search_redirect, word_stats
-from se.words import words
-from se.www import www
+from se.views import AboutView, HistoryView, OpensearchView, PreferencesView, SearchView, SearchRedirectView, WordStatsView
+from se.words import WordsView
+from se.www import WWWView
 
 
 CRAWL_URL = 'http://127.0.0.1:8000/cookies'
@@ -65,29 +66,32 @@ class ViewsTest:
             pass
 
     def test_views(self):
-        for (url, view, args) in (('/?q=page', search, tuple()),
-                                  ('/about/', about, tuple()),
-                                  ('/prefs/', prefs, tuple()),
-                                  ('/history/', history, tuple()),
-                                  ('/?q=page', search, tuple()),
-                                  ('/s/?q=page', search_redirect, tuple()),
-                                  ('/atom/?q=page', atom, tuple()),
-                                  ('/atom/?q=page&cached=1', atom, tuple()),
-                                  ('/word_stats/?q=page', word_stats, tuple()),
-                                  ('/opensearch.xml', opensearch, tuple()),
-                                  ('/html/' + CRAWL_URL, html, tuple()),
-                                  ('/www/' + CRAWL_URL, www, tuple()),
-                                  ('/www/http://unknown/', www, tuple()),
-                                  ('/words/' + CRAWL_URL, words, tuple()),
-                                  ('/download/' + CRAWL_URL, download, tuple()),
-                                  ('/screenshot/' + CRAWL_URL, screenshot, tuple()),
-                                  ('/screenshot_full/' + CRAWL_URL, screenshot_full, tuple()),
-                                  ('/online_check/' + CRAWL_URL, online_check, tuple()),
-                                  (f'/html_excluded/{self.crawl_policy.id}/url', html_excluded, (self.crawl_policy.id, 'url'))):
+        for (url, view_cls, kwargs) in (('/?q=page', SearchView, {}),
+                                        ('/about/', AboutView, {}),
+                                        ('/prefs/', PreferencesView, {}),
+                                        ('/history/', HistoryView, {}),
+                                        ('/?q=page', SearchView, {}),
+                                        ('/s/?q=page', SearchRedirectView, {}),
+                                        ('/atom/?q=page', AtomView, {}),
+                                        ('/atom/?q=page&cached=1', AtomView, {}),
+                                        ('/word_stats/?q=page', WordStatsView, {}),
+                                        ('/opensearch.xml', OpensearchView, {}),
+                                        ('/html/' + CRAWL_URL, HTMLView, {}),
+                                        ('/www/' + CRAWL_URL, WWWView, {}),
+                                        ('/www/http://unknown/', WWWView, {}),
+                                        ('/words/' + CRAWL_URL, WordsView, {}),
+                                        ('/download/' + CRAWL_URL, DownloadView, {}),
+                                        ('/screenshot/' + CRAWL_URL, ScreenshotView, {}),
+                                        ('/screenshot_full/' + CRAWL_URL, ScreenshotFullView, {}),
+                                        ('/online_check/' + CRAWL_URL, OnlineCheckView, {}),
+                                        (f'/html_excluded/{self.crawl_policy.id}/url', HTMLExcludedView, {'crawl_policy': self.crawl_policy.id, 'method': 'url'})):
 
+            view = view_cls.as_view()
             request = self._request_from_factory(url)
             try:
-                response = view(request, *args)
+                response = view(request, **kwargs)
+                if isinstance(response, SimpleTemplateResponse):
+                    response.render()
             except:  # noqa
                 raise Exception('Failed on %s' % url)
             self.assertEqual(response.status_code, 200, f'{url}\n{response.content}\n{response.headers}')
@@ -98,7 +102,7 @@ class ViewsTest:
 
     def test_cache_redirect(self):
         request = self._request_from_factory('/cache/' + CRAWL_URL)
-        response = cache_redirect(request)
+        response = CacheRedirectView.as_view()(request)
         self.assertEqual(response.status_code, 302, response)
         self.assertEqual(response.url, '/screenshot/' + CRAWL_URL, response)
 

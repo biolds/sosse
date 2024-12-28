@@ -31,19 +31,10 @@ from .login import login_required
 from .online import online_status
 from .models import FavIcon, SearchEngine, SearchHistory
 from .search import add_headlines, get_documents_from_request
+from .utils import human_nb
 
 
 ANIMALS = '🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿'
-
-
-def human_nb(nb):
-    unit = ('', 'k', 'M', 'G', 'T', 'P')
-    unit_no = 0
-
-    while nb > 1000:
-        nb /= 1000
-        unit_no += 1
-    return '%i%s' % (nb, unit[unit_no])
 
 
 def format_url(request, params):

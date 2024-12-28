@@ -113,6 +113,11 @@ def get_unit(n):
     return 10 ** (unit_no * 3), units[unit_no]
 
 
+def human_nb(n):
+    factor, unit = get_unit(n)
+    return '%i%s' % (n / factor, unit)
+
+
 def human_filesize(n):
     factor, unit = get_unit(n)
     return '%0.1f%sB' % (n / factor, unit)

@@ -254,9 +254,15 @@ class DocumentAdmin(admin.ModelAdmin):
     def add_to_queue(self, request):
         if not request.user.has_perm('se.add_document'):
             raise PermissionDenied
+
+        form = AddToQueueForm()
+
+        # Focus on the field only on initial rendering, the submit
+        # button is focused on confirmation dialog
+        form.fields['url'].widget.attrs.update({'autofocus': True})
         context = dict(
             self.admin_site.each_context(request),
-            form=AddToQueueForm(),
+            form=form,
             title='Crawl a new URL'
         )
         return response.TemplateResponse(request, 'admin/add_to_queue.html', context)

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #

@@ -2,15 +2,18 @@
 {% block content %}
     <form method="post" action="{% url 'admin:queue_confirm' %}">
         {% csrf_token %}
+        <h3>{{ form.url.label }}</h3>
         {{ form.url.errors }}
-        {{ form.url.label_tag }} {{ form.url }}
+        {{ form.url }}
         {% if form.url.help_text %}
             <p class="help">{{ form.url.help_text|safe }}</p>
         {% endif %}
 
+
         {% if crawl_policy %}
             <input type="submit" name="action" value="Refresh">
 
+            <h3>Matching policy</h3>
             <p>
                 This URL will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
             </p>
@@ -58,6 +61,10 @@
                 <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ url|urlencode }}">Create a new policy</a>
             </p>
 
+            {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH or settings.SOSSE_BROWSABLE_HOME %}
+                <h3>Parameters</h3>
+            {% endif %}
+
             {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH %}
                 {{ form.recursion_depth.errors }}
                 {{ form.recursion_depth.label_tag }} {{ form.recursion_depth }}
@@ -65,9 +72,18 @@
                     <small><p class="help">{{ form.recursion_depth.help_text|safe }}</p></small>
                 {% endif %}
             {% endif %}
+            {% if settings.SOSSE_BROWSABLE_HOME %}
+                {{ form.show_on_homepage.errors }}
+                {{ form.show_on_homepage }}
+                <label class="vCheckboxLabel" for="id_show_on_homepage">Show on homepage</label>
+
+                {% if form.show_on_homepage.help_text %}
+                    <small><p class="help">{{ form.show_on_homepage.help_text|safe }}</p></small>
+                {% endif %}
+            {% endif %}
             <input type="hidden" name="confirmation" value="1">
             <p>
-                <input type="submit" name="action" value="Confirm">
+                <input type="submit" name="action" value="Confirm" autofocus>
             </p>
         {% else %}
             <input type="submit" name="action" value="Check and queue">

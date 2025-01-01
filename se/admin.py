@@ -291,7 +291,7 @@ class DocumentAdmin(admin.ModelAdmin):
                 if crawl_recurse:
                     doc.crawl_recurse = crawl_recurse
 
-            doc.show_on_homepage = True
+            doc.show_on_homepage = bool(form.cleaned_data.get('show_on_homepage'))
             doc.save()
             messages.success(request, 'URL was queued.')
             return redirect(reverse('admin:crawl_status'))

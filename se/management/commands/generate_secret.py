@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -18,10 +18,10 @@ from django.core.management.utils import get_random_secret_key
 
 
 class Command(BaseCommand):
-    help = 'Generates a secret key to set in the configuration.'
-    doc = 'Generates a secret key that can be used in the :ref:`Configuration file <conf_option_secret_key>`.'
+    help = "Generates a secret key to set in the configuration."
+    doc = "Generates a secret key that can be used in the :ref:`Configuration file <conf_option_secret_key>`."
 
     def handle(self, *args, **options):
         # Escape % to avoid value interpolation in the conf file
         # (https://docs.python.org/3/library/configparser.html#interpolation-of-values)
-        print(get_random_secret_key().replace('%', '%%'))
+        print(get_random_secret_key().replace("%", "%%"))

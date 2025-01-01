@@ -22,16 +22,16 @@ from .login import login_required
 from .models import Link
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class WWWView(CacheMixin, TemplateView):
     template_name = "se/www.html"
     view_name = "www"
 
     def _get_content(self):
-        content = format_html('')
+        content = format_html("")
         content_pos = 0
 
-        links = Link.objects.filter(doc_from=self.doc).order_by('link_no')
+        links = Link.objects.filter(doc_from=self.doc).order_by("link_no")
         links_count = Link.objects.filter(doc_from=self.doc).count()
         link_no = 0
         for line in self.doc.content.splitlines():
@@ -40,29 +40,31 @@ class WWWView(CacheMixin, TemplateView):
                 link_pos = link.pos - content_pos
                 txt = line[:link_pos]
                 if not link.in_nav:
-                    line = line[link_pos + len(link.text or ''):]
-                    content_pos += len(txt) + len(link.text or '')
+                    line = line[link_pos + len(link.text or "") :]
+                    content_pos += len(txt) + len(link.text or "")
 
                 if link.doc_to:
-                    content += format_html('{} <a href="{}">{}</a>',
-                                           txt,
-                                           link.doc_to.get_absolute_url(),
-                                           link.text or '<no text link>',
-                                           link.doc_to.url)
+                    content += format_html(
+                        '{} <a href="{}">{}</a>',
+                        txt,
+                        link.doc_to.get_absolute_url(),
+                        link.text or "<no text link>",
+                        link.doc_to.url,
+                    )
                 else:
-                    content += format_html('{} <a href="{}">🌍</a>',
-                                           txt,
-                                           link.text or '<no text link>',
-                                           link.extern_url)
+                    content += format_html(
+                        '{} <a href="{}">🌍</a>',
+                        txt,
+                        link.text or "<no text link>",
+                        link.extern_url,
+                    )
                 link_no += 1
 
             content_pos += len(line) + 1  # +1 for the \n stripped by splitlines()
-            content += format_html('{}<br/>', line)
+            content += format_html("{}<br/>", line)
         return content
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         content = self._get_content()
-        return context | {
-            'content': content
-        }
+        return context | {"content": content}

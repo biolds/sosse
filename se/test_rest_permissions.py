@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -25,68 +25,65 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
     def setUp(self):
         super().setUp()
         self.client.logout()
-        self.regular_user = User.objects.create(username='user')
-        self.regular_user.set_password('user')
+        self.regular_user = User.objects.create(username="user")
+        self.regular_user.set_password("user")
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_search_anonymous(self):
-        response = self.client.get('/api/document/')
+        response = self.client.get("/api/document/")
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content).get('count'), 2)
+        self.assertEqual(json.loads(response.content).get("count"), 2)
 
-        response = self.client.post('/api/search/', {
-            'query': 'content'
-        })
+        response = self.client.post("/api/search/", {"query": "content"})
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content).get('count'), 1)
+        self.assertEqual(json.loads(response.content).get("count"), 1)
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=False)
     def test_search_anonymous_forbidden(self):
-        response = self.client.get('/api/document/')
+        response = self.client.get("/api/document/")
         self.assertEqual(response.status_code, 403, response.content)
 
-        response = self.client.post('/api/search/', {
-            'query': 'content'
-        })
+        response = self.client.post("/api/search/", {"query": "content"})
         self.assertEqual(response.status_code, 403, response.content)
 
-        self.client.login(username='admin', password='admin')
-        response = self.client.get('/api/document/')
+        self.client.login(username="admin", password="admin")
+        response = self.client.get("/api/document/")
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content).get('count'), 2)
+        self.assertEqual(json.loads(response.content).get("count"), 2)
 
-        response = self.client.post('/api/search/', {
-            'query': 'content'
-        })
+        response = self.client.post("/api/search/", {"query": "content"})
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content).get('count'), 1)
+        self.assertEqual(json.loads(response.content).get("count"), 1)
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_crawler_stats_permission(self):
-        response = self.client.get('/api/stats/')
+        response = self.client.get("/api/stats/")
         self.assertEqual(response.status_code, 403, response.content)
 
-        self.client.login(username='user', password='user')
-        response = self.client.get('/api/stats/')
+        self.client.login(username="user", password="user")
+        response = self.client.get("/api/stats/")
         self.assertEqual(response.status_code, 403, response.content)
 
         self.client.logout()
-        self.client.login(username='admin', password='admin')
-        response = self.client.get('/api/stats/')
+        self.client.login(username="admin", password="admin")
+        response = self.client.get("/api/stats/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.content).get('count'), 2)
+        self.assertEqual(json.loads(response.content).get("count"), 2)
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_hdd_stats_permission(self):
-        response = self.client.get('/api/hdd_stats/')
+        response = self.client.get("/api/hdd_stats/")
         self.assertEqual(response.status_code, 403, response.content)
 
-        self.client.login(username='user', password='user')
-        response = self.client.get('/api/hdd_stats/')
+        self.client.login(username="user", password="user")
+        response = self.client.get("/api/hdd_stats/")
         self.assertEqual(response.status_code, 403, response.content)
 
         self.client.logout()
-        self.client.login(username='admin', password='admin')
-        response = self.client.get('/api/hdd_stats/')
+        self.client.login(username="admin", password="admin")
+        response = self.client.get("/api/hdd_stats/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(json.loads(response.content).keys()), {'db', 'screenshots', 'html', 'other', 'free'})
+        self.assertEqual(
+            set(json.loads(response.content).keys()),
+            {"db", "screenshots", "html", "other", "free"},
+        )

@@ -2,9 +2,9 @@ bs4
 cssutils
 defusedxml
 django<4
+django-filter
 django-uwsgi
 djangorestframework
-django-filter
 drf-spectacular
 feedparser
 html5lib

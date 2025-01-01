@@ -37,13 +37,13 @@ class CacheMixin(SosseMixin):
 
     def _url_from_request(self):
         # Keep the url with parameters
-        url = self.request.META['REQUEST_URI'].split('/', 2)[-1]
+        url = self.request.META["REQUEST_URI"].split("/", 2)[-1]
 
         # re-establish double //
-        scheme, url = url.split('/', 1)
-        if url[0] != '/':
-            url = '/' + url
-        url = scheme + '/' + url
+        scheme, url = url.split("/", 1)
+        if url[0] != "/":
+            url = "/" + url
+        url = scheme + "/" + url
 
         url = urlparse(url)
         url = url._replace(netloc=unquote(url.netloc))
@@ -73,83 +73,99 @@ class CacheMixin(SosseMixin):
         page_title = None
         favicon = None
         if self.doc.favicon and not self.doc.favicon.missing:
-            favicon = reverse('favicon', args=(self.doc.favicon.id,))
-            page_title = format_html('<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}', favicon, title)
+            favicon = reverse("favicon", args=(self.doc.favicon.id,))
+            page_title = format_html(
+                '<img src="{}" style="height: 32px; width: 32px; vertical-align: bottom" alt="icon"> {}',
+                favicon,
+                title,
+            )
         else:
             page_title = title
 
         other_links = []
-        if self.doc.mimetype and self.doc.mimetype.startswith('text/'):
-            other_links = [{
-                'href': reverse_no_escape('www', args=[self.doc.url]),
-                'text': 'Text',
-                'text_icon': '✏️',
-                'name': 'www'
-            }]
+        if self.doc.mimetype and self.doc.mimetype.startswith("text/"):
+            other_links = [
+                {
+                    "href": reverse_no_escape("www", args=[self.doc.url]),
+                    "text": "Text",
+                    "text_icon": "✏️",
+                    "name": "www",
+                }
+            ]
             if self.doc.has_html_snapshot:
-                other_links.append({
-                    'href': reverse_no_escape('html', args=[self.doc.url]),
-                    'text': 'HTML',
-                    'text_icon': '🔖',
-                    'name': 'html'
-                })
+                other_links.append(
+                    {
+                        "href": reverse_no_escape("html", args=[self.doc.url]),
+                        "text": "HTML",
+                        "text_icon": "🔖",
+                        "name": "html",
+                    }
+                )
             if self.doc.screenshot_count:
-                other_links.append({
-                    'href': reverse_no_escape('screenshot', args=[self.doc.url]),
-                    'text': 'Screenshot',
-                    'text_icon': '📷',
-                    'name': 'screenshot'
-                })
+                other_links.append(
+                    {
+                        "href": reverse_no_escape("screenshot", args=[self.doc.url]),
+                        "text": "Screenshot",
+                        "text_icon": "📷",
+                        "name": "screenshot",
+                    }
+                )
         else:
             if self.doc.has_html_snapshot:
-                other_links = [{
-                    'href': reverse_no_escape('download', args=[self.doc.url]),
-                    'text': 'Download',
-                    'text_icon': '📂 ',
-                    'name': 'download'
-                }]
+                other_links = [
+                    {
+                        "href": reverse_no_escape("download", args=[self.doc.url]),
+                        "text": "Download",
+                        "text_icon": "📂 ",
+                        "name": "download",
+                    }
+                ]
 
-        other_links.append({
-            'href': reverse_no_escape('words', args=[self.doc.url]),
-            'text': 'Words weight',
-            'text_icon': '📚',
-            'name': 'words'
-        })
+        other_links.append(
+            {
+                "href": reverse_no_escape("words", args=[self.doc.url]),
+                "text": "Words weight",
+                "text_icon": "📚",
+                "name": "words",
+            }
+        )
 
-        context.update({
-            'crawl_policy': crawl_policy,
-            'doc': self.doc,
-            'www_redirect_url': self.doc.redirect_url and reverse_no_escape('cache', args=[self.doc.redirect_url]),
-            'head_title': title,
-            'title': page_title,
-            'beautified_url': beautified_url,
-            'favicon': favicon,
-            'other_links': other_links,
-            'show_search_input': True,
-            'search_form': SearchForm({}),
-            'view_name': self.view_name,
-            'settings': settings,
-            'online_status': online_status(self.request)
-        })
+        context.update(
+            {
+                "crawl_policy": crawl_policy,
+                "doc": self.doc,
+                "www_redirect_url": self.doc.redirect_url and reverse_no_escape("cache", args=[self.doc.redirect_url]),
+                "head_title": title,
+                "title": page_title,
+                "beautified_url": beautified_url,
+                "favicon": favicon,
+                "other_links": other_links,
+                "show_search_input": True,
+                "search_form": SearchForm({}),
+                "view_name": self.view_name,
+                "settings": settings,
+                "online_status": online_status(self.request),
+            }
+        )
         return context
 
     def _unknown_url_view(self):
         url = self._url_from_request()
         beautified_url = url_beautify(url)
         context = {
-            'url': url,
-            'title': beautified_url,
-            'beautified_url': beautified_url,
-            'crawl_policy': CrawlPolicy.get_from_url(url),
-            'extern_link_flags': extern_link_flags,
-            'search_form': SearchForm({}),
-            'online_status': online_status(self.request)
+            "url": url,
+            "title": beautified_url,
+            "beautified_url": beautified_url,
+            "crawl_policy": CrawlPolicy.get_from_url(url),
+            "extern_link_flags": extern_link_flags,
+            "search_form": SearchForm({}),
+            "online_status": online_status(self.request),
         }
-        return render(self.request, 'se/unknown_url.html', context)
+        return render(self.request, "se/unknown_url.html", context)
 
     def get(self, request):
         if self.view_name is None:
-            raise Exception('view_name must be overwritten')
+            raise Exception("view_name must be overwritten")
         doc = self._get_cached_doc()
         if isinstance(doc, HttpResponse):
             return doc
@@ -157,7 +173,7 @@ class CacheMixin(SosseMixin):
         return super().get(request)
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class CacheRedirectView(CacheMixin, View):
     def get(self, request):
         doc = self._get_document()

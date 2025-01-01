@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -21,31 +21,40 @@ import se
 
 
 def forward_default_remove_nav(apps, schema_editor):
-    CrawlPolicy = apps.get_model('se', 'CrawlPolicy')
-    CrawlPolicy.objects.filter(remove_nav_elements='yes').update(remove_nav_elements='idx')
+    CrawlPolicy = apps.get_model("se", "CrawlPolicy")
+    CrawlPolicy.objects.filter(remove_nav_elements="yes").update(remove_nav_elements="idx")
 
 
 def reverse_default_remove_nav(apps, schema_editor):
-    CrawlPolicy = apps.get_model('se', 'CrawlPolicy')
-    CrawlPolicy.objects.filter(remove_nav_elements='idx').update(remove_nav_elements='yes')
+    CrawlPolicy = apps.get_model("se", "CrawlPolicy")
+    CrawlPolicy.objects.filter(remove_nav_elements="idx").update(remove_nav_elements="yes")
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0008_sosse_1_6_0'),
+        ("se", "0008_sosse_1_6_0"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='crawlpolicy',
-            name='remove_nav_elements',
-            field=models.CharField(choices=[('idx', 'From index'), ('scr', 'From index and screenshots'), ('yes', 'From index, screens and HTML snaps'), ('no', 'No')], default='idx', help_text='Remove navigation related elements', max_length=4),
+            model_name="crawlpolicy",
+            name="remove_nav_elements",
+            field=models.CharField(
+                choices=[
+                    ("idx", "From index"),
+                    ("scr", "From index and screenshots"),
+                    ("yes", "From index, screens and HTML snaps"),
+                    ("no", "No"),
+                ],
+                default="idx",
+                help_text="Remove navigation related elements",
+                max_length=4,
+            ),
         ),
         migrations.RunPython(forward_default_remove_nav, reverse_default_remove_nav),
         migrations.AlterField(
-            model_name='crawlpolicy',
-            name='url_regex',
+            model_name="crawlpolicy",
+            name="url_regex",
             field=models.TextField(unique=True, validators=[se.models.validate_url_regexp]),
         ),
     ]

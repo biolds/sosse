@@ -92,4 +92,3 @@
 |  | Go To | http://127.0.0.1/words/http://127.0.0.1/screenshots/website/index.html
 |  | VRT check | Cache - Words
 |  | Stop
-

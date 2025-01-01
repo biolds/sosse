@@ -3,8 +3,12 @@ ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
 RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
+ADD sid.list /etc/apt/sources.list.d/
+ADD 99sid /etc/apt/preferences.d/
+RUN apt update
 RUN apt purge -y sosse
 RUN apt install -y python3-coverage python3-virtualenv flake8 sudo jq make git
+RUN apt install -y -t sid pre-commit
 RUN /etc/init.d/postgresql start && \
     su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'" && \
     /etc/init.d/postgresql stop

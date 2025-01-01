@@ -31,14 +31,14 @@ check_cache_value = None
 
 def online_status(request):
     if not settings.SOSSE_ONLINE_SEARCH_REDIRECT:
-        return ''
+        return ""
 
     form = SearchForm(request.GET)
     if form.is_valid():
-        if form.cleaned_data['o'] == 'o':
-            return 'online'
-        elif form.cleaned_data['o'] == 'l':
-            return 'offline'
+        if form.cleaned_data["o"] == "o":
+            return "online"
+        elif form.cleaned_data["o"] == "l":
+            return "offline"
 
     global check_cache_count, check_cache_value
     try:
@@ -51,19 +51,23 @@ def online_status(request):
                 return check_cache_value
 
         check_cache_count = settings.SOSSE_ONLINE_CHECK_CACHE
-        RequestBrowser.get(settings.SOSSE_ONLINE_CHECK_URL, timeout=settings.SOSSE_ONLINE_CHECK_TIMEOUT, check_status=True)
-        check_cache_value = 'online'
+        RequestBrowser.get(
+            settings.SOSSE_ONLINE_CHECK_URL,
+            timeout=settings.SOSSE_ONLINE_CHECK_TIMEOUT,
+            check_status=True,
+        )
+        check_cache_value = "online"
     except requests.exceptions.RequestException:
-        check_cache_value = 'offline'
+        check_cache_value = "offline"
     return check_cache_value
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class OnlineCheckView(View):
     def get(self, request):
         try:
             RequestBrowser.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)
         except requests.exceptions.RequestException as e:
-            return JsonResponse({'status': e.__doc__, 'success': False})
+            return JsonResponse({"status": e.__doc__, "success": False})
 
-        return JsonResponse({'status': 'Success', 'success': True})
+        return JsonResponse({"status": "Success", "success": True})

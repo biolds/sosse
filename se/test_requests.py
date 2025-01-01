@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -23,21 +23,21 @@ from .browser import RequestBrowser
 class RequestsTest(TransactionTestCase):
     def _get(self, s, url):
         params = RequestBrowser._requests_params()
-        params['allow_redirects'] = True
+        params["allow_redirects"] = True
         return s.get(url, **params)
 
     def test_10_cookie_set(self):
         s = requests.Session()
-        self._get(s, 'http://127.0.0.1:8000/cookies/set?test_key=test_value')
+        self._get(s, "http://127.0.0.1:8000/cookies/set?test_key=test_value")
         cookies = list(s.cookies)
         self.assertEqual(len(cookies), 1)
-        self.assertEqual(cookies[0].name, 'test_key')
-        self.assertEqual(cookies[0].value, 'test_value')
-        self.assertEqual(cookies[0].domain, '127.0.0.1')
+        self.assertEqual(cookies[0].name, "test_key")
+        self.assertEqual(cookies[0].value, "test_value")
+        self.assertEqual(cookies[0].domain, "127.0.0.1")
         return s
 
     def test_20_cookie_delete(self):
         s = self.test_10_cookie_set()
-        self._get(s, 'http://127.0.0.1:8000/cookies/delete?test_key')
+        self._get(s, "http://127.0.0.1:8000/cookies/delete?test_key")
         cookies = list(s.cookies)
         self.assertEqual(cookies, [])

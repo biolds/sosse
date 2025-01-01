@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -37,55 +37,57 @@ class DocumentMeta:
         if link_preview.image:
             yield link_preview.image
 
-        for attr in ('image', 'description'):
+        for attr in ("image", "description"):
             url: str | None = getattr(link_preview, attr)
 
             if url is None:
                 continue
 
-            if url.startswith(('http:', 'https:', ':/', '/')) and ' ' in url:
-                yield url.split(' ', 1)[0]
+            if url.startswith(("http:", "https:", ":/", "/")) and " " in url:
+                yield url.split(" ", 1)[0]
 
     @classmethod
     def preview_file_from_url(cls, url: str, image_name: str) -> str | None:
-        if url.startswith('blob:'):
+        if url.startswith("blob:"):
             return
 
-        if url.startswith('data:'):
-            content = url.lstrip('data:')
-            if not content.startswith('image/'):
+        if url.startswith("data:"):
+            content = url.lstrip("data:")
+            if not content.startswith("image/"):
                 return
-            mimetype, content = content.split(',', 1)
+            mimetype, content = content.split(",", 1)
 
-            if not mimetype.endswith(';base64'):
+            if not mimetype.endswith(";base64"):
                 return
 
             content = b64decode(content)
         else:
-            img_page = RequestBrowser.get(url, headers={
-                'User-Agent': settings.SOSSE_USER_AGENT,
-                'Accept': 'image/*',
-            })
+            img_page = RequestBrowser.get(
+                url,
+                headers={
+                    "User-Agent": settings.SOSSE_USER_AGENT,
+                    "Accept": "image/*",
+                },
+            )
 
             if img_page.status_code != 200:
                 return
 
             mimetype = magic_from_buffer(img_page.content, mime=True)
-            if not mimetype.startswith('image/'):
+            if not mimetype.startswith("image/"):
                 return
             content = img_page.content
 
-        thumb_jpg = os.path.join(
-            settings.SOSSE_THUMBNAILS_DIR, image_name + '.jpg')
+        thumb_jpg = os.path.join(settings.SOSSE_THUMBNAILS_DIR, image_name + ".jpg")
         dir_name = os.path.dirname(thumb_jpg)
         os.makedirs(dir_name, exist_ok=True)
 
         try:
             with Image.open(BytesIO(content)) as img:
                 # Remove alpha channel from the png
-                img = img.convert('RGB')
+                img = img.convert("RGB")
                 img.thumbnail((160, 100))
-                img.save(thumb_jpg, 'jpeg')
+                img.save(thumb_jpg, "jpeg")
         except UnidentifiedImageError:
             return
 
@@ -94,7 +96,7 @@ class DocumentMeta:
     @classmethod
     def create_preview(cls, page: Page, image_name: str) -> str | None:
         for url in cls.get_preview_urls(page):
-            if url.startswith('blob:'):
+            if url.startswith("blob:"):
                 continue
             url = absolutize_url(page.url, url)
             preview_file = cls.preview_file_from_url(url, image_name)

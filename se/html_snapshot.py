@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -29,11 +29,11 @@ from .html_cache import HTMLCache, CacheHit
 from .url import absolutize_url, has_browsable_scheme
 
 
-logger = logging.getLogger('html_snapshot')
+logger = logging.getLogger("html_snapshot")
 
 
 def css_parser():
-    if settings.SOSSE_CSS_PARSER == 'internal':
+    if settings.SOSSE_CSS_PARSER == "internal":
         return InternalCSSParser
     else:
         return CSSUtilsParser
@@ -43,9 +43,9 @@ def extract_css_url(css):
     prev = 0
     current = 0
     quote = None
-    url = ''
+    url = ""
     while True:
-        current = css.find('url(', current)
+        current = css.find("url(", current)
 
         if current == -1:
             yield False, css[prev:]
@@ -55,16 +55,17 @@ def extract_css_url(css):
 
         prev = current
         current += 4
-        while css[current] == ' ' and current < len(css):
+        while css[current] == " " and current < len(css):
             current += 1
 
         if css[current] in ('"', "'") and current < len(css):
             quote = css[current]
             current += 1
 
-        while current < len(css) and \
-                ((quote is not None and css[current] != quote) or (quote is None and css[current] != ')')):
-            if css[current] == '\\':
+        while current < len(css) and (
+            (quote is not None and css[current] != quote) or (quote is None and css[current] != ")")
+        ):
+            if css[current] == "\\":
                 current += 1
 
             url += css[current]
@@ -74,10 +75,10 @@ def extract_css_url(css):
             # skip the closing quote
             current += 1
 
-        while css[current] == ' ' and current < len(css):
+        while css[current] == " " and current < len(css):
             current += 1
 
-        if css[current] == ')' and current < len(css):
+        if css[current] == ")" and current < len(css):
             current += 1
 
         if url:
@@ -86,7 +87,7 @@ def extract_css_url(css):
             else:
                 yield False, css[prev:current]
 
-            url = ''
+            url = ""
             quote = None
             prev = current
 
@@ -99,8 +100,8 @@ class InternalCSSParser:
         else:
             assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
             if isinstance(content, bytes):
-                content = content.decode('utf-8')
-        css = ''
+                content = content.decode("utf-8")
+        css = ""
 
         for is_url, segment in extract_css_url(content):
             if is_url and has_browsable_scheme(segment):
@@ -118,7 +119,7 @@ class InternalCSSParser:
 
         for is_url, segment in extract_css_url(content):
             if is_url and segment.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
-                assets.add(segment[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+                assets.add(segment[len(settings.SOSSE_HTML_SNAPSHOT_URL) :])
 
         return assets
 
@@ -133,7 +134,7 @@ class CSSUtilsParser:
             sheet = cssutils.parseString(content)
             declarations = []
             for rule in sheet:
-                if hasattr(rule, 'style'):
+                if hasattr(rule, "style"):
                     declarations += rule.style
         return declarations, sheet
 
@@ -146,7 +147,7 @@ class CSSUtilsParser:
         declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
 
         for prop in declarations:
-            val = ''
+            val = ""
             for is_url, segment in extract_css_url(prop.value):
                 if is_url:
                     url = absolutize_url(base_url, segment)
@@ -160,7 +161,7 @@ class CSSUtilsParser:
         if inline_css:
             css = declarations.cssText
         else:
-            css = sheet.cssText.decode('utf-8')
+            css = sheet.cssText.decode("utf-8")
         assert isinstance(css, str)
         return css
 
@@ -172,7 +173,7 @@ class CSSUtilsParser:
         for prop in declarations:
             for is_url, segment in extract_css_url(prop.value):
                 if is_url and segment.startswith(settings.SOSSE_HTML_SNAPSHOT_URL):
-                    assets.add(segment[len(settings.SOSSE_HTML_SNAPSHOT_URL):])
+                    assets.add(segment[len(settings.SOSSE_HTML_SNAPSHOT_URL) :])
 
         return assets
 
@@ -198,112 +199,122 @@ class HTMLSnapshot:
 
     def snapshot(self):
         from .browser import ChromiumBrowser, FirefoxBrowser
-        logger.debug('snapshot of %s' % self.page.url)
+
+        logger.debug(f"snapshot of {self.page.url}")
         try:
             if self.page.browser in (ChromiumBrowser, FirefoxBrowser):
                 self.build_style()
             self.sanitize()
             self.handle_assets()
-            HTMLCache.write_asset(self.page.url, self.page.dump_html(), self.page, extension='.html')
+            HTMLCache.write_asset(self.page.url, self.page.dump_html(), self.page, extension=".html")
         except Exception as e:  # noqa
-            if getattr(settings, 'TEST_MODE', False) and not getattr(settings, 'TEST_HTML_ERROR_HANDLING', False):
+            if getattr(settings, "TEST_MODE", False) and not getattr(settings, "TEST_HTML_ERROR_HANDLING", False):
                 raise
-            logger.error('html_snapshot of %s failed:\n%s', self.page.url, format_exc())
-            content = 'An error occured while downloading %s:\n%s' % (self.page.url, format_exc())
-            content = format_html('<pre>{}</pre>', content)
-            content = content.encode('utf-8')
-            HTMLCache.write_asset(self.page.url, content, self.page, extension='.html')
+            logger.error(f"html_snapshot of {self.page.url} failed:\n{format_exc()}")
+            content = f"An error occured while downloading {self.page.url}:\n{format_exc()}"
+            content = format_html("<pre>{}</pre>", content)
+            content = content.encode("utf-8")
+            HTMLCache.write_asset(self.page.url, content, self.page, extension=".html")
             self._clear_assets()
 
-        logger.debug('html_snapshot of %s done' % self.page.url)
+        logger.debug(f"html_snapshot of {self.page.url} done")
 
     def sanitize(self):
-        logger.debug('html_sanitize of %s' % self.page.url)
+        logger.debug(f"html_sanitize of {self.page.url}")
         soup = self.page.get_soup()
 
         # Drop <script>
-        for elem in soup.find_all('script'):
+        for elem in soup.find_all("script"):
             elem.extract()
 
         # Drop event handlers on*
         for elem in soup.find_all(True):
             to_drop = []
             for attr in elem.attrs.keys():
-                if attr.startswith('on'):
+                if attr.startswith("on"):
                     to_drop.append(attr)
             for attr in to_drop:
                 elem.attrs.pop(attr)
 
-            if 'nonce' in elem.attrs:
-                del elem.attrs['nonce']
+            if "nonce" in elem.attrs:
+                del elem.attrs["nonce"]
 
         # Drop base elements
-        for elem in soup.find_all('base'):
+        for elem in soup.find_all("base"):
             elem.extract()
 
         # Drop favicon
-        for elem in soup.find_all('link'):
-            if elem.attrs.get('itemprop'):
+        for elem in soup.find_all("link"):
+            if elem.attrs.get("itemprop"):
                 elem.extract()
                 continue
 
-            rel = ' '.join(elem.attrs.get('rel', []))
-            for val in ('icon', 'canonical', 'alternate', 'preload'):
+            rel = " ".join(elem.attrs.get("rel", []))
+            for val in ("icon", "canonical", "alternate", "preload"):
                 if val in rel:
                     elem.extract()
                     break
 
     def handle_assets(self):
-        logger.debug('html_handle_assets for %s' % self.page.url)
+        logger.debug(f"html_handle_assets for {self.page.url}")
 
         for elem in self.page.get_soup().find_all(True):
-            if elem.name == 'base':
+            if elem.name == "base":
                 continue
 
-            if elem.name == 'style':
-                logger.debug('handle_css of %s (<style>)' % self.page.url)
+            if elem.name == "style":
+                logger.debug(f"handle_css of {self.page.url} (<style>)")
                 if elem.string:
                     elem.string = css_parser().handle_css(self, self.base_url, elem.string, False)
 
-            if elem.attrs.get('style'):
-                logger.debug('handle_css of %s (style=%s)' % (self.page.url, elem.attrs['style']))
-                elem.attrs['style'] = css_parser().handle_css(self, self.base_url, elem.attrs['style'], True)
+            if elem.attrs.get("style"):
+                logger.debug(f'handle_css of {self.page.url} (style={elem.attrs["style"]})')
+                elem.attrs["style"] = css_parser().handle_css(self, self.base_url, elem.attrs["style"], True)
 
-            if 'srcset' in elem.attrs:
-                urls = elem.attrs['srcset'].strip()
-                urls = urls.split(',')
+            if "srcset" in elem.attrs:
+                urls = elem.attrs["srcset"].strip()
+                urls = urls.split(",")
 
                 _urls = []
                 for url in urls:
                     url = url.strip()
-                    params = ''
-                    if ' ' in url:
-                        url, params = url.split(' ', 1)
-                        params = ' ' + params
+                    params = ""
+                    if " " in url:
+                        url, params = url.split(" ", 1)
+                        params = " " + params
 
-                    if url.startswith('blob:'):
+                    if url.startswith("blob:"):
                         url = url[5:]
 
-                    if not (url.startswith('file:') or url.startswith('blob:') or url.startswith('about:') or url.startswith('data:')):
-                        if self.crawl_policy.snapshot_exclude_element_re and re.match(self.crawl_policy.snapshot_exclude_element_re, elem.name):
-                            logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
-                            url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
+                    if not (
+                        url.startswith("file:")
+                        or url.startswith("blob:")
+                        or url.startswith("about:")
+                        or url.startswith("data:")
+                    ):
+                        if self.crawl_policy.snapshot_exclude_element_re and re.match(
+                            self.crawl_policy.snapshot_exclude_element_re, elem.name
+                        ):
+                            logger.debug(
+                                f"download_asset {url} excluded because it matches the element ({elem.name}) exclude regexp"
+                            )
+                            url = reverse("html_excluded", args=(self.crawl_policy.id, "element"))
                         else:
                             url = absolutize_url(self.base_url, url)
                             url = self.download_asset(url)
                             # Escape commas since they are used as a separator in srcset
-                            url = url.replace(',', '%2C')
+                            url = url.replace(",", "%2C")
 
                     _urls.append(url + params)
-                urls = ', '.join(_urls)
-                elem['srcset'] = urls
+                urls = ", ".join(_urls)
+                elem["srcset"] = urls
 
-            for attr in ('src', 'href'):
+            for attr in ("src", "href"):
                 if attr not in elem.attrs:
                     continue
 
                 url = elem.attrs[attr]
-                if url.startswith('blob:'):
+                if url.startswith("blob:"):
                     url = url[5:]
 
                 if not has_browsable_scheme(url):
@@ -311,40 +322,44 @@ class HTMLSnapshot:
 
                 url = absolutize_url(self.base_url, url)
 
-                if elem.name in ('a', 'frame', 'iframe'):
-                    elem.attrs[attr] = '/html/' + url
+                if elem.name in ("a", "frame", "iframe"):
+                    elem.attrs[attr] = "/html/" + url
                     break
                 else:
                     if url == self.page.url:
                         continue
-                    if self.crawl_policy.snapshot_exclude_element_re and re.match(self.crawl_policy.snapshot_exclude_element_re, elem.name):
-                        logger.debug('download_asset %s excluded because it matches the element (%s) exclude regexp' % (url, elem.name))
-                        filename_url = reverse('html_excluded', args=(self.crawl_policy.id, 'element'))
+                    if self.crawl_policy.snapshot_exclude_element_re and re.match(
+                        self.crawl_policy.snapshot_exclude_element_re, elem.name
+                    ):
+                        logger.debug(
+                            f"download_asset {url} excluded because it matches the element ({elem.name}) exclude regexp"
+                        )
+                        filename_url = reverse("html_excluded", args=(self.crawl_policy.id, "element"))
                     else:
                         force_mime = None
-                        if elem.name == 'link' and 'stylesheet' in elem.attrs.get('rel', []):
+                        if elem.name == "link" and "stylesheet" in elem.attrs.get("rel", []):
                             # Force the mime since because libmagic sometimes fials to identify it correctly
-                            force_mime = 'text/css'
+                            force_mime = "text/css"
 
-                        logger.debug(f'downloading asset from {attr} attribute / {elem.name}')
+                        logger.debug(f"downloading asset from {attr} attribute / {elem.name}")
                         filename_url = self.download_asset(url, force_mime)
                     elem.attrs[attr] = filename_url
 
     def download_asset(self, url, force_mime=None):
-        if getattr(settings, 'TEST_HTML_ERROR_HANDLING', False) and url == 'http://127.0.0.1/test-exception':
-            raise Exception('html_error_handling test')
+        if getattr(settings, "TEST_HTML_ERROR_HANDLING", False) and url == "http://127.0.0.1/test-exception":
+            raise Exception("html_error_handling test")
 
         if self.crawl_policy.snapshot_exclude_url_re and re.match(self.crawl_policy.snapshot_exclude_url_re, url):
-            logger.debug('download_asset %s excluded because it matches the url exclude regexp' % url)
-            return reverse('html_excluded', args=(self.crawl_policy.id, 'url'))
+            logger.debug(f"download_asset {url} excluded because it matches the url exclude regexp")
+            return reverse("html_excluded", args=(self.crawl_policy.id, "url"))
 
         if url in self.asset_urls:
             for asset in self.assets:
                 if asset.url == url:
                     return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
-            raise Exception('asset not found')
+            raise Exception("asset not found")
 
-        logger.debug(f'download_asset {url} (forced mime {force_mime})')
+        logger.debug(f"download_asset {url} (forced mime {force_mime})")
         mimetype = None
         extension = None
         page = None
@@ -354,35 +369,39 @@ class HTMLSnapshot:
             content = page.content
             mimetype = force_mime or page.mimetype
 
-            if mimetype == 'text/html':
-                return '/html/' + url
+            if mimetype == "text/html":
+                return "/html/" + url
 
-            if self.crawl_policy.snapshot_exclude_mime_re and re.match(self.crawl_policy.snapshot_exclude_mime_re, mimetype):
-                logger.debug('download_asset %s excluded because it matched the mimetype (%s) exclude regexp' % (url, mimetype))
-                return reverse('html_excluded', args=(self.crawl_policy.id, 'mime'))
+            if self.crawl_policy.snapshot_exclude_mime_re and re.match(
+                self.crawl_policy.snapshot_exclude_mime_re, mimetype
+            ):
+                logger.debug(
+                    f"download_asset {url} excluded because it matched the mimetype ({mimetype}) exclude regexp"
+                )
+                return reverse("html_excluded", args=(self.crawl_policy.id, "mime"))
 
-            if mimetype == 'text/css':
-                logger.debug('handle_css of %s due to mimetype' % url)
-                content = css_parser().handle_css(self, url, content, False).encode('utf-8')
+            if mimetype == "text/css":
+                logger.debug(f"handle_css of {url} due to mimetype")
+                content = css_parser().handle_css(self, url, content, False).encode("utf-8")
 
         except CacheHit as e:
-            logger.debug('CACHE HIT %s', url)
+            logger.debug(f"CACHE HIT {url}")
             self._add_asset(e.asset)
             return settings.SOSSE_HTML_SNAPSHOT_URL + e.asset.filename
         except SkipIndexing as e:
-            content = 'An error occured while downloading %s:\n%s' % (url, e.args[0])
-            content = content.encode('utf-8')
-            extension = '.txt'
+            content = f"An error occured while downloading {url}:\n{e.args[0]}"
+            content = content.encode("utf-8")
+            extension = ".txt"
         except:  # noqa
-            content = 'An error occured while processing %s:\n%s' % (url, format_exc())
-            content = content.encode('utf-8')
-            extension = '.txt'
-            if getattr(settings, 'TEST_MODE', False):
+            content = f"An error occured while processing {url}:\n{format_exc()}"
+            content = content.encode("utf-8")
+            extension = ".txt"
+            if getattr(settings, "TEST_MODE", False):
                 raise
 
         assert isinstance(content, bytes)
         asset = HTMLCache.write_asset(url, content, page, extension=extension, mimetype=mimetype)
-        if extension == '.html':
+        if extension == ".html":
             return settings.SOSSE_HTML_SNAPSHOT_URL + asset
 
         self._add_asset(asset)
@@ -393,7 +412,8 @@ class HTMLSnapshot:
 
     def build_style(self):
         # dynamically extract style
-        style_elems = self.page.browser.driver.execute_script(r'''
+        style_elems = self.page.browser.driver.execute_script(
+            r"""
             let styleElems = [];
             for (let ssNo = 0; ssNo < document.styleSheets.length; ssNo++) {
                 const ss = document.styleSheets[ssNo];
@@ -411,10 +431,11 @@ class HTMLSnapshot:
                 styleElems.push(css);
             }
             return styleElems;
-        ''')
+        """
+        )
 
         soup = self.page.get_soup()
-        for css, elem in zip(style_elems, soup.find_all('style')):
+        for css, elem in zip(style_elems, soup.find_all("style")):
             # replace the content by the style dynamically retrieved
             elem.clear()
             elem.append(NavigableString(css))

@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -26,18 +26,23 @@ from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser
 from .models import CrawlPolicy, DomainSetting
 
 
-TEST_SERVER_DOMAIN = '127.0.0.1:8000'
-TEST_SERVER_URL = f'http://{TEST_SERVER_DOMAIN}/'
-TEST_SERVER_URL_MD5 = md5(TEST_SERVER_URL.encode('utf-8')).hexdigest()
-TEST_SERVER_THUMBNAIL_FILE = os.path.join(settings.SOSSE_THUMBNAILS_DIR,
-                                          TEST_SERVER_URL_MD5[:2],
-                                          TEST_SERVER_URL_MD5) + '.jpg'
+TEST_SERVER_DOMAIN = "127.0.0.1:8000"
+TEST_SERVER_URL = f"http://{TEST_SERVER_DOMAIN}/"
+TEST_SERVER_URL_MD5 = md5(TEST_SERVER_URL.encode("utf-8")).hexdigest()
+TEST_SERVER_THUMBNAIL_FILE = (
+    os.path.join(settings.SOSSE_THUMBNAILS_DIR, TEST_SERVER_URL_MD5[:2], TEST_SERVER_URL_MD5) + ".jpg"
+)
 
-TEST_SERVER_OGP_URL = f'{TEST_SERVER_URL}ogp/'
-TEST_SERVER_OGP_URL_MD5 = md5(TEST_SERVER_OGP_URL.encode('utf-8')).hexdigest()
-TEST_SERVER_OGP_THUMBNAIL_FILE = os.path.join(settings.SOSSE_THUMBNAILS_DIR,
-                                              TEST_SERVER_OGP_URL_MD5[:2],
-                                              TEST_SERVER_OGP_URL_MD5) + '.jpg'
+TEST_SERVER_OGP_URL = f"{TEST_SERVER_URL}ogp/"
+TEST_SERVER_OGP_URL_MD5 = md5(TEST_SERVER_OGP_URL.encode("utf-8")).hexdigest()
+TEST_SERVER_OGP_THUMBNAIL_FILE = (
+    os.path.join(
+        settings.SOSSE_THUMBNAILS_DIR,
+        TEST_SERVER_OGP_URL_MD5[:2],
+        TEST_SERVER_OGP_URL_MD5,
+    )
+    + ".jpg"
+)
 
 
 class BaseFunctionalTest:
@@ -76,31 +81,35 @@ class FunctionalTest(BaseFunctionalTest):
 
         doc = Document.objects.first()
         self.assertEqual(doc.url, TEST_SERVER_OGP_URL)
-        self.assertEqual(doc.error, '')
+        self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, color)
 
     def test_10_thumbnail_preview(self):
-        CrawlPolicy.objects.create(url_regex='(default)',
-                                   url_regex_pg='.*',
-                                   recursion=CrawlPolicy.CRAWL_NEVER,
-                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE,
-                                   snapshot_html=False,
-                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
-                                   take_screenshots=False)
+        CrawlPolicy.objects.create(
+            url_regex="(default)",
+            url_regex_pg=".*",
+            recursion=CrawlPolicy.CRAWL_NEVER,
+            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            default_browse_mode=self.BROWSE_MODE,
+            snapshot_html=False,
+            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
+            take_screenshots=False,
+        )
         Document.queue(TEST_SERVER_OGP_URL, None, None)
         self._test_preview()
 
     def test_20_thumbnail_preview_missing(self):
-        CrawlPolicy.objects.create(url_regex='(default)',
-                                   url_regex_pg='.*',
-                                   recursion=CrawlPolicy.CRAWL_NEVER,
-                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE,
-                                   snapshot_html=False,
-                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
-                                   take_screenshots=False)
+        CrawlPolicy.objects.create(
+            url_regex="(default)",
+            url_regex_pg=".*",
+            recursion=CrawlPolicy.CRAWL_NEVER,
+            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            default_browse_mode=self.BROWSE_MODE,
+            snapshot_html=False,
+            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
+            take_screenshots=False,
+        )
         Document.queue(TEST_SERVER_URL, None, None)
         self._crawl()
 
@@ -108,20 +117,22 @@ class FunctionalTest(BaseFunctionalTest):
 
         doc = Document.objects.first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
-        self.assertEqual(doc.error, '')
+        self.assertEqual(doc.error, "")
         self.assertFalse(doc.has_thumbnail)
 
 
 class BrowserBasedFunctionalTest(BaseFunctionalTest):
     def test_10_thumbnail_screenshot(self):
-        CrawlPolicy.objects.create(url_regex='(default)',
-                                   url_regex_pg='.*',
-                                   recursion=CrawlPolicy.CRAWL_NEVER,
-                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE,
-                                   snapshot_html=False,
-                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
-                                   take_screenshots=False)
+        CrawlPolicy.objects.create(
+            url_regex="(default)",
+            url_regex_pg=".*",
+            recursion=CrawlPolicy.CRAWL_NEVER,
+            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            default_browse_mode=self.BROWSE_MODE,
+            snapshot_html=False,
+            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
+            take_screenshots=False,
+        )
 
         Document.queue(TEST_SERVER_OGP_URL, None, None)
         self._crawl()
@@ -130,31 +141,35 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
         doc = Document.objects.first()
         self.assertEqual(doc.url, TEST_SERVER_OGP_URL)
-        self.assertEqual(doc.error, '')
+        self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, (255, 255, 255))
 
     def test_20_thumbnail_fallback_preview(self):
-        CrawlPolicy.objects.create(url_regex='(default)',
-                                   url_regex_pg='.*',
-                                   recursion=CrawlPolicy.CRAWL_NEVER,
-                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE,
-                                   snapshot_html=False,
-                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
-                                   take_screenshots=False)
+        CrawlPolicy.objects.create(
+            url_regex="(default)",
+            url_regex_pg=".*",
+            recursion=CrawlPolicy.CRAWL_NEVER,
+            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            default_browse_mode=self.BROWSE_MODE,
+            snapshot_html=False,
+            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+            take_screenshots=False,
+        )
         Document.queue(TEST_SERVER_OGP_URL, None, None)
         self._test_preview()
 
     def test_30_thumbnail_fallback_screenshot(self):
-        CrawlPolicy.objects.create(url_regex='(default)',
-                                   url_regex_pg='.*',
-                                   recursion=CrawlPolicy.CRAWL_NEVER,
-                                   recrawl_mode=CrawlPolicy.RECRAWL_NONE,
-                                   default_browse_mode=self.BROWSE_MODE,
-                                   snapshot_html=False,
-                                   thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
-                                   take_screenshots=False)
+        CrawlPolicy.objects.create(
+            url_regex="(default)",
+            url_regex_pg=".*",
+            recursion=CrawlPolicy.CRAWL_NEVER,
+            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            default_browse_mode=self.BROWSE_MODE,
+            snapshot_html=False,
+            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+            take_screenshots=False,
+        )
         Document.queue(TEST_SERVER_URL, None, None)
         self._crawl()
 
@@ -162,7 +177,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
         doc = Document.objects.first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
-        self.assertEqual(doc.error, '')
+        self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
         self._assertCornerColorEqual(TEST_SERVER_THUMBNAIL_FILE, (255, 255, 255))
 

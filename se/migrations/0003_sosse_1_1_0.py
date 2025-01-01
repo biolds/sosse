@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,15 +19,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0002_search_vector'),
+        ("se", "0002_search_vector"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='document',
-            name='show_on_homepage',
-            field=models.BooleanField(default=False, help_text='Display this document on the homepage'),
+            model_name="document",
+            name="show_on_homepage",
+            field=models.BooleanField(default=False, help_text="Display this document on the homepage"),
         ),
     ]

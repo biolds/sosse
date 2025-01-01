@@ -39,5 +39,8 @@ dependencies = { file = ["requirements.txt"] }
 [tool.autopep8]
 max_line_length = 1000
 
+[tool.ruff]
+line-length = 120
+
 [project.scripts]
 sosse-admin = "sosse.sosse_admin:main"

@@ -1,0 +1,7 @@
+[flake8]
+# E203: whitespace before ‘,’, ‘;’, or ‘:’ -> conflicts with black
+# E501: line too long
+# W503: line break before binary operator
+# W504: line break after binary operator
+ignore=E203,E501,W503,W504
+exclude=migrations,tests,se/deps

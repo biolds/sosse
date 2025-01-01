@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,25 +19,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0011_sosse_1_9_0'),
+        ("se", "0011_sosse_1_9_0"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='crawlpolicy',
-            name='hide_documents',
-            field=models.BooleanField(default=False, help_text='Hide documents from search results'),
+            model_name="crawlpolicy",
+            name="hide_documents",
+            field=models.BooleanField(default=False, help_text="Hide documents from search results"),
         ),
         migrations.AddField(
-            model_name='document',
-            name='hidden',
-            field=models.BooleanField(default=False, help_text='Hide this document from search results'),
+            model_name="document",
+            name="hidden",
+            field=models.BooleanField(default=False, help_text="Hide this document from search results"),
         ),
         migrations.AddField(
-            model_name='crawlpolicy',
-            name='enabled',
+            model_name="crawlpolicy",
+            name="enabled",
             field=models.BooleanField(default=True),
         ),
     ]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -15,13 +15,14 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 """Django's command-line utility for administrative tasks."""
+
 import os
 import sys
 from pathlib import Path
 
 
 def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sosse.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sosse.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -31,13 +32,12 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
 
-    linkpreview = Path(__file__).parent.parent / 'se/deps/linkpreview'
+    linkpreview = Path(__file__).parent.parent / "se/deps/linkpreview"
     sys.path.insert(0, str(linkpreview))
-    fake_useragent = Path(__file__).parent.parent / \
-        'se/deps/fake-useragent/src'
+    fake_useragent = Path(__file__).parent.parent / "se/deps/fake-useragent/src"
     sys.path.insert(0, str(fake_useragent))
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

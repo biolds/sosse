@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -25,39 +25,54 @@ from .browser import Page
 
 class DocumentMetaTest(TransactionTestCase):
     def test_ogp_image(self):
-        page = Page('http://127.0.0.1/', b'''
+        page = Page(
+            "http://127.0.0.1/",
+            b"""
             <html prefix="og: https://ogp.me/ns#">
                 <head>
                     <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
                 </head>
             </html>
-        ''', None)
+        """,
+            None,
+        )
         image_url = list(DocumentMeta.get_preview_urls(page))
-        self.assertEqual(image_url, ['https://ia.media-imdb.com/images/rock.jpg'])
+        self.assertEqual(image_url, ["https://ia.media-imdb.com/images/rock.jpg"])
 
     def test_twitter_image(self):
-        page = Page('http://127.0.0.1/', b'''
+        page = Page(
+            "http://127.0.0.1/",
+            b"""
             <html>
                 <head>
                     <meta name="twitter:image" content="http://graphics8.nytimes.com/images/2012/02/19/us/19whitney-span/19whitney-span-articleLarge.jpg">
                 </head>
             </html>
-        ''', None)
+        """,
+            None,
+        )
         image_url = list(DocumentMeta.get_preview_urls(page))
-        self.assertEqual(image_url, ['http://graphics8.nytimes.com/images/2012/02/19/us/19whitney-span/19whitney-span-articleLarge.jpg'])
+        self.assertEqual(
+            image_url,
+            ["http://graphics8.nytimes.com/images/2012/02/19/us/19whitney-span/19whitney-span-articleLarge.jpg"],
+        )
 
     def test_data_image(self):
-        page = Page('http://127.0.0.1/', b'''
+        page = Page(
+            "http://127.0.0.1/",
+            b"""
             <html prefix="og: https://ogp.me/ns#">
                 <head>
                     <meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" />
                 </head>
             </html>
-        ''', None)
+        """,
+            None,
+        )
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             with self.settings(SOSSE_THUMBNAILS_DIR=tmpdirname):
                 image = DocumentMeta.create_preview(page, "test")
-                with open(image, 'rb') as fd:
+                with open(image, "rb") as fd:
                     checksum = md5(fd.read()).hexdigest()
-                    self.assertEqual(checksum, '137bfd4864f4b4267fcd40e42c9d781e')
+                    self.assertEqual(checksum, "137bfd4864f4b4267fcd40e42c9d781e")

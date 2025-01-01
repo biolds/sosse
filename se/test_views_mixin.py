@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -22,18 +22,18 @@ from django.test.client import Client
 class ViewsTestMixin:
     def setUp(self):
         super().setUp()
-        self.user = User.objects.create(username='admin', is_superuser=True, is_staff=True)
-        self.user.set_password('admin')
+        self.user = User.objects.create(username="admin", is_superuser=True, is_staff=True)
+        self.user.set_password("admin")
         self.user.save()
 
         self.factory = RequestFactory()
-        self.client = Client(HTTP_USER_AGENT='Mozilla/5.0')
-        self.assertTrue(self.client.login(username='admin', password='admin'))
+        self.client = Client(HTTP_USER_AGENT="Mozilla/5.0")
+        self.assertTrue(self.client.login(username="admin", password="admin"))
 
     def _request_from_factory(self, url: str, user: User | None = None) -> HttpRequest:
         request = self.factory.get(url)
-        request.META['REQUEST_URI'] = url
-        request.META['REQUEST_SCHEME'] = 'http'
-        request.META['HTTP_HOST'] = '127.0.0.1'
+        request.META["REQUEST_URI"] = url
+        request.META["REQUEST_SCHEME"] = "http"
+        request.META["HTTP_HOST"] = "127.0.0.1"
         request.user = user or self.user
         return request

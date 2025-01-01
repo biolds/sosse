@@ -38,9 +38,9 @@ class AtomView(View):
         return e
 
     def _str_to_uuid(self, s):
-        s = md5(s.encode('utf-8')).hexdigest()
-        s = s[:8] + '-' + s[8:12] + '-' + s[12:16] + '-' + s[16:20] + '-' + s[20:]
-        s = 'urn:uuid:' + s
+        s = md5(s.encode("utf-8")).hexdigest()
+        s = s[:8] + "-" + s[8:12] + "-" + s[12:16] + "-" + s[16:20] + "-" + s[20:]
+        s = "urn:uuid:" + s
         return s
 
     def _atom_is_allowed(self, request):
@@ -51,7 +51,7 @@ class AtomView(View):
             return True
 
         if settings.SOSSE_ATOM_ACCESS_TOKEN:
-            if request.GET.get('token') == settings.SOSSE_ATOM_ACCESS_TOKEN:
+            if request.GET.get("token") == settings.SOSSE_ATOM_ACCESS_TOKEN:
                 return True
 
         return False
@@ -65,68 +65,74 @@ class AtomView(View):
 
         form = SearchForm(request.GET)
         if form.is_valid():
-            q = form.cleaned_data['q']
+            q = form.cleaned_data["q"]
             redirect_url = SearchEngine.should_redirect(q)
             if redirect_url:
-                return HttpResponse(b'External search cannot be performed', content_type='text/plain', status=400)
+                return HttpResponse(
+                    b"External search cannot be performed",
+                    content_type="text/plain",
+                    status=400,
+                )
 
             _, results, _ = get_documents_from_request(request, form)
 
-            key = request.GET.get('s', '')
-            if key.startswith('-'):
+            key = request.GET.get("s", "")
+            if key.startswith("-"):
                 key = key[1:]
 
-            if key not in ('crawl_first', 'crawl_last'):
-                key = 'crawl_first'
+            if key not in ("crawl_first", "crawl_last"):
+                key = "crawl_first"
 
-            param = {'%s__isnull' % key: True}
+            param = {f"{key}__isnull": True}
             results = results.exclude(**param)
-            results = results.order_by('-' + key)
+            results = results.order_by("-" + key)
 
-            base_url = request.META['REQUEST_SCHEME'] + '://' + request.META['HTTP_HOST']
-            cached_page = request.GET.get('cached', '0')
+            base_url = request.META["REQUEST_SCHEME"] + "://" + request.META["HTTP_HOST"]
+            cached_page = request.GET.get("cached", "0")
 
-            feed = Element('feed')
-            feed.attrib['xmlns'] = 'http://www.w3.org/2005/Atom'
-            feed.append(self._elem('title', f'SOSSE · {q}'))
-            feed.append(self._elem('description', f'SOSSE search results for {q}'))
-            url = base_url + reverse('search') + '?' + request.META['QUERY_STRING']
-            feed.append(self._elem('link', None, href=url))
+            feed = Element("feed")
+            feed.attrib["xmlns"] = "http://www.w3.org/2005/Atom"
+            feed.append(self._elem("title", f"SOSSE · {q}"))
+            feed.append(self._elem("description", f"SOSSE search results for {q}"))
+            url = base_url + reverse("search") + "?" + request.META["QUERY_STRING"]
+            feed.append(self._elem("link", None, href=url))
             if len(results):
-                feed.append(self._elem('updated', getattr(results[0], key).isoformat()))
-            feed_id = 'SOSSE' + request.META['QUERY_STRING']
-            feed.append(self._elem('id', self._str_to_uuid(feed_id)))
-            feed.append(self._elem('icon', base_url + settings.STATIC_URL + 'logo.svg'))
+                feed.append(self._elem("updated", getattr(results[0], key).isoformat()))
+            feed_id = "SOSSE" + request.META["QUERY_STRING"]
+            feed.append(self._elem("id", self._str_to_uuid(feed_id)))
+            feed.append(self._elem("icon", base_url + settings.STATIC_URL + "logo.svg"))
 
-            for doc in results[:settings.SOSSE_ATOM_FEED_SIZE]:
-                entry = Element('entry')
-                entry.append(self._elem('title', doc.title))
-                if cached_page == '0':
+            for doc in results[: settings.SOSSE_ATOM_FEED_SIZE]:
+                entry = Element("entry")
+                entry.append(self._elem("title", doc.title))
+                if cached_page == "0":
                     url = doc.url
                 else:
-                    if settings.SOSSE_ATOM_CACHED_BIN_PASSTHROUGH and (not doc.mimetype or not doc.mimetype.startswith('text/')):
-                        asset = HTMLAsset.objects.filter(url=doc.url).order_by('download_date').last()
+                    if settings.SOSSE_ATOM_CACHED_BIN_PASSTHROUGH and (
+                        not doc.mimetype or not doc.mimetype.startswith("text/")
+                    ):
+                        asset = HTMLAsset.objects.filter(url=doc.url).order_by("download_date").last()
                         if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
-                            url = base_url + reverse_no_escape('www', args=[doc.url])
+                            url = base_url + reverse_no_escape("www", args=[doc.url])
                         else:
                             url = request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
                     else:
-                        if doc.mimetype.startswith('text/'):
-                            view_name = 'www'
+                        if doc.mimetype.startswith("text/"):
+                            view_name = "www"
                         else:
-                            view_name = 'download'
+                            view_name = "download"
                         url = base_url + reverse_no_escape(view_name, args=[doc.url])
-                entry.append(self._elem('link', None, href=url))
-                entry.append(self._elem('id', self._str_to_uuid(url)))
-                entry.append(self._elem('updated', getattr(doc, key).isoformat()))
+                entry.append(self._elem("link", None, href=url))
+                entry.append(self._elem("id", self._str_to_uuid(url)))
+                entry.append(self._elem("updated", getattr(doc, key).isoformat()))
 
-                content = ''
+                content = ""
                 lines = doc.content.splitlines()
                 if lines:
-                    content = '\n'.join(lines[:5])
-                entry.append(self._elem('summary', content))
+                    content = "\n".join(lines[:5])
+                entry.append(self._elem("summary", content))
                 feed.append(entry)
 
-            return HttpResponse(tostring(feed, pretty_print=True), content_type='text/plain')
+            return HttpResponse(tostring(feed, pretty_print=True), content_type="text/plain")
 
-        return HttpResponse(b'Invalid query parameters', content_type='text/plain', status=400)
+        return HttpResponse(b"Invalid query parameters", content_type="text/plain", status=400)

@@ -2,7 +2,7 @@ User management
 ===============
 
 User management and group edition can be done from the :doc:`../admin_ui`, by clicking on ``Users`` or ``Groups``.
-Thanks to the `Django framework <https://www.djangoproject.com/>`_, fine-grained permissions can be defined by group and by user. 
+Thanks to the `Django framework <https://www.djangoproject.com/>`_, fine-grained permissions can be defined by group and by user.
 
 .. image:: ../../tests/robotframework/screenshots/user_management.png
    :class: sosse-screenshot

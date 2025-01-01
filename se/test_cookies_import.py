@@ -1,4 +1,4 @@
-# Copyright 2024 Laurent Defert
+# Copyright 2024-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -20,53 +20,57 @@ from .cookies_import import CookieForm
 from .models import Cookie
 
 NOW = timezone.now().replace(microsecond=0)
-NOW_TIMESTAMP = NOW.strftime('%s')
+NOW_TIMESTAMP = NOW.strftime("%s")
 
 
 # Cookie format: domain, domain_specified, path, secure, expires, name, value
 class CookieImportTest(TransactionTestCase):
     def _load_cookies(self, data):
-        if data['format'] == 'netscape':
-            data['cookies'] = f'# Netscape HTTP Cookie File\n{data["cookies"]}'
+        if data["format"] == "netscape":
+            data["cookies"] = f'# Netscape HTTP Cookie File\n{data["cookies"]}'
 
         form = CookieForm(data)
         self.assertTrue(form.is_valid(), form.errors.values())
 
-        cookie_jar = form.cleaned_data['cookies']
+        cookie_jar = form.cleaned_data["cookies"]
         Cookie.set_from_jar(None, cookie_jar)
 
     def test_010_netscape_simple(self):
-        self._load_cookies({
-            'cookies': f'.test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tST-n2q1f9\tatbt=CTMQ',
-            'format': 'netscape'
-        })
+        self._load_cookies(
+            {
+                "cookies": f".test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tST-n2q1f9\tatbt=CTMQ",
+                "format": "netscape",
+            }
+        )
         self.assertEqual(Cookie.objects.count(), 1)
         cookie = Cookie.objects.get()
-        self.assertEqual(cookie.domain, 'test.com')
-        self.assertEqual(cookie.domain_cc, 'test.com')
+        self.assertEqual(cookie.domain, "test.com")
+        self.assertEqual(cookie.domain_cc, "test.com")
         self.assertTrue(cookie.inc_subdomain)
-        self.assertEqual(cookie.name, 'ST-n2q1f9')
-        self.assertEqual(cookie.value, 'atbt=CTMQ')
-        self.assertEqual(cookie.path, '/')
+        self.assertEqual(cookie.name, "ST-n2q1f9")
+        self.assertEqual(cookie.value, "atbt=CTMQ")
+        self.assertEqual(cookie.path, "/")
         self.assertEqual(cookie.expires, NOW)
         self.assertFalse(cookie.secure)
-        self.assertEqual(cookie.same_site, Cookie._meta.get_field('same_site').default)
+        self.assertEqual(cookie.same_site, Cookie._meta.get_field("same_site").default)
         self.assertFalse(cookie.http_only)
 
     def test_020_netscape_httponly(self):
-        self._load_cookies({
-            'cookies': f'#HttpOnly_.test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tST-n2q1f9\tatbt=CTMQ',
-            'format': 'netscape'
-        })
+        self._load_cookies(
+            {
+                "cookies": f"#HttpOnly_.test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tST-n2q1f9\tatbt=CTMQ",
+                "format": "netscape",
+            }
+        )
         self.assertEqual(Cookie.objects.count(), 1)
         cookie = Cookie.objects.get()
-        self.assertEqual(cookie.domain, 'test.com')
-        self.assertEqual(cookie.domain_cc, 'test.com')
+        self.assertEqual(cookie.domain, "test.com")
+        self.assertEqual(cookie.domain_cc, "test.com")
         self.assertTrue(cookie.inc_subdomain)
-        self.assertEqual(cookie.name, 'ST-n2q1f9')
-        self.assertEqual(cookie.value, 'atbt=CTMQ')
-        self.assertEqual(cookie.path, '/')
+        self.assertEqual(cookie.name, "ST-n2q1f9")
+        self.assertEqual(cookie.value, "atbt=CTMQ")
+        self.assertEqual(cookie.path, "/")
         self.assertEqual(cookie.expires, NOW)
         self.assertFalse(cookie.secure)
-        self.assertEqual(cookie.same_site, Cookie._meta.get_field('same_site').default)
+        self.assertEqual(cookie.same_site, Cookie._meta.get_field("same_site").default)
         self.assertTrue(cookie.http_only)

@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,20 +19,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0009_sosse_1_7_0'),
+        ("se", "0009_sosse_1_7_0"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='excludedurl',
-            name='starting_with',
-            field=models.BooleanField(default=False, help_text='Exclude all urls starting with the url pattern'),
+            model_name="excludedurl",
+            name="starting_with",
+            field=models.BooleanField(
+                default=False,
+                help_text="Exclude all urls starting with the url pattern",
+            ),
         ),
         migrations.AddField(
-            model_name='link',
-            name='in_nav',
+            model_name="link",
+            name="in_nav",
             field=models.BooleanField(default=False),
         ),
     ]

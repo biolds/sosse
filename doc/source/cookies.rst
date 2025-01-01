@@ -18,5 +18,3 @@ Cookies can be imported using the ``Import cookies`` link.
 
 They should be entered using the `Netscape cookie format <https://curl.se/docs/http-cookies.html#cookies-saved-to-disk>`_.
 Tools like `Cookie editor <https://cookie-editor.com/>`_ can be used to export cookies from a browser in a compatible manner.
-
-

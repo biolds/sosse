@@ -21,31 +21,31 @@ from .cached import CacheMixin
 from .login import login_required
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ScreenshotView(CacheMixin, TemplateView):
-    template_name = 'se/embed.html'
-    view_name = 'screenshot'
+    template_name = "se/embed.html"
+    view_name = "screenshot"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         return context | {
-            'url': self.request.build_absolute_uri('/screenshot_full/') + self._url_from_request(),
-            'allow_scripts': True
+            "url": self.request.build_absolute_uri("/screenshot_full/") + self._url_from_request(),
+            "allow_scripts": True,
         }
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ScreenshotFullView(CacheMixin, TemplateView):
-    template_name = 'se/screenshot_full.html'
-    view_name = 'screenshot_full'
+    template_name = "se/screenshot_full.html"
+    view_name = "screenshot_full"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
         return context | {
-            'screenshot': settings.SOSSE_SCREENSHOTS_URL + '/' + self.doc.image_name(),
-            'screenshot_size': self.doc.screenshot_size.split('x'),
-            'screenshot_format': self.doc.screenshot_format,
-            'screenshot_mime': 'image/png' if self.doc.screenshot_format == 'png' else 'image/jpeg',
-            'links': self.doc.links_to.filter(screen_pos__isnull=False).order_by('link_no'),
-            'screens': range(self.doc.screenshot_count)
+            "screenshot": settings.SOSSE_SCREENSHOTS_URL + "/" + self.doc.image_name(),
+            "screenshot_size": self.doc.screenshot_size.split("x"),
+            "screenshot_format": self.doc.screenshot_format,
+            "screenshot_mime": ("image/png" if self.doc.screenshot_format == "png" else "image/jpeg"),
+            "links": self.doc.links_to.filter(screen_pos__isnull=False).order_by("link_no"),
+            "screens": range(self.doc.screenshot_count),
         }

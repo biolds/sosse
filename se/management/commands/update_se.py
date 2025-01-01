@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -23,35 +23,35 @@ from ...models import SearchEngine
 from ...admin import ConflictingSearchEngineFilter
 
 
-SE_FILE = 'sosse/search_engines.json'
+SE_FILE = "sosse/search_engines.json"
 
 
 class Command(BaseCommand):
-    help = 'Updates Search engine shortcuts.'
-    doc = 'This updates :doc:`user/shortcuts` in the database based on their definition in the source code.'
+    help = "Updates Search engine shortcuts."
+    doc = "This updates :doc:`user/shortcuts` in the database based on their definition in the source code."
 
     def handle(self, *args, **options):
         count = 0
 
         se_file = os.path.join(settings.BASE_DIR, SE_FILE)
         for se in json.load(open(se_file)):
-            assert se['model'] == 'se.searchengine'
-            se = se['fields']
-            short_name = se.pop('short_name')
+            assert se["model"] == "se.searchengine"
+            se = se["fields"]
+            short_name = se.pop("short_name")
 
             db_se, created = SearchEngine.objects.get_or_create(short_name=short_name, defaults=se)
 
             if not created:
-                se.pop('shortcut')
+                se.pop("shortcut")
                 SearchEngine.objects.filter(id=db_se.id).update(**se)
 
             count += int(created)
 
-        self.stdout.write('%i new search engines added' % count)
+        self.stdout.write(f"{count} new search engines added")
         conflicts = ConflictingSearchEngineFilter.conflicts(SearchEngine.objects.all())
 
         if len(conflicts):
-            conflicts = conflicts.values_list('shortcut', flat=True).order_by('shortcut')
-            sc = ', '.join([settings.SOSSE_SEARCH_SHORTCUT_CHAR + c for c in conflicts])
-            print('WARNING: %s shortcuts are in conflict: %s' % (len(conflicts), sc))
+            conflicts = conflicts.values_list("shortcut", flat=True).order_by("shortcut")
+            sc = ", ".join([settings.SOSSE_SEARCH_SHORTCUT_CHAR + c for c in conflicts])
+            print(f"WARNING: {len(conflicts)} shortcuts are in conflict: {sc}")
             exit(1)

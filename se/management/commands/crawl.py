@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -28,39 +28,44 @@ from django.utils.timezone import now
 from ...browser import ChromiumBrowser, FirefoxBrowser
 from ...models import CrawlerStats, Document, CrawlPolicy, MINUTELY, WorkerStats
 
-crawl_logger = logging.getLogger('crawler')
+crawl_logger = logging.getLogger("crawler")
 
 
 class Command(BaseCommand):
-    help = 'Crawl web pages.'
-    doc = '''This command starts one or multiple crawlers, depending on the :ref:`crawler count <conf_option_crawler_count>` option set in the :doc:`configuration file <config_file>`.'''
+    help = "Crawl web pages."
+    doc = """This command starts one or multiple crawlers, depending on the :ref:`crawler count <conf_option_crawler_count>` option set in the :doc:`configuration file <config_file>`."""
 
     def __del__(self):
         ChromiumBrowser.destroy()
         FirefoxBrowser.destroy()
 
     def add_arguments(self, parser):
-        parser.add_argument('urls', nargs='*', type=str, help='Optionnal list of URLs to add to the crawler queue.')
+        parser.add_argument(
+            "urls",
+            nargs="*",
+            type=str,
+            help="Optionnal list of URLs to add to the crawler queue.",
+        )
 
     @staticmethod
     def process(worker_no, options):
         try:
-            crawl_logger.info('Crawler %i initializing' % worker_no)
+            crawl_logger.info(f"Crawler {worker_no} initializing")
             connection.close()
             connection.connect()
 
             FirefoxBrowser.worker_no = worker_no
             ChromiumBrowser.worker_no = worker_no
-            base_dir = settings.SOSSE_TMP_DL_DIR + '/chromium/' + str(worker_no)
+            base_dir = settings.SOSSE_TMP_DL_DIR + "/chromium/" + str(worker_no)
             if not os.path.isdir(base_dir):
                 os.makedirs(base_dir)
             # change cwd to Chromium's because it downloads directory (while Firefox has an option for target dir)
             os.chdir(base_dir)
 
-            crawl_logger.info('Crawler %i starting' % worker_no)
+            crawl_logger.info(f"Crawler {worker_no} starting")
 
             if worker_no == 0:
-                last = CrawlerStats.objects.filter(freq=MINUTELY).order_by('t').last()
+                last = CrawlerStats.objects.filter(freq=MINUTELY).order_by("t").last()
                 if last:
                     next_stat = last.t
                 else:
@@ -77,11 +82,11 @@ class Command(BaseCommand):
 
                 worker_stats = WorkerStats.get_worker(worker_no)
 
-                if worker_stats.state == 'paused' or not Document.crawl(worker_no):
-                    if worker_stats.state == 'running':
-                        worker_stats.update_state('idle')
+                if worker_stats.state == "paused" or not Document.crawl(worker_no):
+                    if worker_stats.state == "running":
+                        worker_stats.update_state("idle")
                     if sleep_count % 60 == 0:
-                        crawl_logger.debug('%s %s...' % (worker_no, worker_stats.state.title()))
+                        crawl_logger.debug(f"{worker_no} {worker_stats.state.title()}...")
                     sleep_count += 1
                     if sleep_count > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
                         ChromiumBrowser.destroy()
@@ -98,7 +103,7 @@ class Command(BaseCommand):
         Document.objects.exclude(worker_no=None).update(worker_no=None)
         CrawlPolicy.create_default()
 
-        for url in options['urls']:
+        for url in options["urls"]:
             Document.queue(url, None, 0)
 
         worker_count = settings.SOSSE_CRAWLER_COUNT
@@ -106,7 +111,7 @@ class Command(BaseCommand):
             worker_count = cpu_count()
 
         WorkerStats.objects.filter(worker_no__gte=worker_count).delete()
-        crawl_logger.info('Starting %i crawlers' % worker_count)
+        crawl_logger.info(f"Starting {worker_count} crawlers")
 
         workers = []
         for crawler_no in range(worker_count):
@@ -115,8 +120,8 @@ class Command(BaseCommand):
             workers.append(p)
             sleep(5)
 
-        crawl_logger.info('Crawlers started')
+        crawl_logger.info("Crawlers started")
         for worker in workers:
             worker.join()
 
-        crawl_logger.info('Crawlers finished')
+        crawl_logger.info("Crawlers finished")

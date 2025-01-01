@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -20,14 +20,14 @@ from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
-    help = 'Creates a default ``admin`` superuser with ``admin`` password,\ndoes nothing if at least one user already exists in the database.'
+    help = "Creates a default ``admin`` superuser with ``admin`` password,\ndoes nothing if at least one user already exists in the database."
 
     def handle(self, *args, **options):
         if User.objects.count() != 0:
-            self.stdout.write('The database already has a user, skipping default user creation')
+            self.stdout.write("The database already has a user, skipping default user creation")
             sys.exit(0)
 
-        user = User.objects.create(username='admin', is_superuser=True, is_staff=True, is_active=True)
-        user.set_password('admin')
+        user = User.objects.create(username="admin", is_superuser=True, is_staff=True, is_active=True)
+        user.set_password("admin")
         user.save()
         self.stdout.write('Default user "admin", with password "admin" was created')

@@ -26,40 +26,37 @@ from .models import CrawlPolicy
 from .views import RedirectException
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class HTMLView(CacheMixin, TemplateView):
-    template_name = 'se/embed.html'
-    view_name = 'html'
+    template_name = "se/embed.html"
+    view_name = "html"
 
     def get_context_data(self, *args, **kwargs):
-        if not self.doc.mimetype or not self.doc.mimetype.startswith('text/'):
+        if not self.doc.mimetype or not self.doc.mimetype.startswith("text/"):
             return RedirectException(self.doc.get_absolute_url())
 
         url = self._url_from_request()
-        asset = HTMLAsset.objects.filter(url=url).order_by('download_date').last()
+        asset = HTMLAsset.objects.filter(url=url).order_by("download_date").last()
 
         if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
             return RedirectException(self.doc.get_absolute_url())
 
         context = super().get_context_data()
         return context | {
-            'url': self.request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
-            'allow_scripts': False
+            "url": self.request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename,
+            "allow_scripts": False,
         }
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class HTMLExcludedView(TemplateView):
-    template_name = 'se/html_excluded.html'
+    template_name = "se/html_excluded.html"
 
     def get_context_data(self, crawl_policy, method, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        if method == 'mime':
-            method = 'mimetype'
-        elif method == 'element':
-            method = 'target element'
+        if method == "mime":
+            method = "mimetype"
+        elif method == "element":
+            method = "target element"
         crawl_policy = CrawlPolicy.objects.filter(id=crawl_policy).first()
-        return context | {
-            'crawl_policy': crawl_policy,
-            'method': method
-        }
+        return context | {"crawl_policy": crawl_policy, "method": method}

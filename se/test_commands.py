@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -21,20 +21,20 @@ from .document import Document
 
 class CommandsTest(TransactionTestCase):
     def setUp(self):
-        Document.objects.create(url='http://test/')
+        Document.objects.create(url="http://test/")
 
     def test_delete_document_match(self):
         self.assertEqual(Document.objects.count(), 1)
-        call_command('delete_documents', 'http://test')
+        call_command("delete_documents", "http://test")
         self.assertEqual(Document.objects.count(), 0)
 
     def test_delete_document_no_match(self):
         self.assertEqual(Document.objects.count(), 1)
-        call_command('delete_documents', 'http://no_test')
+        call_command("delete_documents", "http://no_test")
         self.assertEqual(Document.objects.count(), 1)
 
     def test_delete_document_dry_run(self):
         self.assertEqual(Document.objects.count(), 1)
         with self.assertRaises(SystemExit):
-            call_command('delete_documents', '--dry-run', 'http://test')
+            call_command("delete_documents", "--dry-run", "http://test")
         self.assertEqual(Document.objects.count(), 1)

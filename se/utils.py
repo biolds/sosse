@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -25,20 +25,20 @@ from django.utils.timezone import now
 
 def plural(n):
     if n > 1:
-        return 's'
-    return ''
+        return "s"
+    return ""
 
 
 def space(a, b):
     if a:
-        a += ' '
+        a += " "
     return a + b
 
 
 def short_fmt(nbr, unit):
-    if unit in ('m', 's'):
-        return '%02d%s' % (nbr, unit)
-    return '%s%s' % (nbr, unit)
+    if unit in ("m", "s"):
+        return f"{nbr:02d}{unit}"
+    return f"{nbr}{unit}"
 
 
 def human_short_datetime(d):
@@ -49,12 +49,12 @@ def human_short_datetime(d):
     seconds = d.seconds % 60
 
     nbrs = [years, days, hours, minutes, seconds]
-    units = ['y', 'd', 'h', 'm', 's']
+    units = ["y", "d", "h", "m", "s"]
 
     for i in range(len(nbrs) - 1):
         if nbrs[i]:
-            return '%s%s' % (short_fmt(nbrs[i], units[i]).lstrip('0'), short_fmt(nbrs[i + 1], units[i + 1]))
-    return '%ss' % seconds
+            return short_fmt(nbrs[i], units[i]).lstrip("0") + short_fmt(nbrs[i + 1], units[i + 1])
+    return f"{seconds}s"
 
 
 def human_datetime(d, short=False):
@@ -63,28 +63,28 @@ def human_datetime(d, short=False):
     if short:
         return human_short_datetime(d)
 
-    s = ''
+    s = ""
     years = d.days // 365
     days = d.days % 365
 
     if years:
-        s = space(s, '%s year%s' % (years, plural(years)))
+        s = space(s, f"{years} year{plural(years)}")
 
     if days:
-        s = space(s, '%s day%s' % (days, plural(days)))
+        s = space(s, f"{days} day{plural(days)}")
 
     hours = d.seconds // 60 // 60
     minutes = d.seconds // 60 % 60
     seconds = d.seconds % 60
 
     if hours:
-        s = space(s, '%s hour%s' % (hours, plural(hours)))
+        s = space(s, f"{hours} hour{plural(hours)}")
 
     if minutes:
-        s = space(s, '%s minute%s' % (minutes, plural(minutes)))
+        s = space(s, f"{minutes} minute{plural(minutes)}")
 
     if seconds:
-        s = space(s, '%s second%s' % (seconds, plural(seconds)))
+        s = space(s, f"{seconds} second{plural(seconds)}")
 
     return s
 
@@ -97,15 +97,15 @@ def human_dt(d, short=False):
     zero = timedelta()
     if dt < zero:
         dt_str = human_datetime(-dt, short)
-        return dt_str + ' ago'
+        return dt_str + " ago"
     elif dt > zero:
         dt_str = human_datetime(dt, short)
-        return 'in ' + dt_str
-    return 'now'
+        return "in " + dt_str
+    return "now"
 
 
 def get_unit(n):
-    units = ['', 'k', 'M', 'G', 'T', 'P']
+    units = ["", "k", "M", "G", "T", "P"]
     unit_no = 0
     while n >= 1000:
         unit_no += 1
@@ -115,12 +115,12 @@ def get_unit(n):
 
 def human_nb(n):
     factor, unit = get_unit(n)
-    return '%i%s' % (n / factor, unit)
+    return f"{n / factor:.0f}{unit}"
 
 
 def human_filesize(n):
     factor, unit = get_unit(n)
-    return '%0.1f%sB' % (n / factor, unit)
+    return f"{n / factor:0.1f}{unit}B"
 
 
 def reverse_no_escape(url, args):
@@ -141,11 +141,24 @@ def http_date_parser(d):
     try:
         _, day, month, year, t, _ = d.strip().split()
         day = int(day)
-        MONTHS = ('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+        MONTHS = (
+            "jan",
+            "feb",
+            "mar",
+            "apr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec",
+        )
         month = MONTHS.index(month.lower()) + 1
         year = int(year)
 
-        hour, minute, second = t.split(':')
+        hour, minute, second = t.split(":")
         hour = int(hour)
         minute = int(minute)
         second = int(second)
@@ -158,14 +171,27 @@ def http_date_parser(d):
 def http_date_format(d):
     # Locale independant formatting
     assert isinstance(d, datetime)
-    DOW = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
+    DOW = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     dow = DOW[d.weekday()]
 
-    MONTHS = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+    MONTHS = (
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    )
     month = MONTHS[d.month - 1]
 
-    s = f'{dow}, {d.day} {month} {d.year}'
-    s += ' %02d:%02d:%02d GMT' % (d.hour, d.minute, d.second)
+    s = f"{dow}, {d.day} {month} {d.year}"
+    s += " %02d:%02d:%02d GMT" % (d.hour, d.minute, d.second)
     return s
 
 
@@ -175,12 +201,12 @@ MIMETYPE_ICONS = None
 def mimetype_icon(mime: str | None) -> str:
     global MIMETYPE_ICONS
     if not MIMETYPE_ICONS:
-        mime_file = Path(__file__).parent / 'deps/unicode_mime_icons/unicode_mime_icons.json'
-        with open(mime_file, 'rb') as fd:
+        mime_file = Path(__file__).parent / "deps/unicode_mime_icons/unicode_mime_icons.json"
+        with open(mime_file, "rb") as fd:
             MIMETYPE_ICONS = json.load(fd)
 
     if mime:
         for regex, icon in MIMETYPE_ICONS.items():
             if re.match(regex, mime):
                 return icon
-    return '🗎'
+    return "🗎"

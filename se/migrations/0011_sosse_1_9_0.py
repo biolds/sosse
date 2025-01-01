@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,20 +19,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0010_sosse_1_8_0'),
+        ("se", "0010_sosse_1_8_0"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='crawlpolicy',
-            old_name='condition',
-            new_name='recursion',
+            model_name="crawlpolicy",
+            old_name="condition",
+            new_name="recursion",
         ),
         migrations.RenameField(
-            model_name='crawlpolicy',
-            old_name='crawl_depth',
-            new_name='recursion_depth',
+            model_name="crawlpolicy",
+            old_name="crawl_depth",
+            new_name="recursion_depth",
         ),
     ]

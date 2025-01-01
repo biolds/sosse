@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,15 +19,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0006_sosse_1_4_0'),
+        ("se", "0006_sosse_1_4_0"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='crawlpolicy',
-            name='auth_login_url_re',
-            field=models.TextField(blank=True, help_text='A redirection to an URL matching the regexp will trigger authentication', null=True, verbose_name='Login URL regexp'),
+            model_name="crawlpolicy",
+            name="auth_login_url_re",
+            field=models.TextField(
+                blank=True,
+                help_text="A redirection to an URL matching the regexp will trigger authentication",
+                null=True,
+                verbose_name="Login URL regexp",
+            ),
         ),
     ]

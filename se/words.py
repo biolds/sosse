@@ -20,20 +20,17 @@ from .cached import CacheMixin
 from .login import login_required
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class WordsView(CacheMixin, TemplateView):
-    template_name = 'se/words.html'
-    view_name = 'words'
+    template_name = "se/words.html"
+    view_name = "words"
 
     def get_context_data(self, *args, **kwargs):
         words = []
         for w in self.doc.vector.split():
-            word, weights = w.split(':', 1)
+            word, weights = w.split(":", 1)
             word = word.strip("'")
             words.append((word, weights))
 
         context = super().get_context_data(*args, **kwargs)
-        return context | {
-            'words': words,
-            'lang': self.doc.lang_flag(True)
-        }
+        return context | {"words": words, "lang": self.doc.lang_flag(True)}

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -38,12 +38,18 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from urllib3.exceptions import HTTPError
 
-from .url import absolutize_url, has_browsable_scheme, sanitize_url, url_remove_fragment, url_remove_query_string
+from .url import (
+    absolutize_url,
+    has_browsable_scheme,
+    sanitize_url,
+    url_remove_fragment,
+    url_remove_query_string,
+)
 from .utils import human_filesize
 
-crawl_logger = logging.getLogger('crawler')
+crawl_logger = logging.getLogger("crawler")
 
-NAV_ELEMENTS = ['nav', 'header', 'footer']
+NAV_ELEMENTS = ["nav", "header", "footer"]
 
 
 def dict_merge(a, b):
@@ -67,7 +73,7 @@ class SkipIndexing(Exception):
 
 class StalledDownload(SkipIndexing):
     def __init__(self):
-        super().__init__('Download stalled')
+        super().__init__("Download stalled")
 
 
 class PageTooBig(SkipIndexing):
@@ -75,13 +81,15 @@ class PageTooBig(SkipIndexing):
         size = human_filesize(size)
         conf_size = human_filesize(conf_size * 1024)
         super().__init__(
-            f'Document size is too big ({size} > {conf_size}). You can increase the `max_file_size` and `max_html_asset_size` option in the configuration to index this file.')
+            f"Document size is too big ({size} > {conf_size}). You can increase the `max_file_size` and `max_html_asset_size` option in the configuration to index this file."
+        )
 
 
 class TooManyRedirects(SkipIndexing):
     def __init__(self):
         super().__init__(
-            f'Max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached. You can increase the `max_redirects` option in the configuration file in case it\'s needed.')
+            f"Max redirects ({settings.SOSSE_MAX_REDIRECTS}) reached. You can increase the `max_redirects` option in the configuration file in case it's needed."
+        )
 
 
 class Page:
@@ -99,34 +107,32 @@ class Page:
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
         magic_head = self.content[:20].strip().lower()
         is_html = False
-        for header in ('<html', '<!doctype html'):
-            is_html |= isinstance(
-                magic_head, str) and magic_head.startswith(header)
-            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(
-                header.encode('utf-8'))
+        for header in ("<html", "<!doctype html"):
+            is_html |= isinstance(magic_head, str) and magic_head.startswith(header)
+            is_html |= isinstance(magic_head, bytes) and magic_head.startswith(header.encode("utf-8"))
 
         if is_html:
-            self.mimetype = 'text/html'
+            self.mimetype = "text/html"
         else:
             self.mimetype = magic_from_buffer(self.content, mime=True)
 
     def get_soup(self):
         if self.soup:
             return self.soup
-        if not self.mimetype or not self.mimetype.startswith('text/'):
+        if not self.mimetype or not self.mimetype.startswith("text/"):
             return None
-        content = self.content.decode('utf-8', errors='replace')
-        self.soup = BeautifulSoup(content, 'html5lib')
+        content = self.content.decode("utf-8", errors="replace")
+        self.soup = BeautifulSoup(content, "html5lib")
 
         # Remove <template> tags as BS extract its text
-        for elem in self.soup.find_all('template'):
+        for elem in self.soup.find_all("template"):
             elem.extract()
         return self.soup
 
     def get_links(self, keep_params):
-        for a in self.get_soup().find_all('a'):
-            if a.get('href'):
-                url = absolutize_url(self.url, a.get('href').strip())
+        for a in self.get_soup().find_all("a"):
+            if a.get("href"):
+                url = absolutize_url(self.url, a.get("href").strip())
                 if not keep_params:
                     url = url_remove_query_string(url)
                 url = url_remove_fragment(url)
@@ -142,8 +148,8 @@ class Page:
         soup = self.get_soup()
 
         base_url = self.url
-        if soup.head.base and soup.head.base.get('href'):
-            base_url = absolutize_url(self.url, soup.head.base.get('href'))
+        if soup.head.base and soup.head.base.get("href"):
+            base_url = absolutize_url(self.url, soup.head.base.get("href"))
             base_url = url_remove_fragment(base_url)
         return base_url
 
@@ -154,17 +160,17 @@ class Page:
                 elem.extract()
 
     def _get_elem_text(self, elem, recurse=False):
-        s = ''
+        s = ""
         if elem.name is None:
-            s = getattr(elem, 'string', '') or ''
-            s = s.strip(' \t\n\r')
+            s = getattr(elem, "string", "") or ""
+            s = s.strip(" \t\n\r")
 
-        if (elem.name == 'a' or recurse) and hasattr(elem, 'children'):
+        if (elem.name == "a" or recurse) and hasattr(elem, "children"):
             for child in elem.children:
                 _s = self._get_elem_text(child, True)
                 if _s:
                     if s:
-                        s += ' '
+                        s += " "
                     s += _s
         return s
 
@@ -174,34 +180,35 @@ class Page:
             if isinstance(elem, Tag) and sibling.name == elem.name:
                 no += 1
 
-        selector = '/%s[%i]' % (elem.name, no)
+        selector = f"/{elem.name}[{no}]"
 
-        if elem.name != 'html':
+        if elem.name != "html":
             selector = self._build_selector(elem.parent) + selector
         return selector
 
     def _dom_walk(self, elem, crawl_policy, links, queue_links, document, in_nav=False):
-        assert queue_links == (document is not None), 'document parameter (%s) is required to queue links (%s)' % (
-            document, queue_links)
+        if queue_links != (document is not None):
+            raise Exception(f"document parameter ({document}) is required to queue links ({queue_links})")
         from .models import CrawlPolicy, Document, Link
+
         if isinstance(elem, (Doctype, Comment)):
             return
 
-        if elem.name in ('[document]', 'title', 'script', 'style'):
+        if elem.name in ("[document]", "title", "script", "style"):
             return
 
-        if crawl_policy.remove_nav_elements != CrawlPolicy.REMOVE_NAV_NO and elem.name in ('nav', 'header', 'footer'):
+        if crawl_policy.remove_nav_elements != CrawlPolicy.REMOVE_NAV_NO and elem.name in ("nav", "header", "footer"):
             in_nav = True
 
         s = self._get_elem_text(elem)
 
         # Keep the link if it has text, or if we take screenshots
-        if elem.name in (None, 'a'):
-            if links['text'] and links['text'][-1] not in (' ', '\n') and s and not in_nav:
-                links['text'] += ' '
+        if elem.name in (None, "a"):
+            if links["text"] and links["text"][-1] not in (" ", "\n") and s and not in_nav:
+                links["text"] += " "
 
-            if elem.name == 'a' and queue_links:
-                href = elem.get('href')
+            if elem.name == "a" and queue_links:
+                href = elem.get("href")
                 if href:
                     link = None
                     target_doc = None
@@ -209,71 +216,67 @@ class Page:
 
                     if has_browsable_scheme(href):
                         href_for_policy = absolutize_url(self.base_url(), href)
-                        child_policy = CrawlPolicy.get_from_url(
-                            href_for_policy)
+                        child_policy = CrawlPolicy.get_from_url(href_for_policy)
                         href = absolutize_url(self.base_url(), href)
                         if not child_policy.keep_params:
                             href = url_remove_query_string(href)
                         href = url_remove_fragment(href)
-                        target_doc = Document.queue(
-                            href, crawl_policy, document)
+                        target_doc = Document.queue(href, crawl_policy, document)
 
                         if target_doc != document:
                             if target_doc:
-                                link = Link(doc_from=document,
-                                            link_no=len(links['links']),
-                                            doc_to=target_doc,
-                                            text=s,
-                                            pos=len(links['text']),
-                                            in_nav=in_nav)
+                                link = Link(
+                                    doc_from=document,
+                                    link_no=len(links["links"]),
+                                    doc_to=target_doc,
+                                    text=s,
+                                    pos=len(links["text"]),
+                                    in_nav=in_nav,
+                                )
 
-                    store_extern_link = (not has_browsable_scheme(
-                        href) or target_doc is None)
+                    store_extern_link = not has_browsable_scheme(href) or target_doc is None
                     if crawl_policy.store_extern_links and store_extern_link:
-                        href = elem.get('href').strip()
+                        href = elem.get("href").strip()
                         try:
                             href = absolutize_url(self.base_url(), href)
                         except ValueError:
                             # Store the url as is if it's invalid
                             pass
-                        link = Link(doc_from=document,
-                                    link_no=len(links['links']),
-                                    text=s,
-                                    pos=len(links['text']),
-                                    extern_url=href,
-                                    in_nav=in_nav)
+                        link = Link(
+                            doc_from=document,
+                            link_no=len(links["links"]),
+                            text=s,
+                            pos=len(links["text"]),
+                            extern_url=href,
+                            in_nav=in_nav,
+                        )
 
                     if link:
                         if crawl_policy.take_screenshots:
                             link.css_selector = self._build_selector(elem)
-                        links['links'].append(link)
+                        links["links"].append(link)
 
             if s and not in_nav:
-                links['text'] += s
+                links["text"] += s
 
-            if elem.name == 'a':
+            if elem.name == "a":
                 return
 
-        if hasattr(elem, 'children'):
+        if hasattr(elem, "children"):
             for child in elem.children:
-                self._dom_walk(child, crawl_policy, links,
-                               queue_links, document, in_nav)
+                self._dom_walk(child, crawl_policy, links, queue_links, document, in_nav)
 
-        if elem.name in ('div', 'p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
-            if links['text'] and not in_nav:
-                if links['text'][-1] == ' ':
-                    links['text'] = links['text'][:-1] + '\n'
-                elif links['text'][-1] != '\n':
-                    links['text'] += '\n'
+        if elem.name in ("div", "p", "li", "h1", "h2", "h3", "h4", "h5", "h6"):
+            if links["text"] and not in_nav:
+                if links["text"][-1] == " ":
+                    links["text"] = links["text"][:-1] + "\n"
+                elif links["text"][-1] != "\n":
+                    links["text"] += "\n"
 
     def dom_walk(self, crawl_policy, queue_links, document):
-        links = {
-            'links': [],
-            'text': ''
-        }
+        links = {"links": [], "text": ""}
         for elem in self.get_soup().children:
-            self._dom_walk(elem, crawl_policy, links,
-                           queue_links, document, False)
+            self._dom_walk(elem, crawl_policy, links, queue_links, document, False)
         return links
 
 
@@ -284,7 +287,7 @@ class Browser:
     def init(cls):
         if cls.inited:
             return
-        crawl_logger.debug('Browser %s init' % cls.__name__)
+        crawl_logger.debug(f"Browser {cls.__name__} init")
         cls._init()
         cls.inited = True
 
@@ -292,7 +295,7 @@ class Browser:
     def destroy(cls):
         if not cls.inited:
             return
-        crawl_logger.debug('Browser %s destroy' % cls.__name__)
+        crawl_logger.debug(f"Browser {cls.__name__} destroy")
         cls._destroy()
         cls.inited = False
 
@@ -327,47 +330,57 @@ class RequestBrowser(Browser):
     @classmethod
     def _get_cookies(cls, url):
         from .models import Cookie
+
         jar = requests.cookies.RequestsCookieJar()
 
         for c in Cookie.get_from_url(url):
             expires = None
             if c.expires:
-                expires = int(c.expires.strftime('%s'))
+                expires = int(c.expires.strftime("%s"))
 
-            rest = {'SameSite': c.same_site}
+            rest = {"SameSite": c.same_site}
             if c.http_only:
-                rest['HttpOnly'] = c.http_only,
-            jar.set(c.name, c.value, path=c.path, domain=c.domain,
-                    expires=expires, secure=c.secure, rest=rest)
-        crawl_logger.debug('loading cookies for %s: %s', url, jar)
+                rest["HttpOnly"] = (c.http_only,)
+            jar.set(
+                c.name,
+                c.value,
+                path=c.path,
+                domain=c.domain,
+                expires=expires,
+                secure=c.secure,
+                rest=rest,
+            )
+        crawl_logger.debug(f"loading cookies for {url}: {jar}")
         return jar
 
     @classmethod
     def _requests_params(cls):
         from .models import user_agent
+
         params = {
-            'stream': True,
-            'allow_redirects': False,
-            'headers': {
-                'User-Agent': user_agent(),
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            }
+            "stream": True,
+            "allow_redirects": False,
+            "headers": {
+                "User-Agent": user_agent(),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            },
         }
 
         if settings.SOSSE_PROXY:
-            params['proxies'] = {
-                'http': settings.SOSSE_PROXY,
-                'https': settings.SOSSE_PROXY
+            params["proxies"] = {
+                "http": settings.SOSSE_PROXY,
+                "https": settings.SOSSE_PROXY,
             }
         if settings.SOSSE_REQUESTS_TIMEOUT:
-            params['timeout'] = settings.SOSSE_REQUESTS_TIMEOUT
+            params["timeout"] = settings.SOSSE_REQUESTS_TIMEOUT
         return params
 
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):
         from .models import Cookie
+
         jar = cls._get_cookies(url)
-        crawl_logger.debug('from the jar: %s', jar)
+        crawl_logger.debug(f"from the jar: {jar}")
         s = requests.Session()
         s.cookies = jar
 
@@ -376,12 +389,12 @@ class RequestBrowser(Browser):
         r = func(url, **kwargs)
         Cookie.set_from_jar(url, s.cookies)
 
-        content_length = int(r.headers.get('content-length', 0))
+        content_length = int(r.headers.get("content-length", 0))
         if content_length / 1024 > max_file_size:
             r.close()
             raise PageTooBig(content_length, max_file_size)
 
-        content = b''
+        content = b""
         for chunk in r.iter_content(chunk_size=1024 * 1024):
             content += chunk
             if len(content) / 1024 >= max_file_size:
@@ -392,31 +405,36 @@ class RequestBrowser(Browser):
             raise PageTooBig(len(content), max_file_size)
 
         r._content = content
-        crawl_logger.debug('after request jar: %s', s.cookies)
+        crawl_logger.debug(f"after request jar: {s.cookies}")
         return r
 
     @classmethod
-    def get(cls, url, check_status=False, max_file_size=settings.SOSSE_MAX_FILE_SIZE, **kwargs) -> Page:
+    def get(
+        cls,
+        url,
+        check_status=False,
+        max_file_size=settings.SOSSE_MAX_FILE_SIZE,
+        **kwargs,
+    ) -> Page:
         REDIRECT_CODE = (301, 302, 307, 308)
         page = None
         redirect_count = 0
 
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
-            r = cls._requests_query('get', url, max_file_size, **kwargs)
+            r = cls._requests_query("get", url, max_file_size, **kwargs)
 
             if check_status:
                 r.raise_for_status()
 
             if r.status_code in REDIRECT_CODE:
-                crawl_logger.debug('%s: redirected' % url)
+                crawl_logger.debug(f"{url}: redirected")
                 redirect_count += 1
-                dest = r.headers.get('location')
+                dest = r.headers.get("location")
                 url = absolutize_url(url, dest)
                 url = url_remove_fragment(url)
-                crawl_logger.debug('got redirected to %s' % url)
+                crawl_logger.debug(f"got redirected to {url}")
                 if not url:
-                    raise Exception(
-                        'Got a %s code without a location header' % r.status_code)
+                    raise Exception(f"Got a {r.status_code} code without a location header")
 
                 continue
 
@@ -425,21 +443,21 @@ class RequestBrowser(Browser):
             # Check for an HTML / meta redirect
             soup = page.get_soup()
             if soup:
-                for meta in page.get_soup().find_all('meta'):
-                    if meta.get('http-equiv', '').lower() == 'refresh' and meta.get('content', ''):
+                for meta in page.get_soup().find_all("meta"):
+                    if meta.get("http-equiv", "").lower() == "refresh" and meta.get("content", ""):
                         # handle redirect
-                        dest = meta.get('content')
+                        dest = meta.get("content")
 
-                        if ';' in dest:
-                            dest = dest.split(';', 1)[1]
+                        if ";" in dest:
+                            dest = dest.split(";", 1)[1]
 
-                        if dest.startswith('url='):
+                        if dest.startswith("url="):
                             dest = dest[4:]
 
                         url = absolutize_url(url, dest)
                         url = url_remove_fragment(url)
                         redirect_count += 1
-                        crawl_logger.debug('%s: html redirected' % url)
+                        crawl_logger.debug(f"{url}: html redirected")
                         continue
             break
 
@@ -456,43 +474,45 @@ class RequestBrowser(Browser):
 
         if len(form) == 0:
             raise AuthElemFailed(
-                page, 'Could not find element with CSS selector: %s' % crawl_policy.auth_form_selector)
+                page,
+                f"Could not find element with CSS selector: {crawl_policy.auth_form_selector}",
+            )
 
         if len(form) > 1:
             raise AuthElemFailed(
-                page, 'Found multiple element with CSS selector: %s' % crawl_policy.auth_form_selector)
+                page,
+                f"Found multiple element with CSS selector: {crawl_policy.auth_form_selector}",
+            )
 
         form = form[0]
         payload = {}
-        for elem in form.find_all('input'):
-            if elem.get('name'):
-                payload[elem.get('name')] = elem.get('value')
+        for elem in form.find_all("input"):
+            if elem.get("name"):
+                payload[elem.get("name")] = elem.get("value")
 
-        for f in crawl_policy.authfield_set.values('key', 'value'):
-            payload[f['key']] = f['value']
+        for f in crawl_policy.authfield_set.values("key", "value"):
+            payload[f["key"]] = f["value"]
 
-        post_url = form.get('action')
+        post_url = form.get("action")
         if post_url:
             post_url = absolutize_url(page.url, post_url)
             post_url = url_remove_fragment(post_url)
         else:
             post_url = page.url
 
-        crawl_logger.debug('authenticating to %s with %s', post_url, payload)
-        r = cls._requests_query(
-            'post', post_url, settings.SOSSE_MAX_FILE_SIZE, data=payload)
+        crawl_logger.debug(f"authenticating to {post_url} with {payload}")
+        r = cls._requests_query("post", post_url, settings.SOSSE_MAX_FILE_SIZE, data=payload)
         if r.status_code != 302:
-            crawl_logger.debug('no redirect after auth')
+            crawl_logger.debug("no redirect after auth")
             return cls._page_from_request(r)
 
-        location = r.headers.get('location')
+        location = r.headers.get("location")
         if not location:
-            raise Exception('No location in the redirection')
+            raise Exception("No location in the redirection")
 
         location = absolutize_url(r.url, location)
         location = url_remove_fragment(location)
-        crawl_logger.debug(
-            'got redirected to %s after authentication' % location)
+        crawl_logger.debug(f"got redirected to {location} after authentication")
         return cls.get(location)
 
 
@@ -502,12 +522,12 @@ def retry(f):
         while count <= settings.SOSSE_BROWSER_CRASH_RETRY:
             try:
                 r = f(*args, **kwargs)
-                crawl_logger.debug('%s succeeded' % f)
+                crawl_logger.debug(f"{f} succeeded")
                 return r
             except (WebDriverException, HTTPError):
                 exc = traceback.format_exc()
-                crawl_logger.error('%s failed' % f)
-                crawl_logger.error('Selenium returned an exception:\n%s' % exc)
+                crawl_logger.error(f"{f} failed")
+                crawl_logger.error(f"Selenium returned an exception:\n{exc}")
 
                 cls = args[0]
                 cls.destroy()
@@ -517,8 +537,8 @@ def retry(f):
                 if count == settings.SOSSE_BROWSER_CRASH_RETRY:
                     raise
                 count += 1
-                crawl_logger.error('Retrying (%i / %i)' %
-                                   (count, settings.SOSSE_BROWSER_CRASH_RETRY))
+                crawl_logger.error(f"Retrying ({count} / {settings.SOSSE_BROWSER_CRASH_RETRY})")
+
     return _retry
 
 
@@ -544,34 +564,34 @@ class SeleniumBrowser(Browser):
             os.makedirs(FirefoxBrowser._get_download_dir())
 
         # force the cwd in case it's not called from the worker
-        if not os.getcwd().startswith(settings.SOSSE_TMP_DL_DIR + '/'):
+        if not os.getcwd().startswith(settings.SOSSE_TMP_DL_DIR + "/"):
             # change cwd to Chromium's because it downloads directory (while Firefox has an option for target dir)
             os.chdir(ChromiumBrowser._get_download_dir())
 
         # Force HOME directory as it used for Firefox profile loading
-        os.environ['HOME'] = '/var/www'
+        os.environ["HOME"] = "/var/www"
 
         config_dir = settings.SOSSE_BROWSER_CONFIG_DIR
-        os.environ['XDG_CONFIG_HOME'] = config_dir
+        os.environ["XDG_CONFIG_HOME"] = config_dir
 
-        opt_key = 'SOSSE_%s_OPTIONS' % cls.name.upper()
+        opt_key = f"SOSSE_{cls.name.upper()}_OPTIONS"
         opts = shlex.split(getattr(settings, opt_key))
-        opts.append('--window-size=%s,%s' % cls.screen_size())
+        w, h = cls.screen_size()
+        opts.append(f"--window-size={w},{h}")
         opts += cls._get_options()
 
         has_incognito = False
         options = cls._get_options_obj()
         for opt in opts:
             if cls.first_init:
-                crawl_logger.info('Passing option %s', opt)
+                crawl_logger.info(f"Passing option {opt}")
             options.add_argument(opt)
 
-            if '--incognito' in opt:
+            if "--incognito" in opt:
                 has_incognito = True
 
         if cls.first_init and has_incognito:
-            crawl_logger.warning(
-                'Passing --incognito breaks file downloads on some versions of Chromium')
+            crawl_logger.warning("Passing --incognito breaks file downloads on some versions of Chromium")
 
         cls.first_init = False
         cls._driver = cls._get_driver(options)
@@ -593,8 +613,8 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _current_url(cls):
-        if cls.driver.current_url.startswith('data:'):
-            return ''
+        if cls.driver.current_url.startswith("data:"):
+            return ""
         return sanitize_url(cls.driver.current_url)
 
     @classmethod
@@ -603,8 +623,9 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def _wait_for_ready(cls, url):
-        crawl_logger.debug('wait_for_ready %s, %s / %s / %s', url, settings.SOSSE_MAX_REDIRECTS,
-                           settings.SOSSE_JS_STABLE_RETRY, settings.SOSSE_JS_STABLE_TIME)
+        crawl_logger.debug(
+            f"wait_for_ready {url}, {settings.SOSSE_MAX_REDIRECTS} / {settings.SOSSE_JS_STABLE_RETRY} / {settings.SOSSE_JS_STABLE_TIME}",
+        )
         redirect_count = 0
 
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
@@ -618,13 +639,12 @@ class SeleniumBrowser(Browser):
 
             new_url = cls._current_url()
             if new_url != url:
-                crawl_logger.debug(
-                    'detected redirect %i %s -> %s', redirect_count, url, new_url)
+                crawl_logger.debug(f"detected redirect {redirect_count} {url} -> {new_url}")
                 redirect_count += 1
                 url = new_url
                 continue
 
-            crawl_logger.debug('js stabilization start %s', url)
+            crawl_logger.debug(f"js stabilization start {url}")
             # Wait for page content to be stable
             retry = settings.SOSSE_JS_STABLE_RETRY
             previous_content = None
@@ -638,14 +658,14 @@ class SeleniumBrowser(Browser):
                     break
                 previous_content = content
                 sleep(settings.SOSSE_JS_STABLE_TIME)
-                crawl_logger.debug('js changed %s', url)
+                crawl_logger.debug(f"js changed {url}")
 
             if cls._current_url() != url:
                 redirect_count += 1
                 url = cls._current_url()
                 continue
             else:
-                crawl_logger.debug('js stable %s', url)
+                crawl_logger.debug(f"js stable {url}")
                 break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:
@@ -655,15 +675,18 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def remove_nav_elements(cls):
-        cls.driver.execute_script('''
-        const tags = %s;
-        tags.map((tag) => {
+        nav_elements = json.dumps(NAV_ELEMENTS)
+        cls.driver.execute_script(
+            f"""
+        const tags = {nav_elements};
+        tags.map((tag) => {{
             const elems = document.getElementsByTagName(tag);
-            for (no = 0; no < elems.length; no++) {
+            for (no = 0; no < elems.length; no++) {{
                 elems[no].remove();
-            }
-        });
-        ''' % json.dumps(NAV_ELEMENTS))
+            }}
+        }});
+        """
+        )
 
     @classmethod
     def _escape_content_handler(cls, content):
@@ -671,7 +694,7 @@ class SeleniumBrowser(Browser):
         for content_re in cls.CONTENT_HANDLERS:
             m = re.match(content_re, content)
             if m:
-                content_url = m.group('url').decode('utf-8')
+                content_url = m.group("url").decode("utf-8")
                 page = RequestBrowser.get(content_url)
                 return page.content
         return content
@@ -679,6 +702,7 @@ class SeleniumBrowser(Browser):
     @classmethod
     def _get_page(cls, url):
         from .models import CrawlPolicy
+
         redirect_count = cls._wait_for_ready(url)
 
         current_url = cls.driver.current_url
@@ -687,11 +711,9 @@ class SeleniumBrowser(Browser):
             cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready(url)
 
-        content = cls.driver.page_source.encode('utf-8')
+        content = cls.driver.page_source.encode("utf-8")
         content = cls._escape_content_handler(content)
-        page = Page(current_url,
-                    content,
-                    cls)
+        page = Page(current_url, content, cls)
         page.title = cls.driver.title
         page.redirect_count = redirect_count
         return page
@@ -699,28 +721,29 @@ class SeleniumBrowser(Browser):
     @classmethod
     def _save_cookies(cls, url):
         from .models import Cookie
+
         _cookies = []
-        crawl_logger.debug('got cookies %s' % cls.driver.get_cookies())
+        crawl_logger.debug(f"got cookies {cls.driver.get_cookies()}")
         for cookie in cls.driver.get_cookies():
             c = {
-                'name': cookie['name'],
-                'value': cookie['value'],
-                'path': cookie['path'],
-                'secure': cookie['secure'],
+                "name": cookie["name"],
+                "value": cookie["value"],
+                "path": cookie["path"],
+                "secure": cookie["secure"],
             }
 
-            expires = cookie.get('expiry')
+            expires = cookie.get("expiry")
             if expires:
-                c['expires'] = datetime.fromtimestamp(expires, pytz.utc)
+                c["expires"] = datetime.fromtimestamp(expires, pytz.utc)
 
-            if cookie.get('sameSite'):
-                c['same_site'] = cookie['sameSite']
+            if cookie.get("sameSite"):
+                c["same_site"] = cookie["sameSite"]
 
-            if cookie.get('httpOnly'):
-                c['http_only'] = cookie['httpOnly']
+            if cookie.get("httpOnly"):
+                c["http_only"] = cookie["httpOnly"]
 
-            if cookie.get('domain'):
-                c['domain'] = cookie['domain']
+            if cookie.get("domain"):
+                c["domain"] = cookie["domain"]
 
             _cookies.append(c)
 
@@ -740,80 +763,84 @@ class SeleniumBrowser(Browser):
         target_url = urlparse(dest)
         cookies = Cookie.get_from_url(dest)
         if len(cookies) == 0:
-            crawl_logger.debug('no cookie to load for %s' % dest)
+            crawl_logger.debug(f"no cookie to load for {dest}")
             return
 
         if current_url.netloc != target_url.netloc:
-            crawl_logger.debug('navigate for cookie to %s' % dest)
+            crawl_logger.debug(f"navigate for cookie to {dest}")
             cls._driver_get(dest)
             cls._wait_for_ready(dest)
-            crawl_logger.debug('navigate for cookie done %s' %
-                               cls._current_url())
+            crawl_logger.debug(f"navigate for cookie done {cls._current_url()}")
 
         current_url = cls._current_url()
         if urlparse(current_url).netloc != target_url.netloc:
             # if the browser is initially on about:blank,
             # and then loads a download url, it'll stay on about:blank
             # which does not accept cookie loading
-            crawl_logger.debug('could not go to %s to load cookies, nav is stuck on %s (%s)',
-                               target_url.netloc, current_url, cls.driver.current_url)
+            crawl_logger.debug(
+                f"could not go to {target_url.netloc} to load cookies, nav is stuck on {current_url} ({cls.driver.current_url})",
+            )
             return
 
-        crawl_logger.debug('clearing cookies')
+        crawl_logger.debug("clearing cookies")
         cls.driver.delete_all_cookies()
         for c in cookies:
             cookie = {
-                'name': c.name,
-                'value': c.value,
-                'path': c.path,
-                'secure': c.secure,
-                'sameSite': c.same_site.title(),
+                "name": c.name,
+                "value": c.value,
+                "path": c.path,
+                "secure": c.secure,
+                "sameSite": c.same_site.title(),
             }
             if c.domain_cc:
-                cookie['domain'] = c.domain_cc
+                cookie["domain"] = c.domain_cc
             if c.expires:
-                cookie['expiry'] = int(c.expires.strftime('%s'))
+                cookie["expiry"] = int(c.expires.strftime("%s"))
             if c.http_only:
-                cookie['httpOnly'] = c.http_only
+                cookie["httpOnly"] = c.http_only
             try:
                 cls.driver.add_cookie(cookie)
-                crawl_logger.debug('loaded cookie %s' % cookie)
+                crawl_logger.debug(f"loaded cookie {cookie}")
             except:  # noqa
-                raise Exception('%s\n%s' % (cookie, cls.driver.current_url))
+                raise Exception(f"{cookie}\n{cls.driver.current_url}")
 
     @classmethod
     @retry
     def get(cls, url):
         current_url = cls.driver.current_url
-        crawl_logger.debug('get on %s, current %s', url, current_url)
+        crawl_logger.debug(f"get on {url}, current {current_url}")
 
         # Clear the download dir
-        crawl_logger.debug('clearing %s' % cls._get_download_dir())
+        crawl_logger.debug(f"clearing {cls._get_download_dir()}")
         for f in os.listdir(cls._get_download_dir()):
             f = os.path.join(cls._get_download_dir(), f)
             if os.path.isfile(f):
                 crawl_logger.warning(
-                    'Deleting stale download file %s (you may fix the issue by adjusting "dl_check_*" variables in the conf)' % f)
+                    f'Deleting stale download file {f} (you may fix the issue by adjusting "dl_check_*" variables in the conf)'
+                )
                 os.unlink(f)
 
-        crawl_logger.debug('loading cookies')
+        crawl_logger.debug("loading cookies")
         cls._load_cookies(url)
-        crawl_logger.debug('driver get')
+        crawl_logger.debug("driver get")
 
         # Force reload to use the new cookies
         cls._driver_get(url, force_reload=True)
 
-        if ((current_url != url and cls.driver.current_url == current_url)  # If we got redirected to the url that was previously set in the browser
-                or cls.driver.current_url == 'data:,'):  # The url can be "data:," during a few milliseconds when the download starts
-            crawl_logger.debug('download starting (%s)',
-                               cls.driver.current_url)
+        if (
+            (
+                current_url != url and cls.driver.current_url == current_url
+            )  # If we got redirected to the url that was previously set in the browser
+            or cls.driver.current_url == "data:,"
+        ):  # The url can be "data:," during a few milliseconds when the download starts
+            crawl_logger.debug(f"download starting ({cls.driver.current_url})")
             page = cls._handle_download(url)
             if page:
                 return page
 
-        crawl_logger.debug('page get')
+        crawl_logger.debug("page get")
         page = cls._get_page(url)
-        crawl_logger.debug('save cookies')
+        crawl_logger.debug("save cookies")
         cls._save_cookies(url)
         return page
 
@@ -833,7 +860,7 @@ class SeleniumBrowser(Browser):
                     retry -= 1
                     continue
 
-            crawl_logger.debug('no download in progress (%s)', filename)
+            crawl_logger.debug(f"no download in progress ({filename})")
             sleep(settings.SOSSE_DL_CHECK_TIME)
             retry -= 1
         else:
@@ -841,12 +868,11 @@ class SeleniumBrowser(Browser):
             filename = cls._get_download_file()
 
         if filename is None:
-            crawl_logger.debug('no download has started on %s', url)
+            crawl_logger.debug(f"no download has started on {url}")
             return
 
-        crawl_logger.debug('Download in progress: %s' %
-                           os.listdir(cls._get_download_dir()))
-        crawl_logger.debug('Download file: %s' % filename)
+        crawl_logger.debug(f"Download in progress: {os.listdir(cls._get_download_dir())}")
+        crawl_logger.debug(f"Download file: {filename}")
         try:
             _size = None
             retry = settings.SOSSE_DL_CHECK_RETRY
@@ -870,14 +896,13 @@ class SeleniumBrowser(Browser):
             # when the download is finished the file is renamed
             pass
 
-        crawl_logger.debug('Download done: %s' %
-                           os.listdir(cls._get_download_dir()))
+        crawl_logger.debug(f"Download done: {os.listdir(cls._get_download_dir())}")
 
         filename = cls._get_download_file()
         size = os.stat(filename).st_size
         if size / 1024 > settings.SOSSE_MAX_FILE_SIZE:
             raise PageTooBig(size, settings.SOSSE_MAX_FILE_SIZE)
-        with open(filename, 'rb') as f:
+        with open(filename, "rb") as f:
             content = f.read()
 
         page = Page(url, content, cls)
@@ -891,7 +916,7 @@ class SeleniumBrowser(Browser):
 
     @classmethod
     def screen_size(cls):
-        w, h = settings.SOSSE_SCREENSHOTS_SIZE.split('x')
+        w, h = settings.SOSSE_SCREENSHOTS_SIZE.split("x")
         return int(w), int(h)
 
     @classmethod
@@ -904,15 +929,15 @@ class SeleniumBrowser(Browser):
         base_name = os.path.join(settings.SOSSE_THUMBNAILS_DIR, image_name)
         dir_name = os.path.dirname(base_name)
         os.makedirs(dir_name, exist_ok=True)
-        thumb_png = base_name + '.png'
-        thumb_jpg = base_name + '.jpg'
+        thumb_png = base_name + ".png"
+        thumb_jpg = base_name + ".jpg"
 
         try:
             cls.driver.get_screenshot_as_file(thumb_png)
             with Image.open(thumb_png) as img:
-                img = img.convert('RGB')  # Remove alpha channel from the png
+                img = img.convert("RGB")  # Remove alpha channel from the png
                 img.thumbnail((160, 100))
-                img.save(thumb_jpg, 'jpeg')
+                img.save(thumb_jpg, "jpeg")
         finally:
             if os.path.exists(thumb_png):
                 os.unlink(thumb_png)
@@ -921,8 +946,12 @@ class SeleniumBrowser(Browser):
     @retry
     def take_screenshots(cls, url, image_name):
         from .models import CrawlPolicy
+
         crawl_policy = CrawlPolicy.get_from_url(url)
-        if crawl_policy and crawl_policy.remove_nav_elements in (CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT, CrawlPolicy.REMOVE_NAV_FROM_ALL):
+        if crawl_policy and crawl_policy.remove_nav_elements in (
+            CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
+            CrawlPolicy.REMOVE_NAV_FROM_ALL,
+        ):
             cls.remove_nav_elements()
 
         base_name = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, image_name)
@@ -932,27 +961,27 @@ class SeleniumBrowser(Browser):
         width, height = cls.screen_size()
         cls.driver.set_window_rect(0, 0, *cls.screen_size())
         cls.driver.execute_script('document.body.style.overflow = "hidden"')
-        doc_height = cls.driver.execute_script('''
+        doc_height = cls.driver.execute_script(
+            """
             const body = document.body;
             const html = document.documentElement;
             return height = Math.max(body.scrollHeight, body.offsetHeight,
                                    html.clientHeight, html.scrollHeight, html.offsetHeight);
-        ''')
+        """
+        )
 
-        crawl_logger.debug('doc_height %s, height %s', doc_height, height)
+        crawl_logger.debug(f"doc_height {doc_height}, height {height}")
         img_no = 0
         while (img_no + 1) * height < doc_height:
             cls.scroll_to_page(img_no)
-            cls.driver.get_screenshot_as_file(
-                '%s_%s.png' % (base_name, img_no))
+            cls.driver.get_screenshot_as_file(f"{base_name}_{img_no}.png")
             img_no += 1
 
         remaining = doc_height - (img_no * height)
         if remaining > 0:
             cls.driver.set_window_rect(0, 0, width, remaining)
             cls.scroll_to_page(img_no)
-            cls.driver.get_screenshot_as_file(
-                '%s_%s.png' % (base_name, img_no))
+            cls.driver.get_screenshot_as_file(f"{base_name}_{img_no}.png")
             img_no += 1
 
         return img_no
@@ -961,84 +990,89 @@ class SeleniumBrowser(Browser):
     def scroll_to_page(cls, page_no):
         _, height = cls.screen_size()
         height *= page_no
-        cls.driver.execute_script('''
-            window.scroll(0, %s);
-            [...document.querySelectorAll('*')].filter(x => x.clientHeight < x.scrollHeight).forEach(e => {
-                e.scroll({left: 0, top: %s, behavior: 'instant'});
-            });
-        ''' % (height, height))
+        cls.driver.execute_script(
+            f"""
+            window.scroll(0, {height});
+            [...document.querySelectorAll('*')].filter(x => x.clientHeight < x.scrollHeight).forEach(e => {{
+                e.scroll({{left: 0, top: {height}, behavior: 'instant'}});
+            }});
+        """
+        )
 
     @classmethod
     def get_link_pos_abs(cls, selector):
-        return cls.driver.execute_script('''
-            const e = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        return cls.driver.execute_script(
+            f"""
+            const e = document.evaluate('{selector}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
 
-            if (e === null) {
-                return {}
-            };
+            if (e === null) {{
+                return {{}}
+            }};
             let el = e.singleNodeValue;
-            if (el === null) {
-                return {}
-            };
-            if (el.children.length === 1 && el.children[0].tagName === 'IMG') {
+            if (el === null) {{
+                return {{}}
+            }};
+            if (el.children.length === 1 && el.children[0].tagName === 'IMG') {{
                 el = el.children[0];
-            }
+            }}
             const bodyRect = document.body.getBoundingClientRect();
             const elemRect = el.getBoundingClientRect();
-            const pageWidth = %s;
-            if (elemRect.left >= pageWidth) {
-                return {};
-            }
-            return {
+            const pageWidth = {cls.screen_size()[0]};
+            if (elemRect.left >= pageWidth) {{
+                return {{}};
+            }}
+            return {{
                 elemLeft: elemRect.left,
                 elemTop: elemRect.top,
                 elemRight: Math.min(pageWidth, elemRect.right),
                 elemBottom: elemRect.bottom,
-            }
-        ''' % (selector, cls.screen_size()[0]))
+            }}
+        """
+        )
 
     @classmethod
     def _find_elements_by_selector(cls, obj, selector):
-        if hasattr(obj, 'find_elements_by_css_selector'):
+        if hasattr(obj, "find_elements_by_css_selector"):
             return obj.find_elements_by_css_selector(selector)
 
         # Selenium 4
         from selenium.webdriver.common.by import By
+
         return obj.find_elements(By.CSS_SELECTOR, selector)
 
     @classmethod
     @retry
     def try_auth(cls, page, url, crawl_policy):
-        form = cls._find_elements_by_selector(
-            cls.driver, crawl_policy.auth_form_selector)
+        form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
 
         if len(form) == 0:
             raise AuthElemFailed(
-                page, 'Could not find auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
+                page,
+                f"Could not find auth element with CSS selector: {crawl_policy.auth_form_selector}",
+            )
 
         if len(form) > 1:
             raise AuthElemFailed(
-                page, 'Found multiple auth element with CSS selector: %s' % crawl_policy.auth_form_selector)
+                page,
+                f"Found multiple auth element with CSS selector: {crawl_policy.auth_form_selector}",
+            )
 
-        crawl_logger.debug('form found')
+        crawl_logger.debug("form found")
         form = form[0]
-        for f in crawl_policy.authfield_set.values('key', 'value'):
-            elem = cls._find_elements_by_selector(
-                form, 'input[name="%s"]' % f['key'])
+        for f in crawl_policy.authfield_set.values("key", "value"):
+            elem = cls._find_elements_by_selector(form, f'input[name="{f["key"]}"]')
             if len(elem) != 1:
-                raise Exception('Found %s input element when trying to set auth field %s' % (
-                    len(elem), f['key']))
-            elem[0].send_keys(f['value'])
-            crawl_logger.debug('settings %s = %s on %s' %
-                               (f['key'], f['value'], elem[0]))
+                raise Exception(f'Found {len(elem)} input element when trying to set auth field {f["key"]}')
+            elem[0].send_keys(f["value"])
+            crawl_logger.debug(f'settings {f["key"]} = {f["value"]} on {elem[0]}')
 
         dl_dir_files = cls.page_change_wait_setup()
         form.submit()
-        crawl_logger.debug('submitting')
+        crawl_logger.debug("submitting")
         cls.page_change_wait(dl_dir_files)
 
         current_url = cls._current_url()
-        crawl_logger.debug('ready after submit %s', current_url)
+        crawl_logger.debug(f"ready after submit {current_url}")
         cls._save_cookies(current_url)
 
         if current_url != url:
@@ -1049,24 +1083,27 @@ class SeleniumBrowser(Browser):
     @classmethod
     def page_change_wait_setup(cls):
         dl_dir_files = sorted(os.listdir(cls._get_download_dir()))
-        crawl_logger.debug('dl_dir state: %s', dl_dir_files)
+        crawl_logger.debug(f"dl_dir state: {dl_dir_files}")
 
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
         # When a download starts, the regular cls.driver.get call is stuck
-        cls.driver.execute_script('''
+        cls.driver.execute_script(
+            """
             window.sosseUrlChanging = true;
             addEventListener('readystatechange', () => {
                 window.sosseUrlChanging = false;
             });
-        ''')
+        """
+        )
         return dl_dir_files
 
     @classmethod
     def page_change_wait(cls, dl_dir_files):
         retry = settings.SOSSE_JS_STABLE_RETRY
-        while (cls.driver.current_url == 'about:blank' or cls.driver.execute_script('return window.sosseUrlChanging')) and retry > 0:
-            crawl_logger.debug('driver get not done: %s' %
-                               cls.driver.current_url)
+        while (
+            cls.driver.current_url == "about:blank" or cls.driver.execute_script("return window.sosseUrlChanging")
+        ) and retry > 0:
+            crawl_logger.debug(f"driver get not done: {cls.driver.current_url}")
             if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
                 return
             sleep(settings.SOSSE_JS_STABLE_TIME)
@@ -1077,7 +1114,7 @@ class SeleniumBrowser(Browser):
         gecko_pid = cls._driver.service.process.pid
         p = psutil.Process(gecko_pid)
         pid = p.children()[0].pid
-        fd_dir = '/proc/%d/fd/' % pid
+        fd_dir = f"/proc/{pid}/fd/"
 
         for f in os.listdir(fd_dir):
             f = os.path.join(fd_dir, f)
@@ -1091,9 +1128,10 @@ class SeleniumBrowser(Browser):
 
 class ChromiumBrowser(SeleniumBrowser):
     DRIVER_CLASS = webdriver.Chrome
-    name = 'chromium'
+    name = "chromium"
 
-    CONTENT_HANDLERS = (b'''<html>
+    CONTENT_HANDLERS = (
+        b"""<html>
 <head>
 <meta name="viewport" content="width=device-width">
 </head>
@@ -1102,9 +1140,8 @@ class ChromiumBrowser(SeleniumBrowser):
 <source src="(?P<url>[^"]+)" type="[^"]+">
 </video>
 </body>
-</html>'''.replace(b'\n', b''),
-
-        b'''<html style="height: 100%;">
+</html>""".replace(b"\n", b""),
+        b"""<html style="height: 100%;">
 <head>
 <meta ((content="width=device-width, minimum-scale=0.1"|name="viewport") ?){2}>
 <title>[^<]*</title>
@@ -1112,19 +1149,19 @@ class ChromiumBrowser(SeleniumBrowser):
 <body style="margin: 0px; height: 100%; background-color: rgb\\(14, 14, 14\\);">
 <img ((style="display: block;-webkit-user-select: none;margin: auto;background-color: hsl\\(0, 0%, 90%\\);transition: background-color 300ms;"|src="(?P<url>[^"]+)") ?){2}>
 </body>
-</html>'''.replace(b'\n', b'')
+</html>""".replace(b"\n", b""),
     )
 
     @classmethod
     def _get_options_obj(cls):
         options = ChromiumOptions()
-        options.binary_location = '/usr/bin/chromium'
+        options.binary_location = "/usr/bin/chromium"
         prefs = {
-            'profile.default_content_settings.popups': 0,
-            'download.default_directory': cls._get_download_dir(),
-            'download.prompt_for_download': False,
-            'download.directory_upgrade': True,
-            'plugins.always_open_pdf_externally': True
+            "profile.default_content_settings.popups": 0,
+            "download.default_directory": cls._get_download_dir(),
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "plugins.always_open_pdf_externally": True,
         }
         options.add_experimental_option("prefs", prefs)
         return options
@@ -1132,12 +1169,13 @@ class ChromiumBrowser(SeleniumBrowser):
     @classmethod
     def _get_options(cls):
         from .models import user_agent
+
         opts = []
         if settings.SOSSE_PROXY:
-            opts.append('--proxy-server=%s' % settings.SOSSE_PROXY.rstrip('/'))
-        opts.append('--user-agent=%s' % user_agent())
-        opts.append('--start-maximized')
-        opts.append('--start-fullscreen')
+            opts.append(f"--proxy-server={settings.SOSSE_PROXY.rstrip('/')}")
+        opts.append(f"--user-agent={user_agent()}")
+        opts.append("--start-maximized")
+        opts.append("--start-fullscreen")
         return opts
 
     @classmethod
@@ -1146,7 +1184,8 @@ class ChromiumBrowser(SeleniumBrowser):
 
     @classmethod
     def _driver_get(cls, url, force_reload=False):
-        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)) and not force_reload:
+        _url = json.dumps(url)
+        if cls.driver.execute_script(f"return window.location.href === {_url}") and not force_reload:
             return
         dl_dir_files = cls.page_change_wait_setup()
         cls.driver.get(url)
@@ -1155,22 +1194,23 @@ class ChromiumBrowser(SeleniumBrowser):
     @classmethod
     def _get_download_file(cls):
         d = os.listdir(cls._get_download_dir())
-        d = [x for x in d if not x.startswith('.')]
+        d = [x for x in d if not x.startswith(".")]
         if len(d) == 0:
             return None
         return os.path.join(cls._get_download_dir(), d[0])
 
     @classmethod
     def _get_download_dir(cls):
-        return settings.SOSSE_TMP_DL_DIR + '/chromium/' + str(cls._worker_no)
+        return settings.SOSSE_TMP_DL_DIR + "/chromium/" + str(cls._worker_no)
 
 
 class FirefoxBrowser(SeleniumBrowser):
     DRIVER_CLASS = webdriver.Firefox
-    name = 'firefox'
+    name = "firefox"
 
     # img tag matches on 2 or 3 match because class="transparent" is set for PNG, but not for JPEG
-    CONTENT_HANDLERS = (b'''<html>
+    CONTENT_HANDLERS = (
+        b"""<html>
 <head>
 <meta name="viewport" content="width=device-width; height=device-height;">
 <link rel="stylesheet" href="resource://content-accessible/ImageDocument.css">
@@ -1180,41 +1220,44 @@ class FirefoxBrowser(SeleniumBrowser):
 <body>
 <img ((src="(?P<url>[^"]+)"|alt="[^"]+"|class="transparent") ?){2,3}>
 </body>
-</html>'''.replace(b'\n', b''),
+</html>""".replace(b"\n", b""),
     )
 
     @classmethod
     def _get_options_obj(cls):
         from .models import user_agent
+
         options = FirefoxOptions()
         options.set_preference(
-            'browser.download.dir', settings.SOSSE_TMP_DL_DIR + '/firefox/' + str(cls._worker_no))
-        options.set_preference('browser.download.folderList', 2)
-        options.set_preference('browser.download.useDownloadDir', True)
+            "browser.download.dir",
+            settings.SOSSE_TMP_DL_DIR + "/firefox/" + str(cls._worker_no),
+        )
+        options.set_preference("browser.download.folderList", 2)
+        options.set_preference("browser.download.useDownloadDir", True)
+        options.set_preference("browser.download.viewableInternally.enabledTypes", "")
+        options.set_preference("browser.helperApps.alwaysAsk.force", False)
         options.set_preference(
-            'browser.download.viewableInternally.enabledTypes', '')
-        options.set_preference('browser.helperApps.alwaysAsk.force', False)
-        options.set_preference('browser.helperApps.neverAsk.saveToDisk',
-                               'application/pdf;text/plain;application/text;text/xml;application/xml;application/octet-stream')
-        options.set_preference('general.useragent.override', user_agent())
+            "browser.helperApps.neverAsk.saveToDisk",
+            "application/pdf;text/plain;application/text;text/xml;application/xml;application/octet-stream",
+        )
+        options.set_preference("general.useragent.override", user_agent())
 
         # Ensure more secure cookie defaults, and be cosistent with Chromium's behavior
         # See https://hacks.mozilla.org/2020/08/changes-to-samesite-cookie-behavior/
-        options.set_preference('network.cookie.sameSite.laxByDefault', True)
-        options.set_preference(
-            'network.cookie.sameSite.noneRequiresSecure', True)
-        options.set_preference('pdfjs.disabled', True)
-        options.set_preference('media.play-stand-alone', False)
+        options.set_preference("network.cookie.sameSite.laxByDefault", True)
+        options.set_preference("network.cookie.sameSite.noneRequiresSecure", True)
+        options.set_preference("pdfjs.disabled", True)
+        options.set_preference("media.play-stand-alone", False)
 
         if settings.SOSSE_PROXY:
             url = urlparse(settings.SOSSE_PROXY)
-            url, port = url.netloc.rsplit(':', 1)
+            url, port = url.netloc.rsplit(":", 1)
             port = int(port)
-            options.set_preference('network.proxy.type', 1)
-            options.set_preference('network.proxy.http', url)
-            options.set_preference('network.proxy.http_port', port)
-            options.set_preference('network.proxy.ssl', url)
-            options.set_preference('network.proxy.ssl_port', port)
+            options.set_preference("network.proxy.type", 1)
+            options.set_preference("network.proxy.http", url)
+            options.set_preference("network.proxy.http_port", port)
+            options.set_preference("network.proxy.ssl", url)
+            options.set_preference("network.proxy.ssl_port", port)
         return options
 
     @classmethod
@@ -1223,30 +1266,31 @@ class FirefoxBrowser(SeleniumBrowser):
 
     @classmethod
     def _get_driver(cls, options):
-        log_file = '/var/log/sosse/geckodriver-%i.log' % cls._worker_no
+        log_file = f"/var/log/sosse/geckodriver-{cls._worker_no}.log"
 
-        selenium_ver = tuple(map(int, selenium.__version__.split('.')))
+        selenium_ver = tuple(map(int, selenium.__version__.split(".")))
         if selenium_ver < (4, 9, 0):
-            service = {'service_log_path': log_file}
+            service = {"service_log_path": log_file}
         else:
-            service = {
-                'service': FirefoxService(log_output=log_file)
-            }
+            service = {"service": FirefoxService(log_output=log_file)}
         return webdriver.Firefox(options=options, **service)
 
     @classmethod
     def _driver_get(cls, url, force_reload=False):
-        if cls.driver.execute_script('return window.location.href === %s' % json.dumps(url)) and not force_reload:
+        _url = json.dumps(url)
+        if cls.driver.execute_script(f"return window.location.href === {_url}") and not force_reload:
             return
         dl_dir_files = cls.page_change_wait_setup()
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
         # When a download starts, the regular cls.driver.get call is stuck
-        cls.driver.execute_script('''
-            window.location.assign(%s);
-        ''' % json.dumps(url))
+        cls.driver.execute_script(
+            f"""
+            window.location.assign({_url});
+        """
+        )
 
-        if url == 'about:blank':
-            raise Exception('navigating to about:blank')
+        if url == "about:blank":
+            raise Exception("navigating to about:blank")
 
         cls.page_change_wait(dl_dir_files)
 
@@ -1261,12 +1305,12 @@ class FirefoxBrowser(SeleniumBrowser):
 
     @classmethod
     def _get_download_dir(cls):
-        return settings.SOSSE_TMP_DL_DIR + '/firefox/' + str(cls._worker_no)
+        return settings.SOSSE_TMP_DL_DIR + "/firefox/" + str(cls._worker_no)
 
     @classmethod
     def _get_download_file(cls):
         for f in os.listdir(cls._get_download_dir()):
-            if f.endswith('.part'):
+            if f.endswith(".part"):
                 break
         else:
             d = os.listdir(cls._get_download_dir())

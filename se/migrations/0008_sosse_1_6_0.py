@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,30 +19,56 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0007_sosse_1_5_0'),
+        ("se", "0007_sosse_1_5_0"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='crawlpolicy',
-            name='snapshot_html',
-            field=models.BooleanField(default=True, help_text='Store pages as HTML and download requisite assets', verbose_name='Snapshot HTML 🔖'),
+            model_name="crawlpolicy",
+            name="snapshot_html",
+            field=models.BooleanField(
+                default=True,
+                help_text="Store pages as HTML and download requisite assets",
+                verbose_name="Snapshot HTML 🔖",
+            ),
         ),
         migrations.AlterField(
-            model_name='crawlpolicy',
-            name='take_screenshots',
-            field=models.BooleanField(default=False, help_text='Store pages as screenshots', verbose_name='Take screenshots 📷'),
+            model_name="crawlpolicy",
+            name="take_screenshots",
+            field=models.BooleanField(
+                default=False,
+                help_text="Store pages as screenshots",
+                verbose_name="Take screenshots 📷",
+            ),
         ),
         migrations.AlterField(
-            model_name='crawlpolicy',
-            name='default_browse_mode',
-            field=models.CharField(choices=[('detect', 'Detect'), ('selenium', 'Chromium'), ('firefox', 'Firefox'), ('requests', 'Python Requests')], default='selenium', help_text="Python Request is faster, but can't execute Javascript and may break pages", max_length=8),
+            model_name="crawlpolicy",
+            name="default_browse_mode",
+            field=models.CharField(
+                choices=[
+                    ("detect", "Detect"),
+                    ("selenium", "Chromium"),
+                    ("firefox", "Firefox"),
+                    ("requests", "Python Requests"),
+                ],
+                default="selenium",
+                help_text="Python Request is faster, but can't execute Javascript and may break pages",
+                max_length=8,
+            ),
         ),
         migrations.AlterField(
-            model_name='domainsetting',
-            name='browse_mode',
-            field=models.CharField(choices=[('detect', 'Detect'), ('selenium', 'Chromium'), ('firefox', 'Firefox'), ('requests', 'Python Requests')], default='detect', max_length=10),
+            model_name="domainsetting",
+            name="browse_mode",
+            field=models.CharField(
+                choices=[
+                    ("detect", "Detect"),
+                    ("selenium", "Chromium"),
+                    ("firefox", "Firefox"),
+                    ("requests", "Python Requests"),
+                ],
+                default="detect",
+                max_length=10,
+            ),
         ),
     ]

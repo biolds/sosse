@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -15,15 +15,15 @@
 
 from django.db import migrations
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
-        ('se', '0001_initial'),
+        ("se", "0001_initial"),
     ]
 
     operations = [
         migrations.RunSQL(
-            sql='''
+            sql="""
               -- Doc update
 
               CREATE FUNCTION doc_weight_vector() RETURNS trigger AS $$
@@ -61,13 +61,12 @@ class Migration(migrations.Migration):
               FOR EACH ROW
               WHEN (new.doc_to_id IS NOT NULL)
               EXECUTE PROCEDURE link_weight_vector();
-            ''',
-
-            reverse_sql = '''
+            """,
+            reverse_sql="""
               DROP TRIGGER link_row_trigger ON se_link;
               DROP TRIGGER vector_column_trigger ON se_document;
               DROP FUNCTION link_weight_vector;
               DROP FUNCTION doc_weight_vector;
-            '''
+            """,
         ),
     ]

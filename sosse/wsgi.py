@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -28,11 +28,11 @@ from pathlib import Path
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sosse.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sosse.settings")
 
-linkpreview = Path(__file__).parent.parent / 'se/deps/linkpreview'
+linkpreview = Path(__file__).parent.parent / "se/deps/linkpreview"
 sys.path.insert(0, str(linkpreview))
-fake_useragent = Path(__file__).parent.parent / 'se/deps/fake-useragent/src'
+fake_useragent = Path(__file__).parent.parent / "se/deps/fake-useragent/src"
 sys.path.insert(0, str(fake_useragent))
 
 application = get_wsgi_application()

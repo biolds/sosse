@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -24,25 +24,34 @@ from ...utils import human_datetime
 
 
 class Command(BaseCommand):
-    help = 'Mass delete documents.'
+    help = "Mass delete documents."
 
     def add_arguments(self, parser):
-        parser.add_argument('url regexp')
-        parser.add_argument('--dry-run', action='store_true', help="Prints the count of documents that would be deleted.")
-        parser.add_argument('-i', '--ignore-case', action='store_true', help='Case insensitive matching.')
+        parser.add_argument("url regexp")
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Prints the count of documents that would be deleted.",
+        )
+        parser.add_argument(
+            "-i",
+            "--ignore-case",
+            action="store_true",
+            help="Case insensitive matching.",
+        )
 
     def handle(self, *args, **options):
-        if options['ignore_case']:
-            docs = Document.objects.filter(url__regex=options['url regexp'])
+        if options["ignore_case"]:
+            docs = Document.objects.filter(url__regex=options["url regexp"])
         else:
-            docs = Document.objects.filter(url__iregex=options['url regexp'])
+            docs = Document.objects.filter(url__iregex=options["url regexp"])
 
         count = docs.count()
-        if options['dry_run']:
-            self.stdout.write('%s documents would be deleted' % count)
+        if options["dry_run"]:
+            self.stdout.write(f"{count} documents would be deleted")
             sys.exit(0)
 
-        self.stdout.write('Deleting %s documents, please wait...' % docs.count())
+        self.stdout.write(f"Deleting {docs.count()} documents, please wait...")
 
         start_time = progress_time = timezone.now()
         for no, doc in enumerate(docs):
@@ -53,7 +62,7 @@ class Command(BaseCommand):
                 progress = (no / count) * 100
                 progress_time = timezone.now()
                 doc_dt = (progress_time - start_time) / (no + 1)
-                eta = ((count - (no + 1)) * doc_dt)
-                self.stdout.write('%0.1f%%\t ETA ~%s' % (progress, human_datetime(eta, True)))
+                eta = (count - (no + 1)) * doc_dt
+                self.stdout.write(f"{progress:.1f}%\t ETA ~{human_datetime(eta, True)}")
 
-        self.stdout.write('Done')
+        self.stdout.write("Done")

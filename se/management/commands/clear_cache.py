@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,9 +19,9 @@ from ...html_asset import HTMLAsset
 
 
 class Command(BaseCommand):
-    help = 'Clears the browsing cache used when making HTML snapshots.'
+    help = "Clears the browsing cache used when making HTML snapshots."
 
     def handle(self, *args, **options):
-        self.stdout.write('Clearing cache, please wait...')
+        self.stdout.write("Clearing cache, please wait...")
         HTMLAsset.objects.update(download_date=None)
-        self.stdout.write('Done.')
+        self.stdout.write("Done.")

@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -23,35 +23,35 @@
 import os
 import sys
 
-project = 'SOSSE'
-copyright = '2022-2024, Laurent Defert'
-author = 'Laurent Defert'
-release = '1.11'
+project = "SOSSE"
+copyright = "2022-2025, Laurent Defert"
+author = "Laurent Defert"
+release = "1.11"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-sys.path.append(os.path.abspath('_extensions'))
-extensions = ['code_blocks', 'myst_parser']
-test_code_output = 'code_blocks.json'
+sys.path.append(os.path.abspath("_extensions"))
+extensions = ["code_blocks", "myst_parser"]
+test_code_output = "code_blocks.json"
 
-linkcheck_ignore = [r'http://192\.168\.0\.1:8080/', 'https://github.com/.*']
+linkcheck_ignore = [r"http://192\.168\.0\.1:8080/", "https://github.com/.*"]
 linkcheck_retries = 3
 linkcheck_timeout = 60
 
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".md": "markdown",
 }
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'furo'
-html_static_path = ['_static']
-html_logo = '../../se/static/se/logo.svg'
-html_favicon = '../../se/static/se/logo.svg'
-html_css_files = ['style.css']
+html_theme = "furo"
+html_static_path = ["_static"]
+html_logo = "../../se/static/se/logo.svg"
+html_favicon = "../../se/static/se/logo.svg"
+html_css_files = ["style.css"]

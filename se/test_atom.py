@@ -34,20 +34,23 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         super().setUp()
         now = timezone.now()
         yesterday = now - timedelta(days=1)
-        Document.objects.create(url='http://127.0.0.1',
-                                title='title',
-                                content='content',
-                                mimetype='text/html',
-                                crawl_first=now,
-                                crawl_last=now)
-        Document.objects.create(url='http://127.0.0.1/bin',
-                                title='title',
-                                content='content',
-                                mimetype='application/octet-stream',
-                                crawl_first=yesterday,
-                                crawl_last=now)
-        HTMLAsset.objects.create(url='http://127.0.0.1/bin',
-                                 filename='bin')
+        Document.objects.create(
+            url="http://127.0.0.1",
+            title="title",
+            content="content",
+            mimetype="text/html",
+            crawl_first=now,
+            crawl_last=now,
+        )
+        Document.objects.create(
+            url="http://127.0.0.1/bin",
+            title="title",
+            content="content",
+            mimetype="application/octet-stream",
+            crawl_first=yesterday,
+            crawl_last=now,
+        )
+        HTMLAsset.objects.create(url="http://127.0.0.1/bin", filename="bin")
 
     def _atom_get(self, url: str) -> HttpResponse:
         request = self._request_from_factory(url)
@@ -57,38 +60,44 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         response = self._atom_get(url)
         self.assertEqual(response.status_code, 200, response)
         parsed = feedparser.parse(response.content)
-        return parsed['entries']
+        return parsed["entries"]
 
     def test_simple_feed(self):
-        entries = self._atom_get_parsed('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content')
+        entries = self._atom_get_parsed("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content")
 
         self.assertEqual(len(entries), 2)
-        self.assertEqual(entries[0]['link'], 'http://127.0.0.1')
-        self.assertEqual(entries[1]['link'], 'http://127.0.0.1/bin')
+        self.assertEqual(entries[0]["link"], "http://127.0.0.1")
+        self.assertEqual(entries[1]["link"], "http://127.0.0.1/bin")
 
     def test_auth(self):
-        request = self._request_from_factory('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content', AnonymousUser())
+        request = self._request_from_factory("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content", AnonymousUser())
         with self.assertRaises(PermissionDenied):
             AtomView.as_view()(request)
 
-    @override_settings(SOSSE_ATOM_ACCESS_TOKEN='token42')
+    @override_settings(SOSSE_ATOM_ACCESS_TOKEN="token42")
     def test_auth_token(self):
-        request = self._request_from_factory('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&token=token42', AnonymousUser())
+        request = self._request_from_factory(
+            "/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&token=token42",
+            AnonymousUser(),
+        )
         response = AtomView.as_view()(request)
         self.assertEqual(response.status_code, 200)
 
     def test_cached(self):
         for bin_passthrough in (True, False):
             with tempfile.TemporaryDirectory() as tmp_dir:
-                with open(f'{tmp_dir}/bin', 'w') as f:
-                    f.write('test')
+                with open(f"{tmp_dir}/bin", "w") as f:
+                    f.write("test")
 
-                with self.settings(SOSSE_HTML_SNAPSHOT_DIR=tmp_dir + '/', SOSSE_ATOM_CACHED_BIN_PASSTHROUGH=bin_passthrough):
-                    entries = self._atom_get_parsed('/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&cached=1')
+                with self.settings(
+                    SOSSE_HTML_SNAPSHOT_DIR=tmp_dir + "/",
+                    SOSSE_ATOM_CACHED_BIN_PASSTHROUGH=bin_passthrough,
+                ):
+                    entries = self._atom_get_parsed("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&cached=1")
 
             self.assertEqual(len(entries), 2)
-            self.assertEqual(entries[0]['link'], 'http://127.0.0.1/www/http://127.0.0.1')
+            self.assertEqual(entries[0]["link"], "http://127.0.0.1/www/http://127.0.0.1")
             if bin_passthrough:
-                self.assertEqual(entries[1]['link'], 'http://127.0.0.1/snap/bin')
+                self.assertEqual(entries[1]["link"], "http://127.0.0.1/snap/bin")
             else:
-                self.assertEqual(entries[1]['link'], 'http://127.0.0.1/download/http://127.0.0.1/bin')
+                self.assertEqual(entries[1]["link"], "http://127.0.0.1/download/http://127.0.0.1/bin")

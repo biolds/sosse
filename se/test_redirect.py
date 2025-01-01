@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,7 +19,7 @@ from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexi
 from .test_mock import CleanTest, FirefoxTest
 
 
-TEST_SERVER_URL = 'http://127.0.0.1:8000/'
+TEST_SERVER_URL = "http://127.0.0.1:8000/"
 
 
 class RedirectTest:
@@ -32,27 +32,27 @@ class RedirectTest:
         page = self.BROWSER.get(TEST_SERVER_URL)
         self.assertEqual(page.url, TEST_SERVER_URL)
         self.assertEqual(page.redirect_count, 0)
-        self.assertIn(b'This page.', page.content)
+        self.assertIn(b"This page.", page.content)
 
     def test_20_one_redirect(self):
-        page = self.BROWSER.get(TEST_SERVER_URL + 'redirect/1')
-        self.assertEqual(page.url, TEST_SERVER_URL + 'get')
+        page = self.BROWSER.get(TEST_SERVER_URL + "redirect/1")
+        self.assertEqual(page.url, TEST_SERVER_URL + "get")
         self.assertEqual(page.redirect_count, 1)
-        self._check_key_val(b'url', b'"http://127.0.0.1:8000/get"', page.content)
+        self._check_key_val("url", '"http://127.0.0.1:8000/get"', page.content)
 
 
 class RequestsRedirectTest(RedirectTest, CleanTest, TransactionTestCase):
     BROWSER = RequestBrowser
 
     def test_30_five_redirects(self):
-        page = self.BROWSER.get(TEST_SERVER_URL + 'redirect/5')
-        self.assertEqual(page.url, TEST_SERVER_URL + 'get')
+        page = self.BROWSER.get(TEST_SERVER_URL + "redirect/5")
+        self.assertEqual(page.url, TEST_SERVER_URL + "get")
         self.assertEqual(page.redirect_count, 5)
         self.assertIn(b'"url": "http://127.0.0.1:8000/get"', page.content)
 
     def test_40_max_redirect(self):
         with self.assertRaises(SkipIndexing):
-            self.BROWSER.get(TEST_SERVER_URL + 'redirect/6')
+            self.BROWSER.get(TEST_SERVER_URL + "redirect/6")
 
 
 class FirefoxRedirectTest(RedirectTest, FirefoxTest, TransactionTestCase):

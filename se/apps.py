@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -18,10 +18,10 @@ from django.contrib.admin.apps import AdminConfig
 
 
 class SEConfig(AppConfig):
-    name = 'se'
-    verbose_name = 'Search Engine'
-    default_auto_field = 'django.db.models.AutoField'
+    name = "se"
+    verbose_name = "Search Engine"
+    default_auto_field = "django.db.models.AutoField"
 
 
 class SEAdminConfig(AdminConfig):
-    default_site = 'se.admin.get_admin'
+    default_site = "se.admin.get_admin"

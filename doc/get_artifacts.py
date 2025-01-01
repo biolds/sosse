@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -22,36 +22,36 @@ from zipfile import ZipFile
 
 
 PROJECT_ID = 41220530
-jobs_name = ['doc_gen', 'functional_tests_chromium']
+jobs_name = ["doc_gen", "functional_tests_chromium"]
 
 gl = gitlab.Gitlab()
 project = gl.projects.get(PROJECT_ID)
 
-commit_hash = os.environ['READTHEDOCS_GIT_COMMIT_HASH']
+commit_hash = os.environ["READTHEDOCS_GIT_COMMIT_HASH"]
 commit = project.commits.get(commit_hash)
-pipeline_id = commit.last_pipeline['id']
-print('Pipeline ID %s' % pipeline_id)
+pipeline_id = commit.last_pipeline["id"]
+print("Pipeline ID %s" % pipeline_id)
 pipeline = project.pipelines.get(pipeline_id)
 
 for job in pipeline.jobs.list():
     if job.name in jobs_name:
-        if job.status != 'success':
-            print('Job %s did not succeed, state: %s' % (job.web_url, job.state))
+        if job.status != "success":
+            print(f"Job {job.web_url} did not succeed, state: {job.state}")
             exit(1)
 
-        artifact = job.web_url + '/artifacts/download'
+        artifact = job.web_url + "/artifacts/download"
 
-        print('Download artifact for %s at %s' % (job.name, artifact))
+        print(f"Download artifact for {job.name} at {artifact}")
         req = requests.get(artifact)
         try:
             with ZipFile(BytesIO(req.content)) as zip_file:
                 zip_file.extractall()
         except:  # noqa
-            with open('/tmp/artifact', 'wb') as f:
+            with open("/tmp/artifact", "wb") as f:
                 f.write(req.content)
             raise
         jobs_name.remove(job.name)
 
 if len(jobs_name):
-    print('Job(s) %s not found' % (', '.join(jobs_name)))
+    print("Job(s) %s not found" % (", ".join(jobs_name)))
     exit(1)

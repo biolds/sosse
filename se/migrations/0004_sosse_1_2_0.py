@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Laurent Defert
+# Copyright 2022-2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -19,15 +19,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('se', '0003_sosse_1_1_0'),
+        ("se", "0003_sosse_1_1_0"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='crawlpolicy',
-            name='remove_nav_elements',
-            field=models.CharField(choices=[('yes', 'Yes'), ('no', 'No')], default='yes', help_text='Remove navigation related elements', max_length=4),
+            model_name="crawlpolicy",
+            name="remove_nav_elements",
+            field=models.CharField(
+                choices=[("yes", "Yes"), ("no", "No")],
+                default="yes",
+                help_text="Remove navigation related elements",
+                max_length=4,
+            ),
         ),
     ]

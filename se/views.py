@@ -37,7 +37,7 @@ from .search import add_headlines, get_documents_from_request
 from .utils import human_nb
 
 
-ANIMALS = '🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿'
+ANIMALS = "🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿"
 
 
 def format_url(request, params):
@@ -46,10 +46,10 @@ def format_url(request, params):
     for k, v in query_string.items():
         query_string[k] = v[0]
 
-    for param in params.split('&'):
+    for param in params.split("&"):
         val = None
-        if '=' in param:
-            key, val = param.split('=', 1)
+        if "=" in param:
+            key, val = param.split("=", 1)
         else:
             key = param
 
@@ -58,7 +58,7 @@ def format_url(request, params):
         else:
             query_string.pop(key, None)
 
-    qs = '&'.join([f'{k}={v}' for k, v in query_string.items()])
+    qs = "&".join([f"{k}={v}" for k, v in query_string.items()])
     return parsed_url._replace(query=qs).geturl()
 
 
@@ -79,37 +79,41 @@ class UserView(SosseMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if hasattr(self, 'title'):
-            context['title'] = self.title
-        animal = ''
+        if hasattr(self, "title"):
+            context["title"] = self.title
+        animal = ""
         while not animal:
             # choice sometimes returns an empty string for an unknown reason
             animal = choice(ANIMALS)
 
         return context | {
-            'settings': settings,
-            'animal': animal,
-            'online_status': online_status(self.request),
+            "settings": settings,
+            "animal": animal,
+            "online_status": online_status(self.request),
         }
 
     def _get_pagination(self, paginated):
         context = {}
         if paginated and paginated.has_previous():
-            context.update({
-                'page_first': format_url(self.request, 'p='),
-                'page_previous': format_url(self.request, 'p=%i' % paginated.previous_page_number()),
-            })
+            context.update(
+                {
+                    "page_first": format_url(self.request, "p="),
+                    "page_previous": format_url(self.request, f"p={paginated.previous_page_number()}"),
+                }
+            )
         if paginated and paginated.has_next():
-            context.update({
-                'page_next': format_url(self.request, 'p=%i' % paginated.next_page_number()),
-                'page_last': format_url(self.request, 'p=%i' % paginated.paginator.num_pages)
-            })
+            context.update(
+                {
+                    "page_next": format_url(self.request, f"p={paginated.next_page_number()}"),
+                    "page_last": format_url(self.request, f"p={paginated.paginator.num_pages}"),
+                }
+            )
         return context
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class SearchView(UserView):
-    template_name = 'se/index.html'
+    template_name = "se/index.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -120,7 +124,7 @@ class SearchView(UserView):
 
         form = SearchForm(self.request.GET)
         if form.is_valid():
-            q = form.cleaned_data['q']
+            q = form.cleaned_data["q"]
             SearchHistory.save_history(self.request, q)
 
             if q.strip():
@@ -130,175 +134,181 @@ class SearchView(UserView):
                     raise RedirectException(redirect_url)
 
             has_query, results, query = get_documents_from_request(self.request, form)
-            paginator = Paginator(results, form.cleaned_data['ps'])
-            page_number = self.request.GET.get('p')
+            paginator = Paginator(results, form.cleaned_data["ps"])
+            page_number = self.request.GET.get("p")
             paginated = paginator.get_page(page_number)
             paginated = add_headlines(paginated, query)
         else:
             form = SearchForm({})
             form.is_valid()
 
-        sosse_langdetect_to_postgres = OrderedDict(sorted(
-            settings.SOSSE_LANGDETECT_TO_POSTGRES.items(), key=lambda x: x[1]['name']))
+        sosse_langdetect_to_postgres = OrderedDict(
+            sorted(
+                settings.SOSSE_LANGDETECT_TO_POSTGRES.items(),
+                key=lambda x: x[1]["name"],
+            )
+        )
 
         if paginated:
             for r in paginated:
-                if form.cleaned_data['c']:
+                if form.cleaned_data["c"]:
                     r.link = r.get_absolute_url()
-                    r.link_flag = ''
+                    r.link_flag = ""
                     r.extra_link = r.url
                     r.extra_link_flag = extern_link_flags()
                 else:
                     r.link = r.url
                     r.link_flag = extern_link_flags()
                     r.extra_link = r.get_absolute_url()
-                    r.extra_link_flag = ''
+                    r.extra_link_flag = ""
 
-        extra_link_txt = 'cached'
-        if form.cleaned_data['c']:
-            extra_link_txt = 'source'
+        extra_link_txt = "cached"
+        if form.cleaned_data["c"]:
+            extra_link_txt = "source"
 
         home_entries = None
         if not has_query and settings.SOSSE_BROWSABLE_HOME:
-            home_entries = Document.objects.filter(
-                show_on_homepage=True).order_by('title')
+            home_entries = Document.objects.filter(show_on_homepage=True).order_by("title")
 
         context.update(self._get_pagination(paginated))
         return context | {
-            'hide_title': True,
-            'form': form,
-            'results': results,
-            'results_count': human_nb(len(results)),
-            'paginated': paginated,
-            'has_query': has_query,
-            'home_entries': home_entries,
-            'q': q,
-            'title': q,
-            'sosse_langdetect_to_postgres': sosse_langdetect_to_postgres,
-            'extra_link_txt': extra_link_txt,
-            'FILTER_FIELDS': FILTER_FIELDS
+            "hide_title": True,
+            "form": form,
+            "results": results,
+            "results_count": human_nb(len(results)),
+            "paginated": paginated,
+            "has_query": has_query,
+            "home_entries": home_entries,
+            "q": q,
+            "title": q,
+            "sosse_langdetect_to_postgres": sosse_langdetect_to_postgres,
+            "extra_link_txt": extra_link_txt,
+            "FILTER_FIELDS": FILTER_FIELDS,
         }
 
 
 class AboutView(UserView):
-    template_name = 'se/about.html'
-    title = 'About'
+    template_name = "se/about.html"
+    title = "About"
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class WordStatsView(View):
     def get(self, request):
         results = None
         form = SearchForm(request.GET)
         if form.is_valid():
-            q = form.cleaned_data['q']
+            q = form.cleaned_data["q"]
             q = remove_accent(q)
             _, doc_query, _ = get_documents_from_request(request, form, True)
-            doc_query = doc_query.values('vector')
+            doc_query = doc_query.values("vector")
 
             # Hack to obtain final SQL query, as described there:
             # https://code.djangoproject.com/ticket/17741#comment:4
             sql, params = doc_query.query.sql_with_params()
             cursor = connection.cursor()
-            cursor.execute('EXPLAIN ' + sql, params)
+            cursor.execute("EXPLAIN " + sql, params)
             raw_query = cursor.db.ops.last_executed_query(cursor, sql, params)
-            raw_query = raw_query[len('EXPLAIN '):]
+            raw_query = raw_query[len("EXPLAIN ") :]
 
             results = Document.objects.raw(
-                'SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100', (raw_query,))
-            results = [(e.word, human_nb(e.ndoc), format_url(request, 'q=%s %s' % (
-                q, e.word))[len('/word_stats'):]) for e in list(results)]
+                "SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100",
+                (raw_query,),
+            )
+            results = [
+                (
+                    e.word,
+                    human_nb(e.ndoc),
+                    format_url(request, f"q={q} {e.word}")[len("/word_stats") :],
+                )
+                for e in list(results)
+            ]
             results = json.dumps(results)
 
-        return HttpResponse(results, content_type='application/json')
+        return HttpResponse(results, content_type="application/json")
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class PreferencesView(UserView):
-    template_name = 'se/prefs.html'
-    title = 'Preferences'
+    template_name = "se/prefs.html"
+    title = "Preferences"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        return context | {
-            'supported_langs': json.dumps(Document.get_supported_lang_dict())
-        }
+        return context | {"supported_langs": json.dumps(Document.get_supported_lang_dict())}
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class FavIconView(View):
     def get(self, request, favicon_id):
         fav = get_object_or_404(FavIcon, id=favicon_id)
         return HttpResponse(fav.content, content_type=fav.mimetype)
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class HistoryView(UserView):
-    template_name = 'se/history.html'
-    title = 'History'
+    template_name = "se/history.html"
+    title = "History"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        page_size = int(self.request.GET.get('ps', settings.SOSSE_DEFAULT_PAGE_SIZE))
+        page_size = int(self.request.GET.get("ps", settings.SOSSE_DEFAULT_PAGE_SIZE))
         page_size = min(page_size, settings.SOSSE_MAX_PAGE_SIZE)
 
-        history = SearchHistory.objects.filter(user=self.request.user).order_by('-date')
+        history = SearchHistory.objects.filter(user=self.request.user).order_by("-date")
         paginator = Paginator(history, page_size)
-        page_number = int(self.request.GET.get('p', 1))
+        page_number = int(self.request.GET.get("p", 1))
         paginated = paginator.get_page(page_number)
 
-        context['paginated'] = paginated
+        context["paginated"] = paginated
         context.update(self._get_pagination(paginated))
         return context
 
     def post(self, request):
-        if 'del_all' in self.request.POST:
+        if "del_all" in self.request.POST:
             SearchHistory.objects.filter(user=self.request.user).delete()
         else:
             for key, val in self.request.POST.items():
-                if key.startswith('del_'):
+                if key.startswith("del_"):
                     key = int(key[4:])
-                    obj = SearchHistory.objects.filter(
-                        id=key, user=self.request.user).first()
+                    obj = SearchHistory.objects.filter(id=key, user=self.request.user).first()
                     if obj:
                         obj.delete()
         return super().get(request)
 
 
 class OpensearchView(TemplateView):
-    template_name = 'se/opensearch.xml'
-    content_type = 'application/xml'
+    template_name = "se/opensearch.xml"
+    content_type = "application/xml"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        return context | {
-            'url': self.request.build_absolute_uri('/').rstrip('/')
-        }
+        return context | {"url": self.request.build_absolute_uri("/").rstrip("/")}
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class SearchRedirectView(TemplateView):
-    template_name = 'se/search_redirect.html'
+    template_name = "se/search_redirect.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context | {
-            'url': self.request.build_absolute_uri('/'),
-            'q': quote_plus(self.request.GET.get('q', '')),
-            'settings': settings
+            "url": self.request.build_absolute_uri("/"),
+            "q": quote_plus(self.request.GET.get("q", "")),
+            "settings": settings,
         }
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class StatisticsView(TemplateView):
-    template_name = 'admin/stats.html'
-    extra_context = {'title': 'Statistics'}
+    template_name = "admin/stats.html"
+    extra_context = {"title": "Statistics"}
 
     def get(self, request):
         if not request.user.is_staff or not request.user.is_superuser:
-            return redirect(reverse('search'))
+            return redirect(reverse("search"))
         return super().get(request)
 
 
 class SELoginView(LoginView):
-    template_name = 'admin/login.html'
+    template_name = "admin/login.html"

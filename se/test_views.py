@@ -13,13 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Type
 from urllib.parse import quote
 import os
 
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.template.response import SimpleTemplateResponse
 from django.test import TransactionTestCase
 from django.utils import timezone
+from django.views.generic import View
 
 from se.atom import AtomView
 from se.browser import ChromiumBrowser, FirefoxBrowser
@@ -76,18 +81,33 @@ class ViewsTest:
         except OSError:
             pass
 
+    def _view_request(self, url: str, view_cls: Type[View], params: dict, user: User, expected_status: int):
+        view = view_cls.as_view()
+        request = self._request_from_factory(url, user)
+        try:
+            response = view(request, **params)
+            if isinstance(response, SimpleTemplateResponse):
+                response.render()
+        except PermissionDenied:
+            response = HttpResponse(content="Permission denied", status=403)
+        except:  # noqa
+            raise Exception(f"Failed on {url}")
+        self.assertEqual(
+            response.status_code,
+            expected_status,
+            f"{url}\n{response.status_code} != {expected_status}\n{user}\n{response.content}\n{response.headers}",
+        )
+        return response
+
     def test_views(self):
-        for url, view_cls, kwargs in (
+        for url, view_cls, params in (
             ("/?q=page", SearchView, {}),
             ("/about/", AboutView, {}),
             ("/prefs/", PreferencesView, {}),
             ("/history/", HistoryView, {}),
             ("/?q=page", SearchView, {}),
             ("/s/?q=page", SearchRedirectView, {}),
-            ("/atom/?q=page", AtomView, {}),
-            ("/atom/?q=page&cached=1", AtomView, {}),
             ("/word_stats/?q=page", WordStatsView, {}),
-            ("/opensearch.xml", OpensearchView, {}),
             ("/html/" + CRAWL_URL, HTMLView, {}),
             ("/www/" + CRAWL_URL, WWWView, {}),
             ("/www/http://unknown/", WWWView, {}),
@@ -102,19 +122,43 @@ class ViewsTest:
                 {"crawl_policy": self.crawl_policy.id, "method": "url"},
             ),
         ):
-            view = view_cls.as_view()
-            request = self._request_from_factory(url)
-            try:
-                response = view(request, **kwargs)
-                if isinstance(response, SimpleTemplateResponse):
-                    response.render()
-            except:  # noqa
-                raise Exception(f"Failed on {url}")
-            self.assertEqual(
-                response.status_code,
-                200,
-                f"{url}\n{response.content}\n{response.headers}",
-            )
+            self._view_request(url, view_cls, params, self.admin_user, 200)
+            self._view_request(url, view_cls, params, self.simple_user, 200)
+
+            response = self._view_request(url, view_cls, params, self.anon_user, 302)
+            self.assertTrue(response.headers.get("Location", "").startswith("/login/?next="))
+
+            with self.settings(SOSSE_ANONYMOUS_SEARCH=True):
+                self._view_request(url, view_cls, params, self.admin_user, 200)
+                self._view_request(url, view_cls, params, self.simple_user, 200)
+                anon_expected = 403 if url == "/history/" else 200
+                self._view_request(url, view_cls, params, self.anon_user, anon_expected)
+
+    def test_views_no_auth(self):
+        """
+        Test views that require no authentication
+        """
+        for url, view_cls, params in (("/opensearch.xml", OpensearchView, {}),):
+            for anon_search in (True, False):
+                with self.settings(SOSSE_ANONYMOUS_SEARCH=anon_search):
+                    self._view_request(url, view_cls, params, self.admin_user, 200)
+                    self._view_request(url, view_cls, params, self.simple_user, 200)
+                    self._view_request(url, view_cls, params, self.anon_user, 200)
+
+    def test_views_no_auth_redirect(self):
+        """
+        Test views that do not redirect to the login page when auth is required
+        """
+        for url, view_cls, params in (
+            ("/atom/?q=page", AtomView, {}),
+            ("/atom/?q=page&cached=1", AtomView, {}),
+        ):
+            for anon_search in (True, False):
+                with self.settings(SOSSE_ANONYMOUS_SEARCH=anon_search):
+                    self._view_request(url, view_cls, params, self.admin_user, 200)
+                    self._view_request(url, view_cls, params, self.simple_user, 200)
+                    anon_expected = 200 if anon_search else 403
+                    self._view_request(url, view_cls, params, self.anon_user, anon_expected)
 
     def test_new_urls(self):
         from sosse.urls import urlpatterns
@@ -122,7 +166,7 @@ class ViewsTest:
         self.assertEqual(len(urlpatterns), 25)
 
     def test_cache_redirect(self):
-        request = self._request_from_factory("/cache/" + CRAWL_URL)
+        request = self._request_from_factory("/cache/" + CRAWL_URL, self.admin_user)
         response = CacheRedirectView.as_view()(request)
         self.assertEqual(response.status_code, 302, response)
         self.assertEqual(response.url, "/screenshot/" + CRAWL_URL, response)
@@ -142,21 +186,29 @@ class ViewsTest:
             "/admin/se/document/?has_error=yes",
             "/admin/se/document/?has_error=no",
             f"/admin/se/document/{self.doc.id}/change/",
+            "/admin/se/document/stats/",
             "/admin/se/domainsetting/",
             f"/admin/se/domainsetting/{DomainSetting.get_from_url(CRAWL_URL).id}/change/",
             "/admin/se/cookie/",
             f"/admin/se/cookie/?q={quote(CRAWL_URL)}",
+            "/admin/se/cookie/import/",
             "/admin/se/excludedurl/",
             "/admin/se/searchengine/",
             "/admin/se/searchengine/?conflict=yes",
             "/admin/se/htmlasset/",
         ):
-            response = self.client.get(url)
+            response = self.admin_client.get(url)
             self.assertEqual(response.status_code, 200, f"{url} / {response}")
+
+            response = self.simple_client.get(url)
+            self.assertEqual(response.status_code, 302, f"{url} / {response}")
+
+            response = self.anon_client.get(url)
+            self.assertEqual(response.status_code, 302, f"{url} / {response}")
 
     def test_admin_doc_actions(self):
         for action in ("remove_from_crawl_queue", "convert_to_jpg"):
-            response = self.client.post(f"/admin/se/document/{self.doc.id}/do_action/", {"action": action})
+            response = self.admin_client.post(f"/admin/se/document/{self.doc.id}/do_action/", {"action": action})
             self.assertEqual(response.status_code, 302, f"{action} / {response}")
             self.assertEqual(
                 response.url,
@@ -164,7 +216,7 @@ class ViewsTest:
                 f"{action} / {response}",
             )
 
-        response = self.client.post(f"/admin/se/document/{self.doc.id}/do_action/", {"action": "crawl_now"})
+        response = self.admin_client.post(f"/admin/se/document/{self.doc.id}/do_action/", {"action": "crawl_now"})
         self.assertEqual(response.status_code, 302, f"{action} / {response}")
         self.assertEqual(
             response.url,
@@ -174,14 +226,14 @@ class ViewsTest:
 
     def test_admin_crawl_status_actions(self):
         for action in ("pause", "resume"):
-            response = self.client.post("/admin/se/document/crawl_status/", {action: "1"})
+            response = self.admin_client.post("/admin/se/document/crawl_status/", {action: "1"})
             self.assertEqual(response.status_code, 200, f"{action} / {response}")
 
     def test_admin_add_crawl(self):
-        response = self.client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL})
+        response = self.admin_client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL})
         self.assertEqual(response.status_code, 200, response)
 
-        response = self.client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL, "action": "Confirm"})
+        response = self.admin_client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL, "action": "Confirm"})
         self.assertEqual(response.status_code, 302, response)
 
 

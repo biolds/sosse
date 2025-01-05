@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.http import HttpRequest
 from django.test import RequestFactory
 from django.test.client import Client
@@ -22,18 +22,27 @@ from django.test.client import Client
 class ViewsTestMixin:
     def setUp(self):
         super().setUp()
-        self.user = User.objects.create(username="admin", is_superuser=True, is_staff=True)
-        self.user.set_password("admin")
-        self.user.save()
+        self.admin_user = User.objects.create(username="admin", is_superuser=True, is_staff=True)
+        self.admin_user.set_password("admin")
+        self.admin_user.save()
+        self.simple_user = User.objects.create(username="user")
+        self.simple_user.set_password("user")
+        self.simple_user.save()
+        self.anon_user = AnonymousUser()
 
         self.factory = RequestFactory()
-        self.client = Client(HTTP_USER_AGENT="Mozilla/5.0")
-        self.assertTrue(self.client.login(username="admin", password="admin"))
+        self.admin_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
+        self.assertTrue(self.admin_client.login(username="admin", password="admin"))
 
-    def _request_from_factory(self, url: str, user: User | None = None) -> HttpRequest:
+        self.simple_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
+        self.assertTrue(self.simple_client.login(username="user", password="user"))
+
+        self.anon_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
+
+    def _request_from_factory(self, url: str, user: User) -> HttpRequest:
         request = self.factory.get(url)
         request.META["REQUEST_URI"] = url
         request.META["REQUEST_SCHEME"] = "http"
         request.META["HTTP_HOST"] = "127.0.0.1"
-        request.user = user or self.user
+        request.user = user
         return request

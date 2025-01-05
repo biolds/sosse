@@ -17,7 +17,6 @@ from datetime import timedelta
 import feedparser
 import tempfile
 
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.test import TransactionTestCase, override_settings
@@ -53,7 +52,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         HTMLAsset.objects.create(url="http://127.0.0.1/bin", filename="bin")
 
     def _atom_get(self, url: str) -> HttpResponse:
-        request = self._request_from_factory(url)
+        request = self._request_from_factory(url, self.admin_user)
         return AtomView.as_view()(request)
 
     def _atom_get_parsed(self, url: str) -> list[dict]:
@@ -70,7 +69,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         self.assertEqual(entries[1]["link"], "http://127.0.0.1/bin")
 
     def test_auth(self):
-        request = self._request_from_factory("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content", AnonymousUser())
+        request = self._request_from_factory("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content", self.anon_user)
         with self.assertRaises(PermissionDenied):
             AtomView.as_view()(request)
 
@@ -78,7 +77,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
     def test_auth_token(self):
         request = self._request_from_factory(
             "/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&token=token42",
-            AnonymousUser(),
+            self.anon_user,
         )
         response = AtomView.as_view()(request)
         self.assertEqual(response.status_code, 200)

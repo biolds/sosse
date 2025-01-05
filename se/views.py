@@ -22,6 +22,7 @@ from urllib.parse import urlparse, parse_qs, quote_plus
 from django.conf import settings
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
+from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, reverse
@@ -187,6 +188,7 @@ class SearchView(UserView):
         }
 
 
+@method_decorator(login_required, name="dispatch")
 class AboutView(UserView):
     template_name = "se/about.html"
     title = "About"
@@ -249,6 +251,12 @@ class FavIconView(View):
 class HistoryView(UserView):
     template_name = "se/history.html"
     title = "History"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Require authentication whatever the value of SOSSE_ANONYMOUS_SEARCH
+        if not request.user.is_authenticated:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

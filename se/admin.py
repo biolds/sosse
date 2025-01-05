@@ -41,6 +41,7 @@ from .models import (
     ExcludedUrl,
     WorkerStats,
 )
+from .statistics import StatisticsView
 from .utils import human_datetime, human_dt, mimetype_icon, reverse_no_escape
 
 
@@ -498,8 +499,6 @@ class DocumentAdmin(admin.ModelAdmin):
         return response.TemplateResponse(request, "admin/crawl_status_content.html", context)
 
     def stats(self, request):
-        from .views import StatisticsView
-
         return StatisticsView.as_view()(request)
 
     @staticmethod

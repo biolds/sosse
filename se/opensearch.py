@@ -1,4 +1,4 @@
-# Copyright 2022-2025 Laurent Defert
+# Copyright 2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -13,24 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.views import LoginView
+from django.views.generic import TemplateView
 
 
-def login_required(func):
-    from django.conf import settings
+class OpensearchView(TemplateView):
+    template_name = "se/opensearch.xml"
+    content_type = "application/xml"
 
-    if settings.SOSSE_ANONYMOUS_SEARCH:
-        return func
-    else:
-        decorator = user_passes_test(
-            lambda u: u.is_authenticated,
-            login_url=None,
-            redirect_field_name=REDIRECT_FIELD_NAME,
-        )
-        return decorator(func)
-
-
-class SELoginView(LoginView):
-    template_name = "admin/login.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context | {"url": self.request.build_absolute_uri("/").rstrip("/")}

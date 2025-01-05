@@ -26,26 +26,24 @@ from django.test import TransactionTestCase
 from django.utils import timezone
 from django.views.generic import View
 
+from se.about import AboutView
 from se.atom import AtomView
 from se.browser import ChromiumBrowser, FirefoxBrowser
 from se.cached import CacheRedirectView
 from se.document import Document
 from se.download import DownloadView
+from se.history import HistoryView
 from se.html import HTMLView, HTMLExcludedView
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.online import OnlineCheckView
+from se.opensearch import OpensearchView
+from se.preferences import PreferencesView
+from se.search import SearchView
+from se.search_redirect import SearchRedirectView
 from se.screenshot import ScreenshotView, ScreenshotFullView
 from se.test_views_mixin import ViewsTestMixin
-from se.views import (
-    AboutView,
-    HistoryView,
-    OpensearchView,
-    PreferencesView,
-    SearchView,
-    SearchRedirectView,
-    WordStatsView,
-)
 from se.words import WordsView
+from se.words_stats import WordStatsView
 from se.www import WWWView
 
 

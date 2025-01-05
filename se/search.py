@@ -16,15 +16,22 @@
 import logging
 import re
 import uuid
+from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank
+from django.core.paginator import Paginator
 from django.db import models
+from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
-from .document import Document, remove_accent
-from .forms import FILTER_FIELDS
+from .document import Document, extern_link_flags, remove_accent
+from .forms import SearchForm, FILTER_FIELDS
+from .login import login_required
+from .models import SearchEngine, SearchHistory
+from .utils import human_nb
+from .views import RedirectException, UserView
 
 
 logger = logging.getLogger("web")
@@ -217,3 +224,79 @@ def add_headlines(paginated, query):
         else:
             res.headline = fallback_headline(res)
     return paginated
+
+
+@method_decorator(login_required, name="dispatch")
+class SearchView(UserView):
+    template_name = "se/index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        results = []
+        paginated = None
+        q = None
+        has_query = False
+
+        form = SearchForm(self.request.GET)
+        if form.is_valid():
+            q = form.cleaned_data["q"]
+            SearchHistory.save_history(self.request, q)
+
+            if q.strip():
+                redirect_url = SearchEngine.should_redirect(q, self.request)
+
+                if redirect_url:
+                    raise RedirectException(redirect_url)
+
+            has_query, results, query = get_documents_from_request(self.request, form)
+            paginator = Paginator(results, form.cleaned_data["ps"])
+            page_number = self.request.GET.get("p")
+            paginated = paginator.get_page(page_number)
+            paginated = add_headlines(paginated, query)
+        else:
+            form = SearchForm({})
+            form.is_valid()
+
+        sosse_langdetect_to_postgres = OrderedDict(
+            sorted(
+                settings.SOSSE_LANGDETECT_TO_POSTGRES.items(),
+                key=lambda x: x[1]["name"],
+            )
+        )
+
+        if paginated:
+            for r in paginated:
+                if form.cleaned_data["c"]:
+                    r.link = r.get_absolute_url()
+                    r.link_flag = ""
+                    r.extra_link = r.url
+                    r.extra_link_flag = extern_link_flags()
+                else:
+                    r.link = r.url
+                    r.link_flag = extern_link_flags()
+                    r.extra_link = r.get_absolute_url()
+                    r.extra_link_flag = ""
+
+        extra_link_txt = "cached"
+        if form.cleaned_data["c"]:
+            extra_link_txt = "source"
+
+        home_entries = None
+        if not has_query and settings.SOSSE_BROWSABLE_HOME:
+            home_entries = Document.objects.filter(show_on_homepage=True).order_by("title")
+
+        context.update(self._get_pagination(paginated))
+        return context | {
+            "hide_title": True,
+            "form": form,
+            "results": results,
+            "results_count": human_nb(len(results)),
+            "paginated": paginated,
+            "has_query": has_query,
+            "home_entries": home_entries,
+            "q": q,
+            "title": q,
+            "sosse_langdetect_to_postgres": sosse_langdetect_to_postgres,
+            "extra_link_txt": extra_link_txt,
+            "FILTER_FIELDS": FILTER_FIELDS,
+        }

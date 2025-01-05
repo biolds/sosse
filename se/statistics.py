@@ -1,4 +1,4 @@
-# Copyright 2022-2025 Laurent Defert
+# Copyright 2025 Laurent Defert
 #
 #  This file is part of SOSSE.
 #
@@ -13,24 +13,19 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect, reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
+
+from .login import login_required
 
 
-def login_required(func):
-    from django.conf import settings
+@method_decorator(login_required, name="dispatch")
+class StatisticsView(TemplateView):
+    template_name = "admin/stats.html"
+    extra_context = {"title": "Statistics"}
 
-    if settings.SOSSE_ANONYMOUS_SEARCH:
-        return func
-    else:
-        decorator = user_passes_test(
-            lambda u: u.is_authenticated,
-            login_url=None,
-            redirect_field_name=REDIRECT_FIELD_NAME,
-        )
-        return decorator(func)
-
-
-class SELoginView(LoginView):
-    template_name = "admin/login.html"
+    def get(self, request):
+        if not request.user.is_staff or not request.user.is_superuser:
+            return redirect(reverse("search"))
+        return super().get(request)

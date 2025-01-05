@@ -34,25 +34,23 @@ from django.contrib.auth.views import LogoutView
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from se.views import (
-    AboutView,
-    FavIconView,
-    HistoryView,
-    OpensearchView,
-    PreferencesView,
-    SearchView,
-    SearchRedirectView,
-    WordStatsView,
-    SELoginView,
-)
+from se.about import AboutView
 from se.atom import AtomView
 from se.cached import CacheRedirectView
 from se.download import DownloadView
+from se.favicon import FavIconView
+from se.history import HistoryView
 from se.html import HTMLView, HTMLExcludedView
+from se.login import SELoginView
 from se.online import OnlineCheckView
+from se.opensearch import OpensearchView
+from se.preferences import PreferencesView
 from se.rest_api import router
+from se.search import SearchView
+from se.search_redirect import SearchRedirectView
 from se.screenshot import ScreenshotView, ScreenshotFullView
 from se.words import WordsView
+from se.words_stats import WordStatsView
 from se.www import WWWView
 
 urlpatterns = [

@@ -16,7 +16,6 @@
 import json
 import os
 
-
 from django.conf import settings
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromiumOptions

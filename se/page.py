@@ -24,7 +24,6 @@ from .url import (
     url_remove_query_string,
 )
 
-
 NAV_ELEMENTS = ["nav", "header", "footer"]
 
 

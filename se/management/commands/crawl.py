@@ -16,18 +16,18 @@
 import logging
 import os
 from datetime import timedelta
-from multiprocessing import cpu_count, Process
+from multiprocessing import Process, cpu_count
 from time import sleep
 from traceback import format_exc
 
 from django.conf import settings
-from django.db import connection
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.utils.timezone import now
 
 from ...browser_chromium import BrowserChromium
 from ...browser_firefox import BrowserFirefox
-from ...models import CrawlerStats, Document, CrawlPolicy, MINUTELY, WorkerStats
+from ...models import MINUTELY, CrawlerStats, CrawlPolicy, Document, WorkerStats
 
 crawl_logger = logging.getLogger("crawler")
 

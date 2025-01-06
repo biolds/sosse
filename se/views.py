@@ -15,14 +15,13 @@
 
 from dataclasses import dataclass
 from random import choice
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
 from .online import online_status
-
 
 ANIMALS = "🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿"
 

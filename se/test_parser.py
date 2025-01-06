@@ -28,7 +28,6 @@ from .page import Page
 from .utils import http_date_format, http_date_parser
 from .www import WWWView
 
-
 LINKS = (
     {
         "descr": "regular link",

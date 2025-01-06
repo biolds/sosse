@@ -47,5 +47,8 @@ line-length = 120
 ignore = ["D000"]
 max-line-length = 120
 
+[tool.isort]
+profile = "black"
+
 [project.scripts]
 sosse-admin = "sosse.sosse_admin:main"

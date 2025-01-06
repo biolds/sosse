@@ -39,15 +39,15 @@ from se.cached import CacheRedirectView
 from se.download import DownloadView
 from se.favicon import FavIconView
 from se.history import HistoryView
-from se.html import HTMLView, HTMLExcludedView
+from se.html import HTMLExcludedView, HTMLView
 from se.login import SELoginView
 from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
 from se.preferences import PreferencesView
 from se.rest_api import router
+from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView
-from se.screenshot import ScreenshotView, ScreenshotFullView
 from se.words import WordsView
 from se.words_stats import WordStatsView
 from se.www import WWWView

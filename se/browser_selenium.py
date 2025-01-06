@@ -16,22 +16,27 @@
 import json
 import logging
 import os
-import psutil
-import pytz
 import re
 import shlex
-
 from datetime import datetime
 from time import sleep
 
-from PIL import Image
+import psutil
+import pytz
 from django.conf import settings
+from PIL import Image
 
-from .browser import Browser, AuthElemFailed, PageTooBig, StalledDownload, TooManyRedirects, retry
+from .browser import (
+    AuthElemFailed,
+    Browser,
+    PageTooBig,
+    StalledDownload,
+    TooManyRedirects,
+    retry,
+)
 from .browser_request import BrowserRequest
-from .page import Page, NAV_ELEMENTS
+from .page import NAV_ELEMENTS, Page
 from .url import has_browsable_scheme, sanitize_url, urlparse
-
 
 crawl_logger = logging.getLogger("crawl")
 

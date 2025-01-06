@@ -19,9 +19,8 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from ...models import SearchEngine
 from ...admin import ConflictingSearchEngineFilter
-
+from ...models import SearchEngine
 
 SE_FILE = "sosse/search_engines.json"
 

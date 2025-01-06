@@ -20,7 +20,6 @@ from django.core.exceptions import ValidationError
 from .document import Document
 from .url import sanitize_url, validate_url
 
-
 SORT = (
     ("-rank", "Most relevant first"),
     ("rank", "Most relevant last"),

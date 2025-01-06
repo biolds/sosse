@@ -13,19 +13,19 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from argparse import ArgumentParser
 import base64
 import json
 import os
 import unicodedata
+from argparse import ArgumentParser
 
 from django.conf import settings
 from django.core.management import get_commands, load_command_class
 from django.core.management.base import BaseCommand
 
 from sosse.conf import DEFAULTS as DEFAULT_CONF
-from .update_se import SE_FILE
 
+from .update_se import SE_FILE
 
 SECTIONS = [
     [

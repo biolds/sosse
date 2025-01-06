@@ -23,22 +23,22 @@ from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.http import HttpResponse
+from django.shortcuts import redirect, reverse
+from django.template import defaultfilters, response
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
-from django.shortcuts import redirect, reverse
-from django.template import defaultfilters, response
 
 from .document import Document
 from .forms import AddToQueueForm
 from .html_asset import HTMLAsset
 from .models import (
     AuthField,
-    DomainSetting,
-    CrawlPolicy,
-    SearchEngine,
     Cookie,
+    CrawlPolicy,
+    DomainSetting,
     ExcludedUrl,
+    SearchEngine,
     WorkerStats,
 )
 from .statistics import StatisticsView

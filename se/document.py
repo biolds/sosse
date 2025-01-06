@@ -17,12 +17,12 @@ import logging
 import os
 import re
 import unicodedata
-
 from datetime import datetime
 from hashlib import md5
-from time import sleep, mktime
+from time import mktime, sleep
 from traceback import format_exc
 
+import feedparser
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
@@ -33,7 +33,6 @@ from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
 from PIL import Image
-import feedparser
 
 from .browser import AuthElemFailed, SkipIndexing
 from .document_meta import DocumentMeta

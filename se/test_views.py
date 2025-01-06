@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import os
 from typing import Type
 from urllib.parse import quote
-import os
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -34,19 +34,18 @@ from se.cached import CacheRedirectView
 from se.document import Document
 from se.download import DownloadView
 from se.history import HistoryView
-from se.html import HTMLView, HTMLExcludedView
+from se.html import HTMLExcludedView, HTMLView
 from se.models import CrawlerStats, CrawlPolicy, DomainSetting
 from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
 from se.preferences import PreferencesView
+from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView
-from se.screenshot import ScreenshotView, ScreenshotFullView
 from se.test_views_mixin import ViewsTestMixin
 from se.words import WordsView
 from se.words_stats import WordStatsView
 from se.www import WWWView
-
 
 CRAWL_URL = "http://127.0.0.1:8000/cookies"
 

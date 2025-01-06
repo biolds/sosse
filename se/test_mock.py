@@ -22,7 +22,6 @@ from requests import HTTPError
 from .browser import PageTooBig
 from .page import Page
 
-
 PNG64 = """
 iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9
 kT1Iw0AcxV9TxSqVDnYQUchQneziF461CkWoUGqFVh1MLv2CJg1Jiouj4Fpw8GOx6uDirKuDqyAI

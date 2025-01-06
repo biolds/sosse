@@ -46,3 +46,7 @@ repos:
     rev: "v1.1.2"
     hooks:
       - id: doc8
+  - repo: https://github.com/PyCQA/isort
+    rev: "5.13.2"
+    hooks:
+      - id: isort

@@ -25,7 +25,7 @@ from requests import HTTPError
 from .document import Document
 from .html_asset import HTMLAsset
 from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
-from .html_snapshot import css_parser, extract_css_url, HTMLSnapshot
+from .html_snapshot import HTMLSnapshot, css_parser, extract_css_url
 from .models import CrawlPolicy, DomainSetting
 from .page import Page
 from .test_mock import BrowserMock

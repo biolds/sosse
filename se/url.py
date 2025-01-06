@@ -15,10 +15,9 @@
 
 import os
 import re
-
 from copy import copy
-from urllib.parse import urlparse as base_urlparse
 from urllib.parse import quote, quote_plus, unquote, unquote_plus
+from urllib.parse import urlparse as base_urlparse
 
 from django.core.exceptions import ValidationError
 

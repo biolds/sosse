@@ -14,19 +14,17 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
-
 from hashlib import md5
 
 from django.conf import settings
 from django.test import TransactionTestCase
 from PIL import Image
 
-from .document import Document
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
+from .document import Document
 from .models import CrawlPolicy, DomainSetting
-
 
 TEST_SERVER_DOMAIN = "127.0.0.1:8000"
 TEST_SERVER_URL = f"http://{TEST_SERVER_DOMAIN}/"

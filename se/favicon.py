@@ -18,8 +18,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from .models import FavIcon
 from .login import login_required
+from .models import FavIcon
 
 
 @method_decorator(login_required, name="dispatch")

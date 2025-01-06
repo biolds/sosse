@@ -20,15 +20,14 @@ from unittest import mock
 from django.conf import settings
 from django.test import TransactionTestCase, override_settings
 
-from .document import Document
 from .browser import SkipIndexing
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
+from .document import Document
 from .html_asset import HTMLAsset
 from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
 from .test_mock import CleanTest, FirefoxTest
-
 
 TEST_SERVER_DOMAIN = "127.0.0.1:8000"
 TEST_SERVER_URL = f"http://{TEST_SERVER_DOMAIN}/"

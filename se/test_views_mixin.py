@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.http import HttpRequest
 from django.test import RequestFactory
 from django.test.client import Client

@@ -14,7 +14,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import requests
-
 from django.conf import settings
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -23,7 +22,6 @@ from django.views.generic import View
 from .browser_request import BrowserRequest
 from .forms import SearchForm
 from .login import login_required
-
 
 check_cache_count = 0
 check_cache_value = None

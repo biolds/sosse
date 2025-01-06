@@ -13,10 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from datetime import timedelta
-import feedparser
 import tempfile
+from datetime import timedelta
 
+import feedparser
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.test import TransactionTestCase, override_settings

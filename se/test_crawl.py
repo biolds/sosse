@@ -20,7 +20,7 @@ from django.test import TransactionTestCase, override_settings
 
 from .browser import AuthElemFailed, SkipIndexing
 from .document import Document
-from .models import DomainSetting, ExcludedUrl, Link, CrawlPolicy
+from .models import CrawlPolicy, DomainSetting, ExcludedUrl, Link
 from .page import Page
 from .test_mock import BrowserMock
 

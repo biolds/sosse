@@ -15,34 +15,30 @@
 
 import logging
 import os
-import pytz
 import re
 import urllib.parse
-
-from base64 import b64encode, b64decode
+from base64 import b64decode, b64encode
+from datetime import datetime, timedelta
+from hashlib import md5
 from http.cookiejar import Cookie as HttpJarCookie
 from http.cookiejar import CookieJar
-from datetime import datetime, timedelta
-from defusedxml import ElementTree
-from hashlib import md5
 from urllib.parse import urlparse
 
+import fake_useragent
+import pytz
+import requests
+from defusedxml import ElementTree
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import connection, models, transaction, DataError
+from django.db import DataError, connection, models, transaction
 from django.http import QueryDict
 from django.utils.timezone import now
-from publicsuffix2 import get_public_suffix, PublicSuffixList
-import fake_useragent
-import requests
+from publicsuffix2 import PublicSuffixList, get_public_suffix
 
-from .browser import (
-    AuthElemFailed,
-    TooManyRedirects,
-)
-from .browser_firefox import BrowserFirefox
+from .browser import AuthElemFailed, TooManyRedirects
 from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
 from .online import online_status

@@ -16,13 +16,11 @@
 import hashlib
 import os
 import sys
-
 from configparser import ConfigParser
 from dataclasses import dataclass
 from typing import Any, Type, TypeAlias
 
 from django.core.management.utils import get_random_secret_key
-
 
 CONF_FILE = "/etc/sosse/sosse.conf"
 

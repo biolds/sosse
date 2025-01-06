@@ -15,11 +15,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import gitlab
-import requests
 from io import BytesIO
 from zipfile import ZipFile
 
+import gitlab
+import requests
 
 PROJECT_ID = 41220530
 jobs_name = ["doc_gen", "functional_tests_chromium"]

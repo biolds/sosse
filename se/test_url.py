@@ -18,9 +18,9 @@ from django.test import TransactionTestCase
 from .url import (
     absolutize_url,
     has_browsable_scheme,
-    urlparse,
-    url_beautify,
     norm_url_path,
+    url_beautify,
+    urlparse,
 )
 from .utils import reverse_no_escape
 

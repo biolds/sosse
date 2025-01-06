@@ -15,19 +15,17 @@
 
 import logging
 import re
-
 from traceback import format_exc
 
-from bs4 import NavigableString
 import cssutils
+from bs4 import NavigableString
 from django.conf import settings
 from django.shortcuts import reverse
 from django.utils.html import format_html
 
 from .browser import SkipIndexing
-from .html_cache import HTMLCache, CacheHit
+from .html_cache import CacheHit, HTMLCache
 from .url import absolutize_url, has_browsable_scheme
-
 
 logger = logging.getLogger("html_snapshot")
 

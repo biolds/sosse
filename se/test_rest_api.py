@@ -14,7 +14,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
-
 from collections import namedtuple
 from unittest import mock
 
@@ -25,7 +24,6 @@ from django.utils import timezone
 
 from .document import Document
 from .models import CrawlerStats
-
 
 now = timezone.now()
 now_str = now.isoformat().replace("+00:00", "Z")

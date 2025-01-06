@@ -15,7 +15,6 @@
 
 import logging
 import os
-
 from datetime import timedelta
 from hashlib import md5
 from mimetypes import guess_extension
@@ -28,7 +27,6 @@ from .browser_request import BrowserRequest
 from .html_asset import HTMLAsset
 from .url import sanitize_url
 from .utils import http_date_format
-
 
 logger = logging.getLogger("html_snapshot")
 

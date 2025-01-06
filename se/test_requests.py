@@ -14,7 +14,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import requests
-
 from django.test import TransactionTestCase
 
 from .browser_request import BrowserRequest

@@ -23,16 +23,15 @@ from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRa
 from django.core.paginator import Paginator
 from django.db import models
 from django.utils.decorators import method_decorator
-from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 from .document import Document, extern_link_flags, remove_accent
-from .forms import SearchForm, FILTER_FIELDS
+from .forms import FILTER_FIELDS, SearchForm
 from .login import login_required
 from .models import SearchEngine, SearchHistory
 from .utils import human_nb
 from .views import RedirectException, UserView
-
 
 logger = logging.getLogger("web")
 

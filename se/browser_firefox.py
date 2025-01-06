@@ -15,14 +15,14 @@
 
 import json
 import os
+from urllib.parse import urlparse
+
 import psutil
 import selenium
-
-from urllib.parse import urlparse
 from django.conf import settings
+from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium import webdriver
 
 from .browser_selenium import SeleniumBrowser
 

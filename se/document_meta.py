@@ -22,7 +22,6 @@ from linkpreview import Link, LinkPreview
 from magic import from_buffer as magic_from_buffer
 from PIL import Image, UnidentifiedImageError
 
-
 from .browser_request import BrowserRequest
 from .page import Page
 from .url import absolutize_url

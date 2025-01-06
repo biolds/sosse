@@ -15,13 +15,16 @@
 
 import os
 from hashlib import md5
-from lxml.etree import Element, tostring  # nosec B410, ignore Bandit warning because lxml is only used for XML generation
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.urls import reverse
 from django.views.generic import View
+from lxml.etree import (  # nosec B410, ignore Bandit warning because lxml is only used for XML generation
+    Element,
+    tostring,
+)
 
 from .forms import SearchForm
 from .html_asset import HTMLAsset

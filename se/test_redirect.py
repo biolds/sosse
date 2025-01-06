@@ -15,13 +15,11 @@
 
 from django.test import TransactionTestCase
 
-
 from .browser import SkipIndexing
-from .browser_firefox import BrowserFirefox
 from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .test_mock import CleanTest, FirefoxTest
-
 
 TEST_SERVER_URL = "http://127.0.0.1:8000/"
 

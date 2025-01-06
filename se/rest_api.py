@@ -15,22 +15,21 @@
 
 import os
 
-from django.db import connection, models
 from django.conf import settings
+from django.db import connection, models
 from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiTypes,
     extend_schema,
     extend_schema_field,
     extend_schema_serializer,
-    OpenApiExample,
-    OpenApiTypes,
 )
 from rest_framework import mixins, routers, serializers, viewsets
-from rest_framework.settings import api_settings
 from rest_framework.response import Response
-
+from rest_framework.settings import api_settings
 
 from .document import Document
-from .forms import SearchForm, FILTER_FIELDS, SORT
+from .forms import FILTER_FIELDS, SORT, SearchForm
 from .models import CrawlerStats
 from .rest_permissions import IsSuperUserOrStaff
 from .search import get_documents

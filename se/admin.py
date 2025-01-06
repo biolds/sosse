@@ -886,9 +886,9 @@ class CookieAdmin(admin.ModelAdmin):
         ] + urls
 
     def cookies_import(self, request):
-        from .cookies_import import cookies_import
+        from .cookies_import import CookiesImportView
 
-        return cookies_import(request)
+        return CookiesImportView.as_view()(request)
 
 
 @admin.register(ExcludedUrl)

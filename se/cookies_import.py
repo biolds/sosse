@@ -20,10 +20,13 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import FormView
 
 from .login import login_required
 from .models import Cookie
+from .views import UserView
 
 
 class CookieForm(forms.Form):
@@ -36,6 +39,7 @@ class CookieForm(forms.Form):
     cookies_file = forms.FileField(required=False)
 
     def clean(self):
+        self.cleaned_data = super().clean()
         if (self.cleaned_data.get("cookies") and self.cleaned_data.get("cookies_file")) or not (
             self.cleaned_data.get("cookies") or self.cleaned_data.get("cookies_file")
         ):
@@ -54,20 +58,24 @@ class CookieForm(forms.Form):
         except Exception as e:
             raise ValidationError(f"Failed to load cookies: {str(e)}")
         self.cleaned_data["cookies"] = jar
+        return self.cleaned_data
 
 
-@login_required
-def cookies_import(request: HttpRequest) -> HttpResponse:
-    if not request.user.has_perm("se.change_cookie"):
-        raise PermissionDenied
+@method_decorator(login_required, name="dispatch")
+class CookiesImportView(UserView, FormView):
+    template_name = "admin/cookies_import.html"
+    title = "Cookies import"
+    form_class = CookieForm
 
-    form = CookieForm()
-    if request.method == "POST":
-        form = CookieForm(request.POST, request.FILES)
-        if form.is_valid():
-            cookie_jar = form.cleaned_data["cookies"]
-            Cookie.set_from_jar(None, cookie_jar)
-            messages.success(request, f"{len(cookie_jar)} cookies loaded.")
-            return redirect("admin:se_cookie_changelist")
+    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        if not request.user.is_staff or not request.user.is_superuser:
+            return redirect(reverse("search"))
+        if not request.user.has_perm("se.change_cookie"):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
-    return render(request, "admin/cookies_import.html", {"form": form, "title": "Cookies import"})
+    def form_valid(self, form):
+        cookie_jar = form.cleaned_data["cookies"]
+        Cookie.set_from_jar(None, cookie_jar)
+        messages.success(self.request, f"{len(cookie_jar)} cookies loaded.")
+        return redirect("admin:se_cookie_changelist")

@@ -42,6 +42,7 @@ from .preferences import PreferencesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
+from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
 from .words import WordsView
 from .words_stats import WordStatsView
@@ -218,6 +219,24 @@ class ViewsTest:
             "/admin/se/document/crawl_status/",
             f"{action} / {response}",
         )
+
+    def test_cookie_import_view(self):
+        response = self.admin_client.get("/admin/se/cookie/import/")
+        self.assertEqual(response.status_code, 200, response)
+
+        response = self.admin_client.post(
+            "/admin/se/cookie/import/",
+            {"cookies": "cookie"},
+        )
+        self.assertEqual(response.status_code, 200, response)
+        self.assertIn("does not look like a Netscape format cookies file", response.content.decode())
+
+        response = self.admin_client.post(
+            "/admin/se/cookie/import/",
+            {"cookies": f"{NETSCAPE_COOKIE_HEADER}\n.test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tname\tvalue"},
+        )
+        self.assertEqual(response.status_code, 302, response)
+        self.assertEqual(response.headers["Location"], "/admin/se/cookie/")
 
     def test_admin_crawl_status_actions(self):
         for action in ("pause", "resume"):

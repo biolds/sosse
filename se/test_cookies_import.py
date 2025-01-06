@@ -21,13 +21,13 @@ from .models import Cookie
 
 NOW = timezone.now().replace(microsecond=0)
 NOW_TIMESTAMP = NOW.strftime("%s")
+NETSCAPE_COOKIE_HEADER = "# Netscape HTTP Cookie File"
 
 
 # Cookie format: domain, domain_specified, path, secure, expires, name, value
 class CookieImportTest(TransactionTestCase):
     def _load_cookies(self, data):
-        if data["format"] == "netscape":
-            data["cookies"] = f'# Netscape HTTP Cookie File\n{data["cookies"]}'
+        data["cookies"] = f'{NETSCAPE_COOKIE_HEADER}\n{data["cookies"]}'
 
         form = CookieForm(data)
         self.assertTrue(form.is_valid(), form.errors.values())
@@ -39,7 +39,6 @@ class CookieImportTest(TransactionTestCase):
         self._load_cookies(
             {
                 "cookies": f".test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tST-n2q1f9\tatbt=CTMQ",
-                "format": "netscape",
             }
         )
         self.assertEqual(Cookie.objects.count(), 1)
@@ -59,7 +58,6 @@ class CookieImportTest(TransactionTestCase):
         self._load_cookies(
             {
                 "cookies": f"#HttpOnly_.test.com\tTRUE\t/\tFALSE\t{NOW_TIMESTAMP}\tST-n2q1f9\tatbt=CTMQ",
-                "format": "netscape",
             }
         )
         self.assertEqual(Cookie.objects.count(), 1)

@@ -20,9 +20,11 @@ from datetime import datetime, timezone
 
 from django.test import TransactionTestCase
 
-from .browser import ChromiumBrowser, FirefoxBrowser, Page
+from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
 from .document import Document
 from .models import CrawlPolicy, Link
+from .page import Page
 from .utils import http_date_format, http_date_parser
 from .www import WWWView
 
@@ -207,8 +209,8 @@ class PageTest(TransactionTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
         cls.policy.delete()
 
     def test_10_beautifulsoup(self):

@@ -17,12 +17,12 @@ import requests
 
 from django.test import TransactionTestCase
 
-from .browser import RequestBrowser
+from .browser_request import BrowserRequest
 
 
 class RequestsTest(TransactionTestCase):
     def _get(self, s, url):
-        params = RequestBrowser._requests_params()
+        params = BrowserRequest._requests_params()
         params["allow_redirects"] = True
         return s.get(url, **params)
 

@@ -22,7 +22,9 @@ from django.test import TransactionTestCase
 from PIL import Image
 
 from .document import Document
-from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser
+from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
+from .browser_request import BrowserRequest
 from .models import CrawlPolicy, DomainSetting
 
 
@@ -48,8 +50,8 @@ TEST_SERVER_OGP_THUMBNAIL_FILE = (
 class BaseFunctionalTest:
     @classmethod
     def tearDownClass(cls):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
 
     def setUp(self):
         self.assertEqual(Document.objects.count(), 0)
@@ -184,14 +186,14 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
 class RequestsFunctionalTest(FunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
-    BROWSER_CLASS = RequestBrowser
+    BROWSER_CLASS = BrowserRequest
 
 
 class ChromiumFunctionalTest(FunctionalTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_CHROMIUM
-    BROWSER_CLASS = ChromiumBrowser
+    BROWSER_CLASS = BrowserChromium
 
 
 class FirefoxFunctionalTest(FunctionalTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
-    BROWSER_CLASS = FirefoxBrowser
+    BROWSER_CLASS = BrowserFirefox

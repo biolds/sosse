@@ -28,7 +28,8 @@ from django.views.generic import View
 
 from se.about import AboutView
 from se.atom import AtomView
-from se.browser import ChromiumBrowser, FirefoxBrowser
+from se.browser_chromium import BrowserChromium
+from se.browser_firefox import BrowserFirefox
 from se.cached import CacheRedirectView
 from se.document import Document
 from se.download import DownloadView
@@ -64,8 +65,8 @@ class ViewsTest:
 
     @classmethod
     def tearDownClass(cls):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
         try:
             os.unlink(
                 settings.SOSSE_HTML_SNAPSHOT_DIR

@@ -24,7 +24,7 @@ from urllib.parse import quote, unquote_plus
 from django.conf import settings
 from django.utils import timezone
 
-from .browser import RequestBrowser
+from .browser_request import BrowserRequest
 from .html_asset import HTMLAsset
 from .url import sanitize_url
 from .utils import http_date_format
@@ -83,7 +83,7 @@ class HTMLCache:
                 if asset.etag:
                     headers["If-None-Match"] = asset.etag
 
-                page = RequestBrowser.get(
+                page = BrowserRequest.get(
                     asset.url,
                     check_status=True,
                     max_file_size=max_file_size,
@@ -143,7 +143,7 @@ class HTMLCache:
         except CacheMiss:
             pass
 
-        page = RequestBrowser.get(
+        page = BrowserRequest.get(
             url,
             check_status=True,
             max_file_size=max_file_size,

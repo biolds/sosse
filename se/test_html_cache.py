@@ -20,9 +20,9 @@ from django.conf import settings
 from django.test import TransactionTestCase
 from django.utils import timezone
 
-from .browser import Page
 from .html_asset import HTMLAsset
 from .html_cache import CacheHit, CacheMiss, HTMLCache
+from .page import Page
 from .test_mock import BrowserMock
 from .url import sanitize_url
 from .utils import http_date_format
@@ -44,21 +44,21 @@ class HTMLCacheTest(TransactionTestCase):
             _fn = HTMLCache.html_filename(url, "~~~", ".html")
             self.assertEqual(_fn, fn, f"failed on {url} / expected {fn} / got {_fn}")
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_020_cache_miss(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_020_cache_miss(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         assets_count = HTMLAsset.objects.count()
         self.assertEqual(assets_count, 0)
 
         with self.assertRaises(CacheMiss):
             HTMLCache._cache_check("http://127.0.0.1/image.png", 0)
 
-    def _download_miss(self, RequestBrowser):
+    def _download_miss(self, BrowserRequest):
         page = HTMLCache.download("http://127.0.0.1/to_cache.png", settings.SOSSE_MAX_HTML_ASSET_SIZE)
         HTMLCache.write_asset(page.url, page.content, page, mimetype=page.mimetype)
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
@@ -67,9 +67,9 @@ class HTMLCacheTest(TransactionTestCase):
                     headers={"Accept": "*/*"},
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
-        RequestBrowser.reset_mock()
+        BrowserRequest.reset_mock()
 
         self.assertEqual(HTMLAsset.objects.count(), 1)
         asset = HTMLAsset.objects.get()
@@ -78,20 +78,20 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(asset.url, "http://127.0.0.1/to_cache.png")
         return asset
 
-    def _download_hit(self, RequestBrowser):
+    def _download_hit(self, BrowserRequest):
         with self.assertRaises(CacheHit) as cm:
             HTMLCache.download("http://127.0.0.1/to_cache.png", settings.SOSSE_MAX_HTML_ASSET_SIZE)
 
-        self.assertTrue(RequestBrowser.call_args_list == [], RequestBrowser.call_args_list)
-        RequestBrowser.reset_mock()
+        self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
+        BrowserRequest.reset_mock()
         return cm.exception.asset
 
-    def _download_not_modified(self, RequestBrowser, modified_since):
+    def _download_not_modified(self, BrowserRequest, modified_since):
         with self.assertRaises(CacheHit) as cm:
             HTMLCache.download("http://127.0.0.1/to_cache.png", settings.SOSSE_MAX_HTML_ASSET_SIZE)
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
@@ -100,17 +100,17 @@ class HTMLCacheTest(TransactionTestCase):
                     headers={"Accept": "*/*", "If-Modified-Since": modified_since},
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
-        RequestBrowser.reset_mock()
+        BrowserRequest.reset_mock()
         return cm.exception.asset
 
-    def _download_refresh(self, RequestBrowser, headers):
+    def _download_refresh(self, BrowserRequest, headers):
         page = HTMLCache.download("http://127.0.0.1/to_cache.png", settings.SOSSE_MAX_HTML_ASSET_SIZE)
         self.assertTrue(isinstance(page, Page))
         headers.update({"Accept": "*/*"})
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
@@ -119,21 +119,21 @@ class HTMLCacheTest(TransactionTestCase):
                     headers=headers,
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
-        RequestBrowser.reset_mock()
+        BrowserRequest.reset_mock()
         return page
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
-    def test_030_heuristic_hit(self, _heuristic_check, RequestBrowser):
+    def test_030_heuristic_hit(self, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
         last_year = now - timedelta(days=365)
         last_year = last_year.replace(microsecond=0)
         last_year_http = http_date_format(last_year)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -142,7 +142,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertEqual(asset.download_date, now)
         self.assertEqual(asset.last_modified, last_year)
@@ -150,22 +150,22 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertFalse(asset.has_cache_control)
 
-        _asset = self._download_hit(RequestBrowser)
+        _asset = self._download_hit(BrowserRequest)
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _heuristic_check.call_args_list == [mock.call(asset)],
             _heuristic_check.call_args_list,
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
-    def test_040_heuristic_miss(self, _heuristic_check, RequestBrowser):
+    def test_040_heuristic_miss(self, _heuristic_check, BrowserRequest):
         yesterday = timezone.now() - timedelta(days=1)
         yesterday = yesterday.replace(microsecond=0)
         yesterday_http = http_date_format(yesterday)
         previous = yesterday - timedelta(minutes=1)
         previous_http = http_date_format(previous)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -174,7 +174,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertEqual(asset.download_date, yesterday)
         self.assertEqual(asset.last_modified, previous)
@@ -182,21 +182,21 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertFalse(asset.has_cache_control)
 
-        _asset = self._download_miss(RequestBrowser)
+        _asset = self._download_miss(BrowserRequest)
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _heuristic_check.call_args_list == [mock.call(asset)],
             _heuristic_check.call_args_list,
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
     @mock.patch("se.html_cache.HTMLCache._max_age_check", wraps=HTMLCache._max_age_check)
-    def test_050_expires_hit(self, _max_age_check, _heuristic_check, RequestBrowser):
+    def test_050_expires_hit(self, _max_age_check, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -209,7 +209,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertEqual(asset.download_date, now)
@@ -218,7 +218,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertFalse(asset.has_cache_control)
 
-        _asset = self._download_hit(RequestBrowser)
+        _asset = self._download_hit(BrowserRequest)
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list == [mock.call(asset, settings.SOSSE_MAX_HTML_ASSET_SIZE)],
@@ -226,14 +226,14 @@ class HTMLCacheTest(TransactionTestCase):
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
     @mock.patch("se.html_cache.HTMLCache._max_age_check", wraps=HTMLCache._max_age_check)
-    def test_060_expires_miss(self, _max_age_check, _heuristic_check, RequestBrowser):
+    def test_060_expires_miss(self, _max_age_check, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -246,7 +246,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
         self.assertEqual(asset.download_date, now)
@@ -255,7 +255,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertFalse(asset.has_cache_control)
 
-        _asset = self._download_miss(RequestBrowser)
+        _asset = self._download_miss(BrowserRequest)
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list == [mock.call(asset, settings.SOSSE_MAX_HTML_ASSET_SIZE)],
@@ -263,14 +263,14 @@ class HTMLCacheTest(TransactionTestCase):
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
     @mock.patch("se.html_cache.HTMLCache._max_age_check", wraps=HTMLCache._max_age_check)
-    def test_070_max_age_hit(self, _max_age_check, _heuristic_check, RequestBrowser):
+    def test_070_max_age_hit(self, _max_age_check, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -283,7 +283,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertEqual(asset.download_date, now)
@@ -292,7 +292,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertTrue(asset.has_cache_control)
 
-        _asset = self._download_hit(RequestBrowser)
+        _asset = self._download_hit(BrowserRequest)
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list == [mock.call(asset, settings.SOSSE_MAX_HTML_ASSET_SIZE)],
@@ -300,14 +300,14 @@ class HTMLCacheTest(TransactionTestCase):
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
     @mock.patch("se.html_cache.HTMLCache._max_age_check", wraps=HTMLCache._max_age_check)
-    def test_080_max_age_not_modified(self, _max_age_check, _heuristic_check, RequestBrowser):
+    def test_080_max_age_not_modified(self, _max_age_check, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -320,7 +320,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
         self.assertEqual(asset.download_date, now)
@@ -329,7 +329,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertTrue(asset.has_cache_control)
 
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"",
@@ -342,7 +342,7 @@ class HTMLCacheTest(TransactionTestCase):
                 )
             }
         )
-        _asset = self._download_not_modified(RequestBrowser, now_http)
+        _asset = self._download_not_modified(BrowserRequest, now_http)
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list == [mock.call(asset, settings.SOSSE_MAX_HTML_ASSET_SIZE)],
@@ -352,14 +352,14 @@ class HTMLCacheTest(TransactionTestCase):
         content = open(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename, "rb").read()
         self.assertEqual(content, b"PNG")
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
     @mock.patch("se.html_cache.HTMLCache._max_age_check", wraps=HTMLCache._max_age_check)
-    def test_090_max_age_modified(self, _max_age_check, _heuristic_check, RequestBrowser):
+    def test_090_max_age_modified(self, _max_age_check, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -372,7 +372,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
         self.assertEqual(asset.download_date, now)
@@ -381,7 +381,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertIsNone(asset.etag)
         self.assertTrue(asset.has_cache_control)
 
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG2",
@@ -393,7 +393,7 @@ class HTMLCacheTest(TransactionTestCase):
                 )
             }
         )
-        page = self._download_refresh(RequestBrowser, {"If-Modified-Since": now_http})
+        page = self._download_refresh(BrowserRequest, {"If-Modified-Since": now_http})
         self.assertEqual(page.content, b"PNG2")
         self.assertTrue(
             _max_age_check.call_args_list == [mock.call(asset, settings.SOSSE_MAX_HTML_ASSET_SIZE)],
@@ -401,14 +401,14 @@ class HTMLCacheTest(TransactionTestCase):
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.html_cache.HTMLCache._heuristic_check", wraps=HTMLCache._heuristic_check)
     @mock.patch("se.html_cache.HTMLCache._max_age_check", wraps=HTMLCache._max_age_check)
-    def test_100_etag_modified(self, _max_age_check, _heuristic_check, RequestBrowser):
+    def test_100_etag_modified(self, _max_age_check, _heuristic_check, BrowserRequest):
         now = timezone.now()
         now = now.replace(microsecond=0)
         now_http = http_date_format(now)
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG",
@@ -422,7 +422,7 @@ class HTMLCacheTest(TransactionTestCase):
             }
         )
 
-        asset = self._download_miss(RequestBrowser)
+        asset = self._download_miss(BrowserRequest)
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
         self.assertTrue(_max_age_check.call_args_list == [], _max_age_check.call_args_list)
         self.assertEqual(asset.download_date, now)
@@ -431,7 +431,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(asset.etag, '"deadbeef"')
         self.assertTrue(asset.has_cache_control)
 
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/to_cache.png": (
                     b"PNG2",
@@ -447,7 +447,7 @@ class HTMLCacheTest(TransactionTestCase):
             "If-Modified-Since": now_http,
             "If-None-Match": '"deadbeef"',
         }
-        page = self._download_refresh(RequestBrowser, expected_headers)
+        page = self._download_refresh(BrowserRequest, expected_headers)
         self.assertEqual(page.content, b"PNG2")
         self.assertTrue(
             _max_age_check.call_args_list == [mock.call(asset, settings.SOSSE_MAX_HTML_ASSET_SIZE)],

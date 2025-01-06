@@ -20,7 +20,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from .browser import RequestBrowser
+from .browser_request import BrowserRequest
 from .forms import SearchForm
 from .login import login_required
 
@@ -51,7 +51,7 @@ def online_status(request):
                 return check_cache_value
 
         check_cache_count = settings.SOSSE_ONLINE_CHECK_CACHE
-        RequestBrowser.get(
+        BrowserRequest.get(
             settings.SOSSE_ONLINE_CHECK_URL,
             timeout=settings.SOSSE_ONLINE_CHECK_TIMEOUT,
             check_status=True,
@@ -66,7 +66,7 @@ def online_status(request):
 class OnlineCheckView(View):
     def get(self, request):
         try:
-            RequestBrowser.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)
+            BrowserRequest.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)
         except requests.exceptions.RequestException as e:
             return JsonResponse({"status": e.__doc__, "success": False})
 

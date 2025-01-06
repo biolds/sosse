@@ -198,11 +198,12 @@ class HTMLSnapshot:
         self.asset_urls.add(asset.url)
 
     def snapshot(self):
-        from .browser import ChromiumBrowser, FirefoxBrowser
+        from .browser_chromium import BrowserChromium
+        from .browser_firefox import BrowserFirefox
 
         logger.debug(f"snapshot of {self.page.url}")
         try:
-            if self.page.browser in (ChromiumBrowser, FirefoxBrowser):
+            if self.page.browser in (BrowserChromium, BrowserFirefox):
                 self.build_style()
             self.sanitize()
             self.handle_assets()

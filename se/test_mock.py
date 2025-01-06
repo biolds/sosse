@@ -19,7 +19,8 @@ from mimetypes import guess_type
 
 from requests import HTTPError
 
-from .browser import Page, PageTooBig
+from .browser import PageTooBig
+from .page import Page
 
 
 PNG64 = """

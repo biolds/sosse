@@ -18,9 +18,10 @@ from unittest import mock
 
 from django.test import TransactionTestCase, override_settings
 
-from .browser import AuthElemFailed, Page, SkipIndexing
+from .browser import AuthElemFailed, SkipIndexing
 from .document import Document
 from .models import DomainSetting, ExcludedUrl, Link, CrawlPolicy
+from .page import Page
 from .test_mock import BrowserMock
 
 
@@ -63,13 +64,13 @@ class CrawlerTest(TransactionTestCase):
         while Document.crawl(0):
             pass
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_001_hello_world(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_001_hello_world(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self._crawl()
         self.assertTrue(
-            RequestBrowser.call_args_list == self.DEFAULT_GETS,
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list == self.DEFAULT_GETS,
+            BrowserRequest.call_args_list,
         )
 
         domain_setting = DomainSetting.objects.get()
@@ -86,9 +87,9 @@ class CrawlerTest(TransactionTestCase):
 
         self.assertEqual(Link.objects.count(), 0)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_002_link_follow(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_002_link_follow(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b'Root <a href="/page1/">Link1</a>',
                 "http://127.0.0.1/page1/": b'Page1 <a href="http://127.0.0.2/">Link1</a>',
@@ -97,8 +98,8 @@ class CrawlerTest(TransactionTestCase):
         )
         self._crawl()
         self.assertTrue(
-            RequestBrowser.call_args_list == self.DEFAULT_GETS + [mock.call("http://127.0.0.1/page1/")],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list == self.DEFAULT_GETS + [mock.call("http://127.0.0.1/page1/")],
+            BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 2)
@@ -118,9 +119,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.pos, 5)
         self.assertEqual(link.link_no, 0)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_003_recursion_depth(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_003_recursion_depth(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b'Root <a href="/page1/">Link1</a>',
                 "http://127.0.0.1/page1/": b'Page1 <a href="http://127.0.0.2/">Link1</a><a href="http://127.0.0.3/">Link3</a>',
@@ -144,7 +145,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == self.DEFAULT_GETS
             + [
                 mock.call("http://127.0.0.1/page1/"),
@@ -153,7 +154,7 @@ class CrawlerTest(TransactionTestCase):
                 mock.call("http://127.0.0.2/favicon.ico", check_status=True),
                 mock.call("http://127.0.0.2/page1/"),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 4)
@@ -189,9 +190,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(links[2].pos, 5)
         self.assertEqual(links[2].link_no, 0)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_004_extern_links(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_004_extern_links(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b'Root <a href="/page1/">Link1</a>',
                 "http://127.0.0.1/page1/": b"Page1",
@@ -202,8 +203,8 @@ class CrawlerTest(TransactionTestCase):
         CrawlPolicy.objects.create(url_regex="http://127.0.0.1/page1/", recursion=CrawlPolicy.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(
-            RequestBrowser.call_args_list == self.DEFAULT_GETS,
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list == self.DEFAULT_GETS,
+            BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 1)
@@ -221,10 +222,10 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.link_no, 0)
         self.assertEqual(link.extern_url, "http://127.0.0.1/page1/")
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.document.now")
-    def test_005_recrawl_none(self, now, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+    def test_005_recrawl_none(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         now.side_effect = lambda: self.fake_now
         self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_NONE
         self.crawl_policy.recrawl_dt_min = None
@@ -233,8 +234,8 @@ class CrawlerTest(TransactionTestCase):
 
         self._crawl()
         self.assertTrue(
-            RequestBrowser.call_args_list == self.DEFAULT_GETS,
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list == self.DEFAULT_GETS,
+            BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 1)
@@ -246,10 +247,10 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.crawl_next, None)
         self.assertEqual(doc.crawl_dt, None)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.document.now")
-    def test_006_recrawl_constant(self, now, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+    def test_006_recrawl_constant(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_CONSTANT
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = None
@@ -279,10 +280,10 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.crawl_next, self.fake_next + timedelta(hours=1))
         self.assertEqual(doc.crawl_dt, None)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.document.now")
-    def test_007_recrawl_adaptive(self, now, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+    def test_007_recrawl_adaptive(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
@@ -324,9 +325,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.crawl_next, self.fake_next3)
         self.assertEqual(doc.crawl_dt, timedelta(hours=3))
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_008_base_header(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_008_base_header(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b"""
                 <html>
@@ -350,9 +351,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc2.content, "test page")
 
     @override_settings(TEST_MODE=False)
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_010_generic_exception_handling(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": Exception("Generic exception")})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_010_generic_exception_handling(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": Exception("Generic exception")})
 
         self._crawl()
         doc = Document.objects.get()
@@ -364,9 +365,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertIn("Traceback (most recent call last):", doc.error)
 
     @override_settings(TEST_MODE=False)
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_020_skip_exception_handling(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": SkipIndexing("Skip test")})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_020_skip_exception_handling(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": SkipIndexing("Skip test")})
 
         self._crawl()
         doc = Document.objects.get()
@@ -378,10 +379,10 @@ class CrawlerTest(TransactionTestCase):
         self.assertNotIn("Traceback (most recent call last):", doc.error)
 
     @override_settings(TEST_MODE=False)
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_030_auth_failed_exception_handling(self, RequestBrowser):
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_030_auth_failed_exception_handling(self, BrowserRequest):
         page = Page("http://127.0.0.1/", b"test", BrowserMock)
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": AuthElemFailed(page, "xxx not found")})
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": AuthElemFailed(page, "xxx not found")})
 
         self._crawl()
         doc = Document.objects.get()
@@ -392,9 +393,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertIn("xxx not found", doc.error)
         self.assertNotIn("Traceback (most recent call last):", doc.error)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_040_extern_url_update(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_040_extern_url_update(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b'<html><body><a href="/extern.html">extern link</a></body></html>',
                 "http://127.0.0.1/extern.html": b"<html><body>extern page</body></html>",
@@ -439,18 +440,18 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.doc_to, doc2)
         self.assertIsNone(link.extern_url)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_050_binary_indexing(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_050_binary_indexing(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         self.crawl_policy.mimetype_regex = ".*"
         self.crawl_policy.save()
         self._crawl("http://127.0.0.1/image.png")
 
     MAILTO = {"http://127.0.0.1/": b'<body><a href="mailto:test@exemple.com">mail</a></body>'}
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_060_invalid_scheme(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(self.MAILTO)
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_060_invalid_scheme(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(self.MAILTO)
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.get()
@@ -458,9 +459,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.content, "mail")
         self.assertEqual(Link.objects.count(), 0)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_070_unknown_scheme_store(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(self.MAILTO)
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_070_unknown_scheme_store(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(self.MAILTO)
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
         self._crawl()
@@ -478,9 +479,9 @@ class CrawlerTest(TransactionTestCase):
 
     INVALID_LINK = {"http://127.0.0.1/": b'<body><a href="http://[invalid IPV6/">link</a></body>'}
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_090_invalid_link(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(self.INVALID_LINK)
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_090_invalid_link(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(self.INVALID_LINK)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -489,9 +490,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.content, "link")
         self.assertEqual(Link.objects.count(), 0)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_100_invalid_link_store(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(self.INVALID_LINK)
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_100_invalid_link_store(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(self.INVALID_LINK)
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
         self._crawl()
@@ -507,9 +508,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.text, "link")
         self.assertEqual(link.extern_url, "http://[invalid IPV6/")
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_110_excluded_url(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_110_excluded_url(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {"http://127.0.0.1/": b'<html><body><a href="/page.html">link</a></body></html>'}
         )
         ExcludedUrl.objects.create(url="http://127.0.0.1/page.html")
@@ -517,9 +518,9 @@ class CrawlerTest(TransactionTestCase):
 
         self.assertEqual(Document.objects.count(), 1)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_120_excluded_url_starts_with(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_120_excluded_url_starts_with(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b'<html><body><a href="/no/exclude.html">link</a><a href="/page.html">link</a></body></html>'
             }
@@ -531,10 +532,10 @@ class CrawlerTest(TransactionTestCase):
         urls = Document.objects.values_list("url", flat=True).order_by("url")
         self.assertEqual(list(urls), ["http://127.0.0.1/", "http://127.0.0.1/page.html"])
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.document.now")
-    def test_130_reschedule_no_change(self, now, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>aaa 42</body></html>"})
+    def test_130_reschedule_no_change(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>aaa 42</body></html>"})
         self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
@@ -546,7 +547,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.content, "aaa 42")
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
 
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {"http://127.0.0.1/": b"<html><body><!-- content unchanged -->aaa 24</body></html>"}
         )
         now.side_effect = lambda: self.fake_next
@@ -555,12 +556,12 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.content, "aaa 24")
         self.assertEqual(doc.crawl_dt, timedelta(hours=2))
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.document.now")
-    def test_140_reschedule_with_change(self, now, RequestBrowser):
+    def test_140_reschedule_with_change(self, now, BrowserRequest):
         self.test_130_reschedule_no_change()
 
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>bbb</body></html>"})
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>bbb</body></html>"})
 
         now.side_effect = lambda: self.fake_next2
         self._crawl()
@@ -568,9 +569,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.content, "bbb")
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_150_link_nested_text(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock(
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_150_link_nested_text(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/": b'Root <a href="/page1/"><span>Nested</span></a>',
                 "http://127.0.0.1/page1/": b"Page1",
@@ -578,8 +579,8 @@ class CrawlerTest(TransactionTestCase):
         )
         self._crawl()
         self.assertTrue(
-            RequestBrowser.call_args_list == self.DEFAULT_GETS + [mock.call("http://127.0.0.1/page1/")],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list == self.DEFAULT_GETS + [mock.call("http://127.0.0.1/page1/")],
+            BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 2)
@@ -599,9 +600,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(link.pos, 5)
         self.assertEqual(link.link_no, 0)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_160_hidden(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_160_hidden(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self.crawl_policy.hide_documents = True
         self.crawl_policy.save()
 
@@ -612,9 +613,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertTrue(doc.hidden)
 
-    @mock.patch("se.browser.RequestBrowser.get")
-    def test_170_policy_disabled(self, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_170_policy_disabled(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self.root_policy.hide_documents = True
         self.root_policy.save()
         self.crawl_policy.enabled = False

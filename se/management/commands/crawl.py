@@ -25,7 +25,8 @@ from django.db import connection
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
 
-from ...browser import ChromiumBrowser, FirefoxBrowser
+from ...browser_chromium import BrowserChromium
+from ...browser_firefox import BrowserFirefox
 from ...models import CrawlerStats, Document, CrawlPolicy, MINUTELY, WorkerStats
 
 crawl_logger = logging.getLogger("crawler")
@@ -36,8 +37,8 @@ class Command(BaseCommand):
     doc = """This command starts one or multiple crawlers, depending on the :ref:`crawler count <conf_option_crawler_count>` option set in the :doc:`configuration file <config_file>`."""
 
     def __del__(self):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -54,8 +55,8 @@ class Command(BaseCommand):
             connection.close()
             connection.connect()
 
-            FirefoxBrowser.worker_no = worker_no
-            ChromiumBrowser.worker_no = worker_no
+            BrowserFirefox.worker_no = worker_no
+            BrowserChromium.worker_no = worker_no
             base_dir = settings.SOSSE_TMP_DL_DIR + "/chromium/" + str(worker_no)
             if not os.path.isdir(base_dir):
                 os.makedirs(base_dir)
@@ -89,8 +90,8 @@ class Command(BaseCommand):
                         crawl_logger.debug(f"{worker_no} {worker_stats.state.title()}...")
                     sleep_count += 1
                     if sleep_count > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
-                        ChromiumBrowser.destroy()
-                        FirefoxBrowser.destroy()
+                        BrowserChromium.destroy()
+                        BrowserFirefox.destroy()
                     sleep(1)
                 else:
                     sleep_count = 0

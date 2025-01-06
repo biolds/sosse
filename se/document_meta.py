@@ -23,7 +23,8 @@ from magic import from_buffer as magic_from_buffer
 from PIL import Image, UnidentifiedImageError
 
 
-from .browser import Page, RequestBrowser
+from .browser_request import BrowserRequest
+from .page import Page
 from .url import absolutize_url
 
 
@@ -62,7 +63,7 @@ class DocumentMeta:
 
             content = b64decode(content)
         else:
-            img_page = RequestBrowser.get(
+            img_page = BrowserRequest.get(
                 url,
                 headers={
                     "User-Agent": settings.SOSSE_USER_AGENT,

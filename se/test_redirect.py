@@ -15,7 +15,11 @@
 
 from django.test import TransactionTestCase
 
-from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexing
+
+from .browser import SkipIndexing
+from .browser_firefox import BrowserFirefox
+from .browser_chromium import BrowserChromium
+from .browser_request import BrowserRequest
 from .test_mock import CleanTest, FirefoxTest
 
 
@@ -25,8 +29,8 @@ TEST_SERVER_URL = "http://127.0.0.1:8000/"
 class RedirectTest:
     @classmethod
     def tearDownClass(cls):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
 
     def test_10_no_redirect(self):
         page = self.BROWSER.get(TEST_SERVER_URL)
@@ -42,7 +46,7 @@ class RedirectTest:
 
 
 class RequestsRedirectTest(RedirectTest, CleanTest, TransactionTestCase):
-    BROWSER = RequestBrowser
+    BROWSER = BrowserRequest
 
     def test_30_five_redirects(self):
         page = self.BROWSER.get(TEST_SERVER_URL + "redirect/5")
@@ -56,8 +60,8 @@ class RequestsRedirectTest(RedirectTest, CleanTest, TransactionTestCase):
 
 
 class FirefoxRedirectTest(RedirectTest, FirefoxTest, TransactionTestCase):
-    BROWSER = FirefoxBrowser
+    BROWSER = BrowserFirefox
 
 
 class ChromiumRedirectTest(RedirectTest, CleanTest, TransactionTestCase):
-    BROWSER = ChromiumBrowser
+    BROWSER = BrowserChromium

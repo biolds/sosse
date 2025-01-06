@@ -39,11 +39,11 @@ import requests
 
 from .browser import (
     AuthElemFailed,
-    ChromiumBrowser,
-    FirefoxBrowser,
-    RequestBrowser,
     TooManyRedirects,
 )
+from .browser_firefox import BrowserFirefox
+from .browser_chromium import BrowserChromium
+from .browser_request import BrowserRequest
 from .document import Document
 from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
@@ -402,7 +402,7 @@ class FavIcon(models.Model):
                 favicon.content = data
                 favicon.missing = False
             else:
-                page = RequestBrowser.get(url, check_status=True)
+                page = BrowserRequest.get(url, check_status=True)
                 from magic import from_buffer as magic_from_buffer
 
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)
@@ -563,7 +563,7 @@ class DomainSetting(models.Model):
         crawl_logger.debug(f"{self.domain}: downloading {robots_url}")
 
         try:
-            page = RequestBrowser.get(robots_url, check_status=True)
+            page = BrowserRequest.get(robots_url, check_status=True)
             crawl_logger.debug(f"{self.domain}: loading {robots_url}")
             self._parse_robotstxt(page.content.decode("utf-8"))
         except (requests.HTTPError, TooManyRedirects):
@@ -784,9 +784,9 @@ class Cookie(models.Model):
 
 
 BROWSER_MAP = {
-    DomainSetting.BROWSE_CHROMIUM: ChromiumBrowser,
-    DomainSetting.BROWSE_FIREFOX: FirefoxBrowser,
-    DomainSetting.BROWSE_REQUESTS: RequestBrowser,
+    DomainSetting.BROWSE_CHROMIUM: BrowserChromium,
+    DomainSetting.BROWSE_FIREFOX: BrowserFirefox,
+    DomainSetting.BROWSE_REQUESTS: BrowserRequest,
 }
 
 
@@ -1060,7 +1060,7 @@ class CrawlPolicy(models.Model):
 
         if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
             crawl_logger.debug(f"browser detection on {url}")
-            requests_page = RequestBrowser.get(url)
+            requests_page = BrowserRequest.get(url)
             browser_content = page.dom_walk(self, False, None)
             requests_content = requests_page.dom_walk(self, False, None)
 

@@ -21,7 +21,10 @@ from django.conf import settings
 from django.test import TransactionTestCase, override_settings
 
 from .document import Document
-from .browser import ChromiumBrowser, FirefoxBrowser, RequestBrowser, SkipIndexing
+from .browser import SkipIndexing
+from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
+from .browser_request import BrowserRequest
 from .html_asset import HTMLAsset
 from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
 from .test_mock import CleanTest, FirefoxTest
@@ -36,8 +39,8 @@ TEST_SERVER_PASS = "admin"
 class BaseFunctionalTest:
     @classmethod
     def tearDownClass(cls):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
 
     def _crawl(self):
         while Document.crawl(0):
@@ -485,8 +488,8 @@ class BrowserBasedFunctionalTest:
         )
 
     def test_140_file_download_from_blank(self):
-        ChromiumBrowser.destroy()
-        FirefoxBrowser.destroy()
+        BrowserChromium.destroy()
+        BrowserFirefox.destroy()
 
         Cookie.objects.create(
             domain="127.0.0.1",
@@ -502,17 +505,17 @@ class BrowserBasedFunctionalTest:
 
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
-    BROWSER_CLASS = RequestBrowser
+    BROWSER_CLASS = BrowserRequest
 
 
 class ChromiumFunctionalTest(FunctionalTest, CleanTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_CHROMIUM
-    BROWSER_CLASS = ChromiumBrowser
+    BROWSER_CLASS = BrowserChromium
 
 
 class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, BrowserBasedFunctionalTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
-    BROWSER_CLASS = FirefoxBrowser
+    BROWSER_CLASS = BrowserFirefox
 
 
 class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):

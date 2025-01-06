@@ -22,12 +22,12 @@ from django.test import TransactionTestCase, override_settings
 from django.utils.html import format_html
 from requests import HTTPError
 
-from .browser import Page
 from .document import Document
 from .html_asset import HTMLAsset
 from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .html_snapshot import css_parser, extract_css_url, HTMLSnapshot
 from .models import CrawlPolicy, DomainSetting
+from .page import Page
 from .test_mock import BrowserMock
 
 
@@ -85,12 +85,12 @@ class HTMLSnapshotTest:
         </body></html>""",
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_asset.open")
     @mock.patch("se.html_cache.open")
-    def test_050_assets_handling(self, cache_open, asset_open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_050_assets_handling(self, cache_open, asset_open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         makedirs.side_effect = None
         cache_open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         asset_open.side_effect = cache_open.side_effect
@@ -105,7 +105,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/style.css",
@@ -120,7 +120,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -158,11 +158,11 @@ class HTMLSnapshotTest:
             },
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_060_srcset_attributes(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_060_srcset_attributes(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
 
@@ -177,7 +177,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
@@ -204,7 +204,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -258,11 +258,11 @@ class HTMLSnapshotTest:
             },
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_070_links_handling(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_070_links_handling(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -273,7 +273,7 @@ class HTMLSnapshotTest:
         snap = HTMLSnapshot(page, self.policy)
         snap.handle_assets()
 
-        self.assertTrue(RequestBrowser.call_args_list == [], RequestBrowser.call_args_list)
+        self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = b"""<html><head></head><body>
@@ -284,11 +284,11 @@ class HTMLSnapshotTest:
         self.assertEqual(snap.get_asset_urls(), set())
         self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT), set())
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_080_data_assets(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_080_data_assets(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -299,7 +299,7 @@ class HTMLSnapshotTest:
         snap = HTMLSnapshot(page, self.policy)
         snap.handle_assets()
 
-        self.assertTrue(RequestBrowser.call_args_list == [], RequestBrowser.call_args_list)
+        self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
 
         dump = page.dump_html()
         OUTPUT = b"""<html><head></head><body>
@@ -319,10 +319,10 @@ class HTMLSnapshotTest:
 
         self.assertEqual(cssutils.parseStyle("color: #fff").cssText, "color: #fff")
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_100_css_directives(self, _open, makedirs, RequestBrowser):
+    def test_100_css_directives(self, _open, makedirs, BrowserRequest):
         for url_in_css, url_dl, filename in (
             ('url("police.woff")', "police.woff", "police.woff_644bf7897f.woff"),
             ("url('police.woff')", "police.woff", "police.woff_644bf7897f.woff"),
@@ -339,7 +339,7 @@ class HTMLSnapshotTest:
             ),
             ("url(police.woff)", "police.woff", "police.woff_644bf7897f.woff"),
         ):
-            RequestBrowser.side_effect = BrowserMock(
+            BrowserRequest.side_effect = BrowserMock(
                 {
                     "http://127.0.0.1/po%22lice.woff": b"WOFF test",
                     "http://127.0.0.1/polic%20e.woff": b"WOFF test",
@@ -357,7 +357,7 @@ class HTMLSnapshotTest:
             output = css_parser().handle_css(snap, "http://127.0.0.1/", CSS, False)
 
             self.assertTrue(
-                RequestBrowser.call_args_list
+                BrowserRequest.call_args_list
                 == [
                     mock.call(
                         "http://127.0.0.1/" + url_dl,
@@ -366,7 +366,7 @@ class HTMLSnapshotTest:
                         headers={"Accept": "*/*"},
                     )
                 ],
-                RequestBrowser.call_args_list,
+                BrowserRequest.call_args_list,
             )
 
             self.assertTrue(
@@ -396,13 +396,13 @@ class HTMLSnapshotTest:
 
             _open.reset_mock()
             makedirs.reset_mock()
-            RequestBrowser.reset_mock()
+            BrowserRequest.reset_mock()
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_110_css_content_handling(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_110_css_content_handling(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -417,7 +417,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/police.svg",
@@ -432,7 +432,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -471,11 +471,11 @@ class HTMLSnapshotTest:
             },
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_120_css_inline_handling(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_120_css_inline_handling(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -487,7 +487,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
@@ -496,7 +496,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -522,11 +522,11 @@ class HTMLSnapshotTest:
             {"http,3A/127.0.0.1/image.png_62d75f74b8.png"},
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_130_css_data_handling(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_130_css_data_handling(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -539,7 +539,7 @@ class HTMLSnapshotTest:
         snap = HTMLSnapshot(page, self.policy)
         snap.handle_assets()
 
-        self.assertTrue(RequestBrowser.call_args_list == [], RequestBrowser.call_args_list)
+        self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
         self.assertTrue(_open.call_args_list == [], _open.call_args_list)
 
         dump = page.dump_html()
@@ -548,11 +548,11 @@ class HTMLSnapshotTest:
         self.assertEqual(snap.get_asset_urls(), set())
         self.assertEqual(HTMLAsset.html_extract_assets(HTML), set())
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_140_html_asset(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_140_html_asset(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -564,7 +564,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/page.html",
@@ -573,7 +573,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
         self.assertTrue(_open.call_args_list == [], _open.call_args_list)
 
@@ -586,10 +586,10 @@ class HTMLSnapshotTest:
         self.assertEqual(snap.get_asset_urls(), set())
         self.assertEqual(HTMLAsset.html_extract_assets(OUTPUT), set())
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
-    def test_150_page_too_big(self, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_150_page_too_big(self, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         makedirs.side_effect = None
 
         HTML = b"""<html><head></head><body>
@@ -603,7 +603,7 @@ class HTMLSnapshotTest:
             snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/toobig.png",
@@ -612,7 +612,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -644,10 +644,10 @@ class HTMLSnapshotTest:
         )
 
     @override_settings(TEST_MODE=False)
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
-    def test_160_exception_handling(self, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_160_exception_handling(self, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         makedirs.side_effect = None
 
         HTML = b"""<html><head></head><body>
@@ -661,7 +661,7 @@ class HTMLSnapshotTest:
             snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/exception.png",
@@ -670,7 +670,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertRegex(
@@ -688,10 +688,10 @@ class HTMLSnapshotTest:
         self.assertEqual(len(filenames), 1)
         self.assertRegex(filenames.pop(), "http,3A/127.0.0.1/exception.png_[^.]+.txt")
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_170_max_filename(self, _open, makedirs, RequestBrowser):
+    def test_170_max_filename(self, _open, makedirs, BrowserRequest):
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         CONTENT = b"content"
@@ -708,7 +708,7 @@ class HTMLSnapshotTest:
             long_dir_url = "http://127.0.0.1/" + long_dirname + "/test.png"
             web[long_dir_url] = CONTENT
 
-            RequestBrowser.side_effect = BrowserMock(web)
+            BrowserRequest.side_effect = BrowserMock(web)
             HTML = f"""<html><head></head><body>
                 <img src="{long_file_url}"/>
                 <img src="{long_dir_url}"/>
@@ -718,7 +718,7 @@ class HTMLSnapshotTest:
             snap.handle_assets()
 
             self.assertTrue(
-                RequestBrowser.call_args_list
+                BrowserRequest.call_args_list
                 == [
                     mock.call(
                         long_file_url,
@@ -733,7 +733,7 @@ class HTMLSnapshotTest:
                         headers={"Accept": "*/*"},
                     ),
                 ],
-                RequestBrowser.call_args_list,
+                BrowserRequest.call_args_list,
             )
 
             long_url_filename = _open.call_args_list[0].args[0].split("/")[-1]
@@ -755,14 +755,14 @@ class HTMLSnapshotTest:
             self.assertEqual(snap.get_asset_urls(), {long_file_url, long_dir_url})
             self.assertEqual(HTMLAsset.html_extract_assets(page.dump_html()), assets)
 
-            RequestBrowser.reset_mock()
+            BrowserRequest.reset_mock()
             _open.reset_mock()
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_180_exclude_url(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_180_exclude_url(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -779,7 +779,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
@@ -788,7 +788,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 )
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
         self.assertTrue(
             _open.call_args_list
@@ -824,11 +824,11 @@ class HTMLSnapshotTest:
             {"http,3A/127.0.0.1/image.png_62d75f74b8.png"},
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_190_exclude_mime(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_190_exclude_mime(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -842,7 +842,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/image.jpg",
@@ -857,7 +857,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
         self.assertTrue(
             _open.call_args_list
@@ -893,11 +893,11 @@ class HTMLSnapshotTest:
             {"http,3A/127.0.0.1/image.png_62d75f74b8.png"},
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def test_200_exclude_element(self, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_200_exclude_element(self, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
@@ -911,7 +911,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/video.mp4",
@@ -920,7 +920,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
         self.assertTrue(
             _open.call_args_list
@@ -956,11 +956,11 @@ class HTMLSnapshotTest:
             {"http,3A/127.0.0.1/video.mp4_60fce7cf30.mp4"},
         )
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_cache.open")
-    def _snapshot_page(self, url, _open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def _snapshot_page(self, url, _open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         makedirs.side_effect = None
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         HTML = b"""<html><head></head><body>
@@ -973,7 +973,7 @@ class HTMLSnapshotTest:
         snap.snapshot()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
@@ -982,7 +982,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -1032,16 +1032,16 @@ class HTMLSnapshotTest:
         self.assertEqual(asset_html2.filename, "http,3A/127.0.0.1/page2.html_81faf90c0b.html")
         self.assertEqual(asset_html2.ref_count, 1)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("os.unlink")
     @mock.patch("os.rmdir")
-    def test_220_asset_remove(self, rmdir, unlink, makedirs, RequestBrowser):
+    def test_220_asset_remove(self, rmdir, unlink, makedirs, BrowserRequest):
         HTML = b"""<html><head></head><body>
             <img src="%s"/>
         </body></html>"""
         PNG_URL = "http,3A/127.0.0.1/image.png_62d75f74b8.png"
-        RequestBrowser.side_effect = BrowserMock(
+        BrowserRequest.side_effect = BrowserMock(
             {
                 "http://127.0.0.1/page1.html": HTML % b"/image.png",
                 "http://127.0.0.1/page2.html": HTML % b"/image.png",
@@ -1193,12 +1193,12 @@ class HTMLSnapshotTest:
         )
 
     @override_settings(TEST_HTML_ERROR_HANDLING=True)
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("os.unlink")
     @mock.patch("os.rmdir")
-    def test_250_html_error_handling(self, rmdir, unlink, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_250_html_error_handling(self, rmdir, unlink, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
 
         HTML = b"""<html><head></head><body>
             <img src="/image.png"/>
@@ -1212,7 +1212,7 @@ class HTMLSnapshotTest:
             snap.snapshot()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
@@ -1221,7 +1221,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(
@@ -1250,12 +1250,12 @@ class HTMLSnapshotTest:
         self.assertRegex(asset.filename, r"http,3A/127\.0\.0\.1/_[^.]+\.html")
         self.assertEqual(asset.ref_count, 1)
 
-    @mock.patch("se.browser.RequestBrowser.get")
+    @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("os.makedirs")
     @mock.patch("se.html_asset.open")
     @mock.patch("se.html_cache.open")
-    def test_260_base_header(self, cache_open, asset_open, makedirs, RequestBrowser):
-        RequestBrowser.side_effect = BrowserMock({})
+    def test_260_base_header(self, cache_open, asset_open, makedirs, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({})
         makedirs.side_effect = None
         cache_open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         asset_open.side_effect = cache_open.side_effect
@@ -1272,7 +1272,7 @@ class HTMLSnapshotTest:
         snap.handle_assets()
 
         self.assertTrue(
-            RequestBrowser.call_args_list
+            BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/style.css",
@@ -1287,7 +1287,7 @@ class HTMLSnapshotTest:
                     headers={"Accept": "*/*"},
                 ),
             ],
-            RequestBrowser.call_args_list,
+            BrowserRequest.call_args_list,
         )
 
         self.assertTrue(

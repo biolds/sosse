@@ -20,7 +20,7 @@ from hashlib import md5
 from django.test import TransactionTestCase
 
 from .document_meta import DocumentMeta
-from .browser import Page
+from .page import Page
 
 
 class DocumentMetaTest(TransactionTestCase):

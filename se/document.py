@@ -280,8 +280,7 @@ class Document(models.Model):
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or "") + "\n" + text)
         self._index_log("remove accent", stats, verbose)
 
-        # The bulk request triggers a deadlock
-        # Link.objects.bulk_create(links['links'])
+        # The bulk request triggers a deadlock: Link.objects.bulk_create(links['links'])
         for link in links["links"]:
             link.save()
         self._index_log("bulk", stats, verbose)

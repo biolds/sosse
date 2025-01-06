@@ -50,3 +50,7 @@ repos:
     rev: "5.13.2"
     hooks:
       - id: isort
+  - repo: https://github.com/PyCQA/eradicate
+    rev: "2.3.0"
+    hooks:
+      - id: eradicate

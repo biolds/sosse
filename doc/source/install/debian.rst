@@ -54,7 +54,8 @@ After installing the package, the Nginx site needs to be enabled with:
 Geckodriver setup (optional)
 ----------------------------
 
-To crawl pages with Firefox, it is required to install `Geckodriver <https://github.com/mozilla/geckodriver/>`_, with the command:
+To crawl pages with Firefox, it is required to install `Geckodriver <https://github.com/mozilla/geckodriver/>`_, with
+the command:
 
 .. code-block:: shell
 
@@ -67,5 +68,5 @@ To crawl pages with Firefox, it is required to install `Geckodriver <https://git
 Next steps
 ----------
 
-Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and the password ``admin``.
-For more information about the configuration, you can follow the :doc:`../administration` pages.
+Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and
+the password ``admin``. For more information about the configuration, you can follow the :doc:`../administration` pages.

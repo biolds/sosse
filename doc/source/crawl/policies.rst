@@ -4,15 +4,18 @@ Crawl Policies
 Policy matching
 ---------------
 
-Crawl policies define which pages are indexed and how they are indexed. The policy list can be reached by clicking ``⚡ Crawl policies`` from the :doc:`../admin_ui`.
+Crawl policies define which pages are indexed and how they are indexed. The policy list can be reached by clicking
+``⚡ Crawl policies`` from the :doc:`../admin_ui`.
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_list.png
    :class: sosse-screenshot
 
-When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to handle the link.
-The policy having the ``URL regex`` matching the longest part of the link URL is selected. On last resort, the default policy ``(default)`` is selected.
+When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to
+handle the link. The policy having the ``URL regex`` matching the longest part of the link URL is selected. On last
+resort, the default policy ``(default)`` is selected.
 
-You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the ``🌐 Crawl a new URL`` page (see :doc:`add_to_queue`).
+You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the
+``🌐 Crawl a new URL`` page (see :doc:`add_to_queue`).
 
 Indexing decision
 -----------------
@@ -23,8 +26,8 @@ Indexing decision
 URL regexp
 """"""""""
 
-The regexp matched against URLs to crawl. Multiple regexp can be set, one by line. Lines starting with a ``#`` are treated as comments.
-The default ``(default)`` policy's regexp cannot be modified.
+The regexp matched against URLs to crawl. Multiple regexp can be set, one by line. Lines starting with a ``#`` are
+treated as comments. The default ``(default)`` policy's regexp cannot be modified.
 
 Documents
 """""""""
@@ -41,10 +44,13 @@ Recursion, recursion depth
 ``Recursion`` can be one of:
 
 * ``Crawl all pages``: URLs matching the policy will be crawled
-* ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see :doc:`recursion_depth`)
-* ``Never crawl``: URLs matching the policy are not crawled unless they are queued manually (in this case, no recursion occurs)
+* ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see
+  :doc:`recursion_depth`)
+* ``Never crawl``: URLs matching the policy are not crawled unless they are queued manually (in this case, no recursion
+  occurs)
 
-``Recursion depth`` is only relevant when the ``Recursion`` is ``Crawl all pages`` and defines the recursion depth for links outside the policy. See :doc:`recursion_depth` for more explanations.
+``Recursion depth`` is only relevant when the ``Recursion`` is ``Crawl all pages`` and defines the recursion depth for
+links outside the policy. See :doc:`recursion_depth` for more explanations.
 
 Mimetype regex
 """"""""""""""
@@ -65,7 +71,8 @@ When enabled, links to non-indexed pages are stored.
 Hide documents
 """"""""""""""
 
-Documents indexed will be hidden from search results. The hidden state can later be changed from the :doc:`document's settings <../documents>`.
+Documents indexed will be hidden from search results. The hidden state can later be changed from the
+:doc:`document's settings <../documents>`.
 
 Remove nav elements
 """""""""""""""""""
@@ -73,7 +80,8 @@ Remove nav elements
 This option removes HTML elements `<nav>`, `<header>` and `<footer>` before processing the page:
 
 * ``From index``: words used inside navigation elements are not added to the search index, this is the default.
-* ``From index and screenshots``: as above, also the elements are deleted before taking screenshots, this can be useful when websites are using sticky elements that follows scrolling.
+* ``From index and screenshots``: as above, also the elements are deleted before taking screenshots, this can be useful
+  when websites are using sticky elements that follows scrolling.
 * ``From index, screens and HTML snaps``: as above, but also removes the elements from the HTML snapshot.
 * ``No``: the elements are not removed and are handled like regular elements.
 
@@ -82,8 +90,10 @@ Thumbnail mode
 
 Defines the source for pages thumbnails displayed in the search results and home page:
 
-* ``Page preview from metadata``: the thumbnail is extracted from the page metadata (using `Linkpreview <https://github.com/meyt/linkpreview>`_).
-* ``Preview from meta, screenshot as fallback``: the thumbnail is extracted from metadata if available, a screenshot is taken otherwise.
+* ``Page preview from metadata``: the thumbnail is extracted from the page metadata (using
+  `Linkpreview <https://github.com/meyt/linkpreview>`_).
+* ``Preview from meta, screenshot as fallback``: the thumbnail is extracted from metadata if available, a screenshot is
+  taken otherwise.
 * ``Take a screenshot``: a screenshot is used as thumbnail.
 * ``No thumbnail``: no thumbnail is saved.
 
@@ -105,7 +115,10 @@ Default browse mode
 
 Can be one of:
 
-* ``Detect``: the first time a domain is accessed, it is crawled with a browser and Python Requests. If the text content varies, it is assumed that the website is dynamic and the browser will be used for subsequent crawling of pages in this domain. If the text content is the same, Python Request will be used since it is faster. By default, the browser used is Chromium, this can be changed with the :ref:`default_browser option <conf_option_default_browser>`.
+* ``Detect``: the first time a domain is accessed, it is crawled with a browser and Python Requests. If the text content
+  varies, it is assumed that the website is dynamic and the browser will be used for subsequent crawling of pages in
+  this domain. If the text content is the same, Python Request will be used since it is faster. By default, the browser
+  used is Chromium, this can be changed with the :ref:`default_browser option <conf_option_default_browser>`.
 * ``Chromium``: Chromium is used.
 * ``Firefox``: Firefox is used.
 * ``Python Requests``: Python Requests is used.
@@ -115,7 +128,8 @@ Can be one of:
 Take screenshots
 """"""""""""""""
 
-Enables taking screenshots of pages for offline use. When the option :ref:`Create thumbnails <policy_create_thumbnails>` is disabled, the screenshot is displayed in search results instead.
+Enables taking screenshots of pages for offline use. When the option
+:ref:`Create thumbnails <policy_create_thumbnails>` is disabled, the screenshot is displayed in search results instead.
 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
@@ -133,9 +147,11 @@ Format of the image JPG or PNG.
 Script
 """"""
 
-Javascript code to be executed in the context of the web pages when they have finished loading. This can be used to handle authentication, validate forms, remove headers, ...
+Javascript code to be executed in the context of the web pages when they have finished loading. This can be used to
+handle authentication, validate forms, remove headers, ...
 
-For example, the following script could be used to click on a `GDPR <https://en.wikipedia.org/wiki/General_Data_Protection_Regulation>`_ compliance ``I agree`` button:
+For example, the following script could be used to click on a
+`GDPR <https://en.wikipedia.org/wiki/General_Data_Protection_Regulation>`_ compliance ``I agree`` button:
 
 .. code-block:: javascript
 
@@ -147,7 +163,9 @@ For example, the following script could be used to click on a `GDPR <https://en.
        button.singleNodeValue.click();
    }
 
-In case the script triggers an error, further processing of the page is aborted and the error message is stored in the :ref:`document error field <document_error>`. It can be useful to use a tool such as `Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
+In case the script triggers an error, further processing of the page is aborted and the error message is stored in the
+:ref:`document error field <document_error>`. It can be useful to use a tool such as
+`Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
@@ -163,27 +181,29 @@ HTML snapshot
 Snapshot html
 """""""""""""
 
-This option enables capturing snapshots of crawled HTML pages and there related images, CSS, etc. it relies on for offline use.
+This option enables capturing snapshots of crawled HTML pages and there related images, CSS, etc. it relies on for
+offline use.
 
 A browser can be used to take the snapshot after dynamic content is loaded.
 
 Snapshot exclude url re
 """""""""""""""""""""""
 
-This field defines a regular expression of URL of related assets to skip downloading. For example, setting a regexp of ``png$`` would make the crawler
-skip the download of URL ending with ``png``.
+This field defines a regular expression of URL of related assets to skip downloading. For example, setting a regexp of
+``png$`` would make the crawler skip the download of URL ending with ``png``.
 
 Snapshot exclude mime re
 """"""""""""""""""""""""
 
-This field defines a regular expression of mimetypes of related assets to skip saving, however files are still downloaded to determine there mimetype.
-For example, setting a regexp of ``image/.*`` would make the crawler skip saving images.
+This field defines a regular expression of mimetypes of related assets to skip saving, however files are still
+downloaded to determine there mimetype. For example, setting a regexp of ``image/.*`` would make the crawler skip saving
+images.
 
 Snapshot exclude element re
 """""""""""""""""""""""""""
 
-This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a regexp of ``audio|video`` would make the crawler
-skip the download of medias.
+This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
+regexp of ``audio|video`` would make the crawler skip the download of medias.
 
 Recurrence
 ----------
@@ -198,7 +218,9 @@ How often pages should be reindexed:
 
 * ``Once``: pages are not recrawled.
 * ``Constant``: pages are recrawled every ``Recrawl dt min``.
-* ``Adaptive``: pages recrawled more often when they change. The interval between recrawls starts at ``Recrawl dt min``. Then, when the page is recrawled the interval is multiplied by 2 if the content is unchanged, divided by 2 otherwise. The interval stays enclosed between ``Recrawl dt min`` and ``Recrawl dt max``.
+* ``Adaptive``: pages recrawled more often when they change. The interval between recrawls starts at ``Recrawl dt min``.
+  Then, when the page is recrawled the interval is multiplied by 2 if the content is unchanged, divided by 2 otherwise.
+  The interval stays enclosed between ``Recrawl dt min`` and ``Recrawl dt max``.
 
 Hash mode
 """""""""
@@ -206,7 +228,8 @@ Hash mode
 Define how changes between recrawl are detected:
 
 * ``Hash raw content``: raw text content is compared.
-* ``Normalize numbers before``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock changes, ...
+* ``Normalize numbers before``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock
+  changes, ...
 
 .. _authentication_params:
 
@@ -221,7 +244,8 @@ See :doc:`../authentication` for general guidelines on authentication.
 Login URL
 """""""""
 
-If crawling a page matching the policy gets redirected to the ``Login URL``, the crawler will attempt to authenticate using the parameters definedbelow.
+If crawling a page matching the policy gets redirected to the ``Login URL``, the crawler will attempt to authenticate
+using the parameters defined below.
 
 Form selector
 """""""""""""
@@ -231,5 +255,6 @@ CSS selector pointing to the authentication ``<form>`` element.
 Authentication fields
 """""""""""""""""""""
 
-This defines the ``<input>`` fields to fill in the form. The fields are matched by their ``name`` attribute and filled with the ``value``.
-(hidden fields, like `CSRF <https://en.wikipedia.org/wiki/Cross-site_request_forgery>`_ preventing field, are automatically populated by the crawler)
+This defines the ``<input>`` fields to fill in the form. The fields are matched by their ``name`` attribute and filled
+with the ``value``. (hidden fields, like `CSRF <https://en.wikipedia.org/wiki/Cross-site_request_forgery>`_ preventing
+field, are automatically populated by the crawler)

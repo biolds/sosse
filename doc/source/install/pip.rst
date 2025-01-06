@@ -6,14 +6,16 @@ Dependencies
 
 Before installing SOSSE, you'll need to manually install the following softwares:
 
-- a web server supporting `WSGI <https://wsgi.readthedocs.io/en/latest/learn.html>`_ (the steps below explains how to setup `Nginx <https://nginx.org/>`_)
+- a web server supporting `WSGI <https://wsgi.readthedocs.io/en/latest/learn.html>`_ (the steps below explains how to
+  setup `Nginx <https://nginx.org/>`_)
 - a WSGI server (the steps below explains how to setup `uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_)
 - `PostgreSQL <https://www.postgresql.org/>`_
 - `Firefox <https://www.mozilla.org/firefox/>`_
 - `Geckodriver <https://github.com/mozilla/geckodriver/>`_
 - `Google Chromium <https://www.chromium.org/Home>`_
 - `ChromeDriver <https://chromedriver.chromium.org/>`_
-- ``libmagic``, see the documentation of `python-magic <https://pypi.org/project/python-magic/>`_ for an installation procedure
+- ``libmagic``, see the documentation of `python-magic <https://pypi.org/project/python-magic/>`_ for an installation
+  procedure
 
 Package install
 ---------------
@@ -55,7 +57,8 @@ Database setup
 WSGI server
 -----------
 
-You can install a WSGI server of your choice. If you wish to install `uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_, you can do:
+You can install a WSGI server of your choice. If you wish to install
+`uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_, you can do:
 
 .. code-block:: shell
 
@@ -126,5 +129,5 @@ Crawlers can now be started in the background with the command:
 Next steps
 ----------
 
-Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and the password ``admin``.
-For more information about the configuration, you can follow the :doc:`../administration` pages.
+Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and
+the password ``admin``. For more information about the configuration, you can follow the :doc:`../administration` pages.

@@ -1,12 +1,14 @@
 Recursive crawling
 ==================
 
-SOSSE can crawl recursively all pages it finds, or the recursion level can be limited when crawling large websites or public sites.
+SOSSE can crawl recursively all pages it finds, or the recursion level can be limited when crawling large websites or
+public sites.
 
 No limit recursion
 -------------------
 
-Recursing with no limit is achieved by using a policy with a :ref:`Recursion <recursion_depth_params>` set to ``Crawl all pages`` (the default).
+Recursing with no limit is achieved by using a policy with a :ref:`Recursion <recursion_depth_params>` set to
+``Crawl all pages`` (the default).
 
 For example, a full domain can be extracted with 2 policies:
 
@@ -17,7 +19,8 @@ For example, a full domain can be extracted with 2 policies:
 Limited recursion
 -----------------
 
-Crawling pages up to a certain level can be simply achieved by setting the :ref:`Recursion <recursion_depth_params>` to ``Depending on depth`` and setting the ``Recursion depth`` when :doc:`queueing the initial URL <add_to_queue>`.
+Crawling pages up to a certain level can be simply achieved by setting the :ref:`Recursion <recursion_depth_params>` to
+``Depending on depth`` and setting the ``Recursion depth`` when :doc:`queueing the initial URL <add_to_queue>`.
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_on_depth_add.png
    :class: sosse-screenshot
@@ -25,7 +28,8 @@ Crawling pages up to a certain level can be simply achieved by setting the :ref:
 Partial limited recursion
 -------------------------
 
-A mixed approach is also possible, by setting a :ref:`Recursion <recursion_depth_params>` to ``Depending on depth`` in one policy, and setting it to ``Crawl all pages`` in an other and a positive ``Recursion depth``.
+A mixed approach is also possible, by setting a :ref:`Recursion <recursion_depth_params>` to ``Depending on depth`` in
+one policy, and setting it to ``Crawl all pages`` in an other and a positive ``Recursion depth``.
 
 For example, one could crawl all Wikipedia, and crawl external links up to 2 levels with the following policies:
 

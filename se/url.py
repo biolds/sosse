@@ -88,7 +88,7 @@ def sanitize_url(_url):
     except UnicodeEncodeError:
         try:
             url = url._replace(netloc=url.netloc.encode("idna").decode())
-        except:  # noqa: E722
+        except:  # noqa: E722 # nosec B110
             pass
 
     new_path = norm_url_path(url.path)

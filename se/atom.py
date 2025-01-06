@@ -15,7 +15,7 @@
 
 import os
 from hashlib import md5
-from lxml.etree import Element, tostring
+from lxml.etree import Element, tostring  # nosec B410, ignore Bandit warning because lxml is only used for XML generation
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -38,7 +38,7 @@ class AtomView(View):
         return e
 
     def _str_to_uuid(self, s):
-        s = md5(s.encode("utf-8")).hexdigest()
+        s = md5(s.encode("utf-8"), usedforsecurity=False).hexdigest()
         s = s[:8] + "-" + s[8:12] + "-" + s[12:16] + "-" + s[16:20] + "-" + s[20:]
         s = "urn:uuid:" + s
         return s

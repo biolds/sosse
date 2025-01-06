@@ -220,7 +220,7 @@ def add_headlines(paginated, query):
                 if "s" + rnd not in src or "e" + rnd not in src:
                     dest += res.content[headline_idx : len(src)]
                     break
-            res.headline = mark_safe(dest)
+            res.headline = mark_safe(dest)  # nosec B308, B703 untrusted content is escaped above
         else:
             res.headline = fallback_headline(res)
     return paginated

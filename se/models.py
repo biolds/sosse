@@ -409,7 +409,7 @@ class FavIcon(models.Model):
                 if favicon.mimetype.startswith("image/"):
                     favicon.content = page.content
                     favicon.missing = False
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         favicon.save()
@@ -485,7 +485,7 @@ class DomainSetting(models.Model):
         if cls.UA_HASH is None:
             ua = user_agent()
             if ua is not None:
-                cls.UA_HASH = md5(ua.encode("ascii")).hexdigest()
+                cls.UA_HASH = md5(ua.encode("ascii"), usedforsecurity=False).hexdigest()
         return cls.UA_HASH
 
     def _parse_line(self, line):

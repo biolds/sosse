@@ -96,9 +96,11 @@ class InternalCSSParser:
     @staticmethod
     def handle_css(snapshot, base_url, content, inline_css):
         if inline_css:
-            assert isinstance(content, str), content.__class__.__name__
+            if not isinstance(content, str):
+                raise ValueError(f"content is not str: {content.__class__.__name__}")
         else:
-            assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
+            if not isinstance(content, (bytes, NavigableString)):
+                raise ValueError(f"content is not bytes or NavigableString: {content.__class__.__name__}")
             if isinstance(content, bytes):
                 content = content.decode("utf-8")
         css = ""
@@ -141,9 +143,11 @@ class CSSUtilsParser:
     @staticmethod
     def handle_css(snapshot, base_url, content, inline_css):
         if inline_css:
-            assert isinstance(content, str), content.__class__.__name__
+            if not isinstance(content, str):
+                raise ValueError(f"content is not str: {content.__class__.__name__}")
         else:
-            assert isinstance(content, (bytes, NavigableString)), content.__class__.__name__
+            if not isinstance(content, (bytes, NavigableString)):
+                raise ValueError(f"content is not bytes or NavigableString: {content.__class__.__name__}")
         declarations, sheet = CSSUtilsParser.css_declarations(content, inline_css)
 
         for prop in declarations:
@@ -162,7 +166,8 @@ class CSSUtilsParser:
             css = declarations.cssText
         else:
             css = sheet.cssText.decode("utf-8")
-        assert isinstance(css, str)
+        if not isinstance(css, str):
+            raise ValueError(f"css is not str: {css.__class__.__name__}")
         return css
 
     @staticmethod
@@ -400,7 +405,8 @@ class HTMLSnapshot:
             if getattr(settings, "TEST_MODE", False):
                 raise
 
-        assert isinstance(content, bytes)
+        if not isinstance(content, bytes):
+            raise ValueError(f"content is not bytes: {content.__class__.__name__}")
         asset = HTMLCache.write_asset(url, content, page, extension=extension, mimetype=mimetype)
         if extension == ".html":
             return settings.SOSSE_HTML_SNAPSHOT_URL + asset

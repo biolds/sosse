@@ -30,7 +30,8 @@ NAV_ELEMENTS = ["nav", "header", "footer"]
 
 class Page:
     def __init__(self, url, content, browser, headers=None, status_code=None):
-        assert isinstance(content, bytes)
+        if not isinstance(content, bytes):
+            raise ValueError("content must be bytes")
         self.url = sanitize_url(url)
         self.content = content
         self.redirect_count = 0

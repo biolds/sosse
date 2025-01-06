@@ -75,7 +75,7 @@ class UserView(SosseMixin, TemplateView):
         animal = ""
         while not animal:
             # choice sometimes returns an empty string for an unknown reason
-            animal = choice(ANIMALS)
+            animal = choice(ANIMALS)  # nosec B311 random is not used for security purposes
 
         return context | {
             "settings": settings,

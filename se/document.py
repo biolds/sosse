@@ -156,7 +156,7 @@ class Document(models.Model):
 
     def image_name(self):
         if not self._image_name:
-            filename = md5(self.url.encode("utf-8")).hexdigest()
+            filename = md5(self.url.encode("utf-8"), usedforsecurity=False).hexdigest()
             base_dir = filename[:2]
             self._image_name = os.path.join(base_dir, filename)
         return self._image_name
@@ -207,7 +207,9 @@ class Document(models.Model):
         return lang
 
     def _hash_content(self, content, crawl_policy):
-        assert isinstance(content, str)
+        if not isinstance(content, str):
+            raise ValueError("content must be a string")
+
         from .models import CrawlPolicy
 
         if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
@@ -438,7 +440,7 @@ class Document(models.Model):
         if err == "":
             self.error_hash = ""
         else:
-            self.error_hash = md5(err.encode("utf-8")).hexdigest()
+            self.error_hash = md5(err.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     @staticmethod
     def queue(url, parent_policy, parent):

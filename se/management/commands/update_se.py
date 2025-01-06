@@ -35,7 +35,8 @@ class Command(BaseCommand):
 
         se_file = os.path.join(settings.BASE_DIR, SE_FILE)
         for se in json.load(open(se_file)):
-            assert se["model"] == "se.searchengine"
+            if se["model"] != "se.searchengine":
+                raise ValueError(f"Invalid model {se['model']} in {se_file}")
             se = se["fields"]
             short_name = se.pop("short_name")
 

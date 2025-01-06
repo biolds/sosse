@@ -124,8 +124,10 @@ def human_filesize(n):
 
 
 def reverse_no_escape(url, args):
-    assert isinstance(args, (list, tuple))
-    assert len(args) == 1
+    if not isinstance(args, (list, tuple)):
+        raise ValueError("args must be a list or a tuple")
+    if len(args) != 1:
+        raise ValueError("args must have exactly one element")
     arg = args[0]
 
     # unquote since Django's reverse will quote
@@ -137,7 +139,8 @@ def reverse_no_escape(url, args):
 def http_date_parser(d):
     if d is None:
         return None
-    assert isinstance(d, str)
+    if not isinstance(d, str):
+        raise ValueError("d must be a string")
     try:
         _, day, month, year, t, _ = d.strip().split()
         day = int(day)
@@ -170,7 +173,8 @@ def http_date_parser(d):
 
 def http_date_format(d):
     # Locale independant formatting
-    assert isinstance(d, datetime)
+    if not isinstance(d, datetime):
+        raise ValueError("d must be a datetime object")
     DOW = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     dow = DOW[d.weekday()]
 

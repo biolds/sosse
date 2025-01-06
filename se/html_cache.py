@@ -167,15 +167,17 @@ class HTMLCache:
 
     @staticmethod
     def write_asset(url, content, page, extension=None, mimetype=None):
-        assert isinstance(content, bytes)
+        if not isinstance(content, bytes):
+            raise ValueError("content must be bytes")
 
         logger.debug(f"html_write_asset for {url}")
-        _hash = md5(content).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
+        _hash = md5(content, usedforsecurity=False).hexdigest()[:HTML_SNAPSHOT_HASH_LEN]
 
         # Build the extension using mimetypes, because the appropriate extension
         # is required by Nginx when the file is served statically
         if extension is None:
-            assert mimetype is not None
+            if mimetype is None:
+                raise ValueError("mimetype is required when extension is not provided")
             extension = guess_extension(mimetype)
             if extension is None:
                 _, ext = url.rsplit(".", 1)
@@ -200,7 +202,8 @@ class HTMLCache:
 
     @staticmethod
     def html_filename(url, _hash, extension):
-        assert extension.startswith(".")
+        if not extension.startswith("."):
+            raise ValueError("extension must start with a dot")
 
         # replace http:// by http:/
         url = url.replace("//", "/")

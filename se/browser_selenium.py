@@ -100,12 +100,12 @@ class SeleniumBrowser(Browser):
             # Ignore errors in case the browser crashed
             try:
                 cls._driver.close()
-            except:  # noqa
+            except:  # noqa # nosec B110
                 pass
 
             try:
                 cls._driver.quit()
-            except:  # noqa
+            except:  # noqa # nosec B110
                 pass
 
     @classmethod

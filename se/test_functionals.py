@@ -15,7 +15,7 @@
 
 from functools import partialmethod
 from hashlib import md5
-from unittest import mock
+from unittest import expectedFailure, mock
 
 from django.conf import settings
 from django.test import TransactionTestCase, override_settings
@@ -123,14 +123,15 @@ class FunctionalTest(BaseFunctionalTest):
         page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent")
         self.assertRegex(page.content, b"Mozilla.*Windows.*Chrome")
 
-    # @override_settings(SOSSE_USER_AGENT='')
-    # @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=['firefox'])
-    # @override_settings(SOSSE_FAKE_USER_AGENT_OS=['linux'])
-    # @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=['pc'])
-    # def test_22_fake_ua_firefox(self):
-    #     self._reset_user_agent()
-    #     page = self.BROWSER_CLASS.get(TEST_SERVER_URL + 'user-agent')
-    #     self.assertRegex(page.content, b"Mozilla.*Linux.*Firefox")
+    @expectedFailure
+    @override_settings(SOSSE_USER_AGENT="")
+    @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=["firefox"])
+    @override_settings(SOSSE_FAKE_USER_AGENT_OS=["linux"])
+    @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=["pc"])
+    def test_22_fake_ua_firefox(self):
+        self._reset_user_agent()
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent")
+        self.assertRegex(page.content, b"Mozilla.*Linux.*Firefox")
 
     @override_settings(SOSSE_USER_AGENT="")
     @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=["safari"])

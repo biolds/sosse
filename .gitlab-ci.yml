@@ -10,7 +10,6 @@ before_script:
   - chmod 755 /tmp/sudo_sosse
   - test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
   - "git submodule update --recursive --remote ||:"
-  - 'sed -e "s/^__version__.*/__version__ = \"1.0.0\"/" -i se/deps/fake-useragent/src/fake_useragent/settings.py ||:'
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive

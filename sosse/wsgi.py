@@ -12,9 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
-
-"""
-WSGI config for sosse project.
+"""WSGI config for sosse project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

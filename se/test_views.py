@@ -134,9 +134,7 @@ class ViewsTest:
                 self._view_request(url, view_cls, params, self.anon_user, anon_expected)
 
     def test_views_no_auth(self):
-        """
-        Test views that require no authentication
-        """
+        """Test views that require no authentication."""
         for url, view_cls, params in (("/opensearch.xml", OpensearchView, {}),):
             for anon_search in (True, False):
                 with self.settings(SOSSE_ANONYMOUS_SEARCH=anon_search):
@@ -145,9 +143,8 @@ class ViewsTest:
                     self._view_request(url, view_cls, params, self.anon_user, 200)
 
     def test_views_no_auth_redirect(self):
-        """
-        Test views that do not redirect to the login page when auth is required
-        """
+        """Test views that do not redirect to the login page when auth is
+        required."""
         for url, view_cls, params in (
             ("/atom/?q=page", AtomView, {}),
             ("/atom/?q=page&cached=1", AtomView, {}),

@@ -38,3 +38,7 @@ repos:
     hooks:
       - id: bandit
         exclude: "^(doc/.*|se/test_.*)$"
+  - repo: https://github.com/biolds/docformatter
+    rev: v1.7.6-alpha
+    hooks:
+      - id: docformatter

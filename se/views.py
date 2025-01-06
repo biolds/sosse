@@ -28,10 +28,8 @@ ANIMALS = "🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘�
 
 
 def format_url(request, params):
-    """
-    This function takes the current url and replaces query parameters
-    by new values provided
-    """
+    """This function takes the current url and replaces query parameters by new
+    values provided."""
     parsed_url = urlparse(request.get_full_path())
     query_string = parse_qs(parsed_url.query)
     for k, v in query_string.items():

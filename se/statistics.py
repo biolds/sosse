@@ -22,7 +22,7 @@ from .login import login_required
 
 @method_decorator(login_required, name="dispatch")
 class StatisticsView(TemplateView):
-    template_name = "admin/stats.html"
+    template_name = "admin/statistics.html"
     extra_context = {"title": "Statistics"}
 
     def get(self, request):

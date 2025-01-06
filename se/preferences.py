@@ -24,7 +24,7 @@ from .views import UserView
 
 @method_decorator(login_required, name="dispatch")
 class PreferencesView(UserView):
-    template_name = "se/prefs.html"
+    template_name = "se/preferences.html"
     title = "Preferences"
 
     def get_context_data(self, **kwargs):

@@ -227,7 +227,7 @@ def add_headlines(paginated, query):
 
 @method_decorator(login_required, name="dispatch")
 class SearchView(UserView):
-    template_name = "se/index.html"
+    template_name = "se/search.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

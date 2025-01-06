@@ -26,26 +26,26 @@ from django.test import TransactionTestCase
 from django.utils import timezone
 from django.views.generic import View
 
-from se.about import AboutView
-from se.atom import AtomView
-from se.browser_chromium import BrowserChromium
-from se.browser_firefox import BrowserFirefox
-from se.cached import CacheRedirectView
-from se.document import Document
-from se.download import DownloadView
-from se.history import HistoryView
-from se.html import HTMLExcludedView, HTMLView
-from se.models import CrawlerStats, CrawlPolicy, DomainSetting
-from se.online import OnlineCheckView
-from se.opensearch import OpensearchView
-from se.preferences import PreferencesView
-from se.screenshot import ScreenshotFullView, ScreenshotView
-from se.search import SearchView
-from se.search_redirect import SearchRedirectView
-from se.test_views_mixin import ViewsTestMixin
-from se.words import WordsView
-from se.words_stats import WordStatsView
-from se.www import WWWView
+from .about import AboutView
+from .atom import AtomView
+from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
+from .cached import CacheRedirectView
+from .document import Document
+from .download import DownloadView
+from .history import HistoryView
+from .html import HTMLExcludedView, HTMLView
+from .models import CrawlerStats, CrawlPolicy, DomainSetting
+from .online import OnlineCheckView
+from .opensearch import OpensearchView
+from .preferences import PreferencesView
+from .screenshot import ScreenshotFullView, ScreenshotView
+from .search import SearchView
+from .search_redirect import SearchRedirectView
+from .test_views_mixin import ViewsTestMixin
+from .words import WordsView
+from .words_stats import WordStatsView
+from .www import WWWView
 
 CRAWL_URL = "http://127.0.0.1:8000/cookies"
 

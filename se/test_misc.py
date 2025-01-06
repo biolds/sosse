@@ -15,9 +15,8 @@
 
 from django.test import TransactionTestCase, override_settings
 
-from se.models import DomainSetting
-
 from .document import Document
+from .models import DomainSetting
 
 ROBOTS_TXT = """
 # Test robots.txt

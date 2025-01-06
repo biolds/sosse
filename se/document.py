@@ -695,6 +695,6 @@ class Document(models.Model):
         self.delete_thumbnail()
 
     def default_domain_setting(self):
-        from se.models import DomainSetting
+        from .models import DomainSetting
 
         return DomainSetting.get_from_url(self.url)

@@ -22,13 +22,11 @@ from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank
 from django.core.paginator import Paginator
 from django.db import models
-from django.utils.decorators import method_decorator
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from .document import Document, extern_link_flags, remove_accent
 from .forms import FILTER_FIELDS, SearchForm
-from .login import login_required
 from .models import SearchEngine, SearchHistory
 from .utils import human_nb
 from .views import RedirectException, UserView
@@ -225,7 +223,6 @@ def add_headlines(paginated, query):
     return paginated
 
 
-@method_decorator(login_required, name="dispatch")
 class SearchView(UserView):
     template_name = "se/search.html"
 

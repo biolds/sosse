@@ -14,25 +14,19 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.utils.decorators import method_decorator
 
-from .login import login_required
 from .models import SearchHistory
 from .views import UserView
 
 
-@method_decorator(login_required, name="dispatch")
 class HistoryView(UserView):
     template_name = "se/history.html"
     title = "History"
 
-    def dispatch(self, request, *args, **kwargs):
+    def test_func(self):
         # Require authentication whatever the value of SOSSE_ANONYMOUS_SEARCH
-        if not request.user.is_authenticated:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
+        return self.request.user.is_authenticated
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

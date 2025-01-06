@@ -16,17 +16,14 @@
 import os
 
 from django.conf import settings
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from .cached import CacheMixin
 from .html_asset import HTMLAsset
-from .login import login_required
 from .models import CrawlPolicy
-from .views import RedirectException
+from .views import RedirectException, UserView
 
 
-@method_decorator(login_required, name="dispatch")
 class HTMLView(CacheMixin, TemplateView):
     template_name = "se/embed.html"
     view_name = "html"
@@ -48,8 +45,7 @@ class HTMLView(CacheMixin, TemplateView):
         }
 
 
-@method_decorator(login_required, name="dispatch")
-class HTMLExcludedView(TemplateView):
+class HTMLExcludedView(UserView):
     template_name = "se/html_excluded.html"
 
     def get_context_data(self, crawl_policy, method, *args, **kwargs):

@@ -14,14 +14,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from .cached import CacheMixin
-from .login import login_required
 
 
-@method_decorator(login_required, name="dispatch")
 class ScreenshotView(CacheMixin, TemplateView):
     template_name = "se/embed.html"
     view_name = "screenshot"
@@ -34,7 +31,6 @@ class ScreenshotView(CacheMixin, TemplateView):
         }
 
 
-@method_decorator(login_required, name="dispatch")
 class ScreenshotFullView(CacheMixin, TemplateView):
     template_name = "se/screenshot_full.html"
     view_name = "screenshot_full"

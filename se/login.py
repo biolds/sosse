@@ -13,23 +13,21 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.views import LoginView
 
 
-def login_required(func):
-    from django.conf import settings
+class LoginRequiredMixin(UserPassesTestMixin):
+    login_url = None
+    redirect_field_name = REDIRECT_FIELD_NAME
 
-    if settings.SOSSE_ANONYMOUS_SEARCH:
-        return func
-    else:
-        decorator = user_passes_test(
-            lambda u: u.is_authenticated,
-            login_url=None,
-            redirect_field_name=REDIRECT_FIELD_NAME,
-        )
-        return decorator(func)
+    def test_func(self):
+        if settings.SOSSE_ANONYMOUS_SEARCH:
+            return True
+        return self.request.user.is_authenticated
 
 
 class SELoginView(LoginView):

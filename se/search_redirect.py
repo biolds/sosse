@@ -16,14 +16,12 @@
 from urllib.parse import quote_plus
 
 from django.conf import settings
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
-from .login import login_required
+from .login import LoginRequiredMixin
 
 
-@method_decorator(login_required, name="dispatch")
-class SearchRedirectView(TemplateView):
+class SearchRedirectView(LoginRequiredMixin, TemplateView):
     template_name = "se/search_redirect.html"
 
     def get_context_data(self, **kwargs):

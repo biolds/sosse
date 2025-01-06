@@ -14,14 +14,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.shortcuts import redirect, reverse
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
-from .login import login_required
+from .login import LoginRequiredMixin
 
 
-@method_decorator(login_required, name="dispatch")
-class StatisticsView(TemplateView):
+class StatisticsView(LoginRequiredMixin, TemplateView):
     template_name = "admin/statistics.html"
     extra_context = {"title": "Statistics"}
 

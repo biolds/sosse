@@ -16,12 +16,11 @@
 import requests
 from django.conf import settings
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 from .browser_request import BrowserRequest
 from .forms import SearchForm
-from .login import login_required
+from .login import LoginRequiredMixin
 
 check_cache_count = 0
 check_cache_value = None
@@ -60,8 +59,7 @@ def online_status(request):
     return check_cache_value
 
 
-@method_decorator(login_required, name="dispatch")
-class OnlineCheckView(View):
+class OnlineCheckView(LoginRequiredMixin, View):
     def get(self, request):
         try:
             BrowserRequest.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)

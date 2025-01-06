@@ -130,7 +130,7 @@ class ViewsTest:
             with self.settings(SOSSE_ANONYMOUS_SEARCH=True):
                 self._view_request(url, view_cls, params, self.admin_user, 200)
                 self._view_request(url, view_cls, params, self.simple_user, 200)
-                anon_expected = 403 if url == "/history/" else 200
+                anon_expected = 302 if url == "/history/" else 200
                 self._view_request(url, view_cls, params, self.anon_user, anon_expected)
 
     def test_views_no_auth(self):

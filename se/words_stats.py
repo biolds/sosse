@@ -17,19 +17,17 @@ import json
 
 from django.db import connection
 from django.http import HttpResponse
-from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 from .document import Document, remove_accent
 from .forms import SearchForm
-from .login import login_required
+from .login import LoginRequiredMixin
 from .search import get_documents_from_request
 from .utils import human_nb
 from .views import format_url
 
 
-@method_decorator(login_required, name="dispatch")
-class WordStatsView(View):
+class WordStatsView(LoginRequiredMixin, View):
     def get(self, request):
         results = None
         form = SearchForm(request.GET)

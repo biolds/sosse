@@ -21,6 +21,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
+from .login import LoginRequiredMixin
 from .online import online_status
 
 ANIMALS = "🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿"
@@ -55,7 +56,7 @@ class RedirectException(Exception):
     url: str
 
 
-class SosseMixin:
+class RedirectMixin:
     def dispatch(self, request, *args, **kwargs):
         try:
             return super().dispatch(request, *args, **kwargs)
@@ -63,7 +64,7 @@ class SosseMixin:
             return redirect(e.url)
 
 
-class UserView(SosseMixin, TemplateView):
+class UserView(RedirectMixin, LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 

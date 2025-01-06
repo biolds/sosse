@@ -21,10 +21,8 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, reverse
-from django.utils.decorators import method_decorator
 from django.views.generic import FormView
 
-from .login import login_required
 from .models import Cookie
 from .views import UserView
 
@@ -61,7 +59,6 @@ class CookieForm(forms.Form):
         return self.cleaned_data
 
 
-@method_decorator(login_required, name="dispatch")
 class CookiesImportView(UserView, FormView):
     template_name = "admin/cookies_import.html"
     title = "Cookies import"

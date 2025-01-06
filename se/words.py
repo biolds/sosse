@@ -13,14 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from .cached import CacheMixin
-from .login import login_required
 
 
-@method_decorator(login_required, name="dispatch")
 class WordsView(CacheMixin, TemplateView):
     template_name = "se/words.html"
     view_name = "words"

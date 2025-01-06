@@ -15,15 +15,13 @@
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from .login import login_required
 from .models import FavIcon
+from .views import LoginRequiredMixin
 
 
-@method_decorator(login_required, name="dispatch")
-class FavIconView(View):
+class FavIconView(View, LoginRequiredMixin):
     def get(self, request, favicon_id):
         fav = get_object_or_404(FavIcon, id=favicon_id)
         return HttpResponse(fav.content, content_type=fav.mimetype)

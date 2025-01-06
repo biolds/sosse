@@ -17,17 +17,14 @@ import os
 from urllib.parse import unquote
 
 from django.conf import settings
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from .cached import CacheMixin
 from .html_asset import HTMLAsset
-from .login import login_required
 from .utils import mimetype_icon
 from .views import RedirectException
 
 
-@method_decorator(login_required, name="dispatch")
 class DownloadView(CacheMixin, TemplateView):
     template_name = "se/download.html"
     view_name = "download"

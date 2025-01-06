@@ -18,21 +18,20 @@ from urllib.parse import unquote, urlparse
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect, render, reverse
-from django.utils.decorators import method_decorator
 from django.utils.html import format_html
 from django.views.generic import View
 
 from .document import Document, extern_link_flags
 from .forms import SearchForm
-from .login import login_required
+from .login import LoginRequiredMixin
 from .models import CrawlPolicy
 from .online import online_status
 from .url import sanitize_url, url_beautify
 from .utils import reverse_no_escape
-from .views import RedirectException, SosseMixin
+from .views import RedirectException, RedirectMixin
 
 
-class CacheMixin(SosseMixin):
+class CacheMixin(RedirectMixin, LoginRequiredMixin):
     view_name = None
 
     def _url_from_request(self):
@@ -170,7 +169,6 @@ class CacheMixin(SosseMixin):
         return super().get(request)
 
 
-@method_decorator(login_required, name="dispatch")
 class CacheRedirectView(CacheMixin, View):
     def get(self, request):
         doc = self._get_document()

@@ -13,13 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.utils.decorators import method_decorator
-
-from .login import login_required
 from .views import UserView
 
 
-@method_decorator(login_required, name="dispatch")
 class AboutView(UserView):
     template_name = "se/about.html"
     title = "About"

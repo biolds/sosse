@@ -15,14 +15,10 @@
 
 import json
 
-from django.utils.decorators import method_decorator
-
-from .login import login_required
 from .models import Document
 from .views import UserView
 
 
-@method_decorator(login_required, name="dispatch")
 class PreferencesView(UserView):
     template_name = "se/preferences.html"
     title = "Preferences"

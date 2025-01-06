@@ -140,7 +140,7 @@ class AddToQueueForm(forms.Form):
     def clean_url(self):
         try:
             value = sanitize_url(self.cleaned_data["url"])
-        except Exception as e:  # noqa
+        except Exception as e:
             raise ValidationError(e.args[0])
         validate_url(value)
         return value

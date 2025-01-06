@@ -1049,7 +1049,7 @@ class CrawlPolicy(models.Model):
                         page = browser.get(url)
                     else:
                         page = new_page
-            except Exception as e:  # noqa
+            except Exception as e:
                 if isinstance(e, AuthElemFailed):
                     raise
                 raise Exception("Authentication failed")

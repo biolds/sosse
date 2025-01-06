@@ -466,18 +466,15 @@ class DocumentAdmin(admin.ModelAdmin):
             if doc.crawl_last:
                 doc.crawl_last_human = human_dt(doc.crawl_last, True)
 
-        context.update(
-            {
-                "crawlers": WorkerStats.live_state(),
-                "pause": WorkerStats.objects.filter(state="paused").count() == 0,
-                "queue": queue,
-                "settings": settings,
-                "queue_new_count": queue_new_count,
-                "queue_recurring_count": queue_recurring_count,
-                "queue_pending_count": queue_pending_count,
-            }
-        )
-        return context
+        return context | {
+            "crawlers": WorkerStats.live_state(),
+            "pause": WorkerStats.objects.filter(state="paused").count() == 0,
+            "queue": queue,
+            "settings": settings,
+            "queue_new_count": queue_new_count,
+            "queue_recurring_count": queue_recurring_count,
+            "queue_pending_count": queue_pending_count,
+        }
 
     def crawl_status(self, request):
         if not request.user.has_perm("se.view_crawlerstats"):

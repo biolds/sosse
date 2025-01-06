@@ -130,24 +130,21 @@ class CacheMixin(SosseMixin):
             }
         )
 
-        context.update(
-            {
-                "crawl_policy": crawl_policy,
-                "doc": self.doc,
-                "www_redirect_url": self.doc.redirect_url and reverse_no_escape("cache", args=[self.doc.redirect_url]),
-                "head_title": title,
-                "title": page_title,
-                "beautified_url": beautified_url,
-                "favicon": favicon,
-                "other_links": other_links,
-                "show_search_input": True,
-                "search_form": SearchForm({}),
-                "view_name": self.view_name,
-                "settings": settings,
-                "online_status": online_status(self.request),
-            }
-        )
-        return context
+        return context | {
+            "crawl_policy": crawl_policy,
+            "doc": self.doc,
+            "www_redirect_url": self.doc.redirect_url and reverse_no_escape("cache", args=[self.doc.redirect_url]),
+            "head_title": title,
+            "title": page_title,
+            "beautified_url": beautified_url,
+            "favicon": favicon,
+            "other_links": other_links,
+            "show_search_input": True,
+            "search_form": SearchForm({}),
+            "view_name": self.view_name,
+            "settings": settings,
+            "online_status": online_status(self.request),
+        }
 
     def _unknown_url_view(self):
         url = self._url_from_request()

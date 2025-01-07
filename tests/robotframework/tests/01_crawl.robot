@@ -49,6 +49,15 @@
 |  | SOSSE Wait Until Page Contains | Crawl status
 |  | Scroll To Bottom
 
+| Statistics
+|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../document-ja.json | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import CrawlerStats ; from django.utils.timezone import now ; CrawlerStats.create(now()) | shell=True
+|  | Go To | http://127.0.0.1/admin/se/document/stats/
+|  | Wait Until Page Does Not Contain | xpath=//*[@class='loader'] | timeout=5 min
+|  | Sleep | 5s
+|  | SOSSE Capture Page Screenshot | statistics.png
+|  | Run Command | ${SOSSE_ADMIN} | delete_documents | http://127.0.0.1/screenshots/website/jp.html
+
 | Crawl policies
 |  | Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Wait Until Element Is Visible | id=result_list

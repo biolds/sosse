@@ -20,3 +20,8 @@ ADD requirements.txt /tmp
 RUN virtualenv /robotframework-venv && /robotframework-venv/bin/pip install -r /tmp/requirements.txt && /robotframework-venv/bin/pip cache purge
 RUN mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
 RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf
+
+# Pre-commit installation
+RUN mkdir -p /tmp/pre-commit && cd /tmp/pre-commit && git init
+ADD pre-commit-config.yaml /tmp/pre-commit/.pre-commit-config.yaml
+RUN cd /tmp/pre-commit && pre-commit autoupdate && pre-commit run -a

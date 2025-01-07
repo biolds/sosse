@@ -24,12 +24,13 @@ from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.http import HttpResponse
 from django.shortcuts import redirect, reverse
-from django.template import defaultfilters, response
+from django.template import defaultfilters
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
 
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
+from .crawl_status import CrawlStatusContentView, CrawlStatusView
 from .document import Document
 from .html_asset import HTMLAsset
 from .models import (
@@ -39,10 +40,9 @@ from .models import (
     DomainSetting,
     ExcludedUrl,
     SearchEngine,
-    WorkerStats,
 )
 from .statistics import StatisticsView
-from .utils import human_dt, mimetype_icon, reverse_no_escape
+from .utils import mimetype_icon, reverse_no_escape
 
 
 class SEAdminSite(admin.AdminSite):
@@ -361,79 +361,11 @@ class DocumentAdmin(admin.ModelAdmin):
     def add_to_queue_confirm(self, request):
         return AddToQueueConfirmationView.as_view(admin_site=self.admin_site)(request)
 
-    def _crawl_status_context(self, request):
-        _now = now()
-        context = dict(self.admin_site.each_context(request), title="Crawl status", now=_now)
-
-        queue_new_count = Document.objects.filter(crawl_last__isnull=True).count()
-        queue_recurring_count = Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).count()
-        queue_pending_count = Document.objects.filter(
-            models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now())
-        ).count()
-
-        QUEUE_SIZE = 7
-        queue = list(Document.objects.filter(worker_no__isnull=False).order_by("id")[:QUEUE_SIZE])
-        if len(queue) < QUEUE_SIZE:
-            queue = queue + list(
-                Document.objects.filter(crawl_last__isnull=True)
-                .exclude(id__in=[q.id for q in queue])
-                .order_by("id")[:QUEUE_SIZE]
-            )
-        if len(queue) < QUEUE_SIZE:
-            queue = queue + list(
-                Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False)
-                .exclude(id__in=[q.id for q in queue])
-                .order_by("crawl_next", "id")[: QUEUE_SIZE - len(queue)]
-            )
-        for doc in queue:
-            doc.pending = True
-
-        queue.reverse()
-
-        history = list(Document.objects.filter(crawl_last__isnull=False).order_by("-crawl_last")[:QUEUE_SIZE])
-
-        for doc in queue:
-            if doc in history:
-                history.remove(doc)
-
-        for doc in history:
-            doc.in_history = True
-        queue = queue + history
-
-        for doc in queue:
-            if doc.crawl_next:
-                doc.crawl_next_human = human_dt(doc.crawl_next, True)
-            if doc.crawl_last:
-                doc.crawl_last_human = human_dt(doc.crawl_last, True)
-
-        return context | {
-            "crawlers": WorkerStats.live_state(),
-            "pause": WorkerStats.objects.filter(state="paused").count() == 0,
-            "queue": queue,
-            "settings": settings,
-            "queue_new_count": queue_new_count,
-            "queue_recurring_count": queue_recurring_count,
-            "queue_pending_count": queue_pending_count,
-        }
-
     def crawl_status(self, request):
-        if not request.user.has_perm("se.view_crawlerstats"):
-            raise PermissionDenied
-        if request.method == "POST":
-            if not request.user.has_perm("se.change_crawlerstats"):
-                raise PermissionDenied
-            if "pause" in request.POST:
-                WorkerStats.objects.update(state="paused")
-            if "resume" in request.POST:
-                WorkerStats.objects.update(state="running")
-        context = self._crawl_status_context(request)
-        return response.TemplateResponse(request, "admin/crawl_status.html", context)
+        return CrawlStatusView.as_view(admin_site=self.admin_site)(request)
 
     def crawl_status_content(self, request):
-        if not request.user.has_perm("se.view_crawlerstats"):
-            raise PermissionDenied
-        context = self._crawl_status_context(request)
-        return response.TemplateResponse(request, "admin/crawl_status_content.html", context)
+        return CrawlStatusContentView.as_view(admin_site=self.admin_site)(request)
 
     def stats(self, request):
         return StatisticsView.as_view()(request)

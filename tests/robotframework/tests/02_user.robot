@@ -8,10 +8,10 @@
 |  | Wait Until Element Is Visible | id=id_q
 |  | Input Text | id_q | website
 |  | Click Button | search_button
-|  | Wait Until Page Contains | 4 sites found
+|  | SOSSE Wait Until Page Contains | 4 sites found
 |  | ${res_count}= | Get Element Count | xpath=//div[@class='res']
 |  | Should Be Equal As Numbers | ${res_count} | 4
-|  | Capture Page Screenshot | search.png
+|  | SOSSE Capture Page Screenshot | search.png
 |  | Click Element | id=more
 |  | Select From List By Value | id=doc_lang | en
 |  | Input Text | xpath=//input[@name='fv1'] | cats
@@ -37,8 +37,8 @@
 | Preferences
 |  | Click Button | id=user_menu_button
 |  | Click Link | Preferences
-|  | Wait Until Page Contains | Search terms parsing language
-|  | Capture Page Screenshot | preferences.png
+|  | SOSSE Wait Until Page Contains | Search terms parsing language
+|  | SOSSE Capture Page Screenshot | preferences.png
 
 | Statistics
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../document-ja.json | shell=True
@@ -46,31 +46,31 @@
 |  | Go To | http://127.0.0.1/admin/se/document/stats/
 |  | Wait Until Page Does Not Contain | xpath=//*[@class='loader'] | timeout=5 min
 |  | Sleep | 5s
-|  | Capture Page Screenshot | statistics.png
+|  | SOSSE Capture Page Screenshot | statistics.png
 
 | History
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../searchhistory.json | shell=True
 |  | Go To | http://127.0.0.1/history/
-|  | Wait Until Page Contains | 4 elements in the history
-|  | Capture Page Screenshot | history.png
+|  | SOSSE Wait Until Page Contains | 4 elements in the history
+|  | SOSSE Capture Page Screenshot | history.png
 |  | Capture Element Screenshot | xpath=//input[@class='del_button img_button' and @value=''] | history_delete.png
 |  | Capture Element Screenshot | id=del_all | history_delete_all.png
 
 | Cache
 |  | Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
 |  | Click Element | id=fold_button
-|  | Capture Page Screenshot | cache_header.png
+|  | SOSSE Capture Page Screenshot | cache_header.png
 |  | Reload Page
 |  | Select Frame | xpath=//iframe[1]
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]
-|  | Capture Page Screenshot | cache_screenshot.png
+|  | SOSSE Capture Page Screenshot | cache_screenshot.png
 |  | Unselect Frame
 
 | Binary cache
 |  | Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
-|  | Wait Until Page Contains | Download
-|  | Capture Page Screenshot | cache_download.png
+|  | SOSSE Wait Until Page Contains | Download
+|  | SOSSE Capture Page Screenshot | cache_download.png
 
 | Syndication feed
 |  | [Tags] | syndication_feed
@@ -80,7 +80,7 @@
 |  | Select From List By Label | xpath=//select[@name='ff1'] | Linked by url
 |  | Select From List By Label | xpath=//select[@name='fo1'] | Equal to
 |  | Input Text | xpath=//input[@name='fv1'] | https://exemple.com/atom.xml
-|  | Capture Page Screenshot |
+|  | SOSSE Capture Page Screenshot |
 |  | Capture Element Screenshot | id=search_form | syndication_feed.png
 
 | Browsable home
@@ -90,7 +90,7 @@
 |  | Run Command | sed | -e | s/^#browsable_home.*/browsable_home\=true/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
 |  | Go To | http://127.0.0.1/
-|  | Capture Page Screenshot | browsable_home.png
+|  | SOSSE Capture Page Screenshot | browsable_home.png
 
 | Online mode
 |  | [Tags] | online_mode
@@ -98,7 +98,7 @@
 |  | Run Command | killall | -s | HUP | uwsgi
 |  | Go To | http://127.0.0.1/prefs/
 |  | Hilight | id=online_mode
-|  | Capture Page Screenshot | online_mode.png
+|  | SOSSE Capture Page Screenshot | online_mode.png
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
 
 | Swagger
@@ -108,7 +108,7 @@
 |  | Click Link | Rest API
 |  | Wait Until Element Is Visible | id=swagger-ui
 |  | Wait Until Element Is Visible | id=operations-api-api_document_list
-|  | Capture Page Screenshot | swagger.png
+|  | SOSSE Capture Page Screenshot | swagger.png
 |  | Click Element | id=operations-api-api_document_list
 |  | Click Button | class=try-out__btn
 |  | Click Button | class=execute

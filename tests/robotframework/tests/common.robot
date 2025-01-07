@@ -34,3 +34,12 @@
 |  | Log | ${ret.stderr}
 |  | Should Be Equal As Numbers | ${ret.rc} | 0
 |  | RETURN | ${ret}
+
+| SOSSE Wait Until Page Contains | [Arguments] | @{args} | &{kwargs} |
+| | Page Should Not Contain | Traceback |
+| | Wait Until Page Contains | @{args} | &{kwargs} |
+
+| SOSSE Capture Page Screenshot |
+| | [Arguments] | @{args} | &{kwargs} |
+| | Page Should Not Contain | Traceback |
+| | Capture Page Screenshot | @{args} | &{kwargs} |

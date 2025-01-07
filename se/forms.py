@@ -15,10 +15,8 @@
 
 from django import forms
 from django.conf import settings
-from django.core.exceptions import ValidationError
 
 from .document import Document
-from .url import sanitize_url, validate_url
 
 SORT = (
     ("-rank", "Most relevant first"),
@@ -117,30 +115,3 @@ class SearchForm(forms.Form):
 
         cleaned_data["c"] = bool(cleaned_data["c"])
         return cleaned_data
-
-
-class AddToQueueForm(forms.Form):
-    url = forms.CharField(label="URL to crawl")
-    url.widget.attrs.update({"style": "width: 100%; padding-right: 0"})
-    recursion_depth = forms.IntegerField(min_value=0, required=False, help_text="Maximum depth of links to follow")
-    show_on_homepage = forms.BooleanField(
-        required=False,
-        initial=True,
-        help_text="Display the initial document on the homepage",
-    )
-    show_on_homepage.widget.attrs.update({"checked": True})
-
-    def __init__(self, data=None, *args, **kwargs):
-        if data and not data.get("confirmation"):
-            data = data.copy()
-            data["recursion_depth"] = kwargs.get("initial", {}).get("recursion_depth")
-
-        super().__init__(data, *args, **kwargs)
-
-    def clean_url(self):
-        try:
-            value = sanitize_url(self.cleaned_data["url"])
-        except Exception as e:
-            raise ValidationError(e.args[0])
-        validate_url(value)
-        return value

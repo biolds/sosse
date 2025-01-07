@@ -29,8 +29,8 @@ from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
 
+from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
 from .document import Document
-from .forms import AddToQueueForm
 from .html_asset import HTMLAsset
 from .models import (
     AuthField,
@@ -42,7 +42,7 @@ from .models import (
     WorkerStats,
 )
 from .statistics import StatisticsView
-from .utils import human_datetime, human_dt, mimetype_icon, reverse_no_escape
+from .utils import human_dt, mimetype_icon, reverse_no_escape
 
 
 class SEAdminSite(admin.AdminSite):
@@ -356,70 +356,10 @@ class DocumentAdmin(admin.ModelAdmin):
         return super().render_change_form(request, context, *args, **kwargs)
 
     def add_to_queue(self, request):
-        if not request.user.has_perm("se.add_document"):
-            raise PermissionDenied
-
-        form = AddToQueueForm()
-
-        # Focus on the field only on initial rendering, the submit
-        # button is focused on confirmation dialog
-        form.fields["url"].widget.attrs.update({"autofocus": True})
-        context = dict(self.admin_site.each_context(request), form=form, title="Crawl a new URL")
-        return response.TemplateResponse(request, "admin/add_to_queue.html", context)
+        return AddToQueueView.as_view(admin_site=self.admin_site)(request)
 
     def add_to_queue_confirm(self, request):
-        if not request.user.has_perm("se.add_document"):
-            raise PermissionDenied
-        if request.method != "POST":
-            redirect(reverse("admin:queue"))
-
-        form = AddToQueueForm(request.POST)
-        context = dict(
-            self.admin_site.each_context(request),
-            form=form,
-            title="Crawl a new URL",
-            settings=settings,
-        )
-        if not form.is_valid():
-            return response.TemplateResponse(request, "admin/add_to_queue.html", context)
-
-        if request.POST.get("action") == "Confirm":
-            crawl_recurse = form.cleaned_data.get("recursion_depth") or 0
-            doc, created = Document.objects.get_or_create(
-                url=form.cleaned_data["url"], defaults={"crawl_recurse": crawl_recurse}
-            )
-            if not created:
-                doc.crawl_next = now()
-                if crawl_recurse:
-                    doc.crawl_recurse = crawl_recurse
-
-            doc.show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
-            doc.save()
-            messages.success(request, "URL was queued.")
-            return redirect(reverse("admin:crawl_status"))
-
-        crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data["url"])
-        form = AddToQueueForm(request.POST, initial={"recursion_depth": crawl_policy.recursion_depth})
-        form.is_valid()
-        context.update(
-            {
-                "crawl_policy": crawl_policy,
-                "url": form.cleaned_data["url"],
-                "CrawlPolicy": CrawlPolicy,
-                "DomainSetting": DomainSetting,
-                "form": form,
-            }
-        )
-        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
-            context["recrawl_every"] = human_datetime(crawl_policy.recrawl_dt_min)
-        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_ADAPTIVE:
-            context.update(
-                {
-                    "recrawl_min": human_datetime(crawl_policy.recrawl_dt_min),
-                    "recrawl_max": human_datetime(crawl_policy.recrawl_dt_max),
-                }
-            )
-        return response.TemplateResponse(request, "admin/add_to_queue.html", context)
+        return AddToQueueConfirmationView.as_view(admin_site=self.admin_site)(request)
 
     def _crawl_status_context(self, request):
         _now = now()

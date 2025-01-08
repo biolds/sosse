@@ -13,7 +13,7 @@ RUN apt install -y sosse && \
         apt-get clean autoclean && \
         apt-get autoremove --yes && \
         rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
-RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
+RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
 
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*

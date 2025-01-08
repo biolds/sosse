@@ -272,7 +272,7 @@ class PageTest(TransactionTestCase):
         for s, d in self.DATES:
             self.assertEqual(http_date_parser(s), d)
 
-    def test_50_http_date_fromat(self):
+    def test_50_http_date_format(self):
         for s, d in self.DATES:
             self.assertEqual(s, http_date_format(d))
 

@@ -26,10 +26,10 @@ from lxml.etree import (  # nosec B410, ignore Bandit warning because lxml is on
     tostring,
 )
 
-from .forms import SearchForm
 from .html_asset import HTMLAsset
 from .models import SearchEngine
 from .search import get_documents_from_request
+from .search_form import SearchForm
 from .utils import reverse_no_escape
 
 

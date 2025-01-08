@@ -26,8 +26,8 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from .document import Document, extern_link_flags, remove_accent
-from .forms import FILTER_FIELDS, SearchForm
 from .models import SearchEngine, SearchHistory
+from .search_form import FILTER_FIELDS, SearchForm
 from .utils import human_nb
 from .views import RedirectException, UserView
 

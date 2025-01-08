@@ -22,10 +22,10 @@ from django.utils.html import format_html
 from django.views.generic import View
 
 from .document import Document, extern_link_flags
-from .forms import SearchForm
 from .login import LoginRequiredMixin
 from .models import CrawlPolicy
 from .online import online_status
+from .search_form import SearchForm
 from .url import sanitize_url, url_beautify
 from .utils import reverse_no_escape
 from .views import RedirectException, RedirectMixin

@@ -19,8 +19,8 @@ from django.http import JsonResponse
 from django.views.generic import View
 
 from .browser_request import BrowserRequest
-from .forms import SearchForm
 from .login import LoginRequiredMixin
+from .search_form import SearchForm
 
 check_cache_count = 0
 check_cache_value = None

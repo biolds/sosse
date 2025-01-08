@@ -29,10 +29,10 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from .document import Document
-from .forms import FILTER_FIELDS, SORT, SearchForm
 from .models import CrawlerStats
 from .rest_permissions import IsSuperUserOrStaff
 from .search import get_documents
+from .search_form import FILTER_FIELDS, SORT, SearchForm
 
 
 class CrawlerStatsSerializer(serializers.ModelSerializer):

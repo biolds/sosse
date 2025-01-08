@@ -19,9 +19,9 @@ from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
 
 from .document import Document
-from .forms import SearchForm
 from .models import Link, SearchEngine
 from .search import add_headlines, get_documents_from_request
+from .search_form import SearchForm
 
 
 class SearchTest(TransactionTestCase):

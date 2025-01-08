@@ -10,19 +10,19 @@ Screenshots
 
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/cache_screenshot.png
+.. figure:: ../../tests/robotframework/screenshots/archive_screenshot.png
    :class: sosse-screenshot
 
-   :doc:`Offline browsing <user/cached>`
+   :doc:`Offline browsing <user/archive>`
 
 .. raw:: html
 
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/cache_download.png
+.. figure:: ../../tests/robotframework/screenshots/archive_download.png
    :class: sosse-screenshot
 
-   :doc:`File scraping <user/cached>`
+   :doc:`File scraping <user/archive>`
 
 .. raw:: html
 

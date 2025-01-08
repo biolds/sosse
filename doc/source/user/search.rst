@@ -80,7 +80,7 @@ From top to bottom, left to right, the elements displayed are:
 - the URL
 - the score of the page for the provided search keywords from 0.0 to 1.0
 - the language of the page
-- the ``cached`` link to the cached version, or ``source`` link to the original page (depending on the
+- the ``archive`` link to the archived version, or ``source`` link to the original page (depending on the
   :ref:`related option <pref_principal_link>`)
 
 Word stats
@@ -106,7 +106,7 @@ search terms ⚛:
    :class: sosse-inline-screenshot
 
 - ``Atom results feed`` has entries with links to the original website
-- ``Atom cached feed`` has entries with links to the cached website
+- ``Atom archive feed`` has entries with links to the archived website
 
 In case :ref:`anonymous searches <conf_option_anonymous_search>` are disabled, a
 :ref:`token <conf_option_atom_access_token>` can be defined to access the Atom feed without authenticating. This is done

@@ -274,7 +274,7 @@
             <button id="atom_button" title="Atom feeds" class="menu_button img_button"></button>
             <div id="atom_menu_panel" class="panel">
                 <a href="/atom/?{{ request.META.QUERY_STRING }}" class="links menu_links">Atom results feed</a>
-                <a href="/atom/?{{ request.META.QUERY_STRING }}&cached=1" class="links menu_links">Atom cached feed</a>
+                <a href="/atom/?{{ request.META.QUERY_STRING }}&archive=1" class="links menu_links">Atom archive feed</a>
             </div>
         </div>
         {% for r in paginated %}
@@ -283,9 +283,9 @@
                     {% if r.has_thumbnail or r.screenshot_count %}
                         <a href="{{ r.link }}" {{ r.link_flag }}>
                             {% if r.has_thumbnail %}
-                                <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" class="cache-preview" />
+                                <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" class="archive-preview" />
                             {% else %}
-                                <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" class="cache-preview" />
+                                <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" class="archive-preview" />
                             {% endif %}
                         </a>
                     {% endif %}

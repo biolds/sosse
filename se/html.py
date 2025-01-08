@@ -18,13 +18,13 @@ import os
 from django.conf import settings
 from django.views.generic import TemplateView
 
-from .cached import CacheMixin
+from .archive import ArchiveMixin
 from .html_asset import HTMLAsset
 from .models import CrawlPolicy
 from .views import RedirectException, UserView
 
 
-class HTMLView(CacheMixin, TemplateView):
+class HTMLView(ArchiveMixin, TemplateView):
     template_name = "se/embed.html"
     view_name = "html"
 

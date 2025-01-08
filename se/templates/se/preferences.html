@@ -37,8 +37,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     const pageSize = document.getElementById('page_size');
     pageSize.value = getPageSize({{ settings.SOSSE_DEFAULT_PAGE_SIZE }});
 
-    const cachedLinks = document.getElementById('cached_links');
-    cachedLinks.checked = getCachedLinks();
+    const archiveLinks = document.getElementById('archive_links');
+    archiveLinks.checked = getArchiveLinks();
 
     {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
     const selectedOnlineMode = getOnlineMode();
@@ -63,8 +63,8 @@ function save() {
     const pageSize = document.getElementById('page_size');
     localStorage.setItem('sossePageSize', pageSize.value);
 
-    const cachedLinks = document.getElementById('cached_links');
-    localStorage.setItem('sosseCachedLinks', cachedLinks.checked);
+    const archiveLinks = document.getElementById('archive_links');
+    localStorage.setItem('sosseArchiveLinks', archiveLinks.checked);
 
     {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
     const onlineMode = document.getElementById('online_mode');
@@ -117,8 +117,8 @@ function onlineCheck () {
     <div class="label">Results by page</div>
     <input id="page_size" type="number" step="10" min="10" max="{{ settings.SOSSE_MAX_PAGE_SIZE }}">
     <br/><br/>
-    <input id="cached_links" type="checkbox">
-    <label for="cached_links">Search result principal links point to cache</label>
+    <input id="archive_links" type="checkbox">
+    <label for="archive_links">Search result main links point to the archive</label>
     <br/><br/>
 
     {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}

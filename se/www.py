@@ -16,11 +16,11 @@
 from django.utils.html import format_html
 from django.views.generic import TemplateView
 
-from .cached import CacheMixin
+from .archive import ArchiveMixin
 from .models import Link
 
 
-class WWWView(CacheMixin, TemplateView):
+class WWWView(ArchiveMixin, TemplateView):
     template_name = "se/www.html"
     view_name = "www"
 

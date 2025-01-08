@@ -34,8 +34,8 @@ from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from se.about import AboutView
+from se.archive import ArchiveRedirectView
 from se.atom import AtomView
-from se.cached import CacheRedirectView
 from se.download import DownloadView
 from se.favicon import FavIconView
 from se.history import HistoryView
@@ -75,7 +75,7 @@ urlpatterns = [
     re_path(r"^screenshot_full/.*", ScreenshotFullView.as_view(), name="screenshot_full"),
     re_path(r"^www/.*", WWWView.as_view(), name=WWWView.view_name),
     re_path(r"^words/.*", WordsView.as_view(), name=WordsView.view_name),
-    re_path(r"^cache/.*", CacheRedirectView.as_view(), name="cache"),
+    re_path(r"^archive/.*", ArchiveRedirectView.as_view(), name="archive"),
     re_path(r"^download/.*", DownloadView.as_view(), name=DownloadView.view_name),
     re_path(
         r"^html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$",

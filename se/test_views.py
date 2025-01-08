@@ -28,10 +28,10 @@ from django.views.generic import View
 
 from .about import AboutView
 from .add_to_queue import AddToQueueView
+from .archive import ArchiveRedirectView
 from .atom import AtomView
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
-from .cached import CacheRedirectView
 from .cookies_import import CookiesImportView
 from .crawl_status import CrawlStatusContentView, CrawlStatusView
 from .document import Document
@@ -151,7 +151,7 @@ class ViewsTest:
         required."""
         for url, view_cls, params in (
             ("/atom/?q=page", AtomView, {}),
-            ("/atom/?q=page&cached=1", AtomView, {}),
+            ("/atom/?q=page&archive=1", AtomView, {}),
         ):
             for anon_search in (True, False):
                 with self.settings(SOSSE_ANONYMOUS_SEARCH=anon_search):
@@ -165,9 +165,9 @@ class ViewsTest:
 
         self.assertEqual(len(urlpatterns), 25)
 
-    def test_cache_redirect(self):
-        request = self._request_from_factory("/cache/" + CRAWL_URL, self.admin_user)
-        response = CacheRedirectView.as_view()(request)
+    def test_archive_redirect(self):
+        request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)
+        response = ArchiveRedirectView.as_view()(request)
         self.assertEqual(response.status_code, 302, response)
         self.assertEqual(response.url, "/screenshot/" + CRAWL_URL, response)
 

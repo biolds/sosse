@@ -182,8 +182,8 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=200,
             type=int,
         ),
-        "atom_cached_bin_passthrough": ConfOption(
-            comment="Cached links from the Atom feed to binary files returns binary files instead of\nthe related metadata cached page (`http://x.x.x.x/html/<url>`).",
+        "atom_archive_bin_passthrough": ConfOption(
+            comment="Archive links from the Atom feed to binary files returns binary files instead of\nthe related metadata archive page.",
             default=True,
             type=bool,
         ),
@@ -197,8 +197,8 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=True,
             type=bool,
         ),
-        "cache_follows_redirect": ConfOption(
-            comment="Accessing a cached page of a redirection url automatically follows the redirection.",
+        "archive_follows_redirect": ConfOption(
+            comment="Accessing the archive page of a redirection url automatically follows the redirection.",
             default=True,
             type=bool,
         ),

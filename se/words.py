@@ -15,10 +15,10 @@
 
 from django.views.generic import TemplateView
 
-from .cached import CacheMixin
+from .archive import ArchiveMixin
 
 
-class WordsView(CacheMixin, TemplateView):
+class WordsView(ArchiveMixin, TemplateView):
     template_name = "se/words.html"
     view_name = "words"
 

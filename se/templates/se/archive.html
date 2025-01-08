@@ -1,11 +1,11 @@
 <div id="top_bar_links">
     {% if doc.has_thumbnail %}
-        <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ doc.image_name }}.jpg" class="cache-preview" />
+        <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ doc.image_name }}.jpg" class="archive-preview" />
     {% endif %}
     <p style="color: #081; font-size: 13px">
         {{ beautified_url }}
     </p>
-    <ul class="cache_links" style="margin-bottom: 20px">
+    <ul class="archive_links" style="margin-bottom: 20px">
       <li>{{ doc.get_source_link }}</li>
       {% if 'se.view_document' in perms %}
         <li>⭐<a href="{% url 'admin:se_document_change' doc.id %}">Administration</a></li>
@@ -13,7 +13,7 @@
       <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Pages linking here</a></li>
       <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from this page</a></li>
     </ul>
-    <div class="cache_links" style="margin-bottom: 10px">
+    <div class="archive_links" style="margin-bottom: 10px">
       {% if other_links %}
         {% for link in other_links %}
           {% if view_name != link.name %}

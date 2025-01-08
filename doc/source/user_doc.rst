@@ -10,5 +10,5 @@ User documentation
    user/shortcut_list.rst
    user/preferences.rst
    user/history.rst
-   user/cached.rst
+   user/archive.rst
    user/rest_api.rst

@@ -19,13 +19,13 @@ from urllib.parse import unquote
 from django.conf import settings
 from django.views.generic import TemplateView
 
-from .cached import CacheMixin
+from .archive import ArchiveMixin
 from .html_asset import HTMLAsset
 from .utils import mimetype_icon
 from .views import RedirectException
 
 
-class DownloadView(CacheMixin, TemplateView):
+class DownloadView(ArchiveMixin, TemplateView):
     template_name = "se/download.html"
     view_name = "download"
 

@@ -19,9 +19,9 @@ from ...html_asset import HTMLAsset
 
 
 class Command(BaseCommand):
-    help = "Clears the browsing cache used when making HTML snapshots."
+    help = "Clears archived HTML snapshots."
 
     def handle(self, *args, **options):
-        self.stdout.write("Clearing cache, please wait...")
+        self.stdout.write("Clearing archive, please wait...")
         HTMLAsset.objects.update(download_date=None)
         self.stdout.write("Done.")

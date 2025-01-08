@@ -273,7 +273,7 @@ class SearchView(UserView):
                     r.extra_link = r.get_absolute_url()
                     r.extra_link_flag = ""
 
-        extra_link_txt = "cached"
+        extra_link_txt = "archive"
         if form.cleaned_data["c"]:
             extra_link_txt = "source"
 

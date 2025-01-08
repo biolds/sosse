@@ -33,14 +33,14 @@ The number of search result displayed in one page.
 
 .. _pref_principal_link:
 
-Search result principal links point to cache
---------------------------------------------
+Search result main links point to the archive
+---------------------------------------------
 
-When enabled, search result links point to the :doc:`cached versions <cached>` of pages. ``source`` links are displayed
-to access original websites.
+When enabled, search result links point to the :doc:`archive versions <archive>` of pages. ``source`` links are
+displayed to access original websites.
 
-When disabled, search result links point to original websites. ``cached`` links are displayed to access
-:doc:`cached versions <cached>`.
+When disabled, search result links point to original websites. ``archive`` links are displayed to access
+:doc:`archive versions <archive>`.
 
 .. _pref_online_mode:
 

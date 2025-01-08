@@ -243,7 +243,7 @@ class DocumentAdmin(admin.ModelAdmin):
                     "crawl_policy",
                     "domain",
                     "cookies",
-                    "cache",
+                    "archive",
                     "source",
                     "status",
                     "_error",
@@ -280,7 +280,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "crawl_policy",
         "domain",
         "cookies",
-        "cache",
+        "archive",
         "source",
         "status",
         "_error",
@@ -415,8 +415,8 @@ class DocumentAdmin(admin.ModelAdmin):
         return obj.get_source_link()
 
     @staticmethod
-    def cache(obj):
-        return format_html('🔗 <a href="{}">Page in cache</a>', obj.get_absolute_url())
+    def archive(obj):
+        return format_html('🔗 <a href="{}">Archived page</a>', obj.get_absolute_url())
 
     @staticmethod
     def domain(obj):
@@ -485,7 +485,7 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(description="Content")
     def _content(obj):
         if obj.redirect_url:
-            url = reverse_no_escape("cache", args=[obj.redirect_url])
+            url = reverse_no_escape("archive", args=[obj.redirect_url])
             return format_html('This page redirects to <a href="{}">{}</a>', url, obj.redirect_url)
         return obj.content
 

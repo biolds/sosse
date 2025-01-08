@@ -91,7 +91,7 @@ class AtomView(View):
             results = results.order_by("-" + key)
 
             base_url = request.META["REQUEST_SCHEME"] + "://" + request.META["HTTP_HOST"]
-            cached_page = request.GET.get("cached", "0")
+            archive_page = request.GET.get("archive", "0")
 
             feed = Element("feed")
             feed.attrib["xmlns"] = "http://www.w3.org/2005/Atom"
@@ -108,10 +108,10 @@ class AtomView(View):
             for doc in results[: settings.SOSSE_ATOM_FEED_SIZE]:
                 entry = Element("entry")
                 entry.append(self._elem("title", doc.title))
-                if cached_page == "0":
+                if archive_page == "0":
                     url = doc.url
                 else:
-                    if settings.SOSSE_ATOM_CACHED_BIN_PASSTHROUGH and (
+                    if settings.SOSSE_ATOM_ARCHIVE_BIN_PASSTHROUGH and (
                         not doc.mimetype or not doc.mimetype.startswith("text/")
                     ):
                         asset = HTMLAsset.objects.filter(url=doc.url).order_by("download_date").last()

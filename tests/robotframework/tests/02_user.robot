@@ -48,21 +48,21 @@
 |  | Capture Element Screenshot | xpath=//input[@class='del_button img_button' and @value=''] | history_delete.png
 |  | Capture Element Screenshot | id=del_all | history_delete_all.png
 
-| Cache
+| Archive
 |  | Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
 |  | Click Element | id=fold_button
-|  | SOSSE Capture Page Screenshot | cache_header.png
+|  | SOSSE Capture Page Screenshot | archive_header.png
 |  | Reload Page
 |  | Select Frame | xpath=//iframe[1]
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]
-|  | SOSSE Capture Page Screenshot | cache_screenshot.png
+|  | SOSSE Capture Page Screenshot | archive_screenshot.png
 |  | Unselect Frame
 
-| Binary cache
+| Binary archive
 |  | Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
 |  | SOSSE Wait Until Page Contains | Download
-|  | SOSSE Capture Page Screenshot | cache_download.png
+|  | SOSSE Capture Page Screenshot | archive_download.png
 
 | Syndication feed
 |  | [Tags] | syndication_feed

@@ -16,10 +16,10 @@
 from django.conf import settings
 from django.views.generic import TemplateView
 
-from .cached import CacheMixin
+from .archive import ArchiveMixin
 
 
-class ScreenshotView(CacheMixin, TemplateView):
+class ScreenshotView(ArchiveMixin, TemplateView):
     template_name = "se/embed.html"
     view_name = "screenshot"
 
@@ -31,7 +31,7 @@ class ScreenshotView(CacheMixin, TemplateView):
         }
 
 
-class ScreenshotFullView(CacheMixin, TemplateView):
+class ScreenshotFullView(ArchiveMixin, TemplateView):
     template_name = "se/screenshot_full.html"
     view_name = "screenshot_full"
 

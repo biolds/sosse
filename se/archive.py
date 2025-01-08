@@ -31,7 +31,7 @@ from .utils import reverse_no_escape
 from .views import RedirectException, RedirectMixin
 
 
-class CacheMixin(RedirectMixin, LoginRequiredMixin):
+class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
     view_name = None
 
     def _url_from_request(self):
@@ -49,11 +49,11 @@ class CacheMixin(RedirectMixin, LoginRequiredMixin):
         url = url.geturl()
         return sanitize_url(url)
 
-    def _get_cached_doc(self):
+    def _get_archive_doc(self):
         doc = self._get_document()
         if doc is None:
             return self._unknown_url_view()
-        if settings.SOSSE_CACHE_FOLLOWS_REDIRECT and doc.redirect_url:
+        if settings.SOSSE_ARCHIVE_FOLLOWS_REDIRECT and doc.redirect_url:
             new_doc = Document.objects.filter(url=doc.redirect_url).first()
             if new_doc:
                 raise RedirectException(new_doc.get_absolute_url())
@@ -132,7 +132,7 @@ class CacheMixin(RedirectMixin, LoginRequiredMixin):
         return context | {
             "crawl_policy": crawl_policy,
             "doc": self.doc,
-            "www_redirect_url": self.doc.redirect_url and reverse_no_escape("cache", args=[self.doc.redirect_url]),
+            "www_redirect_url": self.doc.redirect_url and reverse_no_escape("archive", args=[self.doc.redirect_url]),
             "head_title": title,
             "title": page_title,
             "beautified_url": beautified_url,
@@ -162,14 +162,14 @@ class CacheMixin(RedirectMixin, LoginRequiredMixin):
     def get(self, request):
         if self.view_name is None:
             raise Exception("view_name must be overwritten")
-        doc = self._get_cached_doc()
+        doc = self._get_archive_doc()
         if isinstance(doc, HttpResponse):
             return doc
         self.doc = doc
         return super().get(request)
 
 
-class CacheRedirectView(CacheMixin, View):
+class ArchiveRedirectView(ArchiveMixin, View):
     def get(self, request):
         doc = self._get_document()
         if doc:

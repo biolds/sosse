@@ -82,7 +82,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         response = AtomView.as_view()(request)
         self.assertEqual(response.status_code, 200)
 
-    def test_cached(self):
+    def test_archive(self):
         for bin_passthrough in (True, False):
             with tempfile.TemporaryDirectory() as tmp_dir:
                 with open(f"{tmp_dir}/bin", "w") as f:
@@ -90,9 +90,9 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
 
                 with self.settings(
                     SOSSE_HTML_SNAPSHOT_DIR=tmp_dir + "/",
-                    SOSSE_ATOM_CACHED_BIN_PASSTHROUGH=bin_passthrough,
+                    SOSSE_ATOM_ARCHIVE_BIN_PASSTHROUGH=bin_passthrough,
                 ):
-                    entries = self._atom_get_parsed("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&cached=1")
+                    entries = self._atom_get_parsed("/atom/?ft1=inc&ff1=doc&fo1=contain&fv1=content&archive=1")
 
             self.assertEqual(len(entries), 2)
             self.assertEqual(entries[0]["link"], "http://127.0.0.1/www/http://127.0.0.1")

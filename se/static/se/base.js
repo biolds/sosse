@@ -6,8 +6,11 @@ function getLang() {
   }
 }
 
-function getCachedLinks() {
-  if (localStorage.getItem("sosseCachedLinks") === "true") {
+function getArchiveLinks() {
+  const sosseArchiveLinks =
+    localStorage.getItem("sosseArchiveLinks") ||
+    localStorage.getItem("sosseCachedLinks");
+  if (sosseArchiveLinks === "true") {
     return true;
   } else {
     return false;
@@ -55,11 +58,11 @@ document.addEventListener("DOMContentLoaded", function (event) {
       pageSize.value = getPageSize();
     }
 
-    const cachedLinks = document.getElementById("id_c");
-    if (getCachedLinks()) {
-      cachedLinks.value = "1";
+    const archiveLinks = document.getElementById("id_c");
+    if (getArchiveLinks()) {
+      archiveLinks.value = "1";
     } else {
-      document.getElementById("search_field").removeChild(cachedLinks);
+      document.getElementById("search_field").removeChild(archiveLinks);
     }
 
     const search_field = document.getElementById("search_field");

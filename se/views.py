@@ -18,6 +18,7 @@ from random import choice
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
@@ -64,19 +65,28 @@ class RedirectMixin:
             return redirect(e.url)
 
 
-class UserView(RedirectMixin, LoginRequiredMixin, TemplateView):
+class BaseView(RedirectMixin, LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        context["settings"] = settings
         if hasattr(self, "title"):
             context["title"] = self.title
+        return context
+
+
+class AdminView(PermissionRequiredMixin, BaseView):
+    pass
+
+
+class UserView(BaseView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         animal = ""
         while not animal:
             # choice sometimes returns an empty string for an unknown reason
             animal = choice(ANIMALS)  # nosec B311 random is not used for security purposes
 
         return context | {
-            "settings": settings,
             "animal": animal,
             "online_status": online_status(self.request),
         }

@@ -13,17 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.shortcuts import redirect, reverse
-from django.views.generic import TemplateView
-
-from .login import LoginRequiredMixin
+from .views import AdminView
 
 
-class StatisticsView(LoginRequiredMixin, TemplateView):
+class StatisticsView(AdminView):
     template_name = "admin/statistics.html"
-    extra_context = {"title": "Statistics"}
-
-    def get(self, request):
-        if not request.user.is_staff or not request.user.is_superuser:
-            return redirect(reverse("search"))
-        return super().get(request)
+    permission_required = set()
+    title = "Statistics"

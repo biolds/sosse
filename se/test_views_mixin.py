@@ -25,6 +25,9 @@ class ViewsTestMixin:
         self.admin_user = User.objects.create(username="admin", is_superuser=True, is_staff=True)
         self.admin_user.set_password("admin")
         self.admin_user.save()
+        self.staff_user = User.objects.create(username="staff", is_staff=True)
+        self.staff_user.set_password("staff")
+        self.staff_user.save()
         self.simple_user = User.objects.create(username="user")
         self.simple_user.set_password("user")
         self.simple_user.save()
@@ -33,6 +36,9 @@ class ViewsTestMixin:
         self.factory = RequestFactory()
         self.admin_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
         self.assertTrue(self.admin_client.login(username="admin", password="admin"))
+
+        self.staff_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
+        self.assertTrue(self.staff_client.login(username="staff", password="staff"))
 
         self.simple_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
         self.assertTrue(self.simple_client.login(username="user", password="user"))

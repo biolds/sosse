@@ -14,18 +14,17 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.utils.timezone import now
-from django.views.generic import TemplateView
 
-from .login import LoginRequiredMixin
 from .models import Document, WorkerStats
 from .utils import human_dt
+from .views import AdminView
 
 
-class CrawlStatusContentView(LoginRequiredMixin, TemplateView):
+class CrawlStatusContentView(AdminView):
     template_name = "admin/crawl_status_content.html"
+    permission_required = "se.view_crawlerstats"
     admin_site = None
 
     def __init__(self, *args, **kwargs):
@@ -89,24 +88,17 @@ class CrawlStatusContentView(LoginRequiredMixin, TemplateView):
             "settings": settings,
         }
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff or not request.user.is_superuser:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-
 
 class CrawlStatusView(CrawlStatusContentView):
     title = "Crawl Status"
     template_name = "admin/crawl_status.html"
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.has_perm("se.view_crawlerstats"):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
+    def get_permission_required(self):
+        if self.request.method == "POST":
+            return {"se.change_crawlerstats"}
+        return super().get_permission_required()
 
     def post(self, request):
-        if not request.user.has_perm("se.change_crawlerstats"):
-            raise PermissionDenied
         if "pause" in request.POST:
             WorkerStats.objects.update(state="paused")
         if "resume" in request.POST:

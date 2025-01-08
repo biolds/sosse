@@ -18,7 +18,7 @@ from typing import Type
 from urllib.parse import quote
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.template.response import SimpleTemplateResponse
@@ -27,10 +27,13 @@ from django.utils import timezone
 from django.views.generic import View
 
 from .about import AboutView
+from .add_to_queue import AddToQueueView
 from .atom import AtomView
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .cached import CacheRedirectView
+from .cookies_import import CookiesImportView
+from .crawl_status import CrawlStatusContentView, CrawlStatusView
 from .document import Document
 from .download import DownloadView
 from .history import HistoryView
@@ -42,6 +45,7 @@ from .preferences import PreferencesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
+from .statistics import StatisticsView
 from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
 from .words import WordsView
@@ -168,30 +172,30 @@ class ViewsTest:
         self.assertEqual(response.url, "/screenshot/" + CRAWL_URL, response)
 
     def test_admin_views(self):
-        for url in (
-            "/admin/",
-            "/admin/se/document/queue/",
-            "/admin/se/document/crawl_status/",
-            "/admin/se/document/crawl_status_content/",
-            "/admin/se/crawlpolicy/",
-            f"/admin/se/crawlpolicy/{self.crawl_policy.id}/change/",
-            "/admin/se/document/",
-            "/admin/se/document/?queued=new",
-            "/admin/se/document/?queued=pending",
-            "/admin/se/document/?queued=recurring",
-            "/admin/se/document/?has_error=yes",
-            "/admin/se/document/?has_error=no",
-            f"/admin/se/document/{self.doc.id}/change/",
-            "/admin/se/document/stats/",
-            "/admin/se/domainsetting/",
-            f"/admin/se/domainsetting/{DomainSetting.get_from_url(CRAWL_URL).id}/change/",
-            "/admin/se/cookie/",
-            f"/admin/se/cookie/?q={quote(CRAWL_URL)}",
-            "/admin/se/cookie/import/",
-            "/admin/se/excludedurl/",
-            "/admin/se/searchengine/",
-            "/admin/se/searchengine/?conflict=yes",
-            "/admin/se/htmlasset/",
+        for url, view_cls in (
+            ("/admin/", None),
+            ("/admin/se/document/queue/", AddToQueueView),
+            ("/admin/se/document/crawl_status/", CrawlStatusView),
+            ("/admin/se/document/crawl_status_content/", CrawlStatusContentView),
+            ("/admin/se/crawlpolicy/", None),
+            (f"/admin/se/crawlpolicy/{self.crawl_policy.id}/change/", None),
+            ("/admin/se/document/", None),
+            ("/admin/se/document/?queued=new", None),
+            ("/admin/se/document/?queued=pending", None),
+            ("/admin/se/document/?queued=recurring", None),
+            ("/admin/se/document/?has_error=yes", None),
+            ("/admin/se/document/?has_error=no", None),
+            (f"/admin/se/document/{self.doc.id}/change/", None),
+            ("/admin/se/document/stats/", StatisticsView),
+            ("/admin/se/domainsetting/", None),
+            (f"/admin/se/domainsetting/{DomainSetting.get_from_url(CRAWL_URL).id}/change/", None),
+            ("/admin/se/cookie/", None),
+            (f"/admin/se/cookie/?q={quote(CRAWL_URL)}", None),
+            ("/admin/se/cookie/import/", CookiesImportView),
+            ("/admin/se/excludedurl/", None),
+            ("/admin/se/searchengine/", None),
+            ("/admin/se/searchengine/?conflict=yes", None),
+            ("/admin/se/htmlasset/", None),
         ):
             response = self.admin_client.get(url)
             self.assertEqual(response.status_code, 200, f"{url} / {response}")
@@ -201,6 +205,28 @@ class ViewsTest:
 
             response = self.anon_client.get(url)
             self.assertEqual(response.status_code, 302, f"{url} / {response}")
+
+            self.staff_user.user_permissions.clear()
+            response = self.staff_client.get(url)
+
+            if view_cls:
+                permissions = view_cls.permission_required
+                if isinstance(permissions, str):
+                    permissions = {permissions}
+            elif url == "/admin/":
+                permissions = set()
+            else:
+                model_name = url.split("/")[3]
+                permissions = {f"se.view_{model_name}"}
+
+            if permissions:
+                self.assertEqual(response.status_code, 403, f"{url} / {response}")
+
+                permissions = {Permission.objects.get(codename=perm.split(".")[1]) for perm in permissions}
+                self.staff_user.user_permissions.set(permissions)
+                response = self.staff_client.get(url)
+
+            self.assertEqual(response.status_code, 200, f"{url} / {response}")
 
     def test_admin_doc_actions(self):
         for action in ("remove_from_crawl_queue", "convert_to_jpg"):
@@ -242,6 +268,18 @@ class ViewsTest:
         for action in ("pause", "resume"):
             response = self.admin_client.post("/admin/se/document/crawl_status/", {action: "1"})
             self.assertEqual(response.status_code, 200, f"{action} / {response}")
+
+            response = self.simple_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            self.assertEqual(response.status_code, 302, f"{action} / {response}")
+
+            self.staff_user.user_permissions.clear()
+            response = self.staff_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            self.assertEqual(response.status_code, 403, f"{action} without permission / {response}")
+
+            permission = Permission.objects.get(codename="change_crawlerstats")
+            self.staff_user.user_permissions.add(permission)
+            response = self.staff_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            self.assertEqual(response.status_code, 200, f"{action} with permission / {response}")
 
     def test_admin_add_crawl(self):
         response = self.admin_client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL})

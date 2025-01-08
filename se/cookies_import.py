@@ -18,13 +18,12 @@ from io import StringIO
 
 from django import forms
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, reverse
+from django.core.exceptions import ValidationError
+from django.shortcuts import redirect
 from django.views.generic import FormView
 
 from .models import Cookie
-from .views import UserView
+from .views import AdminView
 
 
 class CookieForm(forms.Form):
@@ -59,17 +58,11 @@ class CookieForm(forms.Form):
         return self.cleaned_data
 
 
-class CookiesImportView(UserView, FormView):
+class CookiesImportView(AdminView, FormView):
     template_name = "admin/cookies_import.html"
     title = "Cookies import"
     form_class = CookieForm
-
-    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        if not request.user.is_staff or not request.user.is_superuser:
-            return redirect(reverse("search"))
-        if not request.user.has_perm("se.change_cookie"):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
+    permission_required = "se.change_cookie"
 
     def form_valid(self, form):
         cookie_jar = form.cleaned_data["cookies"]

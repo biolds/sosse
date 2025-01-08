@@ -15,8 +15,7 @@
 
 from django import forms
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import HttpRequest, HttpResponse
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
@@ -25,7 +24,7 @@ from django.views.generic import FormView
 from .models import CrawlPolicy, Document, DomainSetting
 from .url import sanitize_url, validate_url
 from .utils import human_datetime
-from .views import UserView
+from .views import AdminView
 
 
 class AddToQueueForm(forms.Form):
@@ -55,10 +54,11 @@ class AddToQueueForm(forms.Form):
         return value
 
 
-class AddToQueueView(UserView, FormView):
+class AddToQueueView(AdminView, FormView):
     template_name = "admin/add_to_queue.html"
     title = "Crawl a new URL"
     form_class = AddToQueueForm
+    permission_required = "se.add_document"
     admin_site = None
 
     def __init__(self, *args, **kwargs):
@@ -70,14 +70,6 @@ class AddToQueueView(UserView, FormView):
         context.update(self.admin_site.each_context(self.request))
         context["form"].fields["url"].widget.attrs.update({"autofocus": True})
         return context
-
-    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        if not request.user.is_staff or not request.user.is_superuser:
-            return redirect(reverse("search"))
-        if not request.user.has_perm("se.add_document"):
-            raise PermissionDenied
-
-        return super().dispatch(request, *args, **kwargs)
 
 
 class AddToQueueConfirmationView(AddToQueueView):

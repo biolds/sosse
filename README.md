@@ -1,4 +1,5 @@
 <p>
+
   <img src="https://raw.githubusercontent.com/biolds/sosse/main/se/static/se/logo.svg" width="64" align="right">
   <a href="https://gitlab.com/biolds1/sosse/" alt="Gitlab code coverage" style="text-decoration: none">
     <img src="https://img.shields.io/gitlab/pipeline-coverage/biolds1/sosse?branch=main&style=flat-square">
@@ -17,12 +18,12 @@
   </a>
 </p>
 
-SOSSE 🦦
-=======
+# SOSSE 🦦
 
 SOSSE (Selenium Open Source Search Engine) is a Web archiving software, crawler and search engine written in Python, distributed under the [GNU-AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It is hosted on both [Gitlab](https://gitlab.com/biolds1/sosse) and [Github](https://github.com/biolds/sosse) site, please use any of them to open feature requests, bug report or merge requests, or [open a discussion](https://github.com/biolds/sosse/discussions).
 
 SOSSE main features are:
+
 - 🌍 Browser based crawling: SOSSE uses [Mozilla Firefox](https://www.mozilla.org/firefox/), or [Google Chromium](https://www.chromium.org/Home) and [Selenium](https://www.selenium.dev/) to index pages that use Javascript. [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used for faster crawling
 - 📚 Offline browsing: SOSSE can save HTML copy or take screenshots of crawled pages to create archives suitable for offline browsing
 - 📉 Low resources requirements: SOSSE is entirely written in Python and uses [PostgreSQL](https://www.postgresql.org/) for data storage
@@ -32,8 +33,7 @@ SOSSE main features are:
 
 See the [documentation](https://sosse.readthedocs.io/en/stable/) and [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
 
-Try it out
-==========
+# Try it out
 
 You can try the latest version with Docker:
 
@@ -41,11 +41,10 @@ You can try the latest version with Docker:
 docker run -p 8005:80 biolds/sosse:latest
 ```
 
-Open http://127.0.0.1:8005/, and log in with user ``admin``, password ``admin``.
+Open http://127.0.0.1:8005/, and log in with user `admin`, password `admin`.
 
 To persist Docker data, or find alternative installation methods, please check the [documentation](https://sosse.readthedocs.io/en/stable/install.html).
 
-Keep in touch
-=============
+# Keep in touch
 
 Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help and share ideas!

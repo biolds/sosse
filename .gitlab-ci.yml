@@ -102,6 +102,7 @@ pre_commit:
   stage: test
   script:
     - pre-commit autoupdate
+    - git diff --exit-code
     - pre-commit run -a
 
 doc_gen:

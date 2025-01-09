@@ -67,7 +67,7 @@
 |  | VRT check | Password change
 |  | Go To | http://127.0.0.1/about/
 |  | VRT check | About
-|  | Go To | http://127.0.0.1/admin/se/document/stats/
+|  | Go To | http://127.0.0.1/admin/se/document/analytics/
 |  | Wait Until Element Is Not Visible | class=loader
 |  | Sleep | 5s
 |  | VRT check | Stats

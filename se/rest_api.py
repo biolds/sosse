@@ -70,7 +70,7 @@ class HddStatsViewSet(viewsets.ViewSet):
         return size
 
     @extend_schema(
-        description="HDD statistics",
+        description="HDD analytics",
         responses={
             200: HddStatsSerializer(),
         },
@@ -107,7 +107,7 @@ class LangStatsViewSet(viewsets.ViewSet):
     permission_classes = [IsSuperUserOrStaff]
 
     @extend_schema(
-        description="HDD statistics",
+        description="HDD analytics",
         responses={
             200: LangStatsSerializer(many=True),
         },

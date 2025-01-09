@@ -30,6 +30,7 @@ from django.utils.html import format_html
 from django.utils.timezone import now
 
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
+from .analytics import AnalyticsView
 from .crawl_status import CrawlStatusContentView, CrawlStatusView
 from .document import Document
 from .html_asset import HTMLAsset
@@ -41,7 +42,6 @@ from .models import (
     ExcludedUrl,
     SearchEngine,
 )
-from .statistics import StatisticsView
 from .utils import mimetype_icon, reverse_no_escape
 
 
@@ -307,7 +307,7 @@ class DocumentAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.do_action),
                 name="doaction",
             ),
-            path("stats/", self.admin_site.admin_view(self.stats), name="stats"),
+            path("analytics/", self.admin_site.admin_view(self.analytics), name="analytics"),
             path("queue/", self.admin_site.admin_view(self.add_to_queue), name="queue"),
             path(
                 "queue_confirm/",
@@ -367,8 +367,8 @@ class DocumentAdmin(admin.ModelAdmin):
     def crawl_status_content(self, request):
         return CrawlStatusContentView.as_view(admin_site=self.admin_site)(request)
 
-    def stats(self, request):
-        return StatisticsView.as_view()(request)
+    def analytics(self, request):
+        return AnalyticsView.as_view()(request)
 
     @staticmethod
     @admin.display(ordering="crawl_next")

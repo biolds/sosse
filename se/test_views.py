@@ -28,6 +28,7 @@ from django.views.generic import View
 
 from .about import AboutView
 from .add_to_queue import AddToQueueView
+from .analytics import AnalyticsView
 from .archive import ArchiveRedirectView
 from .atom import AtomView
 from .browser_chromium import BrowserChromium
@@ -45,7 +46,6 @@ from .preferences import PreferencesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
-from .statistics import StatisticsView
 from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
 from .words import WordsView
@@ -186,7 +186,7 @@ class ViewsTest:
             ("/admin/se/document/?has_error=yes", None),
             ("/admin/se/document/?has_error=no", None),
             (f"/admin/se/document/{self.doc.id}/change/", None),
-            ("/admin/se/document/stats/", StatisticsView),
+            ("/admin/se/document/analytics/", AnalyticsView),
             ("/admin/se/domainsetting/", None),
             (f"/admin/se/domainsetting/{DomainSetting.get_from_url(CRAWL_URL).id}/change/", None),
             ("/admin/se/cookie/", None),

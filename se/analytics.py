@@ -16,7 +16,7 @@
 from .views import AdminView
 
 
-class StatisticsView(AdminView):
-    template_name = "admin/statistics.html"
+class AnalyticsView(AdminView):
+    template_name = "admin/analytics.html"
     permission_required = set()
-    title = "Statistics"
+    title = "Analytics"

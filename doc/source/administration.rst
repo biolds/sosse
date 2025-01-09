@@ -11,7 +11,7 @@ Administration
    crawl/policies.rst
    crawl/recursion_depth.rst
    crawl/feeds.rst
-   crawl/statistics.rst
+   crawl/analytics.rst
    archive.rst
    authentication.rst
    documents.rst

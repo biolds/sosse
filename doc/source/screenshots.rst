@@ -28,10 +28,10 @@ Screenshots
 
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/statistics.png
+.. figure:: ../../tests/robotframework/screenshots/analytics.png
    :class: sosse-screenshot
 
-   :doc:`Index statistics <crawl/statistics>`
+   :doc:`Index analytics <crawl/analytics>`
 
 .. raw:: html
 

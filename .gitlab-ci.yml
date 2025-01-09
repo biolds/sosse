@@ -9,7 +9,6 @@ before_script:
   - echo 'sudo --preserve-env=PYTHONPATH -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
   - chmod 755 /tmp/sudo_sosse
   - test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
-  - "git submodule update --recursive --remote ||:"
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive

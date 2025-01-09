@@ -15,7 +15,7 @@
 - [home page optimization](https://gitlab.com/biolds1/sosse/-/commit/c0fa90de3c2a9cfdfe47069393e119d87ec05020) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/118))
 - [multi-line url regexp in Crawl Policies](https://gitlab.com/biolds1/sosse/-/commit/28e544c98b0849b01d137f0e1a036e3e74a37ff6) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/117))
 - [linkpreview integration](https://gitlab.com/biolds1/sosse/-/commit/b18219c890c4b770023556c6ec90d6e20be41436) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/116))
-- [Netscape formatted cookies import](https://gitlab.com/biolds1/sosse/-/commit/dd4e9ab3702572c9704db172365ac2ca56ca16ea)
+- [Netscape formatted cookies import](https://gitlab.com/biolds1/sosse/-/commit/dd4e9ab3702572c9704db172365ac2ca56ca16ea) ([ticket](https://github.com/biolds/sosse/issues/48))
 
 ### Bug fixes (1 change)
 

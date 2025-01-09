@@ -1,30 +1,42 @@
 ## 1.11.1 (2024-12-26)
+
 ### Bug fixes (3 changes)
+
 - [avoid an exception when showing a cached page being crawled](https://gitlab.com/biolds1/sosse/-/commit/b45a146b8c0b5ae883728ee12dbc93587df355f6) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/126))
 - [prevent execution of scripts in cached pages](https://gitlab.com/biolds1/sosse/-/commit/7ad77cfca66f5d6213267f500117add242d7fd41) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/124))
 - [fix saving some CSS stylesheets](https://gitlab.com/biolds1/sosse/-/commit/b675ca3295f13d1e0952fe801b36db2acb7d62bb) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/124))
 
 ## 1.11.0 (2024-12-09)
+
 ### Features (6 changes)
+
 - [store file downloads](https://gitlab.com/biolds1/sosse/-/commit/395af4961c81c17a99a43922eaa8a0057571c9ea) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/121))
 - [fake-useragent integration](https://gitlab.com/biolds1/sosse/-/commit/403d5f5cac623a0d91b17c65894e765932cadfd6) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/119))
 - [home page optimization](https://gitlab.com/biolds1/sosse/-/commit/c0fa90de3c2a9cfdfe47069393e119d87ec05020) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/118))
 - [multi-line url regexp in Crawl Policies](https://gitlab.com/biolds1/sosse/-/commit/28e544c98b0849b01d137f0e1a036e3e74a37ff6) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/117))
 - [linkpreview integration](https://gitlab.com/biolds1/sosse/-/commit/b18219c890c4b770023556c6ec90d6e20be41436) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/116))
 - [Netscape formatted cookies import](https://gitlab.com/biolds1/sosse/-/commit/dd4e9ab3702572c9704db172365ac2ca56ca16ea)
+
 ### Bug fixes (1 change)
+
 - [fix loading cookies for root url of domains](https://gitlab.com/biolds1/sosse/-/commit/aa16c509e48eab41759c55c8c3dd899ac7d4dd84)
 
 ## 1.10.1 (2024-09-16)
+
 ### Features (1 change)
+
 - [allow setting configurations option via environment variables](https://gitlab.com/biolds1/sosse/-/commit/c03bd26e5bc5d3ac29d7f7a2579952a7e490b170) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/113))
+
 ### Bug fixes (3 changes)
+
 - [fix running Chromium](https://gitlab.com/biolds1/sosse/-/commit/b6598316a898f72f3b23f2ba6118e39a5781891b) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/113))
 - [fix Chromium file downloads](https://gitlab.com/biolds1/sosse/-/commit/73cb84ecf5ce394db281549c074b117ee80f43f4) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/113))
-- [pin a Selenium version < 4.9 to prevent Selenium Manager to trigger](https://gitlab.com/biolds1/sosse/-/commit/f5f093c2c22bf102d45a621c4d5824b92e90abec) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/114)) / [ticket](https://github.com/biolds/sosse/issues/6)
+- [pin a Selenium version < 4.9 to prevent Selenium Manager to trigger](https://gitlab.com/biolds1/sosse/-/commit/f5f093c2c22bf102d45a621c4d5824b92e90abec) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/114) / [ticket](https://github.com/biolds/sosse/issues/6))
 
 ## 1.10.0 (2024-07-04)
+
 ### Features (5 changes)
+
 - [crawl policies enable/disable, copy](https://gitlab.com/biolds1/sosse/-/commit/6a79a1b8771a935b9ba388722441236000f0e41a) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/109))
 - [document hiding](https://gitlab.com/biolds1/sosse/-/commit/2930b03d7ebc97cec2441c5361a9275bc9be9214) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/108) / [ticket](https://github.com/biolds/sosse/issues/5))
 - [UI dark theme](https://gitlab.com/biolds1/sosse/-/commit/8c599190a5f1384abeb7e673c72dd756e48ebe25) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/108))
@@ -32,52 +44,72 @@
 - [Rest API](https://gitlab.com/biolds1/sosse/-/commit/127f6498efa5cadc83dee8ef74ec34bd3dcafc64) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/102))
 
 ## 1.9.0 (2024-03-10)
+
 ### Features (2 changes)
+
 - [ignore robots.txt file when it redirects in a loop](biolds1/sosse@882dfc7cb4eea834744cc8c63e20b3eab020f16f) ([merge request](biolds1/sosse!98))
 - [CLI command to mass delete documents](biolds1/sosse@b24e64c051b82ec0e0ecc46c70c18eafd3048aaa) ([merge request](biolds1/sosse!84))
+
 ### Bug fixes (3 changes)
+
 - [fixes for long upgrade time and slow crawler startup](biolds1/sosse@0f7be42efac1a0b251e6bc6d210ec1897fc5ce3b) ([merge request](biolds1/sosse!100))
 - [prevent user creation of Domain settings](biolds1/sosse@a5a9f1a5aa40e6f98a801e98c91f059b1ce37726) ([merge request](biolds1/sosse!95))
 - [fix browser mode detection](biolds1/sosse@df3a1fea5ff15a0fe87171dc070fb88b04b5f87d) ([merge request](biolds1/sosse!91))
 
 ## 1.8.2 (2024-01-23)
+
 ### Bug fixes (2 changes)
+
 - [fix thumbnails deletion when deleting a document](biolds1/sosse@f5a3c984bc0d478d2232bf9a517d5d7ab1c424ca) ([merge request](biolds1/sosse!83))
 - [pin working Selenium version](biolds1/sosse@9fcd0eea668e4c301ed1f0b8ea5ad95df512d8a9) ([merge request](biolds1/sosse!89))
 
 ## 1.8.1 (2024-01-14)
+
 ### Bug fixes (2 changes)
+
 - [fix skipping pages with mimetype to be skipped](biolds1/sosse@b67f2b263b388538251e078d752b6acaee72ef7b) ([merge request](biolds1/sosse!81))
 - [work-around to libmagic misidentifying some HTML page as application/javascript](biolds1/sosse@16d37ab9e08a2d10bdd68a67092e87d2f37eb19c) ([merge request](biolds1/sosse!81))
 
 ## 1.8.0 (2024-01-10)
+
 ### Features (4 changes)
+
 - [HTML pages download with Requests](biolds1/sosse@6eb1eaebe33ecd2f47eab4c4aa291336fd600d7f) ([merge request](biolds1/sosse!79))
 - [online status detection to optionally search locally when offline](biolds1/sosse@bab9c400789259ad974d93890ce112d64ccc22de) ([merge request](biolds1/sosse!75))
 - [improve page changes detection](biolds1/sosse@7000ba3c99f0bd3c1411f516651e5905d0a574a0) ([merge request](biolds1/sosse!74))
 - [add a "starts with" option to excluded urls](biolds1/sosse@241107fcf670ec807678755ef1ac106fe7259a46) ([merge request](biolds1/sosse!67))
+
 ### Bug fixes (1 change)
+
 - [avoid recrawling documents after a redirect](biolds1/sosse@c010e05ad95c6c66c0fd9a7aca02ed4815143bbf) ([merge request](biolds1/sosse!78))
 
 ## 1.7.0 (2023-11-10)
+
 ### Features (4 changes)
+
 - [navigation improvements](biolds1/sosse@36b51d5e5caeefbdfe62aa7f876fef2eb479d78f) ([merge request](biolds1/sosse!60))
 - [display the search bar in cached pages](biolds1/sosse@2fe0def9739dc6f56ce0f8aa10df9cd5816c4593) ([merge request](biolds1/sosse!60))
 - [set in the Crawl policy when to remove navigation related elements](biolds1/sosse@dc87295f1acda409d357a1b3d180b1e527895d96) ([merge request](biolds1/sosse!57))
 - [save dynamic CSS in HTML snapshots](biolds1/sosse@6af4d002b63015350f106db6853c3d87eedb4392) ([merge request](biolds1/sosse!55))
+
 ### Bug fixes (4 changes)
+
 - [fix font size on Chrome](biolds1/sosse@bed3ecdc0799fdc3f43f0aafac3bc45abbc16358) ([merge request](biolds1/sosse!60))
 - [fix downloading css assets containings special characters](biolds1/sosse@d0095120a4c32420d86cda4e43cb0a0c8efc99ed) ([merge request](biolds1/sosse!55))
 - [avoid an infinite loops in particular conditions when a page is self-referencing](biolds1/sosse@ef0c824a543e91606c679668cee9ec31e6c60ad9) ([merge request](biolds1/sosse!55))
 - [avoid timing issues during authentication](biolds1/sosse@40224f0e0cb27e52265c697f7d471aafba27d5b7) ([merge request](biolds1/sosse!55))
 
 ## 1.6.0 (2023-10-14)
+
 ### Features (2 changes)
+
 - [crawler Firefox 🦊 support](biolds1/sosse@093a284d10ef8cb1f878f376a9d04f737b019834) ([merge request](biolds1/sosse!52))
 - [Atom and RSS feeds parsing](biolds1/sosse@34e63311406480e7c4bb35d31fb5abeed3ae6cd9) ([merge request](biolds1/sosse!48))
 
 ## 1.5.0 (2023-08-29)
+
 ### Bug fixes (5 changes)
+
 - [remove html comments from documents](biolds1/sosse@bd871c5cde356846af74e5a36993570ddd6be063) ([merge request](biolds1/sosse!43))
 - [handle invalid links correctly](biolds1/sosse@3dd626ccd1ab56b71a07283f494b877903cadfc7) ([merge request](biolds1/sosse!42))
 - [fix result heights when thumbnail is enabled](biolds1/sosse@c998fb81113e3582aa472f65124e08e6fa7d00eb) ([merge request](biolds1/sosse!40))
@@ -85,58 +117,86 @@
 - [fix handling <base> element in html snapshots](biolds1/sosse@21602ff4564ac3d3d85f019dd1c83d65a2a6532e) ([merge request](biolds1/sosse!40))
 
 ## 1.4.0 (2023-08-24)
+
 ### Features (1 change)
+
 - [create pages thumbnails](biolds1/sosse@0f34d0948c78497008932ee4ead05c23134bdaa1) ([merge request](biolds1/sosse!38))
+
 ### Bug fixes (2 changes)
+
 - [add missing noreferrer flag to the unknown url page](biolds1/sosse@01d07a682e386fa041438fe597cf6ec061f4b3b0) ([merge request](biolds1/sosse!37))
 - [avoid a race condition in HTML assets handling](biolds1/sosse@5fa9d5f8fbed4ef5119f1527479b1a02faf76b40) ([merge request](biolds1/sosse!37))
 
 ## 1.3.2 (2023-08-22)
+
 ### Bug fixes (2 changes)
+
 - [fix handling some malformed urls](biolds1/sosse@efea7e3d7ced7ae144b935ecd06eaff1381ca5c2)
 - [fix the docker build](biolds1/sosse@352de823a096510773fa1cd0232e84d4c931f5f3)
 
 ## 1.3.1 (2023-08-21)
+
 ### Bug fixes (1 change)
+
 - [fix running with debug disabled](biolds1/sosse@ae4f4acec2eb0ca497d659d9e88a0dbef92c0a94) ([merge request](biolds1/sosse!35))
 
 ## 1.3.0 (2023-08-21)
+
 ### Features (4 changes)
+
 - [no referrer and open in new tab options for external links](biolds1/sosse@6c701a4782d517c80348642e09f68564f8a9bed3) ([merge request](biolds1/sosse!32))
 - [HTML content snapshot](biolds1/sosse@95367eb28a71d197c7533b8935ab0c541c9dfc9f) ([merge request](biolds1/sosse!23))
 - [foldable header in screenshots view](biolds1/sosse@fa8247c052099c4242c8d8fe707477b49ef68397) ([merge request](biolds1/sosse!21))
 - [Document admin page improvement](biolds1/sosse@ea97cfae49b7e6353d3c61f5aa653d06b5c17109) ([merge request](biolds1/sosse!20))
+
 ### Bug fixes (3 changes)
+
 - [update extern links if the target is indexed again afterward](biolds1/sosse@f743e44039d34df1c16958112c7d14cb019b690a) ([merge request](biolds1/sosse!32))
 - [fix sameSite cookie option formatting](biolds1/sosse@e4ecfa6e001fd9332795fbb63dbd36459b4a4c4c)
 - [force screenshot refresh when they changed](biolds1/sosse@0f04fc7da39e7b33b5cf7ad7e6a5b5fdb7df8117) ([merge request](biolds1/sosse!20))
 
 ## 1.2.0 (2023-07-14)
+
 ### Features (2 changes)
+
 - [crawling status improvements](biolds1/sosse@848fba81977bf56780430592261bd0847ee52110) ([merge request](biolds1/sosse!18))
 - [navigation elements removal](biolds1/sosse@0d9d3582486ed45202359fa5174aadc5bb945d3d) ([merge request](biolds1/sosse!16))
+
 ### Bug fixes (1 change)
+
 - [fix screenshots resize](biolds1/sosse@5f6ca3441cd402b5d71ad77598b0e8a17c80dbd6) ([merge request](biolds1/sosse!17))
 
 ## 1.1.2 (2023-06-30)
+
 ### Bug fixes (1 change)
+
 - [fix database configuration documentation](biolds1/sosse@d10379ffbdfe19bbaef302822110641e9495f75a)
 
 ## 1.1.1 (2023-06-29)
+
 ### Bug fixes (1 change)
+
 - [misc Bookworm, Docker and Selenium fixes](biolds1/sosse@54fcc7043bfc34a6125fa301d58c08ea02e0b292) ([merge request](biolds1/sosse!12))
 
 ## 1.1.0 (2023-06-18)
+
 ### Features (3 changes)
+
 - [Debian Bookworm support](biolds1/sosse@b2112e5a0a526e777600499d726002ad62612aac) ([merge request](biolds1/sosse!10))
 - [browsable archive on homepage view](biolds1/sosse@f3f2c065f63ada182e0f6154b5586dcae1ea5158) ([merge request](biolds1/sosse!8))
 - [automatically follow redirection in cached pages](biolds1/sosse@5d2a40ef0d253a5e47746d25d725794d58216cb2) ([merge request](biolds1/sosse!7))
+
 ### Bug fixes (2 changes)
+
 - [fix resolving links when the header has a <base> tag](biolds1/sosse@ff6d4f2d33d6395be87c026c5c9f87c457d5f1a7) ([merge request](biolds1/sosse!6))
 - [scroll all elements when taking screenshots](biolds1/sosse@1001d51d41241fb971bde65f5f2fa22e583eff17) ([merge request](biolds1/sosse!5))
 
 ## 1.0.1 (2023-05-01)
+
 ### Features (1 change)
+
 - [doc improvements](biolds1/sosse@1f2cbcc6f4fc9d537358147aa39e538e1020e9ce)
+
 ### Bug fixes (1 change)
+
 - [build the Docker release using pypi packages](biolds1/sosse@40f3d6a7e36784b8a515c3ebda60af67e5ded52e)

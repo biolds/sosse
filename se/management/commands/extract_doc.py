@@ -141,7 +141,7 @@ class Command(BaseCommand):
                     "{searchTermsBase64}",
                     base64.b64encode(EXAMPLE_SEARCH_STR.encode("utf-8")).decode("utf-8"),
                 )
-                url = f'`{settings.SOSSE_SEARCH_SHORTCUT_CHAR}{se["shortcut"]} {EXAMPLE_SEARCH_STR} <{url}>`_'
+                url = f"`{settings.SOSSE_SEARCH_SHORTCUT_CHAR}{se['shortcut']} {EXAMPLE_SEARCH_STR} <{url}>`_"
                 se["shortcut"] = url
 
                 se_len = max(se_len, unicode_len(name))

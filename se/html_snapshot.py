@@ -272,7 +272,7 @@ class HTMLSnapshot:
                     elem.string = css_parser().handle_css(self, self.base_url, elem.string, False)
 
             if elem.attrs.get("style"):
-                logger.debug(f'handle_css of {self.page.url} (style={elem.attrs["style"]})')
+                logger.debug(f"handle_css of {self.page.url} (style={elem.attrs['style']})")
                 elem.attrs["style"] = css_parser().handle_css(self, self.base_url, elem.attrs["style"], True)
 
             if "srcset" in elem.attrs:

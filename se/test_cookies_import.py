@@ -27,7 +27,7 @@ NETSCAPE_COOKIE_HEADER = "# Netscape HTTP Cookie File"
 # Cookie format: domain, domain_specified, path, secure, expires, name, value
 class CookieImportTest(TransactionTestCase):
     def _load_cookies(self, data):
-        data["cookies"] = f'{NETSCAPE_COOKIE_HEADER}\n{data["cookies"]}'
+        data["cookies"] = f"{NETSCAPE_COOKIE_HEADER}\n{data['cookies']}"
 
         form = CookieForm(data)
         self.assertTrue(form.is_valid(), form.errors.values())

@@ -564,9 +564,9 @@ class SeleniumBrowser(Browser):
         for f in crawl_policy.authfield_set.values("key", "value"):
             elem = cls._find_elements_by_selector(form, f'input[name="{f["key"]}"]')
             if len(elem) != 1:
-                raise Exception(f'Found {len(elem)} input element when trying to set auth field {f["key"]}')
+                raise Exception(f"Found {len(elem)} input element when trying to set auth field {f['key']}")
             elem[0].send_keys(f["value"])
-            crawl_logger.debug(f'settings {f["key"]} = {f["value"]} on {elem[0]}')
+            crawl_logger.debug(f"settings {f['key']} = {f['value']} on {elem[0]}")
 
         dl_dir_files = cls.page_change_wait_setup()
         form.submit()

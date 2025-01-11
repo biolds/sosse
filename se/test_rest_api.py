@@ -42,7 +42,7 @@ SERIALIZED_DOC1 = {
     "has_thumbnail": False,
     "hidden": False,
     "lang_iso_639_1": "en",
-    "mimetype": None,
+    "mimetype": "text/html",
     "normalized_content": "content",
     "normalized_title": "title",
     "normalized_url": "http test",
@@ -87,6 +87,7 @@ class RestAPITest:
             crawl_first=now,
             crawl_last=now,
             lang_iso_639_1="en",
+            mimetype="text/html",
         )
         self.doc2 = Document.objects.create(
             url="http://127.0.0.1/test2",
@@ -98,6 +99,7 @@ class RestAPITest:
             crawl_first=now,
             crawl_last=now,
             lang_iso_639_1="en",
+            mimetype="image/png",
         )
 
         self.crawler_stat1 = CrawlerStats.objects.create(t=now, doc_count=23, queued_url=24, indexing_speed=2, freq="M")
@@ -132,7 +134,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "hidden": False,
                         "id": self.doc2.id,
                         "lang_iso_639_1": "en",
-                        "mimetype": None,
+                        "mimetype": "image/png",
                         "normalized_content": "other content2",
                         "normalized_title": "title2",
                         "normalized_url": "http test2",
@@ -245,6 +247,15 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         response = self.client.get("/api/lang_stats/")
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(json.loads(response.content), [{"doc_count": 2, "lang": "En 🇬🇧"}])
+
+    def test_mime_stats(self):
+        response = self.client.get("/api/mime_stats/")
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(
+            json.loads(response.content),
+            [{"mimetype": "🖼️ image/png", "doc_count": 1}, {"mimetype": "🌐 text/html", "doc_count": 1}],
+            response.content,
+        )
 
     def test_search(self):
         response = self.client.post("/api/search/", {"query": "content"})

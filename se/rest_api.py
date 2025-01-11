@@ -33,6 +33,7 @@ from .models import CrawlerStats
 from .rest_permissions import IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
+from .utils import mimetype_icon
 
 
 class CrawlerStatsSerializer(serializers.ModelSerializer):
@@ -129,6 +130,36 @@ class LangStatsViewSet(viewsets.ViewSet):
                     title = title + " " + lang_desc["flag"]
                 langs.append({"lang": title, "doc_count": lang["count"]})
         return Response(langs)
+
+
+class MimeStatsSerializer(serializers.Serializer):
+    doc_count = serializers.IntegerField(help_text="Document count")
+    mime = serializers.CharField(help_text="Mimetype")
+
+
+class MimeStatsViewSet(viewsets.ViewSet):
+    permission_classes = [IsSuperUserOrStaff]
+
+    @extend_schema(
+        description="Mimetype analytics",
+        responses={
+            200: MimeStatsSerializer(many=True),
+        },
+    )
+    def list(self, request):
+        indexed_mimes = (
+            Document.objects.values("mimetype")
+            .annotate(doc_count=models.Count("mimetype"))
+            .order_by("-doc_count", "mimetype")
+        )
+        for indexed_mime in indexed_mimes:
+            icon = mimetype_icon(indexed_mime["mimetype"])
+            if indexed_mime["mimetype"]:
+                indexed_mime["mimetype"] = f"{icon} {indexed_mime['mimetype']}"
+            else:
+                indexed_mime["mimetype"] = f"{icon} <None>"
+
+        return Response(indexed_mimes)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -260,3 +291,4 @@ router.register("search", SearchViewSet, basename="search")
 router.register("stats", CrawlerStatsViewSet)
 router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
 router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
+router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")

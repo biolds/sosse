@@ -142,7 +142,7 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
         },
         title: {
           display: true,
-          text: "Documents by language",
+          text: "Languages",
         },
       },
     },
@@ -156,6 +156,59 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
       const lang = langs[bar.index];
       const isoLang = lang.lang.replace(/ .*/, '').toLowerCase();
       window.location = `/admin/se/document/?lang_iso_639_1=${isoLang}`;
+    }
+  };
+});
+
+loadChart("mime_chart", "/api/mime_stats/", function (data) {
+  const mimes = data.filter((m) => m.doc_count);
+  const chart = document.getElementById("mime_chart");
+  const mimeChartJS = new Chart(chart, {
+    type: "pie",
+    data: {
+      labels: mimes.map((m) => m.mimetype),
+      datasets: [
+        {
+          label: "Mimetype",
+          data: mimes.map((m) => m.doc_count),
+          backgroundColor: colorsTransparent,
+          borderColor: colors,
+          borderWidth: 1,
+          hoverOffset: 4,
+        },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return getUnit(context.raw);
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: "Mimetypes",
+        },
+        legend: {
+          labels: {
+            filter: (legendItem, chartData) => legendItem.index < 4
+          }
+        }
+      },
+    },
+  });
+
+  // https://stackoverflow.com/questions/45980436/chart-js-link-to-other-page-when-click-on-specific-section-in-chart
+  document.getElementById("mime_chart").onclick = function(e){
+    let slices = mimeChartJS.getElementsAtEventForMode(e, 'nearest', {intersect: true}, true);
+    if (slices.length) {
+      const slice = slices[0];
+      const mime = mimes[slice.index];
+      const mimeStr = mime.mimetype.replace(/.* /, '').toLowerCase();
+      window.location = `/admin/se/document/?mimetype=${mimeStr}`;
     }
   };
 });

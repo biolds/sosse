@@ -23,7 +23,7 @@ class Command(BaseCommand):
     doc = """Loads a :doc:`user/shortcuts` from an `OpenSearch Description <https://developer.mozilla.org/en-US/docs/Web/OpenSearch>`_ formatted XML file.
 
     Most search engines provide such a file, defined in the HTML of their web page.
-    It can be found inside a ``<link>`` element below the ``<head>`` tag, for example `Brave Search <https://search.brave.com/>`_ defines it as:
+    It can be found inside a ``<link>`` element below the ``<head>`` tag, for example `Brave Search <https://search.brave.com/>`_ defines it as:
 
     .. code-block:: html
 

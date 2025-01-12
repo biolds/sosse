@@ -173,6 +173,9 @@ static_checks:
 	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'
 	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v ^doc/) ; do grep -q "\<print\>" "$$f" && echo "File $$f contains print() calls" ||: ; done'
 	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v ^doc/) ; do grep -q "\<print\>" "$$f" && exit 1 ||: ; done'
+	# Non-breakable space check
+	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v ^doc/) ; do grep -q " " "$$f" && echo "File $$f contains a non breakable space" ||: ; done'
+	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v ^doc/) ; do grep -q " " "$$f" && exit 1 ||: ; done'
 
 install_js_deps:
 	npm install

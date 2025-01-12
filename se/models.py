@@ -975,7 +975,7 @@ class CrawlPolicy(models.Model):
 
     def save(self, *args, **kwargs):
         if self.url_regex == "(default)":
-            self.url_regex_pg == ".*"
+            self.url_regex_pg = ".*"
             self.enabled = True
         else:
             url_regexs = [line.strip() for line in self.url_regex.splitlines()]

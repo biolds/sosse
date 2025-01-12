@@ -429,11 +429,8 @@ class Conf:
         try:
             conf.read_file(open(CONF_FILE), CONF_FILE)
         except FileNotFoundError:
-            if "default_conf" in sys.argv:
-                print(
-                    f"WARNING: Configuration file {CONF_FILE} is missing",
-                    file=sys.stderr,
-                )
+            if "default_conf" not in sys.argv:
+                sys.stderr.write(f"WARNING: Configuration file {CONF_FILE} is missing\n")
 
         for section in conf.sections():
             if section not in DEFAULTS:

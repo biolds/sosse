@@ -247,7 +247,6 @@ class SearchEngine(models.Model):
 
         short_name_elem = root.find(ns + "ShortName")
         if short_name_elem is None:
-            print("No ShortName defined")
             return
 
         short_name = short_name_elem.text

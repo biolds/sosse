@@ -29,19 +29,15 @@ OPTS_UPDATE = (
 def update_cache_conf(apps, schema_editor):
     try:
         if os.path.exists(CONF_FILE):
-            print("exists")
             with open(CONF_FILE) as f:
                 content = f.read()
 
-            print(f"content size: {len(content)}")
             new_content = content
 
             for old_val, new_val in OPTS_UPDATE:
-                print(f"replace {old_val} by {new_val}")
                 new_content = new_content.replace(old_val, new_val)
 
             if new_content != content:
-                print("write")
                 with open(CONF_FILE, "w") as f:
                     f.write(new_content)
     except Exception:  # nosec B110

@@ -67,30 +67,30 @@ class Command(BaseCommand):
         if options["component"] == "conf":
             for section, descr in SECTIONS:
                 section_title = f"[{section}] section"
-                print(section_title)
-                print("-" * len(section_title))
-                print()
-                print(descr)
-                print()
+                self.stdout.write(section_title)
+                self.stdout.write("-" * len(section_title))
+                self.stdout.write()
+                self.stdout.write(descr)
+                self.stdout.write()
                 for name, conf in DEFAULT_CONF[section].items():
-                    print(f".. _conf_option_{name}:")
-                    print()
-                    print(f".. describe:: {name}")
-                    print()
+                    self.stdout.write(f".. _conf_option_{name}:")
+                    self.stdout.write()
+                    self.stdout.write(f".. describe:: {name}")
+                    self.stdout.write()
                     default = conf.default
                     if default is None or default == "":
                         default = "<empty>"
-                    print(f"   *Default: {default}*")
-                    print()
+                    self.stdout.write(f"   *Default: {default}*")
+                    self.stdout.write()
                     comment = conf.doc or conf.comment
                     comment = "\n".join("   " + line for line in comment.splitlines())
                     comment = comment.replace("\n   See ", "\n\n   See ")
                     if comment:
-                        print(comment)
-                    print(".. raw:: html")
-                    print()
-                    print("   <br/>")
-                    print()
+                        self.stdout.write(comment)
+                    self.stdout.write(".. raw:: html")
+                    self.stdout.write()
+                    self.stdout.write("   <br/>")
+                    self.stdout.write()
         elif options["component"] == "cli":
             has_content = False
             for cmd, mod in sorted(get_commands().items(), key=lambda x: x[0]):
@@ -101,26 +101,26 @@ class Command(BaseCommand):
                 parser = ArgumentParser()
                 klass.add_arguments(parser)
 
-                print(f".. _cli_{cmd}:")
-                print()
-                print(f".. describe:: {cmd}:")
+                self.stdout.write(f".. _cli_{cmd}:")
+                self.stdout.write()
+                self.stdout.write(f".. describe:: {cmd}:")
 
                 txt = getattr(klass, "doc", klass.help)
                 txt = [""] + [line[4:] if line.startswith(" " * 4) else line for line in txt.splitlines()] + [""]
                 txt = "\n   ".join(txt)
-                print(txt)
+                self.stdout.write(txt)
 
-                print(".. code-block:: text")
-                print()
+                self.stdout.write(".. code-block:: text")
+                self.stdout.write()
                 usage = [""] + parser.format_help().splitlines()
                 usage = "\n   ".join(usage)
                 usage = usage.replace("sosse_admin.py", f"sosse-admin {cmd}")
-                print(usage)
+                self.stdout.write(usage)
 
-                print(".. raw:: html")
-                print()
-                print("   <br/>")
-                print()
+                self.stdout.write(".. raw:: html")
+                self.stdout.write()
+                self.stdout.write("   <br/>")
+                self.stdout.write()
             if not has_content:
                 raise Exception("Failed")
         elif options["component"] == "se":
@@ -147,18 +147,20 @@ class Command(BaseCommand):
                 se_len = max(se_len, unicode_len(name))
                 sc_len = max(sc_len, unicode_len(se["shortcut"]))
 
-            print(".. table::")
-            print("   :align: left")
-            print("   :widths: auto")
-            print()
-            print("   " + "=" * se_len + "  " + "=" * sc_len)
-            print("   " + SE_STR.ljust(se_len) + "  " + SC_STR.ljust(sc_len))
-            print("   " + "=" * se_len + "  " + "=" * sc_len)
+            self.stdout.write(".. table::")
+            self.stdout.write("   :align: left")
+            self.stdout.write("   :widths: auto")
+            self.stdout.write()
+            self.stdout.write("   " + "=" * se_len + "  " + "=" * sc_len)
+            self.stdout.write("   " + SE_STR.ljust(se_len) + "  " + SC_STR.ljust(sc_len))
+            self.stdout.write("   " + "=" * se_len + "  " + "=" * sc_len)
 
             search_engines = sorted(search_engines, key=lambda x: x["name"])
 
             for se in search_engines:
-                print("   " + unicode_justify(se["name"], se_len) + "  " + unicode_justify(se["shortcut"], sc_len))
-            print("   " + "=" * se_len + "  " + "=" * sc_len)
-            print()
-            print()
+                self.stdout.write(
+                    "   " + unicode_justify(se["name"], se_len) + "  " + unicode_justify(se["shortcut"], sc_len)
+                )
+            self.stdout.write("   " + "=" * se_len + "  " + "=" * sc_len)
+            self.stdout.write()
+            self.stdout.write()

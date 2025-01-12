@@ -22,4 +22,4 @@ class Command(BaseCommand):
     help = "Outputs default configuration file to stdout."
 
     def handle(self, *args, **options):
-        print(Conf.generate_default())
+        self.stdout.write(Conf.generate_default())

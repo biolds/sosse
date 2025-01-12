@@ -169,8 +169,10 @@ functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'
 
 static_checks:
-	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$ | grep -v se/deps/) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
-	bash -c 'for f in $$(find -name \*.py|grep -v /__init__\.py$$ | grep -v se/deps/) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'
+	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
+	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'
+	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v ^doc/) ; do grep -q "\<print\>" "$$f" && echo "File $$f contains print() calls" ||: ; done'
+	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v ^doc/) ; do grep -q "\<print\>" "$$f" && exit 1 ||: ; done'
 
 install_js_deps:
 	npm install

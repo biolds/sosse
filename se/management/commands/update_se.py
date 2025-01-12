@@ -53,5 +53,5 @@ class Command(BaseCommand):
         if len(conflicts):
             conflicts = conflicts.values_list("shortcut", flat=True).order_by("shortcut")
             sc = ", ".join([settings.SOSSE_SEARCH_SHORTCUT_CHAR + c for c in conflicts])
-            print(f"WARNING: {len(conflicts)} shortcuts are in conflict: {sc}")
+            self.stderr.write(self.style.ERROR(f"WARNING: {len(conflicts)} shortcuts are in conflict: {sc}"))
             exit(1)

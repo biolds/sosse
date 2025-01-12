@@ -227,7 +227,7 @@ class Document(models.Model):
         if not verbose:
             return
         n = now()
-        print(f"{n - stats['prev']} {s}")
+        crawl_logger.debug(f"{n - stats['prev']} {s}")
         stats["prev"] = n
 
     def _clear_base_content(self):

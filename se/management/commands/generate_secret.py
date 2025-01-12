@@ -24,4 +24,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Escape % to avoid value interpolation in the conf file
         # (https://docs.python.org/3/library/configparser.html#interpolation-of-values)
-        print(get_random_secret_key().replace("%", "%%"))
+        self.stdout.write(get_random_secret_key().replace("%", "%%"))

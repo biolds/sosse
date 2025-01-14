@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block js %}
 function refresh () {
-  fetch('{% url 'admin:crawl_status_content' %}').then(response => {
+  fetch('{% url 'admin:crawl_queue_content' %}').then(response => {
     if (response.ok) {
       response.text().then(content => {
         const contentDiv = document.getElementById('content');
@@ -15,24 +15,15 @@ setInterval(refresh, {{ settings.SOSSE_CRAWL_STATUS_AUTOREFRESH }} * 1000);
 {% endblock %}
 
 {% block css %}
-#crawlers {
-  display: block;
+input.card {
+  height: 72px;
+  margin-top: 0px;
+  color: var(--text);
 }
 
-#crawlers > * {
-  display: inline;
-}
-
-#crawlers form {
-  margin-left: 20px;
-}
-
-#queue_links {
-  padding-bottom: 20px;
-}
-
-#queue_links li {
-  display: inline;
+.card {
+  height: 70px;
+  font-size: large;
 }
 
 #result_list th:nth-child(1), #result_list td:nth-child(1) {

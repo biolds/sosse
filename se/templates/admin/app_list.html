@@ -25,7 +25,7 @@
           {% endif %}
           {% if 'se.view_crawlerstats' in perms %}
             <tr>
-               <th scope="row"><div style="display: inline; color: #1ce51c">✔ </div><a href="{% url 'admin:crawl_status' %}">Crawl status</a></th>
+              <th scope="row"><div style="display: inline; color: #1ce51c">✔ </div><a href="{% url 'admin:crawl_queue' %}">Crawl queue</a></th>
               <td></td>
             </tr>
           {% endif %}
@@ -33,6 +33,12 @@
             <th scope="row">📊 <a href="{% url 'admin:analytics' %}">Analytics</a></th>
             <td></td>
           </tr>
+          {% if 'se.view_crawlerstats' in perms %}
+            <tr>
+              <th scope="row">🕷 <a href="{% url 'admin:crawlers' %}">Crawlers</a></th>
+              <td></td>
+            </tr>
+          {% endif %}
         {% endif %}
         {% for model in app.models %}
           <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">

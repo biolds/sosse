@@ -13,16 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
 
+from .crawlers import CrawlersOperationMixin
 from .models import Document, WorkerStats
 from .utils import human_dt
 from .views import AdminView
 
 
 class CrawlStatusContentView(AdminView):
+    title = "Crawl queue"
     template_name = "admin/crawl_status_content.html"
     permission_required = "se.view_crawlerstats"
     admin_site = None
@@ -33,17 +34,13 @@ class CrawlStatusContentView(AdminView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        _now = now()
-        context = dict(self.admin_site.each_context(self.request), title="Crawl status", now=_now)
-
         queue_new_count = Document.objects.filter(crawl_last__isnull=True).count()
         queue_recurring_count = Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).count()
         queue_pending_count = Document.objects.filter(
             models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now())
         ).count()
 
-        QUEUE_SIZE = 7
+        QUEUE_SIZE = 10
         queue = list(Document.objects.filter(worker_no__isnull=False).order_by("id")[:QUEUE_SIZE])
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(
@@ -78,29 +75,19 @@ class CrawlStatusContentView(AdminView):
             if doc.crawl_last:
                 doc.crawl_last_human = human_dt(doc.crawl_last, True)
 
-        return context | {
-            "crawlers": WorkerStats.live_state(),
-            "pause": WorkerStats.objects.filter(state="paused").count() == 0,
-            "queue": queue,
-            "queue_new_count": queue_new_count,
-            "queue_recurring_count": queue_recurring_count,
-            "queue_pending_count": queue_pending_count,
-            "settings": settings,
-        }
+        return (
+            context
+            | dict(self.admin_site.each_context(self.request))
+            | {
+                "pause": WorkerStats.objects.filter(state="paused").count() == 0,
+                "queue": queue,
+                "queue_new_count": queue_new_count,
+                "queue_recurring_count": queue_recurring_count,
+                "queue_pending_count": queue_pending_count,
+                "now": now(),
+            }
+        )
 
 
-class CrawlStatusView(CrawlStatusContentView):
-    title = "Crawl Status"
+class CrawlStatusView(CrawlersOperationMixin, CrawlStatusContentView):
     template_name = "admin/crawl_status.html"
-
-    def get_permission_required(self):
-        if self.request.method == "POST":
-            return {"se.change_crawlerstats"}
-        return super().get_permission_required()
-
-    def post(self, request):
-        if "pause" in request.POST:
-            WorkerStats.objects.update(state="paused")
-        if "resume" in request.POST:
-            WorkerStats.objects.update(state="running")
-        return self.get(request)

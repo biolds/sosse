@@ -20,8 +20,10 @@
 |  | SOSSE Capture Page Screenshot | clear_admin.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
 |  | SOSSE Capture Page Screenshot | clear_admin_doc_queue.png
-|  | SOSSE Go To | http://127.0.0.1/admin/se/document/crawl_status/
-|  | SOSSE Capture Page Screenshot | clear_admin_crawl_status.png
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/crawl_queue/
+|  | SOSSE Capture Page Screenshot | clear_admin_crawl_queue.png
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/crawlers/
+|  | SOSSE Capture Page Screenshot | clear_admin_crawlers.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/analytics/
 |  | SOSSE Capture Page Screenshot | clear_admin_analytics.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/

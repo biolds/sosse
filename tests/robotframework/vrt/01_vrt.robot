@@ -20,18 +20,18 @@
 |  | Wait Until Page Contains | Create a new policy
 |  | VRT check | New policy
 |  | Click Element | xpath=//input[@value='Confirm']
-|  | Wait Until Page Contains | Crawl status
+|  | Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_status/
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Page Should Not Contain | No crawlers running.
 |  | Page Should Not Contain | exited
 |  | Wait Until Page Contains | 4 recurring documents | 2min
 |  | Wait Until Page Contains | 0 pending documents | 2min
 |  | Page Should Contain | idle
 |  | Reload Page
-|  | Wait Until Page Contains | Crawl status
+|  | Wait Until Page Contains | Crawl queue
 |  | Scroll To Bottom
-|  | VRT check | Crawl status
+|  | VRT check | Crawl queue
 
 | Home
 |  | Go To | http://127.0.0.1/

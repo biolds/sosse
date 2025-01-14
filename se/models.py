@@ -180,6 +180,9 @@ class WorkerStats(models.Model):
             else:
                 w.pid = "-"
                 w.state = "exited"
+
+            if w.state != "exited":
+                w.doc = Document.objects.filter(worker_no=w.worker_no).first()
         return workers
 
 

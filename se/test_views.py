@@ -35,6 +35,7 @@ from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .cookies_import import CookiesImportView
 from .crawl_status import CrawlStatusContentView, CrawlStatusView
+from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .download import DownloadView
 from .history import HistoryView
@@ -175,8 +176,10 @@ class ViewsTest:
         for url, view_cls in (
             ("/admin/", None),
             ("/admin/se/document/queue/", AddToQueueView),
-            ("/admin/se/document/crawl_status/", CrawlStatusView),
-            ("/admin/se/document/crawl_status_content/", CrawlStatusContentView),
+            ("/admin/se/document/crawl_queue/", CrawlStatusView),
+            ("/admin/se/document/crawl_queue_content/", CrawlStatusContentView),
+            ("/admin/se/document/crawlers/", CrawlersView),
+            ("/admin/se/document/crawlers_content/", CrawlersContentView),
             ("/admin/se/crawlpolicy/", None),
             (f"/admin/se/crawlpolicy/{self.crawl_policy.id}/change/", None),
             ("/admin/se/document/", None),
@@ -242,7 +245,7 @@ class ViewsTest:
         self.assertEqual(response.status_code, 302, f"{action} / {response}")
         self.assertEqual(
             response.url,
-            "/admin/se/document/crawl_status/",
+            "/admin/se/document/crawl_queue/",
             f"{action} / {response}",
         )
 
@@ -264,21 +267,21 @@ class ViewsTest:
         self.assertEqual(response.status_code, 302, response)
         self.assertEqual(response.headers["Location"], "/admin/se/cookie/")
 
-    def test_admin_crawl_status_actions(self):
+    def test_admin_crawl_queue_actions(self):
         for action in ("pause", "resume"):
-            response = self.admin_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            response = self.admin_client.post("/admin/se/document/crawl_queue/", {action: "1"})
             self.assertEqual(response.status_code, 200, f"{action} / {response}")
 
-            response = self.simple_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            response = self.simple_client.post("/admin/se/document/crawl_queue/", {action: "1"})
             self.assertEqual(response.status_code, 302, f"{action} / {response}")
 
             self.staff_user.user_permissions.clear()
-            response = self.staff_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            response = self.staff_client.post("/admin/se/document/crawl_queue/", {action: "1"})
             self.assertEqual(response.status_code, 403, f"{action} without permission / {response}")
 
             permission = Permission.objects.get(codename="change_crawlerstats")
             self.staff_user.user_permissions.add(permission)
-            response = self.staff_client.post("/admin/se/document/crawl_status/", {action: "1"})
+            response = self.staff_client.post("/admin/se/document/crawl_queue/", {action: "1"})
             self.assertEqual(response.status_code, 200, f"{action} with permission / {response}")
 
     def test_admin_add_crawl(self):

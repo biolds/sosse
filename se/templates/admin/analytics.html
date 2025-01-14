@@ -14,28 +14,6 @@
         width: 24%;
         vertical-align: middle;
     }
-    .card {
-        vertical-align: top;
-        height: 100px;
-        color: #3f54ff;
-        font-size: x-large;
-        font-weight: 600;
-        background-color: var(--input-bg);
-        border-right: 1px solid var(--input-bg-br);
-        border-bottom: 1px solid var(--input-bg-br);
-        border-top: 1px solid var(--input-bg-tl);
-        border-left: 1px solid var(--input-bg-tl);
-    }
-    body.dark-mode .card {
-        color: #7b92a7;
-    }
-    .card_text {
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-    }
     .crawler_chart {
         display: inline-block;
         width: 32%;
@@ -58,7 +36,7 @@
         </a>
     </span>
     <span class="chart card">
-        <a href="{% url "admin:crawl_status" %}" style="text-decoration: none">
+        <a href="{% url "admin:crawl_queue" %}" style="text-decoration: none">
             <div id="url_queued_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
             <div id="url_queued" class="card_text">
               URLs queued
@@ -70,7 +48,7 @@
             <a href="{% url "admin:crawlers" %}" style="text-decoration: none">
                 <div id="url_queued" class="card_text">
                   {{ crawlers_count }}<br/>
-                  Crawlers
+                  Crawler{{ crawlers_count|pluralize }}
                 </div>
             </a>
         </span>

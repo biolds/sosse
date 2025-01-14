@@ -1,0 +1,57 @@
+{% load static %}
+{% if crawlers %}
+  <p>
+    {{ running_count|length }} crawler{{ running_count|pluralize }} running.
+  </p>
+  <p>
+    <table>
+      <thead>
+        <th><div class="text">No</div></th>
+        <th><div class="text">PID</div></th>
+        <th><div class="text">State</div></th>
+        <th><div class="text"></div></th>
+        <th><div class="text">URL</div></th>
+      </thead>
+      <tbody>
+        {% for crawler in crawlers %}
+          <tr>
+              <td>{{ crawler.worker_no }}</td>
+              <td>{{ crawler.pid }}</td>
+              <td><b>{{ crawler.state }}</b></td>
+              <td class="favicon">
+                {% if crawler.doc.id %}
+                  <a href="{% url 'admin:se_document_change' crawler.doc.id %}">
+                    {% if crawler.doc.favicon and not crawler.doc.favicon.missing %}
+                      <img src="{% url 'favicon' crawler.doc.favicon.id %}" alt="icon">
+                    {% endif %}
+                  </a>
+                {% endif %}
+              </td>
+              <td>
+                {% if crawler.doc.id %}
+                  <a href="{% url 'admin:se_document_change' crawler.doc.id %}">
+                    {{ crawler.doc.url }}
+                  </a>
+                {% endif %}
+              </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </p>
+
+  {% if 'se.change_crawlerstats' in perms %}
+  <p>
+    <form method="POST">
+      {% csrf_token %}
+      {% if pause %}
+        <input type="submit" name="pause" value="⏸ Pause">
+      {% else %}
+        <input type="submit" name="resume" value="⏵ Resume">
+      {% endif %}
+    </form>
+  </p>
+  {% endif %}
+{% else %}
+  No crawlers running.
+{% endif %}

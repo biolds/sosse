@@ -32,6 +32,7 @@ from django.utils.timezone import now
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
 from .analytics import AnalyticsView
 from .crawl_status import CrawlStatusContentView, CrawlStatusView
+from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .html_asset import HTMLAsset
 from .models import (
@@ -171,7 +172,7 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
-    return redirect(reverse("admin:crawl_status"))
+    return redirect(reverse("admin:crawl_queue"))
 
 
 @admin.action(description="Remove from crawl queue", permissions=["change"])
@@ -192,7 +193,7 @@ def convert_to_jpg(modeladmin, request, queryset):
 @admin.action(description="Crawl later", permissions=["change"])
 def crawl_later(modeladmin, request, queryset):
     queryset.update(crawl_next=now() + timedelta(days=1))
-    return redirect(reverse("admin:crawl_status"))
+    return redirect(reverse("admin:crawl_queue"))
 
 
 @admin.action(description="Switch hidden", permissions=["change"])
@@ -315,14 +316,24 @@ class DocumentAdmin(admin.ModelAdmin):
                 name="queue_confirm",
             ),
             path(
-                "crawl_status/",
-                self.admin_site.admin_view(self.crawl_status),
-                name="crawl_status",
+                "crawlers/",
+                self.admin_site.admin_view(self.crawlers),
+                name="crawlers",
             ),
             path(
-                "crawl_status_content/",
-                self.admin_site.admin_view(self.crawl_status_content),
-                name="crawl_status_content",
+                "crawlers_content/",
+                self.admin_site.admin_view(self.crawlers_content),
+                name="crawlers_content",
+            ),
+            path(
+                "crawl_queue/",
+                self.admin_site.admin_view(self.crawl_queue),
+                name="crawl_queue",
+            ),
+            path(
+                "crawl_queue_content/",
+                self.admin_site.admin_view(self.crawl_queue_content),
+                name="crawl_queue_content",
             ),
         ] + urls
 
@@ -361,10 +372,16 @@ class DocumentAdmin(admin.ModelAdmin):
     def add_to_queue_confirm(self, request):
         return AddToQueueConfirmationView.as_view(admin_site=self.admin_site)(request)
 
-    def crawl_status(self, request):
+    def crawlers(self, request):
+        return CrawlersView.as_view(admin_site=self.admin_site)(request)
+
+    def crawlers_content(self, request):
+        return CrawlersContentView.as_view(admin_site=self.admin_site)(request)
+
+    def crawl_queue(self, request):
         return CrawlStatusView.as_view(admin_site=self.admin_site)(request)
 
-    def crawl_status_content(self, request):
+    def crawl_queue_content(self, request):
         return CrawlStatusContentView.as_view(admin_site=self.admin_site)(request)
 
     def analytics(self, request):

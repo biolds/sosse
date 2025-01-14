@@ -92,7 +92,7 @@ class AddToQueueConfirmationView(AddToQueueView):
             doc.show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
             doc.save()
             messages.success(self.request, "URL was queued.")
-            return redirect(reverse("admin:crawl_status"))
+            return redirect(reverse("admin:crawl_queue"))
 
         crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data["url"])
         form = AddToQueueForm(self.request.POST, initial={"recursion_depth": crawl_policy.recursion_depth})

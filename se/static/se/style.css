@@ -257,18 +257,43 @@ select:hover {
   animation: rotate 1s linear infinite;
 }
 
+.card {
+  display: inline-block;
+  width: 24%;
+  vertical-align: top;
+  height: 100px;
+  color: #3f54ff;
+  font-size: x-large;
+  font-weight: 600;
+  background-color: var(--input-bg);
+  border-right: 1px solid var(--input-border-br);
+  border-bottom: 1px solid var(--input-border-br);
+  border-top: 1px solid var(--input-border-tl);
+  border-left: 1px solid var(--input-border-tl);
+}
+body.dark-mode .card {
+  color: #7b92a7;
+}
+.card_text {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
 /* Django admin apps tables */
-.app-se.module > table,
-.app-auth.module table {
+div.app-se > table,
+div.app-auth > table {
   width: 70%;
 }
 
-.app-se.module > table th,
-.app-auth.module table th {
+div.app-se > table th,
+div.app-auth > table th {
   width: 60%;
 }
 
-.app-se.module > table td,
-.app-auth.module table td {
+div.app-se > table td,
+div.app-auth > table td {
   width: 40%;
 }

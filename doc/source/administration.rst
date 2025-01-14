@@ -8,10 +8,11 @@ Administration
    admin_ui.rst
    crawl/add_to_queue.rst
    crawl/status.rst
+   crawl/crawlers.rst
+   crawl/analytics.rst
    crawl/policies.rst
    crawl/recursion_depth.rst
    crawl/feeds.rst
-   crawl/analytics.rst
    archive.rst
    authentication.rst
    documents.rst

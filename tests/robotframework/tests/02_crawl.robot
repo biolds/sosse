@@ -18,18 +18,17 @@
 |  | SOSSE Wait Until Page Contains | Create a new policy
 |  | SOSSE Capture Page Screenshot | crawl_new_url.png
 |  | Click Element | xpath=//input[@value='Confirm']
-|  | SOSSE Wait Until Page Contains | Crawl status
+|  | SOSSE Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_status/
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Page Should Not Contain | No crawlers running.
 |  | Page Should Not Contain | exited
-|  | SOSSE Wait Until Page Contains | 4 recurring documents | 5min
-|  | SOSSE Wait Until Page Contains | 0 pending documents | 2min
-|  | SOSSE Wait Until Page Contains | idle
-|  | Reload Page
-|  | SOSSE Wait Until Page Contains | Crawl status
-|  | Scroll To Bottom
-|  | SOSSE Capture Page Screenshot | crawl_status.png
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/crawlers/
+|  | SOSSE Capture Page Screenshot | crawlers.png
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/crawl_queue/
+|  | Wait Until Element Is Visible | xpath=//div[@id="queue_recurring_count" and contains(., '4')] | 5min
+|  | Wait Until Element Is Visible | xpath=//div[@id="queue_pending_count" and contains(., '0')] | 2min
+|  | SOSSE Capture Page Screenshot | crawl_queue.png
 
 | Crawl a binary URL
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
@@ -38,15 +37,10 @@
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | SOSSE Wait Until Page Contains | Create a new policy
 |  | Click Element | xpath=//input[@value='Confirm']
-|  | SOSSE Wait Until Page Contains | Crawl status
+|  | SOSSE Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_status/
-|  | Page Should Not Contain | No crawlers running.
-|  | Page Should Not Contain | exited
-|  | SOSSE Wait Until Page Contains | 0 pending documents | 2min
-|  | SOSSE Wait Until Page Contains | idle
-|  | Reload Page
-|  | SOSSE Wait Until Page Contains | Crawl status
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
+|  | Wait Until Element Is Visible | xpath=//div[@id="queue_pending_count" and contains(., '0')] | 2min
 |  | Scroll To Bottom
 
 | Analytics

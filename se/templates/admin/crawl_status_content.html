@@ -1,53 +1,42 @@
 {% load static %}
-<h4>Crawlers</h4>
-{% if crawlers %}
-  <div id="crawlers" class="results">
-    <table>
-      <thead>
-        <th><div class="text">No</div></th>
-        <th><div class="text">PID</div></th>
-        <th><div class="text">State</div></th>
-      </thead>
-      <tbody>
-        {% for crawler in crawlers %}
-          <tr>
-              <td>{{ crawler.worker_no }}</td>
-              <td>{{ crawler.pid }}</td>
-              <td><b>{{ crawler.state }}</b></td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% if 'se.change_crawlerstats' in perms %}
-      <form method="POST">
-        {% csrf_token %}
-        {% if pause %}
-          <input type="submit" name="pause" value="⏸ Pause">
-        {% else %}
-          <input type="submit" name="resume" value="⏵ Resume">
-        {% endif %}
-      </form>
-    {% endif %}
-</div>
-{% else %}
-  No crawlers running.
+<div style="padding: 8px 0px 5px 0px">
+  <span class="chart card">
+    <a href="{% url 'admin:se_document_changelist' %}?queued=new&o=8" style="text-decoration: none">
+      <div id="queue_new_count" class="card_text" title="{{ queue_new_count }} new document{{ queue_new_count|pluralize }}">
+        {{ queue_new_count }}<br/>
+        🌟 New
+      </div>
+    </a>
+  </span>
+
+  <span class="chart card">
+    <a href="{% url 'admin:se_document_changelist' %}?queued=pending&o=8" style="text-decoration: none">
+      <div id="queue_pending_count" class="card_text" title="{{ queue_pending_count }} document{{ queue_pending_count|pluralize }} pending">
+        {{ queue_pending_count }}<br/>
+        ⌛ Pending
+      </div>
+    </a>
+  </span>
+
+  <span class="chart card">
+    <a href="{% url 'admin:se_document_changelist' %}?queued=recurring&o=8" style="text-decoration: none">
+      <div id="queue_recurring_count" class="card_text" title="{{ queue_recurring_count }} document{{ queue_recurring_count|pluralize }} recurring">
+        {{ queue_recurring_count }}<br/>
+        🕑 Recurring
+      </div>
+    </a>
+  </span>
+{% if 'se.change_crawlerstats' in perms %}
+    <form method="POST" style="display: inline">
+      {% csrf_token %}
+      {% if pause %}
+        <input class="chart card" type="submit" name="pause" value="⏵ Running">
+      {% else %}
+        <input class="chart card" type="submit" name="resume" value="⏸ Paused">
+      {% endif %}
+    </form>
 {% endif %}
-
-<h4>
-  Crawl Queue
-</h4>
-
-<ul id="queue_links">
-  <li>
-    🌟 <a href="{% url 'admin:se_document_changelist' %}?queued=new&o=8">{{ queue_new_count }} new document{{ queue_new_count|pluralize:"s" }}</a>
-  </li>
-  <li>
-    ⌛ <a href="{% url 'admin:se_document_changelist' %}?queued=pending&o=8">{{ queue_pending_count }} pending document{{ queue_pending_count|pluralize:"s" }}</a>
-  </li>
-  <li>
-    🕑 <a href="{% url 'admin:se_document_changelist' %}?queued=recurring&o=8">{{ queue_recurring_count }} recurring document{{ queue_recurring_count|pluralize:"s" }}</a>
-  </li>
-</ul>
+</div>
 
 {% if queue %}
   <div class="results">

@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block js %}
+function refresh () {
+  fetch('{% url 'admin:crawlers_content' %}').then(response => {
+    if (response.ok) {
+      response.text().then(content => {
+        const contentDiv = document.getElementById('content');
+        contentDiv.innerHTML = content;
+      });
+    }
+  });
+}
+
+setInterval(refresh, {{ settings.SOSSE_CRAWL_STATUS_AUTOREFRESH }} * 1000);
+{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+{% block content %}
+  {% include "admin/crawlers_content.html" %}
+{% endblock %}

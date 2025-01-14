@@ -43,6 +43,7 @@ from .browser_request import BrowserRequest
 from .document import Document
 from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
+from .utils import plural
 
 crawl_logger = logging.getLogger("crawler")
 
@@ -969,8 +970,12 @@ class CrawlPolicy(models.Model):
     def __str__(self):
         if self.url_regex:
             lines = [line for line in self.url_regex.splitlines() if not line.startswith("#")]
-            if lines:
+            if len(lines) == 1:
                 return f"「{lines[0]}」"
+            elif len(lines) > 1:
+                others = len(lines) - 1
+                others = f"{others} other{plural(others)}"
+                return f"「{lines[0]} (and {others})」"
         return "「<empty>」"
 
     def save(self, *args, **kwargs):

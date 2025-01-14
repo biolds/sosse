@@ -210,7 +210,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "_url",
         "fav",
-        "title",
+        "_title",
         "lang",
         "status",
         "err",
@@ -237,7 +237,7 @@ class DocumentAdmin(admin.ModelAdmin):
             "📖 Main",
             {
                 "fields": (
-                    "title",
+                    "_title",
                     "show_on_homepage",
                     "hidden",
                     "crawl_policy",
@@ -276,7 +276,7 @@ class DocumentAdmin(admin.ModelAdmin):
         ),
     )
     readonly_fields = [
-        "title",
+        "_title",
         "crawl_policy",
         "domain",
         "cookies",
@@ -463,6 +463,12 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(ordering="url")
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
+
+    @staticmethod
+    @admin.display(ordering="title")
+    def _title(obj):
+        title = obj.get_title_label()
+        return format_html('<span title="{}">{}</span>', title, title)
 
     @staticmethod
     @admin.display(description="Error")

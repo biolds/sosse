@@ -153,6 +153,11 @@ class Document(models.Model):
         link += ">Source page</a>"
         return format_html(link, self.url)
 
+    def get_title_label(self):
+        if self.redirect_url:
+            return f"<Redirect to {self.redirect_url}>"
+        return self.title
+
     def image_name(self):
         if not self._image_name:
             filename = md5(self.url.encode("utf-8"), usedforsecurity=False).hexdigest()

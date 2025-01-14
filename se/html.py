@@ -30,13 +30,13 @@ class HTMLView(ArchiveMixin, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         if not self.doc.mimetype or not self.doc.mimetype.startswith("text/"):
-            return RedirectException(self.doc.get_absolute_url())
+            raise RedirectException(self.doc.get_absolute_url())
 
         url = self._url_from_request()
         asset = HTMLAsset.objects.filter(url=url).order_by("download_date").last()
 
         if not asset or not os.path.exists(settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename):
-            return RedirectException(self.doc.get_absolute_url())
+            raise RedirectException(self.doc.get_absolute_url())
 
         context = super().get_context_data()
         return context | {

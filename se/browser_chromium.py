@@ -28,23 +28,25 @@ class BrowserChromium(SeleniumBrowser):
     name = "chromium"
 
     CONTENT_HANDLERS = (
+        # Video
         b"""<html>
 <head>
-<meta name="viewport" content="width=device-width">
+<meta name="viewport" content="width=device-width"/?>
 </head>
 <body>
 <video controls="" autoplay="" name="media">
-<source src="(?P<url>[^"]+)" type="[^"]+">
+<source src="(?P<url>[^"]+)" type="[^"]+"/?>
 </video>
 </body>
 </html>""".replace(b"\n", b""),
+        # Image
         b"""<html style="height: 100%;">
 <head>
-<meta ((content="width=device-width, minimum-scale=0.1"|name="viewport") ?){2}>
+<meta ((content="width=device-width, minimum-scale=0.1"|name="viewport") ?){2}/?>
 <title>[^<]*</title>
 </head>
 <body style="margin: 0px; height: 100%; background-color: rgb\\(14, 14, 14\\);">
-<img ((style="display: block;-webkit-user-select: none;margin: auto;background-color: hsl\\(0, 0%, 90%\\);transition: background-color 300ms;"|src="(?P<url>[^"]+)") ?){2}>
+<img .*src="(?P<url>[^"]+)".*/?>
 </body>
 </html>""".replace(b"\n", b""),
     )

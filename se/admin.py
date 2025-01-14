@@ -683,10 +683,10 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
 
     @staticmethod
     def documents(obj):
+        count = Document.objects.filter(url__regex=obj.url_regex_pg).count()
         params = urlencode({"q": obj.url_regex_pg})
         return format_html(
-            '<a href="{}">Matching documents</a>',
-            reverse("admin:se_document_changelist") + "?" + params,
+            '<a href="{}">Matching documents ({})</a>', reverse("admin:se_document_changelist") + "?" + params, count
         )
 
     @staticmethod

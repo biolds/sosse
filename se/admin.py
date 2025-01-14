@@ -504,6 +504,8 @@ class InlineAuthField(admin.TabularInline):
 
 
 class CrawlPolicyForm(forms.ModelForm):
+    mimetype_regex = forms.CharField()
+
     class Meta:
         model = CrawlPolicy
         exclude = tuple()

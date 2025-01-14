@@ -4,7 +4,7 @@
 
 | *Test Cases* |
 | Search
-|  | Go To | http://127.0.0.1/
+|  | SOSSE Go To | http://127.0.0.1/
 |  | Wait Until Element Is Visible | id=id_q
 |  | Input Text | id_q | website
 |  | Click Button | search_button
@@ -42,14 +42,14 @@
 
 | History
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../searchhistory.json | shell=True
-|  | Go To | http://127.0.0.1/history/
+|  | SOSSE Go To | http://127.0.0.1/history/
 |  | SOSSE Wait Until Page Contains | 4 elements in the history
 |  | SOSSE Capture Page Screenshot | history.png
 |  | Capture Element Screenshot | xpath=//input[@class='del_button img_button' and @value=''] | history_delete.png
 |  | Capture Element Screenshot | id=del_all | history_delete_all.png
 
 | Archive
-|  | Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
+|  | SOSSE Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
 |  | Click Element | id=fold_button
 |  | SOSSE Capture Page Screenshot | archive_header.png
 |  | Reload Page
@@ -60,13 +60,13 @@
 |  | Unselect Frame
 
 | Binary archive
-|  | Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
+|  | SOSSE Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
 |  | SOSSE Wait Until Page Contains | Download
 |  | SOSSE Capture Page Screenshot | archive_download.png
 
 | Syndication feed
 |  | [Tags] | syndication_feed
-|  | Go To | http://127.0.0.1/
+|  | SOSSE Go To | http://127.0.0.1/
 |  | Click Element | id=more
 |  | Select From List By Label | id=id_s | First crawled descending
 |  | Select From List By Label | xpath=//select[@name='ff1'] | Linked by url
@@ -81,21 +81,21 @@
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_docs.json | shell=True
 |  | Run Command | sed | -e | s/^#browsable_home.*/browsable_home\=true/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
-|  | Go To | http://127.0.0.1/
+|  | SOSSE Go To | http://127.0.0.1/
 |  | SOSSE Capture Page Screenshot | browsable_home.png
 
 | Online mode
 |  | [Tags] | online_mode
 |  | Run Command | sed | -e | s/^#online_search_redirect.*/online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
-|  | Go To | http://127.0.0.1/prefs/
+|  | SOSSE Go To | http://127.0.0.1/prefs/
 |  | Hilight | id=online_mode
 |  | SOSSE Capture Page Screenshot | online_mode.png
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
 
 | Swagger
 |  | [Tags] | swagger
-|  | Go To | http://127.0.0.1/
+|  | SOSSE Go To | http://127.0.0.1/
 |  | Click Button | id=user_menu_button
 |  | Click Link | Rest API
 |  | Wait Until Element Is Visible | id=swagger-ui

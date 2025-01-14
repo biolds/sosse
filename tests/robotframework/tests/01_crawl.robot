@@ -11,7 +11,7 @@
 |  | SOSSE Capture Page Screenshot | admin_ui.png
 
 | Crawl a new URL
-|  | Go To | http://127.0.0.1/admin/se/document/queue/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_url
 |  | Input Text | id=id_url | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
@@ -32,7 +32,7 @@
 |  | SOSSE Capture Page Screenshot | crawl_status.png
 
 | Crawl a binary URL
-|  | Go To | http://127.0.0.1/admin/se/document/queue/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_url
 |  | Input Text | id=id_url | http://127.0.0.1/static/Cat%20photos.zip
 |  | Click Element | xpath=//input[@value='Check and queue']
@@ -52,14 +52,14 @@
 | Analytics
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../document-ja.json | shell=True
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import CrawlerStats ; from django.utils.timezone import now ; CrawlerStats.create(now()) | shell=True
-|  | Go To | http://127.0.0.1/admin/se/document/analytics/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/analytics/
 |  | Wait Until Page Does Not Contain | xpath=//*[@class='loader'] | timeout=5 min
 |  | Sleep | 5s
 |  | SOSSE Capture Page Screenshot | analytics.png
 |  | Run Command | ${SOSSE_ADMIN} | delete_documents | http://127.0.0.1/screenshots/website/jp.html
 
 | Crawl policies
-|  | Go To | http://127.0.0.1/admin/se/crawlpolicy/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Wait Until Element Is Visible | id=result_list
 |  | SOSSE Capture Page Screenshot | crawl_policy_list.png
 |  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
@@ -92,27 +92,27 @@
 |  | Select From List By Label | id=id_recursion | Depending on depth
 |  | Capture Element Screenshot | //fieldset[1] | policy_on_depth.png
 |  | Click Element | xpath=//input[@value="Save"]
-|  | Go To | http://127.0.0.1/admin/se/document/queue/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_url
 |  | Input Text | id=id_url | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | SOSSE Capture Page Screenshot | crawl_on_depth_add.png
 
-|  | Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Wait Until Element Is Visible | id=id_url_regex
 |  | Input Text | id=id_url_regex | https://en.wikipedia.org/.*
 |  | Input Text | id=id_recursion_depth | 2
 |  | Capture Element Screenshot | //fieldset[1] | policy_all.png
 
 | Documents
-|  | Go To | http://127.0.0.1/admin/se/document/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/
 |  | Wait Until Element Is Visible | id=result_list
 |  | SOSSE Capture Page Screenshot | documents_list.png
 |  | ${doc_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${doc_count} | 5
 
 | Domain
-|  | Go To | http://127.0.0.1/admin/se/domainsetting/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/domainsetting/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${dom_count} | 1
@@ -121,7 +121,7 @@
 
 | Cookies
 |  | Run Keyword And Ignore Error | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../cookies.json | shell=True
-|  | Go To | http://127.0.0.1/admin/se/cookie/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/cookie/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${dom_count} | 3
@@ -130,12 +130,12 @@
 |  | SOSSE Capture Page Screenshot | cookies_import.png
 
 | Excluded URLs
-|  | Go To | http://127.0.0.1/admin/se/excludedurl/add/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/excludedurl/add/
 |  | Wait Until Element Is Visible | id=footer
 |  | SOSSE Capture Page Screenshot | excluded_url.png
 
 | Search Engine
-|  | Go To | http://127.0.0.1/admin/se/searchengine/
+|  | SOSSE Go To | http://127.0.0.1/admin/se/searchengine/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Not Be Equal As Numbers | ${dom_count} | 0
@@ -146,7 +146,7 @@
 |  | SOSSE Capture Page Screenshot | search_engine.png
 
 | Authentication
-|  | Go To | http://127.0.0.1/admin/auth/user/
+|  | SOSSE Go To | http://127.0.0.1/admin/auth/user/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${dom_count} | 1

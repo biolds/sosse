@@ -35,6 +35,10 @@
 |  | Should Be Equal As Numbers | ${ret.rc} | 0
 |  | RETURN | ${ret}
 
+| SOSSE Go To | [Arguments] | @{args} | &{kwargs} |
+| | Page Should Not Contain | Traceback |
+| | SOSSE Go To | @{args} | &{kwargs} |
+
 | SOSSE Wait Until Page Contains | [Arguments] | @{args} | &{kwargs} |
 | | Page Should Not Contain | Traceback |
 | | Wait Until Page Contains | @{args} | &{kwargs} |

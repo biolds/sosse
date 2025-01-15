@@ -68,8 +68,8 @@
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs
-|  | Click Link | 🔖 HTML snapshot
-|  | SOSSE Capture Page Screenshot | crawl_policy_html_snapshot.png
+|  | Click Link | 🔖 Archive
+|  | SOSSE Capture Page Screenshot | crawl_policy_archive.png
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs

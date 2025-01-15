@@ -74,4 +74,53 @@ class Migration(migrations.Migration):
             name="mimetype_regex",
             field=models.TextField(default=".*"),
         ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="auth_login_url_re",
+            field=models.TextField(
+                blank=True,
+                help_text="A redirection to an URL matching the regex will trigger authentication",
+                null=True,
+                verbose_name="Login URL regex",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="snapshot_exclude_element_re",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Regex of HTML elements to skip related assets downloading",
+                verbose_name="Assets exclude HTML regex",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="snapshot_exclude_mime_re",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Regex of mimetypes to skip related assets saving",
+                verbose_name="Assets exclude mime regex",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="snapshot_exclude_url_re",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Regex of URL to skip related assets downloading",
+                verbose_name="Assets exclude URL regex",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="snapshot_html",
+            field=models.BooleanField(
+                default=True,
+                help_text="Archive binary files, HTML content and download related assets",
+                verbose_name="Archive content 🔖",
+            ),
+        ),
     ]

@@ -17,8 +17,8 @@ resort, the default policy ``(default)`` is selected.
 You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the
 ``🌐 Crawl a new URL`` page (see :doc:`add_to_queue`).
 
-Indexing decision
------------------
+Crawl
+-----
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_decision.png
    :class: sosse-screenshot
@@ -82,7 +82,7 @@ This option removes HTML elements `<nav>`, `<header>` and `<footer>` before proc
 * ``From index``: words used inside navigation elements are not added to the search index, this is the default.
 * ``From index and screenshots``: as above, also the elements are deleted before taking screenshots, this can be useful
   when websites are using sticky elements that follows scrolling.
-* ``From index, screens and HTML snaps``: as above, but also removes the elements from the HTML snapshot.
+* ``From index, screens and HTML archive``: as above, but also removes the elements from the HTML archive.
 * ``No``: the elements are not removed and are handled like regular elements.
 
 Thumbnail mode
@@ -170,37 +170,37 @@ In case the script triggers an error, further processing of the page is aborted 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
-.. _policy_html_snapshot:
+.. _policy_archive:
 
-HTML snapshot
--------------
+Archive
+-------
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_html_snapshot.png
+.. image:: ../../../tests/robotframework/screenshots/crawl_policy_archive.png
    :class: sosse-screenshot
 
-Snapshot html
-"""""""""""""
+Archive content
+"""""""""""""""
 
-This option enables capturing snapshots of crawled HTML pages and there related images, CSS, etc. it relies on for
+This option enables capturing snapshots of binary files, HTML pages and there related images, CSS, etc. it relies on for
 offline use.
 
 A browser can be used to take the snapshot after dynamic content is loaded.
 
-Snapshot exclude url re
-"""""""""""""""""""""""
+Assets exclude URL regex
+""""""""""""""""""""""""
 
 This field defines a regular expression of URL of related assets to skip downloading. For example, setting a regex of
 ``png$`` would make the crawler skip the download of URL ending with ``png``.
 
-Snapshot exclude mime re
-""""""""""""""""""""""""
+Assets exclude mime regex
+"""""""""""""""""""""""""
 
 This field defines a regular expression of mimetypes of related assets to skip saving, however files are still
 downloaded to determine there mimetype. For example, setting a regex of ``image/.*`` would make the crawler skip saving
 images.
 
-Snapshot exclude element re
-"""""""""""""""""""""""""""
+Assets exclude HTML regex
+"""""""""""""""""""""""""
 
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
 regex of ``audio|video`` would make the crawler skip the download of medias.
@@ -241,11 +241,11 @@ See :doc:`../authentication` for general guidelines on authentication.
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_auth.png
    :class: sosse-screenshot
 
-Login URL
-"""""""""
+Login URL regex
+"""""""""""""""
 
-If crawling a page matching the policy gets redirected to the ``Login URL``, the crawler will attempt to authenticate
-using the parameters defined below.
+If crawling a page matching the policy gets redirected to an URL matching the ``Login URL regex``, the crawler will
+attempt to authenticate using the parameters defined below.
 
 Form selector
 """""""""""""

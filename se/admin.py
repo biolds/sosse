@@ -433,7 +433,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
     @staticmethod
     def archive(obj):
-        return format_html('🔗 <a href="{}">Archived page</a>', obj.get_absolute_url())
+        return format_html('🔖 <a href="{}">Archived page</a>', obj.get_absolute_url())
 
     @staticmethod
     def domain(obj):
@@ -622,7 +622,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     readonly_fields = ("documents",)
     fieldsets = (
         (
-            "⚡ Index",
+            "⚡ Crawl",
             {
                 "fields": (
                     "url_regex",
@@ -651,7 +651,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "🔖 HTML snapshot",
+            "🔖 Archive",
             {
                 "fields": (
                     "snapshot_html",

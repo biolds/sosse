@@ -885,17 +885,26 @@ class CrawlPolicy(models.Model):
 
     snapshot_html = models.BooleanField(
         default=True,
-        help_text="Store pages as HTML and download requisite assets",
-        verbose_name="Snapshot HTML 🔖",
+        help_text="Archive binary files, HTML content and download related assets",
+        verbose_name="Archive content 🔖",
     )
     snapshot_exclude_url_re = models.TextField(
-        blank=True, default="", help_text="Regexp of URL to skip asset downloading"
+        blank=True,
+        default="",
+        help_text="Regex of URL to skip related assets downloading",
+        verbose_name="Assets exclude URL regex",
     )
     snapshot_exclude_mime_re = models.TextField(
-        blank=True, default="", help_text="Regexp of mimetypes to skip asset saving"
+        blank=True,
+        default="",
+        help_text="Regex of mimetypes to skip related assets saving",
+        verbose_name="Assets exclude mime regex",
     )
     snapshot_exclude_element_re = models.TextField(
-        blank=True, default="", help_text="Regexp of elements to skip asset downloading"
+        blank=True,
+        default="",
+        help_text="Regex of HTML elements to skip related assets downloading",
+        verbose_name="Assets exclude HTML regex",
     )
 
     thumbnail_mode = models.CharField(
@@ -957,8 +966,8 @@ class CrawlPolicy(models.Model):
     auth_login_url_re = models.TextField(
         null=True,
         blank=True,
-        verbose_name="Login URL regexp",
-        help_text="A redirection to an URL matching the regexp will trigger authentication",
+        verbose_name="Login URL regex",
+        help_text="A redirection to an URL matching the regex will trigger authentication",
     )
     auth_form_selector = models.TextField(
         null=True,

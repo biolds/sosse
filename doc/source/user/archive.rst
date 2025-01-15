@@ -6,8 +6,8 @@ Archived pages can be access from the search results, by clicking the ``archive`
 .. image:: ../../../tests/robotframework/screenshots/archive_header.png
    :class: sosse-screenshot
 
-When the :doc:`Crawl Policy <../crawl/policies>` has 🔖 HTML snapshots or 📷 screenshots enabled,
-the archive page shows the rendered content and links to other indexed page can be clicked:
+When the :doc:`Crawl Policy <../crawl/policies>` has ``🔖 Archive content`` or ``📷 Take screenshots`` enabled,
+the archive page shows the rendered content and links to other indexed pages can be clicked:
 
 .. image:: ../../../tests/robotframework/screenshots/archive_screenshot.png
    :class: sosse-screenshot

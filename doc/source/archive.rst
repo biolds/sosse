@@ -14,16 +14,16 @@ Text archive
 The text content of all crawled page is stored. This text archive retains links information and can be used to reach
 other archived pages.
 
-HTML snapshots
---------------
+HTML archive
+------------
 
 By default, the crawlers store HTML pages and files it depends on (images, stylesheets...). This behaviour can be
-controlled in the :ref:`⚡ Crawl policy <policy_html_snapshot>`.
+controlled in the :ref:`⚡ Crawl policy <policy_archive>`.
 
 It is possible to use a browser to take the snapshot, in this case the snapshot is taken after the page is rendered
 (after Javascript execution).
 
-All HTML snapshots can be cleared with a :ref:`management command <cli_clear_html_archive>`.
+All HTML archived pages can be cleared with a :ref:`management command <cli_clear_html_archive>`.
 
 Page screenshots
 ----------------

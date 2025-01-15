@@ -31,7 +31,7 @@ from django.utils.timezone import now
 
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
 from .analytics import AnalyticsView
-from .crawl_status import CrawlStatusContentView, CrawlStatusView
+from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .html_asset import HTMLAsset
@@ -379,10 +379,10 @@ class DocumentAdmin(admin.ModelAdmin):
         return CrawlersContentView.as_view(admin_site=self.admin_site)(request)
 
     def crawl_queue(self, request):
-        return CrawlStatusView.as_view(admin_site=self.admin_site)(request)
+        return CrawlQueueView.as_view(admin_site=self.admin_site)(request)
 
     def crawl_queue_content(self, request):
-        return CrawlStatusContentView.as_view(admin_site=self.admin_site)(request)
+        return CrawlQueueContentView.as_view(admin_site=self.admin_site)(request)
 
     def analytics(self, request):
         return AnalyticsView.as_view()(request)

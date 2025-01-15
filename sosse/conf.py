@@ -212,7 +212,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default="",
         ),
         "crawl_status_autorefresh": ConfOption(
-            comment="Delay between crawl status page autorefresh (in seconds).",
+            comment="Delay between crawl info autorefresh in Crawl queue, and Crawlers pages (in seconds).",
             default=5,
             type=int,
         ),

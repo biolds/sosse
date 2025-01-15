@@ -22,9 +22,9 @@ from .utils import human_dt
 from .views import AdminView
 
 
-class CrawlStatusContentView(AdminView):
+class CrawlQueueContentView(AdminView):
     title = "Crawl queue"
-    template_name = "admin/crawl_status_content.html"
+    template_name = "admin/crawl_queue_content.html"
     permission_required = "se.view_crawlerstats"
     admin_site = None
 
@@ -89,5 +89,5 @@ class CrawlStatusContentView(AdminView):
         )
 
 
-class CrawlStatusView(CrawlersOperationMixin, CrawlStatusContentView):
-    template_name = "admin/crawl_status.html"
+class CrawlQueueView(CrawlersOperationMixin, CrawlQueueContentView):
+    template_name = "admin/crawl_queue.html"

@@ -34,7 +34,7 @@ from .atom import AtomView
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .cookies_import import CookiesImportView
-from .crawl_status import CrawlStatusContentView, CrawlStatusView
+from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .download import DownloadView
@@ -176,8 +176,8 @@ class ViewsTest:
         for url, view_cls in (
             ("/admin/", None),
             ("/admin/se/document/queue/", AddToQueueView),
-            ("/admin/se/document/crawl_queue/", CrawlStatusView),
-            ("/admin/se/document/crawl_queue_content/", CrawlStatusContentView),
+            ("/admin/se/document/crawl_queue/", CrawlQueueView),
+            ("/admin/se/document/crawl_queue_content/", CrawlQueueContentView),
             ("/admin/se/document/crawlers/", CrawlersView),
             ("/admin/se/document/crawlers_content/", CrawlersContentView),
             ("/admin/se/crawlpolicy/", None),

@@ -861,7 +861,7 @@ class CrawlPolicy(models.Model):
     url_regex_pg = models.TextField()
     enabled = models.BooleanField(default=True)
     recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
-    mimetype_regex = models.TextField(default="text/.*")
+    mimetype_regex = models.TextField(default=".*")
     recursion_depth = models.PositiveIntegerField(
         default=0,
         help_text="Level of external links (links that don't match the regex) to recurse into",

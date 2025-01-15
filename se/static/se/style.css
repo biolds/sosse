@@ -256,3 +256,19 @@ select:hover {
 .loader {
   animation: rotate 1s linear infinite;
 }
+
+/* Django admin apps tables */
+.app-se.module > table,
+.app-auth.module table {
+  width: 70%;
+}
+
+.app-se.module > table th,
+.app-auth.module table th {
+  width: 60%;
+}
+
+.app-se.module > table td,
+.app-auth.module table td {
+  width: 40%;
+}

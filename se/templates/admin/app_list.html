@@ -21,19 +21,16 @@
             <tr>
               <th scope="row">🌐  <a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
               <td></td>
-              <td></td>
             </tr>
           {% endif %}
           {% if 'se.view_crawlerstats' in perms %}
             <tr>
                <th scope="row"><div style="display: inline; color: #1ce51c">✔ </div><a href="{% url 'admin:crawl_status' %}">Crawl status</a></th>
               <td></td>
-              <td></td>
             </tr>
           {% endif %}
           <tr>
             <th scope="row">📊 <a href="{% url 'admin:analytics' %}">Analytics</a></th>
-            <td></td>
             <td></td>
           </tr>
         {% endif %}
@@ -53,16 +50,6 @@
                 {% endif %}
               </td>
             {% else %}
-              <td></td>
-            {% endif %}
-
-            {% if model.admin_url and show_changelinks %}
-              {% if model.view_only %}
-                <td><a href="{{ model.admin_url }}" class="viewlink">{% translate 'View' %}</a></td>
-              {% else %}
-                <td><a href="{{ model.admin_url }}" class="changelink">{% translate 'Change' %}</a></td>
-              {% endif %}
-            {% elif show_changelinks %}
               <td></td>
             {% endif %}
           </tr>

@@ -19,7 +19,7 @@ Shows if the document triggered an error during its last crawl.
 Error
 """""
 
-The error tat was triggered during last crawl if any.
+The error that was triggered during last crawl if any.
 
 Crawl DT
 """"""""

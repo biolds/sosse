@@ -61,7 +61,7 @@ This defines how the keyword is matched against the field:
 
 - ``Containing``: this matches when the keyword is contained inside the field.
 - ``Equal to``: this matches when the keyword is exactly to entire field.
-- ``Matching Regexp``: matching is done using Posix regular expressions (see
+- ``Matching Regex``: matching is done using Posix regular expressions (see
   `PostgreSQL documention <https://www.postgresql.org/docs/current/functions-matching.html#POSIX-SYNTAX-DETAILS>`_ for
   details)
 

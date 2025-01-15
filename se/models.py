@@ -806,7 +806,7 @@ def validate_url_regexp(val):
             if len(val.splitlines()) == 1:
                 error = e.__cause__
             else:
-                error = f"Regexp on line {line_no + 1} failed: {e.__cause__}"
+                error = f"Regex on line {line_no + 1} failed: {e.__cause__}"
             raise ValidationError(error)
 
 

@@ -18,7 +18,7 @@
 |  | Click Element | xpath=//div[@id='adv_search1']/input[@value='+']
 |  | Select From List By Label | xpath=//select[@name='ft2'] | Exclude
 |  | Select From List By Label | xpath=//select[@name='ff2'] | Mimetype
-|  | Select From List By Label | xpath=//select[@name='fo2'] | Matching Regexp
+|  | Select From List By Label | xpath=//select[@name='fo2'] | Matching Regex
 |  | Input Text | xpath=//input[@name='fv2'] | text/markdown
 |  | Capture Element Screenshot | id=adv_search | extended_search.png
 |  | Capture Element Screenshot | xpath=//div[@id='adv_search2']/input[@value='+'] | extended_search_plus_button.png

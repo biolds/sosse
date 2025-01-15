@@ -23,16 +23,16 @@ Indexing decision
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_decision.png
    :class: sosse-screenshot
 
-URL regexp
-""""""""""
+URL regex
+"""""""""
 
-The regexp matched against URLs to crawl. Multiple regexp can be set, one by line. Lines starting with a ``#`` are
-treated as comments. The default ``(default)`` policy's regexp cannot be modified.
+The regex matched against URLs to crawl. Multiple regex can be set, one by line. Lines starting with a ``#`` are
+treated as comments. The default ``(default)`` policy's regex cannot be modified.
 
 Documents
 """""""""
 
-Shows the URLs in the database that match the regexp.
+Shows the URLs in the database that match the regex.
 
 .. _recursion_depth_params:
 
@@ -55,7 +55,7 @@ links outside the policy. See :doc:`recursion_depth` for more explanations.
 Mimetype regex
 """"""""""""""
 
-The mimetype of pages must match the regexp to be crawled.
+The mimetype of pages must match the regex to be crawled.
 
 Index URL parameters
 """"""""""""""""""""
@@ -189,21 +189,21 @@ A browser can be used to take the snapshot after dynamic content is loaded.
 Snapshot exclude url re
 """""""""""""""""""""""
 
-This field defines a regular expression of URL of related assets to skip downloading. For example, setting a regexp of
+This field defines a regular expression of URL of related assets to skip downloading. For example, setting a regex of
 ``png$`` would make the crawler skip the download of URL ending with ``png``.
 
 Snapshot exclude mime re
 """"""""""""""""""""""""
 
 This field defines a regular expression of mimetypes of related assets to skip saving, however files are still
-downloaded to determine there mimetype. For example, setting a regexp of ``image/.*`` would make the crawler skip saving
+downloaded to determine there mimetype. For example, setting a regex of ``image/.*`` would make the crawler skip saving
 images.
 
 Snapshot exclude element re
 """""""""""""""""""""""""""
 
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
-regexp of ``audio|video`` would make the crawler skip the download of medias.
+regex of ``audio|video`` would make the crawler skip the download of medias.
 
 Recurrence
 ----------

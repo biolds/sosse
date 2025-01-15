@@ -27,7 +27,7 @@ class Command(BaseCommand):
     help = "Mass delete documents."
 
     def add_arguments(self, parser):
-        parser.add_argument("url regexp")
+        parser.add_argument("url regex")
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -42,9 +42,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options["ignore_case"]:
-            docs = Document.objects.filter(url__regex=options["url regexp"])
+            docs = Document.objects.filter(url__regex=options["url regex"])
         else:
-            docs = Document.objects.filter(url__iregex=options["url regexp"])
+            docs = Document.objects.filter(url__iregex=options["url regex"])
 
         count = docs.count()
         if options["dry_run"]:

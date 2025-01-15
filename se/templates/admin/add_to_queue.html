@@ -19,7 +19,7 @@
             </p>
             <ul class="ul_stripe">
                 {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
-                    <li>All URL matching the policy regexp will be crawled</li>
+                    <li>All URL matching the policy regex will be crawled</li>
                     {% if crawl_policy.recursion_depth > 1 %}
                         <li>The crawler will recurse {{ crawl_policy.recursion_depth }} time{{ crawl_policy.recursion_depth|pluralize:'s' }} into URL when matching policies "Depending on depth"</li>
                     {% endif %}

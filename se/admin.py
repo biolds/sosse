@@ -99,6 +99,22 @@ def get_admin():
     return admin_site
 
 
+class CharFieldForm(forms.ModelForm):
+    """Base form that displays TextField to TextInputs."""
+
+    TEXT_FIELDS = tuple()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name in getattr(self, "TEXT_FIELDS"):
+                continue
+            if isinstance(field.widget, forms.Textarea):
+                # Same width as text areas
+                widget = forms.TextInput(attrs={"style": "width: 610px"})
+                self.fields[name].widget = widget
+
+
 class ConflictingSearchEngineFilter(admin.SimpleListFilter):
     title = "conflicting"
     parameter_name = "conflict"
@@ -526,8 +542,8 @@ class InlineAuthField(admin.TabularInline):
     model = AuthField
 
 
-class CrawlPolicyForm(forms.ModelForm):
-    mimetype_regex = forms.CharField()
+class CrawlPolicyForm(CharFieldForm):
+    TEXT_FIELDS = ("url_regex", "script")
 
     class Meta:
         model = CrawlPolicy
@@ -757,11 +773,16 @@ class DomainSettingAdmin(admin.ModelAdmin):
         )
 
 
+class CookieForm(CharFieldForm):
+    pass
+
+
 @admin.register(Cookie)
 class CookieAdmin(admin.ModelAdmin):
     list_display = ("domain", "domain_cc", "path", "name", "value", "expires")
     search_fields = ("domain", "path")
     ordering = ("domain", "domain_cc", "path", "name")
+    form = CookieForm
     exclude = tuple()
 
     def get_search_results(self, request, queryset, search_term):
@@ -788,20 +809,29 @@ class CookieAdmin(admin.ModelAdmin):
         return CookiesImportView.as_view()(request)
 
 
+class ExcludedUrlForm(CharFieldForm):
+    TEXT_FIELDS = ("comment",)
+
+
 @admin.register(ExcludedUrl)
 class ExcludedUrlAdmin(admin.ModelAdmin):
     list_display = ("url",)
     search_fields = ("url", "comment")
     ordering = ("url",)
+    form = ExcludedUrlForm
 
 
 if settings.DEBUG:
+
+    class HTMLAssetForm(CharFieldForm):
+        pass
 
     @admin.register(HTMLAsset)
     class HTMLAssetAdmin(admin.ModelAdmin):
         list_display = ("url", "filename", "ref_count")
         search_fields = ("url", "filename")
         ordering = ("url", "filename", "ref_count")
+        form = HTMLAssetForm
         exclude = tuple()
 
         def has_add_permission(self, request, obj=None):

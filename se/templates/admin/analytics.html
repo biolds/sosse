@@ -65,6 +65,16 @@
             </div>
         </a>
     </span>
+    {% if crawlers_count %}
+        <span class="chart card">
+            <a href="{% url "admin:crawlers" %}" style="text-decoration: none">
+                <div id="url_queued" class="card_text">
+                  {{ crawlers_count }}<br/>
+                  Crawlers
+                </div>
+            </a>
+        </span>
+    {% endif %}
     <h4>Index</h4>
     <span class="chart">
         <div id="hdd_chart_loader" class="loader" style="display: inline-block; margin-left: 50%">🪃</div>

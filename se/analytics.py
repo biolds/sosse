@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from .models import WorkerStats
 from .views import AdminView
 
 
@@ -20,3 +21,9 @@ class AnalyticsView(AdminView):
     template_name = "admin/analytics.html"
     permission_required = set()
     title = "Analytics"
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        if self.request.user.has_perm("se.view_crawlerstats"):
+            context["crawlers_count"] = WorkerStats.objects.count()
+        return context

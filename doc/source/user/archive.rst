@@ -12,5 +12,5 @@ the archive page shows the rendered content and links to other indexed pages can
 .. image:: ../../../tests/robotframework/screenshots/archive_screenshot.png
    :class: sosse-screenshot
 
-The ``✏️ Text version`` links to the text version of the page. The ``📚 Word weights`` shows the weight of
+The ``✏️ Text`` links to the text version of the page. The ``📚 Word weights`` shows the weight of
 stemmed words in the page, these are used to calculate the score of the page in the :doc:`search results <search>`.

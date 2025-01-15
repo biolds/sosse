@@ -218,9 +218,9 @@ How often pages should be reindexed:
 
 * ``Once``: pages are not recrawled.
 * ``Constant``: pages are recrawled every ``Recrawl dt min``.
-* ``Adaptive``: pages recrawled more often when they change. The interval between recrawls starts at ``Recrawl dt min``.
-  Then, when the page is recrawled the interval is multiplied by 2 if the content is unchanged, divided by 2 otherwise.
-  The interval stays enclosed between ``Recrawl dt min`` and ``Recrawl dt max``.
+* ``Adaptive``: pages are recrawled more often when they change. The interval between recrawls starts at
+  ``Recrawl dt min``. Then, when the page is recrawled the interval is multiplied by 2 if the content is unchanged,
+  divided by 2 otherwise. The interval stays enclosed between ``Recrawl dt min`` and ``Recrawl dt max``.
 
 Hash mode
 """""""""

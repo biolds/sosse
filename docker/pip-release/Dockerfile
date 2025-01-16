@@ -20,6 +20,7 @@ RUN /etc/init.d/postgresql start && \
 USER root
 RUN echo '#!/bin/bash -x \n \
 /etc/init.d/postgresql start \n \
+until pg_isready; do sleep 1; done \n \
 test -e /etc/sosse/sosse.conf || (cp -p /etc/sosse_src/* /etc/sosse/) \n \
 touch /var/log/sosse/{debug.log,main.log,crawler.log,uwsgi.log,webserver.log} \n \
 mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/html/ \n \

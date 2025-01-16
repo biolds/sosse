@@ -42,7 +42,7 @@ EOF
     systemctl enable django-test.service
     systemctl restart django-test.service
   else
-    /usr/bin/python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000 &
+    python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000 &
   fi
 else
   echo "Service already exist" >&2

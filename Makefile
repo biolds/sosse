@@ -154,10 +154,6 @@ _deb_pkg_functional_tests:
 	bash ./tests/docker_run.sh docker/pip-test/Dockerfile
 
 _rf_functional_tests_deps:
-	cat /etc/sosse/sosse.conf
-	cat /etc/nginx/sites-enabled/sosse.conf
-	ls /var/lib/sosse/static
-	ls /var/lib/sosse/static/swagger
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
 

@@ -41,7 +41,7 @@ from .url import has_browsable_scheme, sanitize_url, urlparse
 crawl_logger = logging.getLogger("crawl")
 
 
-class SeleniumBrowser(Browser):
+class BrowserSelenium(Browser):
     _worker_no = 0
     _driver = None
     cookie_loaded = []

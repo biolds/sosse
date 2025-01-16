@@ -24,10 +24,10 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 
-from .browser_selenium import SeleniumBrowser
+from .browser_selenium import BrowserSelenium
 
 
-class BrowserFirefox(SeleniumBrowser):
+class BrowserFirefox(BrowserSelenium):
     DRIVER_CLASS = webdriver.Firefox
     name = "firefox"
 

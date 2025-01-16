@@ -20,10 +20,10 @@ from django.conf import settings
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromiumOptions
 
-from .browser_selenium import SeleniumBrowser
+from .browser_selenium import BrowserSelenium
 
 
-class BrowserChromium(SeleniumBrowser):
+class BrowserChromium(BrowserSelenium):
     DRIVER_CLASS = webdriver.Chrome
     name = "chromium"
 

@@ -21,6 +21,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromiumOptions
 
 from .browser_selenium import BrowserSelenium
+from .domain_setting import user_agent
 
 
 class BrowserChromium(BrowserSelenium):
@@ -67,8 +68,6 @@ class BrowserChromium(BrowserSelenium):
 
     @classmethod
     def _get_options(cls):
-        from .models import user_agent
-
         opts = []
         if settings.SOSSE_PROXY:
             opts.append(f"--proxy-server={settings.SOSSE_PROXY.rstrip('/')}")

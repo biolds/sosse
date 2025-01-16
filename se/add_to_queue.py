@@ -21,7 +21,9 @@ from django.urls import reverse
 from django.utils.timezone import now
 from django.views.generic import FormView
 
-from .models import CrawlPolicy, Document, DomainSetting
+from .crawl_policy import CrawlPolicy
+from .document import Document
+from .domain_setting import DomainSetting
 from .url import sanitize_url, validate_url
 from .utils import human_datetime
 from .views import AdminView

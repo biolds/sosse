@@ -34,13 +34,15 @@ from .atom import AtomView
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .cookies_import import CookiesImportView
+from .crawl_policy import CrawlPolicy
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
+from .domain_setting import DomainSetting
 from .download import DownloadView
 from .history import HistoryView
 from .html import HTMLExcludedView, HTMLView
-from .models import CrawlerStats, CrawlPolicy, DomainSetting
+from .models import CrawlerStats
 from .online import OnlineCheckView
 from .opensearch import OpensearchView
 from .preferences import PreferencesView

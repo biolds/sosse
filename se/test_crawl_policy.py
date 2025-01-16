@@ -16,7 +16,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TransactionTestCase
 
-from .models import CrawlPolicy
+from .crawl_policy import CrawlPolicy
 
 
 class CrawlPolicyTest(TransactionTestCase):

@@ -22,11 +22,12 @@ from django.test import TransactionTestCase, override_settings
 from django.utils.html import format_html
 from requests import HTTPError
 
+from .crawl_policy import CrawlPolicy
 from .document import Document
+from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
 from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .html_snapshot import HTMLSnapshot, css_parser, extract_css_url
-from .models import CrawlPolicy, DomainSetting
 from .page import Page
 from .test_mock import BrowserMock
 

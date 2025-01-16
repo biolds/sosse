@@ -15,7 +15,7 @@
 
 from django.test import TransactionTestCase
 
-from .models import Cookie
+from .cookie import Cookie
 
 
 class SearchTest(TransactionTestCase):

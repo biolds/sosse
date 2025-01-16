@@ -35,6 +35,7 @@ from .browser import (
     retry,
 )
 from .browser_request import BrowserRequest
+from .cookie import Cookie
 from .page import NAV_ELEMENTS, Page
 from .url import has_browsable_scheme, sanitize_url, urlparse
 
@@ -203,7 +204,7 @@ class BrowserSelenium(Browser):
 
     @classmethod
     def _get_page(cls, url):
-        from .models import CrawlPolicy
+        from .crawl_policy import CrawlPolicy
 
         redirect_count = cls._wait_for_ready(url)
 
@@ -222,8 +223,6 @@ class BrowserSelenium(Browser):
 
     @classmethod
     def _save_cookies(cls, url):
-        from .models import Cookie
-
         _cookies = []
         crawl_logger.debug(f"got cookies {cls.driver.get_cookies()}")
         for cookie in cls.driver.get_cookies():
@@ -253,8 +252,6 @@ class BrowserSelenium(Browser):
 
     @classmethod
     def _load_cookies(cls, url):
-        from .models import Cookie
-
         if not has_browsable_scheme(url):
             return
 
@@ -447,7 +444,7 @@ class BrowserSelenium(Browser):
     @classmethod
     @retry
     def take_screenshots(cls, url, image_name):
-        from .models import CrawlPolicy
+        from .crawl_policy import CrawlPolicy
 
         crawl_policy = CrawlPolicy.get_from_url(url)
         if crawl_policy and crawl_policy.remove_nav_elements in (

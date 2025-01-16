@@ -25,6 +25,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 
 from .browser_selenium import BrowserSelenium
+from .domain_setting import user_agent
 
 
 class BrowserFirefox(BrowserSelenium):
@@ -48,8 +49,6 @@ class BrowserFirefox(BrowserSelenium):
 
     @classmethod
     def _get_options_obj(cls):
-        from .models import user_agent
-
         options = FirefoxOptions()
         options.set_preference(
             "browser.download.dir",

@@ -27,7 +27,9 @@ from django.utils.timezone import now
 
 from ...browser_chromium import BrowserChromium
 from ...browser_firefox import BrowserFirefox
-from ...models import MINUTELY, CrawlerStats, CrawlPolicy, Document, WorkerStats
+from ...crawl_policy import CrawlPolicy
+from ...document import Document
+from ...models import MINUTELY, CrawlerStats, WorkerStats
 
 crawl_logger = logging.getLogger("crawler")
 

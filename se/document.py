@@ -36,6 +36,7 @@ from PIL import Image
 
 from .browser import AuthElemFailed, SkipIndexing
 from .document_meta import DocumentMeta
+from .domain_setting import DomainSetting
 from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
 from .url import url_beautify, validate_url
@@ -214,7 +215,7 @@ class Document(models.Model):
         if not isinstance(content, str):
             raise ValueError("content must be a string")
 
-        from .models import CrawlPolicy
+        from .crawl_policy import CrawlPolicy
 
         if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
             pass
@@ -292,7 +293,7 @@ class Document(models.Model):
         return links
 
     def index(self, page, crawl_policy, verbose=False, force=False):
-        from .models import CrawlPolicy
+        from .crawl_policy import CrawlPolicy
 
         n = now()
         stats = {"prev": n}
@@ -367,8 +368,6 @@ class Document(models.Model):
             self._index_log("favicon", stats, verbose)
 
             if crawl_policy.snapshot_html:
-                from .models import CrawlPolicy
-
                 if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_FROM_ALL:
                     page.remove_nav_elements()
                 snapshot = HTMLSnapshot(page, crawl_policy)
@@ -399,7 +398,7 @@ class Document(models.Model):
             os.unlink(src)
 
     def screenshot_index(self, links, crawl_policy):
-        from .models import CrawlPolicy
+        from .crawl_policy import CrawlPolicy
 
         if crawl_policy.remove_nav_elements in (
             CrawlPolicy.REMOVE_NAV_FROM_ALL,
@@ -447,7 +446,8 @@ class Document(models.Model):
 
     @staticmethod
     def queue(url, parent_policy, parent):
-        from .models import CrawlPolicy, ExcludedUrl
+        from .crawl_policy import CrawlPolicy
+        from .models import ExcludedUrl
 
         if ExcludedUrl.objects.filter(url=url, starting_with=False).first():
             crawl_logger.debug(f"skipping ExcludedUrl {url}")
@@ -490,7 +490,7 @@ class Document(models.Model):
         return doc
 
     def _schedule_next(self, changed, crawl_policy):
-        from .models import CrawlPolicy
+        from .crawl_policy import CrawlPolicy
 
         stop = False
         if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER or (
@@ -515,7 +515,8 @@ class Document(models.Model):
 
     @staticmethod
     def crawl(worker_no):
-        from .models import CrawlPolicy, DomainSetting, Link, WorkerStats
+        from .crawl_policy import CrawlPolicy
+        from .models import Link, WorkerStats
 
         doc = Document.pick_queued(worker_no)
         if doc is None:
@@ -700,6 +701,4 @@ class Document(models.Model):
         self.delete_thumbnail()
 
     def default_domain_setting(self):
-        from .models import DomainSetting
-
         return DomainSetting.get_from_url(self.url)

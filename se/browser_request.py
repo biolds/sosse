@@ -19,6 +19,8 @@ import requests
 from django.conf import settings
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
+from .cookie import Cookie
+from .domain_setting import user_agent
 from .page import Page
 from .url import absolutize_url, url_remove_fragment
 
@@ -55,8 +57,6 @@ class BrowserRequest(Browser):
 
     @classmethod
     def _get_cookies(cls, url):
-        from .models import Cookie
-
         jar = requests.cookies.RequestsCookieJar()
 
         for c in Cookie.get_from_url(url):
@@ -81,8 +81,6 @@ class BrowserRequest(Browser):
 
     @classmethod
     def _requests_params(cls):
-        from .models import user_agent
-
         params = {
             "stream": True,
             "allow_redirects": False,
@@ -103,8 +101,6 @@ class BrowserRequest(Browser):
 
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):
-        from .models import Cookie
-
         jar = cls._get_cookies(url)
         crawl_logger.debug(f"from the jar: {jar}")
         s = requests.Session()

@@ -31,18 +31,14 @@ from django.utils.timezone import now
 
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
 from .analytics import AnalyticsView
+from .cookie import Cookie
+from .crawl_policy import CrawlPolicy
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
+from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
-from .models import (
-    AuthField,
-    Cookie,
-    CrawlPolicy,
-    DomainSetting,
-    ExcludedUrl,
-    SearchEngine,
-)
+from .models import AuthField, ExcludedUrl, SearchEngine
 from .utils import mimetype_icon, reverse_no_escape
 
 

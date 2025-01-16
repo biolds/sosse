@@ -16,8 +16,8 @@
 from django.test import TransactionTestCase
 from django.utils import timezone
 
+from .cookie import Cookie
 from .cookies_import import CookieForm
-from .models import Cookie
 
 NOW = timezone.now().replace(microsecond=0)
 NOW_TIMESTAMP = NOW.strftime("%s")

@@ -55,6 +55,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="crawlpolicy",
             name="url_regex",
-            field=models.TextField(unique=True, validators=[se.models.validate_url_regexp]),
+            field=models.TextField(unique=True, validators=[se.crawl_policy.validate_url_regexp]),
         ),
     ]

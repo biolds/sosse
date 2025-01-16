@@ -17,7 +17,8 @@ from django.db import models
 from django.utils.timezone import now
 
 from .crawlers import CrawlersOperationMixin
-from .models import Document, WorkerStats
+from .document import Document
+from .models import WorkerStats
 from .utils import human_dt
 from .views import AdminView
 

@@ -23,8 +23,9 @@ from PIL import Image
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
+from .crawl_policy import CrawlPolicy
 from .document import Document
-from .models import CrawlPolicy, DomainSetting
+from .domain_setting import DomainSetting
 
 TEST_SERVER_DOMAIN = "127.0.0.1:8000"
 TEST_SERVER_URL = f"http://{TEST_SERVER_DOMAIN}/"

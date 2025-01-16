@@ -22,8 +22,9 @@ from django.test import TransactionTestCase
 
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
+from .crawl_policy import CrawlPolicy
 from .document import Document
-from .models import CrawlPolicy, Link
+from .models import Link
 from .page import Page
 from .utils import http_date_format, http_date_parser
 from .www import WWWView

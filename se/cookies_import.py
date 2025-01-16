@@ -22,7 +22,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.views.generic import FormView
 
-from .models import Cookie
+from .cookie import Cookie
 from .views import AdminView
 
 

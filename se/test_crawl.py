@@ -19,8 +19,10 @@ from unittest import mock
 from django.test import TransactionTestCase, override_settings
 
 from .browser import AuthElemFailed, SkipIndexing
+from .crawl_policy import CrawlPolicy
 from .document import Document
-from .models import CrawlPolicy, DomainSetting, ExcludedUrl, Link
+from .domain_setting import DomainSetting
+from .models import ExcludedUrl, Link
 from .page import Page
 from .test_mock import BrowserMock
 

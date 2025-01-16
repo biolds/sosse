@@ -15,7 +15,7 @@
 
 import json
 
-from .models import Document
+from .document import Document
 from .views import UserView
 
 

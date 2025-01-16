@@ -21,9 +21,9 @@ from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 from django.views.generic import View
 
+from .crawl_policy import CrawlPolicy
 from .document import Document, extern_link_flags
 from .login import LoginRequiredMixin
-from .models import CrawlPolicy
 from .online import online_status
 from .search_form import SearchForm
 from .url import sanitize_url, url_beautify

@@ -123,9 +123,12 @@ class Page:
         return selector
 
     def _dom_walk(self, elem, crawl_policy, links, queue_links, document, in_nav=False):
+        from .crawl_policy import CrawlPolicy
+        from .document import Document
+        from .models import Link
+
         if queue_links != (document is not None):
             raise Exception(f"document parameter ({document}) is required to queue links ({queue_links})")
-        from .models import CrawlPolicy, Document, Link
 
         if isinstance(elem, (Doctype, Comment)):
             return

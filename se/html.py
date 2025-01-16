@@ -19,8 +19,8 @@ from django.conf import settings
 from django.views.generic import TemplateView
 
 from .archive import ArchiveMixin
+from .crawl_policy import CrawlPolicy
 from .html_asset import HTMLAsset
-from .models import CrawlPolicy
 from .views import RedirectException, UserView
 
 

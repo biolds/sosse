@@ -24,9 +24,12 @@ from .browser import SkipIndexing
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
+from .cookie import Cookie
+from .crawl_policy import CrawlPolicy
 from .document import Document
+from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
-from .models import AuthField, Cookie, CrawlPolicy, DomainSetting, Link
+from .models import AuthField, Link
 from .test_mock import CleanTest, FirefoxTest
 
 TEST_SERVER_DOMAIN = "127.0.0.1:8000"
@@ -100,9 +103,9 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(Link.objects.count(), 0)
 
     def _reset_user_agent(self):
-        from se import models
+        from se import domain_setting
 
-        models.UA_STR = None
+        domain_setting.UA_STR = None
         self.BROWSER_CLASS.destroy()
 
     def test_20_user_agent(self):

@@ -66,8 +66,8 @@ function loadChart(elemId, apiPath, cb) {
     });
 }
 
-const colors = ["#f6ea00", "#00d111", "#253dff", "#e71d36"];
-const colorsTransparent = ["#f6ea0050", "#00d111a0", "#253dffa0", "#e71d36a0"];
+const colors = ["#253dffd0", "#e71d36d0", "#00d111d0"];
+const colorsTransparent = ["#253dff80", "#e71d3680", "#00d11180"];
 
 loadChart("hdd_chart", "/api/hdd_stats/", function (data) {
   const ctx = document.getElementById("hdd_chart");
@@ -241,8 +241,8 @@ function loadDocCharts(dt) {
               label: "Documents",
               data: docCount,
               borderWidth: 1,
-              backgroundColor: colorsTransparent[2],
-              borderColor: colors[2],
+              backgroundColor: colorsTransparent[1],
+              borderColor: colors[1],
               pointStyle: false,
             },
           ],
@@ -271,8 +271,8 @@ function loadDocCharts(dt) {
               label: "Indexing speed",
               data: speed,
               borderWidth: 1,
-              backgroundColor: colorsTransparent[3],
-              borderColor: colors[3],
+              backgroundColor: colorsTransparent[2],
+              borderColor: colors[2],
               pointStyle: false,
             },
           ],
@@ -310,8 +310,8 @@ function loadDocCharts(dt) {
               label: "Crawler queue",
               data: queue,
               borderWidth: 1,
-              backgroundColor: colorsTransparent[1],
-              borderColor: colors[1],
+              backgroundColor: colorsTransparent[0],
+              borderColor: colors[0],
               pointStyle: false,
             },
           ],

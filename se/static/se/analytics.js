@@ -149,12 +149,17 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
   });
 
   // https://stackoverflow.com/questions/45980436/chart-js-link-to-other-page-when-click-on-specific-section-in-chart
-  document.getElementById("lang_chart").onclick = function(e){
-    let bars = langChartJS.getElementsAtEventForMode(e, 'nearest', {intersect: true}, true);
+  document.getElementById("lang_chart").onclick = function (e) {
+    let bars = langChartJS.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      true,
+    );
     if (bars.length) {
       const bar = bars[0];
       const lang = langs[bar.index];
-      const isoLang = lang.lang.replace(/ .*/, '').toLowerCase();
+      const isoLang = lang.lang.replace(/ .*/, "").toLowerCase();
       window.location = `/admin/se/document/?lang_iso_639_1=${isoLang}`;
     }
   };
@@ -194,20 +199,25 @@ loadChart("mime_chart", "/api/mime_stats/", function (data) {
         },
         legend: {
           labels: {
-            filter: (legendItem, chartData) => legendItem.index < 4
-          }
-        }
+            filter: (legendItem, chartData) => legendItem.index < 4,
+          },
+        },
       },
     },
   });
 
   // https://stackoverflow.com/questions/45980436/chart-js-link-to-other-page-when-click-on-specific-section-in-chart
-  document.getElementById("mime_chart").onclick = function(e){
-    let slices = mimeChartJS.getElementsAtEventForMode(e, 'nearest', {intersect: true}, true);
+  document.getElementById("mime_chart").onclick = function (e) {
+    let slices = mimeChartJS.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      true,
+    );
     if (slices.length) {
       const slice = slices[0];
       const mime = mimes[slice.index];
-      const mimeStr = mime.mimetype.replace(/.* /, '').toLowerCase();
+      const mimeStr = mime.mimetype.replace(/.* /, "").toLowerCase();
       window.location = `/admin/se/document/?mimetype=${mimeStr}`;
     }
   };

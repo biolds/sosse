@@ -1,5 +1,16 @@
 {% load static %}
 <div style="padding: 8px 0px 5px 0px">
+{% if 'se.change_crawlerstats' in perms %}
+    <form method="POST" style="display: inline">
+      {% csrf_token %}
+      {% if pause %}
+        <input class="chart card" type="submit" name="pause" value="⏵ Running" style="background-color: #d9fabe">
+      {% else %}
+        <input class="chart card" type="submit" name="resume" value="⏸ Paused">
+      {% endif %}
+    </form>
+{% endif %}
+
   <span class="chart card">
     <a href="{% url 'admin:se_document_changelist' %}?queued=new&o=8" style="text-decoration: none">
       <div id="queue_new_count" class="card_text" title="{{ queue_new_count }} new document{{ queue_new_count|pluralize }}">
@@ -26,16 +37,6 @@
       </div>
     </a>
   </span>
-{% if 'se.change_crawlerstats' in perms %}
-    <form method="POST" style="display: inline">
-      {% csrf_token %}
-      {% if pause %}
-        <input class="chart card" type="submit" name="pause" value="⏵ Running">
-      {% else %}
-        <input class="chart card" type="submit" name="resume" value="⏸ Paused">
-      {% endif %}
-    </form>
-{% endif %}
 </div>
 
 {% if queue %}

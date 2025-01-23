@@ -12,8 +12,8 @@
 
 | Crawl a new URL
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_url
-|  | Input Text | id=id_url | http://127.0.0.1/screenshots/website/index.html
+|  | Wait Until Element Is Visible | id=id_urls
+|  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | SOSSE Wait Until Page Contains | Create a new policy
 |  | SOSSE Capture Page Screenshot | crawl_new_url.png
@@ -32,8 +32,8 @@
 
 | Crawl a binary URL
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_url
-|  | Input Text | id=id_url | http://127.0.0.1/static/Cat%20photos.zip
+|  | Wait Until Element Is Visible | id=id_urls
+|  | Input Text | id=id_urls | http://127.0.0.1/static/Cat%20photos.zip
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | SOSSE Wait Until Page Contains | Create a new policy
 |  | Click Element | xpath=//input[@value='Confirm']
@@ -87,8 +87,8 @@
 |  | Capture Element Screenshot | //fieldset[1] | policy_on_depth.png
 |  | Click Element | xpath=//input[@value="Save"]
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_url
-|  | Input Text | id=id_url | http://127.0.0.1/screenshots/website/index.html
+|  | Wait Until Element Is Visible | id=id_urls
+|  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | SOSSE Capture Page Screenshot | crawl_on_depth_add.png
 

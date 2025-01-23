@@ -14,17 +14,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from typing import Type
 from urllib.parse import quote
 
 from django.conf import settings
-from django.contrib.auth.models import Permission, User
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
-from django.template.response import SimpleTemplateResponse
+from django.contrib.auth.models import Permission
 from django.test import TransactionTestCase
 from django.utils import timezone
-from django.views.generic import View
 
 from .about import AboutView
 from .add_to_queue import AddToQueueView
@@ -86,24 +81,6 @@ class ViewsTest:
             os.rmdir(settings.SOSSE_HTML_SNAPSHOT_DIR + "http,3A/")
         except OSError:
             pass
-
-    def _view_request(self, url: str, view_cls: Type[View], params: dict, user: User, expected_status: int):
-        view = view_cls.as_view()
-        request = self._request_from_factory(url, user)
-        try:
-            response = view(request, **params)
-            if isinstance(response, SimpleTemplateResponse):
-                response.render()
-        except PermissionDenied:
-            response = HttpResponse(content="Permission denied", status=403)
-        except:  # noqa
-            raise Exception(f"Failed on {url}")
-        self.assertEqual(
-            response.status_code,
-            expected_status,
-            f"{url}\n{response.status_code} != {expected_status}\n{user}\n{response.content}\n{response.headers}",
-        )
-        return response
 
     def test_views(self):
         for url, view_cls, params in (
@@ -285,13 +262,6 @@ class ViewsTest:
             self.staff_user.user_permissions.add(permission)
             response = self.staff_client.post("/admin/se/document/crawl_queue/", {action: "1"})
             self.assertEqual(response.status_code, 200, f"{action} with permission / {response}")
-
-    def test_admin_add_crawl(self):
-        response = self.admin_client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL})
-        self.assertEqual(response.status_code, 200, response)
-
-        response = self.admin_client.post("/admin/se/document/queue_confirm/", {"url": CRAWL_URL, "action": "Confirm"})
-        self.assertEqual(response.status_code, 302, response)
 
 
 class ChromiumViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):

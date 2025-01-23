@@ -25,13 +25,15 @@ from .crawl_policy import CrawlPolicy
 from .document import Document
 from .domain_setting import DomainSetting
 from .url import sanitize_url, validate_url
-from .utils import human_datetime
+from .utils import human_datetime, plural
 from .views import AdminView
 
 
 class AddToQueueForm(forms.Form):
-    url = forms.CharField(label="URL to crawl")
-    url.widget.attrs.update({"style": "width: 100%; padding-right: 0"})
+    urls = forms.CharField(
+        widget=forms.Textarea(attrs={"style": "width: 100%; padding-right: 0", "rows": "3"}),
+        label="URLs to crawl",
+    )
     recursion_depth = forms.IntegerField(min_value=0, required=False, help_text="Maximum depth of links to follow")
     show_on_homepage = forms.BooleanField(
         required=False,
@@ -47,13 +49,24 @@ class AddToQueueForm(forms.Form):
 
         super().__init__(data, *args, **kwargs)
 
-    def clean_url(self):
-        try:
-            value = sanitize_url(self.cleaned_data["url"])
-        except Exception as e:
-            raise ValidationError(e.args[0])
-        validate_url(value)
-        return value
+    def clean_urls(self):
+        errors = []
+        urls = []
+        for line_no, line in enumerate(self.cleaned_data["urls"].splitlines()):
+            url = line.strip()
+            if not url:
+                continue
+
+            try:
+                url = sanitize_url(url)
+                validate_url(url)
+            except Exception as e:
+                errors.append(f"Line {line_no + 1}: {e.args[0]}")
+
+            urls.append(url)
+        if errors:
+            raise ValidationError("Invalid URL" + plural(len(errors)) + ":\n" + "\n".join(errors))
+        return urls
 
 
 class AddToQueueView(AdminView, FormView):
@@ -70,7 +83,7 @@ class AddToQueueView(AdminView, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(self.admin_site.each_context(self.request))
-        context["form"].fields["url"].widget.attrs.update({"autofocus": True})
+        context["form"].fields["urls"].widget.attrs.update({"autofocus": True})
         return context
 
 
@@ -82,28 +95,49 @@ class AddToQueueConfirmationView(AddToQueueView):
 
     def form_valid(self, form):
         if self.request.POST.get("action") == "Confirm":
-            crawl_recurse = form.cleaned_data.get("recursion_depth") or 0
-            doc, created = Document.objects.get_or_create(
-                url=form.cleaned_data["url"], defaults={"crawl_recurse": crawl_recurse}
-            )
-            if not created:
-                doc.crawl_next = now()
-                if crawl_recurse:
-                    doc.crawl_recurse = crawl_recurse
+            crawl_recurse = form.cleaned_data.get("recursion_depth")
 
-            doc.show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
-            doc.save()
-            messages.success(self.request, "URL was queued.")
+            urls = form.cleaned_data["urls"]
+            for url in urls:
+                recursion_depth = crawl_recurse
+                if recursion_depth is None:
+                    crawl_policy = CrawlPolicy.get_from_url(url)
+                    recursion_depth = crawl_policy.recursion_depth
+
+                doc, created = Document.objects.get_or_create(url=url, defaults={"crawl_recurse": recursion_depth})
+                if not created:
+                    doc.crawl_next = now()
+                    if recursion_depth:
+                        doc.recursion_depth = recursion_depth
+
+                doc.show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
+                doc.save()
+            url_count = len(urls)
+            if url_count > 1:
+                msg = f"{url_count} URL{plural(url_count)} were queued."
+            else:
+                msg = "URL was queued."
+            messages.success(self.request, msg)
             return redirect(reverse("admin:crawl_queue"))
 
-        crawl_policy = CrawlPolicy.get_from_url(form.cleaned_data["url"])
-        form = AddToQueueForm(self.request.POST, initial={"recursion_depth": crawl_policy.recursion_depth})
+        crawl_policies = set()
+        for url in form.cleaned_data["urls"]:
+            crawl_policy = CrawlPolicy.get_from_url(url)
+            crawl_policies.add(crawl_policy)
+
+        initial = {}
+        if len(crawl_policies) == 1:
+            initial = {"recursion_depth": crawl_policy.recursion_depth}
+
+        form = AddToQueueForm(self.request.POST, initial=initial)
         form.is_valid()
+
         context = self.get_context_data(form=form)
         context.update(
             {
+                "crawl_policies": sorted(crawl_policies, key=lambda x: x.url_regex),
                 "crawl_policy": crawl_policy,
-                "url": form.cleaned_data["url"],
+                "urls": form.cleaned_data["urls"],
                 "CrawlPolicy": CrawlPolicy,
                 "DomainSetting": DomainSetting,
                 "form": form,

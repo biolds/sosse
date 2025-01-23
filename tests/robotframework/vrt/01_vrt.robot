@@ -14,8 +14,8 @@
 
 | Crawl a new URL
 |  | Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_url
-|  | Input Text | id=id_url | http://127.0.0.1/screenshots/website/index.html
+|  | Wait Until Element Is Visible | id=id_urls
+|  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | Wait Until Page Contains | Create a new policy
 |  | VRT check | New policy

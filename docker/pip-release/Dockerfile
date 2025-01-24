@@ -4,7 +4,6 @@ ARG PIP_TRUSTED_HOST=
 RUN virtualenv /venv
 RUN /venv/bin/pip install sosse uwsgi && /venv/bin/pip cache purge
 RUN mkdir -p /etc/sosse/ /etc/sosse_src/ /var/log/sosse /var/log/uwsgi
-RUN /venv/bin/sosse-admin default_conf | sed -e 's/^#db_pass.*/db_pass=sosse/' -e 's/^#\(chromium_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' > /etc/sosse_src/sosse.conf
 ADD uwsgi.* /etc/sosse_src/
 ADD sosse.conf /etc/nginx/sites-enabled/default
 RUN chown -R root:www-data /etc/sosse /etc/sosse_src && chmod 750 /etc/sosse_src/ && chmod 640 /etc/sosse_src/*
@@ -21,7 +20,8 @@ USER root
 RUN echo '#!/bin/bash -x \n \
 /etc/init.d/postgresql start \n \
 until pg_isready; do sleep 1; done \n \
-test -e /etc/sosse/sosse.conf || (cp -p /etc/sosse_src/* /etc/sosse/) \n \
+test -e /etc/sosse/sosse.conf || /venv/bin/sosse-admin default_conf | sed -e "s/^#db_pass.*/db_pass=sosse/" -e "s/^#\(chromium_options=.*\)$/\\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse_src/sosse.conf \n \
+test -e /etc/sosse/sosse.conf || cp -p /etc/sosse_src/* /etc/sosse/ \n \
 touch /var/log/sosse/{debug.log,main.log,crawler.log,uwsgi.log,webserver.log} \n \
 mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/html/ \n \
 chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse \n \

@@ -25,6 +25,7 @@ from django.db import models
 from django.http import HttpResponse
 from django.shortcuts import redirect, reverse
 from django.template import defaultfilters
+from django.template.loader import render_to_string
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.timezone import now
@@ -624,10 +625,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
         "url_regex",
         "enabled",
         "docs",
-        "recursion",
-        "recursion_depth",
-        "default_browse_mode",
-        "recrawl_mode",
+        "crawl_policy_desc",
     )
     list_filter = ("enabled",)
     search_fields = ("url_regex",)
@@ -726,6 +724,20 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             '<a href="{}">{}</a>',
             reverse("admin:se_document_changelist") + "?" + params,
             count,
+        )
+
+    @staticmethod
+    @admin.display(description="Policy")
+    def crawl_policy_desc(obj):
+        return render_to_string(
+            "admin/crawl_policy_desc.html",
+            {
+                "crawl_policy": obj,
+                "CrawlPolicy": CrawlPolicy,
+                "DomainSetting": DomainSetting,
+                "label_tag": "label_tag_inline",
+                "settings": settings,
+            },
         )
 
     def get_search_results(self, request, queryset, search_term):

@@ -93,6 +93,11 @@ class AddToQueueConfirmationView(AddToQueueView):
             return redirect(reverse("admin:queue"))
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"].fields["urls"].widget.attrs.pop("autofocus")
+        return context
+
     def form_valid(self, form):
         if self.request.POST.get("action") == "Confirm":
             crawl_recurse = form.cleaned_data.get("recursion_depth")

@@ -297,3 +297,15 @@ div.app-se > table td,
 div.app-auth > table td {
   width: 40%;
 }
+
+.label_tag {
+  padding-left: 15px;
+}
+
+.label_tag_inline {
+  padding-left: 5px;
+}
+
+.column-crawl_policy_desc {
+  min-width: 40%;
+}

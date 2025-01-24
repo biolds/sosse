@@ -218,7 +218,9 @@ loadChart("mime_chart", "/api/mime_stats/", function (data) {
       const slice = slices[0];
       const mime = mimes[slice.index];
       const mimeStr = mime.mimetype.replace(/.* /, "").toLowerCase();
-      window.location = `/admin/se/document/?mimetype=${mimeStr}`;
+      const mimeParam = encodeURIComponent(mimeStr);
+
+      window.location = `/admin/se/document/?mimetype=${mimeParam}`;
     }
   };
 });

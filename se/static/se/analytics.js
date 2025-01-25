@@ -218,9 +218,13 @@ loadChart("mime_chart", "/api/mime_stats/", function (data) {
       const slice = slices[0];
       const mime = mimes[slice.index];
       const mimeStr = mime.mimetype.replace(/.* /, "").toLowerCase();
-      const mimeParam = encodeURIComponent(mimeStr);
 
-      window.location = `/admin/se/document/?mimetype=${mimeParam}`;
+      if (mimeStr === "<none>") {
+        window.location = `/admin/se/document/?mimetype=`;
+      } else {
+        const mimeParam = encodeURIComponent(mimeStr);
+        window.location = `/admin/se/document/?mimetype=${mimeParam}`;
+      }
     }
   };
 });

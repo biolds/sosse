@@ -305,7 +305,8 @@ function loadDocCharts(dt) {
             tooltip: {
               callbacks: {
                 label: function (context) {
-                  return `${context.raw.y} doc / min`;
+                  const dtUnit = dt === 24 ? "min" : "day";
+                  return `${context.raw.y} doc / ${dtUnit}`;
                 },
               },
             },

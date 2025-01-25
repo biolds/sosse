@@ -721,6 +721,17 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     )
     actions = [crawl_policy_enable_disable, crawl_policy_switch]
 
+    def get_queryset(self, request):
+        #
+        return CrawlPolicy.objects.order_by(
+            models.Case(
+                models.When(url_regex_pg=".*", then=models.Value(0)),
+                default=models.Value(1),
+                output_field=models.IntegerField(),
+            ),
+            "url_regex_pg",
+        )
+
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.url_regex == "(default)":
             return self.readonly_fields + ("url_regex", "enabled")

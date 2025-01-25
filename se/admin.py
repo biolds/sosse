@@ -39,7 +39,7 @@ from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
-from .models import AuthField, ExcludedUrl, SearchEngine
+from .models import AuthField, ExcludedUrl, Link, SearchEngine
 from .utils import mimetype_icon, reverse_no_escape
 
 
@@ -182,6 +182,35 @@ class DocumentQueueFilter(admin.SimpleListFilter):
         return queryset
 
 
+class DocumentOrphanFilter(admin.SimpleListFilter):
+    title = "orphan"
+    parameter_name = "orphan"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("no_children", "No children"),
+            ("no_parent", "No parent"),
+            ("full", "No parent or children"),
+        )
+
+    def queryset(self, request, queryset):
+        links = Link.objects.exclude(doc_from__isnull=True)
+        links = links.exclude(doc_to__isnull=True)
+
+        if self.value() in ("no_children", "full"):
+            queryset = queryset.filter(redirect_url__isnull=True)
+            children = set(links.values_list("doc_from", flat=True).distinct())
+            queryset = queryset.exclude(id__in=children)
+
+        if self.value() in ("no_parent", "full"):
+            parents = set(links.values_list("doc_to", flat=True).distinct())
+            queryset = queryset.exclude(id__in=parents)
+            redirects_url = Document.objects.filter(redirect_url__isnull=False).values_list("redirect_url", flat=True)
+            queryset = queryset.exclude(url__in=redirects_url)
+
+        return queryset
+
+
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), content_hash=None)
@@ -238,6 +267,7 @@ class DocumentAdmin(admin.ModelAdmin):
         DocumentErrorFilter,
         "show_on_homepage",
         "hidden",
+        DocumentOrphanFilter,
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)

@@ -37,6 +37,9 @@ crawl_logger = logging.getLogger("crawler")
 
 
 class Link(models.Model):
+    # doc_from can be null when a document is deleted,
+    # in this case the link is not deleted to keep its `text` to weight
+    # in the ranking
     doc_from = models.ForeignKey(
         Document,
         null=True,
@@ -44,6 +47,7 @@ class Link(models.Model):
         on_delete=models.SET_NULL,
         related_name="links_to",
     )
+    # doc_to can be null when storing extern_url
     doc_to = models.ForeignKey(
         Document,
         null=True,

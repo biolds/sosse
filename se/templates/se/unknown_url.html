@@ -1,21 +1,24 @@
 {% extends "se/base.html" %}
+{% block top_bar %}
+    <div id="top_bar_links">
+        <ul class="archive_links" style="margin-bottom: 20px">
+            <li><a href="{{ url }}" {{ extern_link_flags }}>🌍 Source page</a></li>
+            <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Pages linking here</a></li>
+            <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from this page</a></li>
+        </ul>
+    </div>
+{% endblock %}
 {% block body %}
-<ul class="ul_stripe">
-  <li>This page is not indexed</li>
-  <li>This page follows the policy
-    {% if 'se.view_crawlpolicy' in perms %}
-      <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy.url_regex }}</a>
-    {% else %}
-      {{ crawl_policy.url_regex }}
+    <p>
+        🚫 This page has not been indexed yet.
+    </p>
+    <p>
+    </p>
+    {% if 'se.add_document' in perms %}
+        <form method="post" action="{% url 'admin:queue_confirm' %}">
+            {% csrf_token %}
+            <input type="hidden" name="urls" value="{{ url }}">
+            <input type="submit" name="action" value="Add to crawl queue" style="margin-top: 16px">
+        </form>
     {% endif %}
-  </li>
-  <li><a href="{{ url }}" {{ extern_link_flags }}>🌍 Source page</a></li>
-  {% if 'se.add_document' in perms %}
-    <form method="post" action="{% url 'admin:queue_confirm' %}">
-      {% csrf_token %}
-      <input type="hidden" name="url" value="{{ url }}">
-      <input type="submit" name="action" value="Add to the crawl queue" style="margin-top: 16px">
-    </form>
-  {% endif %}
-</ul>
 {% endblock %}

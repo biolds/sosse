@@ -18,6 +18,10 @@ SOSSE's documentation!
    cli.rst
    user_doc.rst
    screenshots.rst
+
+.. toctree::
+   :maxdepth: 1
+
    CHANGELOG.md
 
 Indices and tables

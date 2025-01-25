@@ -194,7 +194,7 @@ _docker_unit_test_prepare:
 	chown -R www-data:www-data /var/lib/sosse/ /var/log/sosse /var/lib/sosse/browser_config
 	cp -r tests/pages/ /root/httpbin/httpbin/bin/static/
 	/usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
-	/tmp/sudo_sosse default_conf | sed -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
+	/tmp/sudo_sosse default_conf | sed -e "s/^#db_pass.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
 
 docker_unit_test_prepare:
 	docker run -v $(current_dir):/sosse -ti biolds/sosse:debian-test bash -c 'cp -r /sosse /sosse-rw ; export PYTHONPATH=/sosse-rw ; cd /sosse-rw ; make _docker_unit_test_prepare ; bash -i'

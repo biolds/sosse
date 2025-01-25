@@ -18,7 +18,7 @@ RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.35.0/gec
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*
 RUN chown www-data:www-data /var/www/.cache /var/www/.mozilla
-RUN sed -e 's/^#\(chromium_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' -i /etc/sosse/sosse.conf
+RUN sed -e 's/^#\(chromium_options=.*\)$/\1 --no-sandbox --disable-dev-shm-usage/' -e 's/^#db_pass.*/db_pass=sosse/' -i /etc/sosse/sosse.conf
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
 
@@ -26,7 +26,7 @@ WORKDIR /
 USER postgres
 RUN echo "listen_addresses='127.0.0.1'" >> /etc/postgresql/15/main/postgresql.conf
 RUN /etc/init.d/postgresql start && \
-    psql --command "CREATE USER sosse WITH PASSWORD 'CHANGE ME';" && \
+    psql --command "CREATE USER sosse WITH PASSWORD 'sosse';" && \
     createdb -O sosse sosse && \
     /etc/init.d/postgresql stop
 

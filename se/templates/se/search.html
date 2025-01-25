@@ -278,15 +278,11 @@
             </div>
         </div>
         {% for r in paginated %}
-            <div class="res" {% if r.has_thumbnail or r.screenshot_count %}style="min-height: 100px"{% endif %}>
+            <div class="res" {% if r.preview %}style="min-height: 100px"{% endif %}>
                 <div>
-                    {% if r.has_thumbnail or r.screenshot_count %}
+                    {% if r.preview %}
                         <a href="{{ r.link }}" {{ r.link_flag }}>
-                            {% if r.has_thumbnail %}
-                                <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ r.image_name }}.jpg" class="archive-preview" />
-                            {% else %}
-                                <img src="{{ settings.SOSSE_SCREENSHOTS_URL }}{{ r.image_name }}_0.{{ r.screenshot_format }}" class="archive-preview" />
-                            {% endif %}
+                            <img src="{{ r.preview }}" class="archive-preview" />
                         </a>
                     {% endif %}
                     {% if r.favicon and not r.favicon.missing %}

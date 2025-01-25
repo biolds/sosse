@@ -26,6 +26,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from .document import Document, extern_link_flags, remove_accent
+from .html_asset import HTMLAsset
 from .models import SearchEngine, SearchHistory
 from .search_form import FILTER_FIELDS, SearchForm
 from .utils import human_nb
@@ -262,6 +263,7 @@ class SearchView(UserView):
 
         if paginated:
             for r in paginated:
+                # Set default link target and source / archive link
                 if form.cleaned_data["c"]:
                     r.link = r.get_absolute_url()
                     r.link_flag = ""
@@ -272,6 +274,16 @@ class SearchView(UserView):
                     r.link_flag = extern_link_flags()
                     r.extra_link = r.get_absolute_url()
                     r.extra_link_flag = ""
+
+                if r.has_thumbnail:
+                    r.preview = f"{settings.SOSSE_THUMBNAILS_URL}{r.image_name()}.jpg"
+                elif r.screenshot_count:
+                    r.preview = f"{settings.SOSSE_SCREENSHOTS_URL}{r.image_name()}_0.{r.screenshot_format}"
+                elif r.mimetype and r.mimetype.startswith("image/") and r.has_html_snapshot:
+                    asset = HTMLAsset.objects.filter(url=r.url).first()
+                    if asset:
+                        preview_url = self.request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
+                        r.preview = preview_url
 
         extra_link_txt = "archive"
         if form.cleaned_data["c"]:

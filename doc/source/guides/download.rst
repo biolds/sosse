@@ -69,7 +69,7 @@ For the Project Gutenberg pages, we will create two new policies:
 Start Crawling
 --------------
 
-To start crawling, go to the :doc:`Crawl a new URL <../crawl/add_to_queue>` page and enter the URL od the RSS feed:
+To start crawling, go to the :doc:`Crawl a new URL <../crawl/new_url>` page and enter the URL od the RSS feed:
 ``http://www.gutenberg.org/cache/epub/feeds/today.rss``.
 
 Check the parameters, then click ``Confirm``. Once confirmed, you will be able to see the crawl queue retrieving the

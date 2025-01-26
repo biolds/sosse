@@ -3,7 +3,7 @@ Atom and RSS feeds
 
 SOSSE can crawl `Atom <https://en.wikipedia.org/wiki/Atom_(web_standard)>`_ and
 `RSS <https://en.wikipedia.org/wiki/Rss>`_ feeds, this can be useful to crawl websites that are updated often, and skip
-already indexed pages. To index a syndication feed, it needs to be :doc:`queued explicitly <add_to_queue>`.
+already indexed pages. To index a syndication feed, it needs to be :doc:`queued explicitly <new_url>`.
 
 .. note::
    SOSSE crawler does not recurse into feeds declared in the ``<head>`` element of webpages. To crawl a feed, the URL of the XML feed must be added to the crawl queue manually.

@@ -40,7 +40,7 @@ Browsable home
    :class: sosse-screenshot
 
 The :ref:`browsable home option <conf_option_browsable_home>` can be enabled to display the list of archived websites on
-the homepage. When enabled, all entry points URL crawled are displayed (see :doc:`crawl/add_to_queue`) are shown.
+the homepage. When enabled, all entry points URL crawled are displayed (see :doc:`crawl/new_url`) are shown.
 Displayed website can be customized using the :ref:`show on homepage <document_show_on_homepage>` option of documents.
 
 .. _online_detection:

@@ -15,7 +15,7 @@ handle the link. The policy having the ``URL regex`` matching the longest part o
 resort, the default policy ``(default)`` is selected.
 
 You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the
-``🌐 Crawl a new URL`` page (see :doc:`add_to_queue`).
+``🌐 Crawl a new URL`` page (see :doc:`new_url`).
 
 Crawl
 -----

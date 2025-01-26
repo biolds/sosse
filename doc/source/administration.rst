@@ -6,7 +6,7 @@ Administration
    :caption: Contents:
 
    admin_ui.rst
-   crawl/add_to_queue.rst
+   crawl/new_url.rst
    crawl/status.rst
    crawl/crawlers.rst
    crawl/analytics.rst

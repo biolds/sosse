@@ -11,7 +11,7 @@ by user.
 The permission are set by type of objects modifiable through the :doc:`admin_ui`. Some of these permissions also give
 access to other parts of the user interface:
 
-- ``Can add document``: gives access to the :doc:`🌐 Crawl a new URL <crawl/add_to_queue>` page
+- ``Can add document``: gives access to the :doc:`🌐 Crawl a new URL <crawl/new_url>` page
 - ``Can change document``: gives access to the document actions (``Crawl now``, ``Remove from crawl queue``,
   ``Convert screens to jpeg``)
 - ``Can view crawler stats``: gives access to the :doc:`✔ Crawl queue <crawl/status>` page and

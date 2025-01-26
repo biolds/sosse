@@ -7,7 +7,7 @@ Administration
 
    admin_ui.rst
    crawl/new_url.rst
-   crawl/status.rst
+   crawl/queue.rst
    crawl/crawlers.rst
    crawl/analytics.rst
    crawl/policies.rst

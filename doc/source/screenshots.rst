@@ -49,7 +49,7 @@ Screenshots
 .. figure:: ../../tests/robotframework/screenshots/crawl_queue.png
    :class: sosse-screenshot
 
-   :doc:`Real-time crawling status <crawl/status>`
+   :doc:`Real-time crawling status <crawl/queue>`
 
 .. raw:: html
 

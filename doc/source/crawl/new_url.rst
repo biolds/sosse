@@ -11,6 +11,6 @@ multiple URLs to be crawled when a worker is available.
    :class: sosse-screenshot
 
 By default, all links found in the page will be visited and the crawlers will recurse until all pages are discovered.
-Submitting redirects to the :doc:`status` page.
+Submitting redirects to the :doc:`queue` page.
 
 How pages are indexed and which pages to recurse into is defined by :doc:`policies`.

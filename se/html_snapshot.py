@@ -106,7 +106,11 @@ class InternalCSSParser:
         for is_url, segment in extract_css_url(content):
             if is_url and has_browsable_scheme(segment):
                 url = absolutize_url(base_url, segment)
-                url = snapshot.download_asset(url)
+                force_mime = None
+                if url.endswith(".css"):
+                    # Force the mime since because libmagic sometimes fails to identify it correctly
+                    force_mime = "text/css"
+                url = snapshot.download_asset(url, force_mime)
                 css += f'url("{url}")'
             else:
                 css += segment
@@ -342,7 +346,7 @@ class HTMLSnapshot:
                     else:
                         force_mime = None
                         if elem.name == "link" and "stylesheet" in elem.attrs.get("rel", []):
-                            # Force the mime since because libmagic sometimes fials to identify it correctly
+                            # Force the mime since because libmagic sometimes fails to identify it correctly
                             force_mime = "text/css"
 
                         logger.debug(f"downloading asset from {attr} attribute / {elem.name}")

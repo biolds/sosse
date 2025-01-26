@@ -1,5 +1,5 @@
-Analytics
-=========
+📊 Analytics
+============
 
 .. image:: ../../../tests/robotframework/screenshots/analytics.png
    :class: sosse-screenshot

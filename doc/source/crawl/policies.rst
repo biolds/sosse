@@ -1,5 +1,5 @@
-Crawl Policies
-==============
+⚡ Crawl Policies
+=================
 
 Policy matching
 ---------------
@@ -17,8 +17,8 @@ resort, the default policy ``(default)`` is selected.
 You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the
 ``🌐 Crawl a new URL`` page (see :doc:`new_url`).
 
-Crawl
------
+⚡ Crawl
+--------
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_decision.png
    :class: sosse-screenshot
@@ -102,8 +102,8 @@ Defines the source for pages thumbnails displayed in the search results and home
 
 .. _policy_take_screenshot:
 
-Browser
--------
+🌍 Browser
+----------
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_browser.png
    :class: sosse-screenshot
@@ -172,8 +172,8 @@ In case the script triggers an error, further processing of the page is aborted 
 
 .. _policy_archive:
 
-Archive
--------
+🔖 Archive
+----------
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_archive.png
    :class: sosse-screenshot
@@ -205,8 +205,8 @@ Assets exclude HTML regex
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
 regex of ``audio|video`` would make the crawler skip the download of medias.
 
-Recurrence
-----------
+🕑 Recurrence
+-------------
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_updates.png
    :class: sosse-screenshot
@@ -233,8 +233,8 @@ Define how changes between recrawl are detected:
 
 .. _authentication_params:
 
-Authentication
---------------
+🔒 Authentication
+-----------------
 
 See :doc:`../authentication` for general guidelines on authentication.
 

@@ -10,7 +10,7 @@ Screenshots
 
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/archive_screenshot.png
+.. figure:: ../../tests/robotframework/screenshots/guide_download_archive_html.png
    :class: sosse-screenshot
 
    :doc:`Offline browsing <user/archive>`

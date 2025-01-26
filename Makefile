@@ -61,7 +61,7 @@ doc_gen:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
 	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
 	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
-	cat README.md | grep -v '^=\+$$' | sed -e 's/^\(SOSSE 🦦\)$$/# \1/' -e 's/^\(Try it out\|Keep in touch\)/## \1/' -e 's#https://sosse.readthedocs.io/en/stable/##g' -e 's#\[documentation\]()#documentation#' -e 's#\[documentation\](install.html)#[install pages](install.html)#' -e 's/\(install\|screenshots\).html/\1/' > doc/source/introduction.md
+	cat README.md | grep -v '^=\+$$' | sed -e 's/^\(SOSSE 🦦\)$$/# \1/' -e 's/^\(Try it out\|Keep in touch\)/## \1/' -e 's#https://sosse.readthedocs.io/en/stable/##g' -e 's#\[documentation\]()#documentation#' -e 's#\[documentation\](install.html)#[install pages](install.html)#' -e 's#\(install\|screenshots\|guides/[^.]\+\).html#\1#' > doc/source/introduction.md
 
 docker_run:
 	docker volume inspect sosse_postgres &>/dev/null || docker volume create sosse_postgres
@@ -159,7 +159,7 @@ _rf_functional_tests_deps:
 
 _rf_functional_tests: _rf_functional_tests_deps
 	cp tests/pages/test.zip /var/lib/sosse/static/Cat\ photos.zip
-	cd ./tests/robotframework && /rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
+	cd ./tests/robotframework && tar xvzf guide_download.tar.gz && /rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
 
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'

@@ -6,3 +6,4 @@ Guides
    :caption: Contents:
 
    guides/captcha.rst
+   guides/download.rst

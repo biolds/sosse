@@ -46,4 +46,5 @@
 | SOSSE Capture Page Screenshot |
 | | [Arguments] | @{args} | &{kwargs} |
 | | Page Should Not Contain | Traceback |
+| | Page Should Not Contain | Page not found |
 | | Capture Page Screenshot | @{args} | &{kwargs} |

@@ -19,6 +19,7 @@ import os
 import re
 import shlex
 from datetime import datetime
+from io import BytesIO
 from time import sleep
 
 import psutil
@@ -39,7 +40,7 @@ from .cookie import Cookie
 from .page import NAV_ELEMENTS, Page
 from .url import has_browsable_scheme, sanitize_url, urlparse
 
-crawl_logger = logging.getLogger("crawl")
+crawl_logger = logging.getLogger("crawler")
 
 
 class BrowserSelenium(Browser):
@@ -421,7 +422,6 @@ class BrowserSelenium(Browser):
     @classmethod
     @retry
     def create_thumbnail(cls, url, image_name):
-        width, height = cls.screen_size()
         cls.driver.set_window_rect(0, 0, *cls.screen_size())
         cls.driver.execute_script('document.body.style.overflow = "hidden"')
 
@@ -457,45 +457,63 @@ class BrowserSelenium(Browser):
         dir_name = os.path.dirname(base_name)
         os.makedirs(dir_name, exist_ok=True)
 
-        width, height = cls.screen_size()
-        cls.driver.set_window_rect(0, 0, *cls.screen_size())
+        screen_width, screen_height = cls.screen_size()
+        cls.driver.set_window_rect(0, 0, screen_width, screen_height)
         cls.driver.execute_script('document.body.style.overflow = "hidden"')
         doc_height = cls.driver.execute_script(
             """
+            window.scroll(0, 0);
             const body = document.body;
             const html = document.documentElement;
-            return height = Math.max(body.scrollHeight, body.offsetHeight,
-                                   html.clientHeight, html.scrollHeight, html.offsetHeight);
-        """
+            return Math.max(body.scrollHeight, body.offsetHeight,
+                            html.clientHeight, html.scrollHeight, html.offsetHeight);
+            """
         )
 
-        crawl_logger.debug(f"doc_height {doc_height}, height {height}")
         img_no = 0
-        while (img_no + 1) * height < doc_height:
-            cls.scroll_to_page(img_no)
-            cls.driver.get_screenshot_as_file(f"{base_name}_{img_no}.png")
+        top_offset = 0
+        remainging_height = doc_height
+        while remainging_height > 0:
+            missing_height = cls.scroll_to_page(top_offset)
+            crawl_logger.debug(f"Scrolling to {top_offset} (missing {missing_height} / {remainging_height})")
+            screenshot_file = f"{base_name}_{img_no}.png"
+            screenshot = cls.driver.get_screenshot_as_png()
+
+            # Compute the height of the image, this is required because
+            # the size of the viewport is different from the size of the window
+            img = Image.open(BytesIO(screenshot))
+            img_width, img_height = img.size
+
+            top_offset += img_height
+            remainging_height -= img_height
             img_no += 1
 
-        remaining = doc_height - (img_no * height)
-        if remaining > 0:
-            cls.driver.set_window_rect(0, 0, width, remaining)
-            cls.scroll_to_page(img_no)
-            cls.driver.get_screenshot_as_file(f"{base_name}_{img_no}.png")
-            img_no += 1
+            # For the last screenshot, we cannot scroll past the bottom
+            # of the page, so we need to remove extra content from the screenshot
+            if missing_height > 0 and missing_height < img_height:
+                cropped_img = img.crop((0, missing_height, img_width, img_height))
+                cropped_img.save(screenshot_file, "PNG")
+            else:
+                with open(screenshot_file, "wb") as f:
+                    f.write(screenshot)
 
         return img_no
 
     @classmethod
-    def scroll_to_page(cls, page_no):
-        _, height = cls.screen_size()
-        height *= page_no
-        cls.driver.execute_script(
-            f"""
+    def scroll_to_page(cls, height):
+        return int(
+            cls.driver.execute_script(
+                f"""
+            // scroll the main window
             window.scroll(0, {height});
+
+            // scroll other element that have a scroll (like navigation tab)
             [...document.querySelectorAll('*')].filter(x => x.clientHeight < x.scrollHeight).forEach(e => {{
                 e.scroll({{left: 0, top: {height}, behavior: 'instant'}});
             }});
-        """
+            return {height} - document.documentElement.scrollTop;
+            """
+            )
         )
 
     @classmethod

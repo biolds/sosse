@@ -146,4 +146,5 @@
 |  | Should Be Equal As Numbers | ${dom_count} | 1
 |  | Click Link | admin
 |  | SOSSE Wait Until Page Contains | Important dates
-|  | SOSSE Capture Page Screenshot | user_management.png
+|  | Scroll To Elem | xpath=//h2[contains(., 'Permissions')]
+|  | SOSSE Capture Page Screenshot | permissions.png

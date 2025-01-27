@@ -8,3 +8,4 @@ Guides
    guides/archive.rst
    guides/captcha.rst
    guides/download.rst
+   guides/feed_website_monitor.rst

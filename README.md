@@ -37,7 +37,9 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
 - 🔖 **Web Page Archiving**: Save web pages for offline browsing.
   ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
 
-- 🔔 **Atom Feeds**: Receive updates when a new page containing a keyword is published, and generate content feeds for websites that don’t have them.
+- 🔔 **Atom Feeds**: Generate content feeds for websites that don’t have them, or receive updates when a new page
+  containing a keyword is published.
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/feed_website_monitor.html))
 
 - 🔒 **Authentication**: The crawler can authenticate to access private pages and retrieve content.
 

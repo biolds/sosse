@@ -21,6 +21,8 @@ from .document import Document
 SORT = (
     ("-rank", "Most relevant first"),
     ("rank", "Most relevant last"),
+    ("modified_date", "Last modified ascending"),
+    ("-modified_date", "Last modified descending"),
     ("crawl_first", "First crawled ascending"),
     ("-crawl_first", "First crawled descending"),
     ("crawl_last", "Last crawled ascending"),

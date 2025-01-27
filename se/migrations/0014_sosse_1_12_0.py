@@ -123,4 +123,9 @@ class Migration(migrations.Migration):
                 verbose_name="Archive content 🔖",
             ),
         ),
+        migrations.AddField(
+            model_name="document",
+            name="modified_date",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="Last modification date"),
+        ),
     ]

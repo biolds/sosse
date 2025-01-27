@@ -259,6 +259,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "err",
         "_crawl_last",
         "_crawl_next",
+        "_modified_date",
         "crawl_dt",
     )
     list_filter = (
@@ -311,6 +312,7 @@ class DocumentAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "crawl_first",
+                    "modified_date",
                     "_crawl_last_txt",
                     "_crawl_next_txt",
                     "crawl_dt",
@@ -334,6 +336,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "_lang_txt",
         "_content",
         "crawl_first",
+        "modified_date",
         "_crawl_last_txt",
         "_crawl_next_txt",
         "crawl_dt",
@@ -461,6 +464,12 @@ class DocumentAdmin(admin.ModelAdmin):
                 return defaultfilters.date(obj.crawl_last, "DATETIME_FORMAT")
             else:
                 return "Not yet crawled"
+
+    @staticmethod
+    @admin.display(ordering="modified_date")
+    def _modified_date(obj):
+        if obj:
+            return defaultfilters.date(obj.modified_date, "DATETIME_FORMAT")
 
     @staticmethod
     def fav(obj):

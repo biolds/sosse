@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta, timezone
+from hashlib import md5
 from unittest import mock
 
 from django.test import TransactionTestCase, override_settings
@@ -53,6 +54,7 @@ class CrawlerTest(TransactionTestCase):
             take_screenshots=False,
         )
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        self.fake_yesterday = self.fake_now - timedelta(days=1)
         self.fake_next = datetime(2000, 1, 1, 1, tzinfo=timezone.utc)
         self.fake_next2 = datetime(2000, 1, 1, 3, tzinfo=timezone.utc)
         self.fake_next3 = datetime(2000, 1, 1, 6, tzinfo=timezone.utc)
@@ -629,3 +631,85 @@ class CrawlerTest(TransactionTestCase):
         doc = Document.objects.get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertTrue(doc.hidden)
+
+    def _test_modification_base(self):
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.url, "http://127.0.0.1/")
+
+        # Mark the document as modified in the past
+        doc.modified_date = self.fake_yesterday
+
+        # Force crawl_next to make it crawled again when calling self._crawl()
+        doc.crawl_next = self.fake_yesterday
+        doc.save()
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    def test_180_modification_no_change(self, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 1"})
+        self.crawl_policy.hash_mode = CrawlPolicy.HASH_RAW
+        self.crawl_policy.save()
+        self._test_modification_base()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+        self.assertEqual(doc.content, "Hello world 1")
+        self.assertEqual(doc.content_hash, md5(b"Hello world 1").hexdigest())
+        self.assertEqual(doc.modified_date, self.fake_yesterday)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("se.document.now")
+    def test_190_modification_change(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 1"})
+        now.side_effect = lambda: self.fake_now
+        self.crawl_policy.hash_mode = CrawlPolicy.HASH_RAW
+        self.crawl_policy.save()
+        self._test_modification_base()
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+
+        self.assertEqual(doc.content, "Hello world 2")
+        self.assertEqual(doc.content_hash, md5(b"Hello world 2").hexdigest())
+        self.assertEqual(doc.modified_date, self.fake_now)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("se.document.now")
+    def test_200_modification_no_change_number_normalize(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 1"})
+        now.side_effect = lambda: self.fake_now
+        self.crawl_policy.hash_mode = CrawlPolicy.HASH_NO_NUMBERS
+        self.crawl_policy.save()
+        self._test_modification_base()
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+
+        self.assertEqual(doc.content, "Hello world 2")
+        self.assertEqual(doc.content_hash, md5(b"Hello world 0").hexdigest())
+        self.assertEqual(doc.modified_date, self.fake_yesterday)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("se.document.now")
+    def test_210_modification_change_number_normalize(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        now.side_effect = lambda: self.fake_now
+        self._test_modification_base()
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.get()
+
+        self.assertEqual(doc.content, "Hello world change")
+        self.assertEqual(doc.content_hash, md5(b"Hello world change").hexdigest())
+        self.assertEqual(doc.modified_date, self.fake_now)

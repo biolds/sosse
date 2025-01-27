@@ -110,6 +110,8 @@ class Document(models.Model):
     crawl_next = models.DateTimeField(blank=True, null=True, verbose_name="Crawl next")
     crawl_dt = models.DurationField(blank=True, null=True, verbose_name="Crawl DT")
     crawl_recurse = models.PositiveIntegerField(default=0, verbose_name="Recursion remaining")
+    modified_date = models.DateTimeField(blank=True, null=True, verbose_name="Last modification date")
+
     error = models.TextField(blank=True, default="")
     error_hash = models.TextField(blank=True, default="")
     show_on_homepage = models.BooleanField(default=False, help_text="Display this document on the homepage")
@@ -242,6 +244,7 @@ class Document(models.Model):
         self.redirect_url = None
         self.too_many_redirects = False
         self.content = ""
+        self.content_hash = ""
         self.normalized_content = ""
         self.title = ""
         self.normalized_title = ""
@@ -299,6 +302,7 @@ class Document(models.Model):
         stats = {"prev": n}
         self._index_log("start", stats, verbose)
 
+        current_hash = self.content_hash
         self._clear_base_content()
         self._index_log("queuing links", stats, verbose)
 
@@ -329,12 +333,13 @@ class Document(models.Model):
 
             links = self._parse_text(page, crawl_policy, stats, verbose)
 
-        content_hash = self._hash_content(self.content, crawl_policy)
-        self._schedule_next(self.content_hash != content_hash, crawl_policy)
+        self.content_hash = self._hash_content(self.content, crawl_policy)
+        self._schedule_next(current_hash != self.content_hash, crawl_policy)
 
-        if self.content_hash == content_hash and not force:
+        if current_hash == self.content_hash and not force:
             return
-        self.content_hash = content_hash
+        if current_hash != self.content_hash:
+            self.modified_date = n
 
         self._clear_dump_content()
 

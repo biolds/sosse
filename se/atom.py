@@ -79,16 +79,16 @@ class AtomView(View):
 
             _, results, _ = get_documents_from_request(request, form)
 
-            key = request.GET.get("s", "")
-            if key.startswith("-"):
-                key = key[1:]
+            sort_key = request.GET.get("s", "")
+            if sort_key.startswith("-"):
+                sort_key = sort_key[1:]
 
-            if key not in ("crawl_first", "crawl_last"):
-                key = "crawl_first"
+            if sort_key not in ("crawl_first", "crawl_last"):
+                sort_key = "crawl_first"
 
-            param = {f"{key}__isnull": True}
+            param = {f"{sort_key}__isnull": True}
             results = results.exclude(**param)
-            results = results.order_by("-" + key)
+            results = results.order_by("-" + sort_key)
 
             base_url = request.META["REQUEST_SCHEME"] + "://" + request.META["HTTP_HOST"]
             archive_page = request.GET.get("archive", "0")
@@ -100,7 +100,7 @@ class AtomView(View):
             url = base_url + reverse("search") + "?" + request.META["QUERY_STRING"]
             feed.append(self._elem("link", None, href=url))
             if len(results):
-                feed.append(self._elem("updated", getattr(results[0], key).isoformat()))
+                feed.append(self._elem("updated", getattr(results[0], sort_key).isoformat()))
             feed_id = "SOSSE" + request.META["QUERY_STRING"]
             feed.append(self._elem("id", self._str_to_uuid(feed_id)))
             feed.append(self._elem("icon", base_url + settings.STATIC_URL + "logo.svg"))
@@ -126,8 +126,14 @@ class AtomView(View):
                             view_name = "download"
                         url = base_url + reverse_no_escape(view_name, args=[doc.url])
                 entry.append(self._elem("link", None, href=url))
-                entry.append(self._elem("id", self._str_to_uuid(url)))
-                entry.append(self._elem("updated", getattr(doc, key).isoformat()))
+
+                sort_value = getattr(doc, sort_key)
+                if sort_key in ("crawl_first", "crawl_last", "modified_date"):
+                    sort_value = sort_value.isoformat()
+                entry.append(self._elem("id", self._str_to_uuid(f"{url}-{sort_value}")))
+
+                if sort_key in ("crawl_first", "crawl_last", "modified_date"):
+                    entry.append(self._elem("updated", sort_value))
 
                 content = ""
                 lines = doc.content.splitlines()

@@ -19,46 +19,52 @@
 
 # SOSSE 🦦
 
-SOSSE (Selenium Open Source Search Engine) is a Web archiving software, crawler and search engine. It is hosted on both
-[Gitlab](https://gitlab.com/biolds1/sosse) and [Github](https://github.com/biolds/sosse) site, please use any of them to
-open feature requests, bug report or merge requests, or [open a discussion](https://github.com/biolds/sosse/discussions).
+SOSSE (Selenium Open Source Search Engine) is a web archiving software, crawler, and search engine. It’s hosted on both
+[GitLab](https://gitlab.com/biolds1/sosse) and [GitHub](https://github.com/biolds/sosse). Feel free to use either platform to
+submit feature requests, bug reports, merge requests, or [start a discussion](https://github.com/biolds/sosse/discussions).
 
-SOSSE main features are:
+## Key Features
 
-- 🌍 Web pages search: The text content of web pages, including complex, dynamically rendered pages, is searchable with
-  advanced queries.
-- 🕑 Recurring crawling: Pages can be crawled at fixed intervals or at an adaptive rate based on how often they change.
-- 📂 File downloads: Binary files can be batch downloaded from web pages. ([doc](https://sosse.readthedocs.io/en/stable/guides/download.html))
-- 🔖 Web page archiving: Web pages can be saved for offline browsing. ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
-- 🔔 Atom feeds: Notifications are provided when a new page with a keyword appears, and content feeds can be generated
-  for websites that don't have them.
-- 🔒 Authentication: The crawler can authenticate to access private pages and retrieve content.
-- 👥 Permissions: Admins can configure crawlers and view stats, while authenticated users can search or do so
-  anonymously.
-- 👤 Search features: search history, shortcut search queries...
+- 🌍 **Web Page Search**: Search the content of web pages, including dynamically rendered ones, with advanced queries.
+  ([doc](https://sosse.readthedocs.io/en/stable/user/search.html))
 
-See the [documentation](https://sosse.readthedocs.io/en/stable/) and
-[screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
+- 🕑 **Recurring Crawling**: Crawl pages at fixed intervals or adapt the rate based on content changes.
+  ([doc](https://sosse.readthedocs.io/en/stable/crawl/policies.html))
 
-SOSSE is written in Python and distributed under the [GNU-AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).
-It utilizes browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
-[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that
-use JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used.
-SOSSE has low resource requirements, as it is entirely written in Python and employs
+- 📂 **File Downloads**: Batch download binary files from web pages.
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/download.html))
+
+- 🔖 **Web Page Archiving**: Save web pages for offline browsing.
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
+
+- 🔔 **Atom Feeds**: Receive updates when a new page containing a keyword is published, and generate content feeds for websites that don’t have them.
+
+- 🔒 **Authentication**: The crawler can authenticate to access private pages and retrieve content.
+
+- 👥 **Permissions**: Admins can configure crawlers and view statistics, while authenticated users can search or do so anonymously.
+  ([doc](https://sosse.readthedocs.io/en/stable/permissions.html))
+
+- 👤 **Advanced Search Features**: Includes private search history ([doc](https://sosse.readthedocs.io/en/stable/user/history.html)),
+  and external search engine shortcuts ([doc](https://sosse.readthedocs.io/en/stable/user/shortcuts.html)), etc.
+
+Explore the full [documentation](https://sosse.readthedocs.io/en/stable/) and check out some [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
+
+SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
+[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. SOSSE is lightweight and uses
 [PostgreSQL](https://www.postgresql.org/) for data storage.
 
-# Try it out
+## Try It Out
 
-You can try the latest version with Docker:
+To quickly try the latest version with Docker:
 
 ```
 docker run -p 8005:80 biolds/sosse:latest
 ```
 
-Open http://127.0.0.1:8005/, and log in with user `admin`, password `admin`.
+Then, open [http://127.0.0.1:8005/](http://127.0.0.1:8005/) and log in with the username `admin` and password `admin`.
 
-To persist Docker data, or find alternative installation methods, please check the [documentation](https://sosse.readthedocs.io/en/stable/install.html).
+For persistence of Docker data or alternative installation methods, please refer to the [installation guide](https://sosse.readthedocs.io/en/stable/install.html).
 
-# Keep in touch
+## Stay Connected
 
-Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help and share ideas!
+Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help, share ideas, or discuss SOSSE!

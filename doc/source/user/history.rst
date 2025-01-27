@@ -1,10 +1,10 @@
 History
 =======
 
+The history page shows the search history of the logged in user.
+
 .. image:: ../../../tests/robotframework/screenshots/history.png
    :class: sosse-screenshot
-
-The history page shows the search history of the logged in user.
 
 Clicking the |delete_button| button deletes the search entry.
 

@@ -67,4 +67,4 @@ Screenshots
 .. figure:: ../../tests/robotframework/screenshots/browsable_home.png
    :class: sosse-screenshot
 
-   :doc:`Archive browsing <archive>`
+   :doc:`Archive browsing <guides/archive>`

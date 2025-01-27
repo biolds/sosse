@@ -29,7 +29,7 @@ SOSSE main features are:
   advanced queries.
 - 🕑 Recurring crawling: Pages can be crawled at fixed intervals or at an adaptive rate based on how often they change.
 - 📂 File downloads: Binary files can be batch downloaded from web pages. ([doc](https://sosse.readthedocs.io/en/stable/guides/download.html))
-- 🔖 Web page archiving: Web pages can be saved for offline browsing.
+- 🔖 Web page archiving: Web pages can be saved for offline browsing. ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
 - 🔔 Atom feeds: Notifications are provided when a new page with a keyword appears, and content feeds can be generated
   for websites that don't have them.
 - 🔒 Authentication: The crawler can authenticate to access private pages and retrieve content.

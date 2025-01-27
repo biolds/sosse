@@ -50,7 +50,7 @@ Show on homepage
 """"""""""""""""
 
 When the :ref:`browsable home option <conf_option_browsable_home>` is enabled, this parameter can switch availability of
-the document from the homepage. (See :doc:`archive`)
+the document from the homepage. (See :doc:`guides/archive`)
 
 Hidden
 """"""

@@ -46,11 +46,11 @@ class MiscTest(TransactionTestCase):
         doc = Document(url="http://test/")
         self.assertEqual(
             doc.get_source_link(),
-            '🌍 <a href="http://test/" rel="noreferrer" target="_blank">Source page</a>',
+            '🌍&nbsp<a href="http://test/" rel="noreferrer" target="_blank">Source</a>',
         )
 
     @override_settings(SOSSE_LINKS_NO_REFERRER=False)
     @override_settings(SOSSE_LINKS_NEW_TAB=False)
     def test_external_link_no_opt(self):
         doc = Document(url="http://test/")
-        self.assertEqual(doc.get_source_link(), '🌍 <a href="http://test/">Source page</a>')
+        self.assertEqual(doc.get_source_link(), '🌍&nbsp<a href="http://test/">Source</a>')

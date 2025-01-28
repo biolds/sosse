@@ -151,9 +151,9 @@ class Document(models.Model):
         return reverse_no_escape("words", args=(self.url,))
 
     def get_source_link(self):
-        link = '🌍 <a href="{}"'
+        link = '🌍&nbsp<a href="{}"'
         link += extern_link_flags()
-        link += ">Source page</a>"
+        link += ">Source</a>"
         return format_html(link, self.url)
 
     def get_title_label(self):

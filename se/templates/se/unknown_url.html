@@ -2,9 +2,9 @@
 {% block top_bar %}
     <div id="top_bar_links">
         <ul class="archive_links" style="margin-bottom: 20px">
-            <li><a href="{{ url }}" {{ extern_link_flags }}>🌍 Source page</a></li>
-            <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Pages linking here</a></li>
-            <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from this page</a></li>
+            <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links to here</a></li>
+            <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from here</a></li>
+            <li>🌍<a href="{{ url }}" {{ extern_link_flags }}>Source</a></li>
         </ul>
     </div>
 {% endblock %}

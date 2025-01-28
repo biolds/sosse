@@ -252,7 +252,6 @@ def switch_hidden(modeladmin, request, queryset):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "_url",
-        "fav",
         "_title",
         "lang",
         "status",
@@ -283,15 +282,10 @@ class DocumentAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "_title",
+                    "_links",
                     "show_on_homepage",
                     "hidden",
-                    "crawl_policy",
-                    "domain",
-                    "cookies",
-                    "archive",
-                    "source",
-                    "status",
-                    "_error",
+                    "_status",
                 )
             },
         ),
@@ -323,13 +317,8 @@ class DocumentAdmin(admin.ModelAdmin):
     )
     readonly_fields = [
         "_title",
-        "crawl_policy",
-        "domain",
-        "cookies",
-        "archive",
-        "source",
-        "status",
-        "_error",
+        "_links",
+        "_status",
         "robotstxt_rejected",
         "too_many_redirects",
         "_mimetype",
@@ -412,6 +401,11 @@ class DocumentAdmin(admin.ModelAdmin):
         context["actions"] = self.get_action_choices(request)
         return super().render_change_form(request, context, *args, **kwargs)
 
+    def lookup_allowed(self, lookup, value):
+        if lookup in ("linked_from__doc_from", "links_to__doc_to"):
+            return True
+        return super().lookup_allowed(lookup, value)
+
     def add_to_queue(self, request):
         return AddToQueueView.as_view(admin_site=self.admin_site)(request)
 
@@ -472,39 +466,6 @@ class DocumentAdmin(admin.ModelAdmin):
             return defaultfilters.date(obj.modified_date, "DATETIME_FORMAT")
 
     @staticmethod
-    def fav(obj):
-        if obj.favicon and not obj.favicon.missing:
-            return format_html(
-                '<img src="{}" style="widgth: 16px; height: 16px">',
-                reverse("favicon", args=(obj.favicon.id,)),
-            )
-
-    @staticmethod
-    def source(obj):
-        return obj.get_source_link()
-
-    @staticmethod
-    def archive(obj):
-        return format_html('🔖 <a href="{}">Archived page</a>', obj.get_absolute_url())
-
-    @staticmethod
-    def domain(obj):
-        crawl_policy = CrawlPolicy.get_from_url(obj.url)
-        dom = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
-        return format_html(
-            '<a href="{}">{}</a>',
-            reverse("admin:se_domainsetting_change", args=(dom.id,)),
-            dom,
-        )
-
-    @staticmethod
-    def cookies(obj):
-        return format_html(
-            '<a href="{}">Cookies</a>',
-            reverse("admin:se_cookie_changelist") + "?q=" + quote_plus(obj.url),
-        )
-
-    @staticmethod
     def lang(obj):
         return obj.lang_flag()
 
@@ -520,29 +481,79 @@ class DocumentAdmin(admin.ModelAdmin):
             return err_lines[-1]
 
     @staticmethod
-    def crawl_policy(obj):
-        policy = CrawlPolicy.get_from_url(obj.url)
-        return format_html(
-            '<a href="{}">{}</a>',
-            reverse("admin:se_crawlpolicy_change", args=(policy.id,)),
-            policy,
-        )
-
-    @staticmethod
     @admin.display(ordering="url")
     def _url(obj):
         return format_html('<span title="{}">{}</span>', obj.url, obj.url)
 
     @staticmethod
-    @admin.display(ordering="title")
+    @admin.display(ordering="title", description="Title")
     def _title(obj):
+        fav = ""
+        if obj.favicon and not obj.favicon.missing:
+            fav = format_html(
+                '<img src="{}" style="widgth: 16px; height: 16px">',
+                reverse("favicon", args=(obj.favicon.id,)),
+            )
+
         title = obj.get_title_label()
-        return format_html('<span title="{}">{}</span>', title, title)
+        return format_html('<span title="{}">{} {}</span>', title, fav, title)
 
     @staticmethod
-    @admin.display(description="Error")
-    def _error(obj):
-        return format_html("<pre>{}</pre>", obj.error)
+    @admin.display(description="Links")
+    def _links(obj):
+        try:
+            crawl_policy = CrawlPolicy.get_from_url(obj.url)
+            policy = format_html(
+                '⚡&nbsp<a href="{}">Crawl&nbspPolicy&nbsp{}</a>',
+                reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
+                crawl_policy,
+            )
+
+            domain_setting = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
+            domain = format_html(
+                '🕸&nbsp<a href="{}">Domain</a>',
+                reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+            )
+
+            cookies = format_html(
+                '🍪&nbsp<a href="{}">Cookies</a>',
+                reverse("admin:se_cookie_changelist") + "?q=" + quote_plus(obj.url),
+            )
+
+            source = obj.get_source_link()
+            archive = format_html('🔖&nbsp<a href="{}">Archive</a>', obj.get_absolute_url())
+
+            links_to_here_url = reverse("admin:se_document_changelist") + f"?links_to__doc_to={obj.id}"
+            links_to_here = format_html('🔗&nbsp<a href="{}">Links to here</a>', links_to_here_url)
+
+            links_from_here_url = reverse("admin:se_document_changelist") + f"?linked_from__doc_from={obj.id}"
+            links_from_here = format_html('🔗&nbsp<a href="{}">Links from here</a>', links_from_here_url)
+
+            return format_html(
+                '<span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>'
+                '<span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>',
+                policy,
+                domain,
+                cookies,
+                archive,
+                links_to_here,
+                links_from_here,
+                source,
+            )
+        except Exception as e:
+            return format_html("Error: {}", e)
+
+    @staticmethod
+    @admin.display(description="Status")
+    def _status(obj):
+        status = obj.error == ""
+        icon = "icon-yes.svg" if status else "icon-no.svg"
+        return format_html(
+            '<pre style="margin-top: 0; overflow-x: auto"><img src="{}" alt="{}" /> {}</pre>',
+            f"{settings.STATIC_URL}admin/img/{icon}",
+            str(status),
+            obj.error,
+        )
 
     @staticmethod
     @admin.display(description="Mimetype")
@@ -731,7 +742,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     actions = [crawl_policy_enable_disable, crawl_policy_switch]
 
     def get_queryset(self, request):
-        #
+        # Keep the (default) policy at the top
         return CrawlPolicy.objects.order_by(
             models.Case(
                 models.When(url_regex_pg=".*", then=models.Value(0)),

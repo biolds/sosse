@@ -9,6 +9,7 @@ Screenshots
 .. raw:: html
 
    <br/>
+   <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/guide_download_archive_html.png
    :class: sosse-screenshot
@@ -17,6 +18,7 @@ Screenshots
 
 .. raw:: html
 
+   <br/>
    <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/archive_download.png
@@ -27,6 +29,7 @@ Screenshots
 .. raw:: html
 
    <br/>
+   <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/analytics.png
    :class: sosse-screenshot
@@ -35,6 +38,7 @@ Screenshots
 
 .. raw:: html
 
+   <br/>
    <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/history.png
@@ -45,6 +49,7 @@ Screenshots
 .. raw:: html
 
    <br/>
+   <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/crawl_queue.png
    :class: sosse-screenshot
@@ -54,6 +59,7 @@ Screenshots
 .. raw:: html
 
    <br/>
+   <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/crawl_policy_decision_no_hilight.png
    :class: sosse-screenshot
@@ -62,6 +68,7 @@ Screenshots
 
 .. raw:: html
 
+   <br/>
    <br/>
 
 .. figure:: ../../tests/robotframework/screenshots/browsable_home.png

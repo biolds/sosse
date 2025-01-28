@@ -13,6 +13,7 @@ RUN chown www-data:www-data /var/www/.cache /var/www/.mozilla
 WORKDIR /
 USER postgres
 RUN /etc/init.d/postgresql start && \
+    (until pg_isready; do sleep 1; done) && \
     psql --command "CREATE USER sosse WITH PASSWORD 'sosse';" && \
     createdb -O sosse sosse
 

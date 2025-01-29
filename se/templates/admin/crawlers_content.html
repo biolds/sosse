@@ -22,7 +22,7 @@
                 {% if crawler.doc.id %}
                   <a href="{% url 'admin:se_document_change' crawler.doc.id %}">
                     {% if crawler.doc.favicon and not crawler.doc.favicon.missing %}
-                      <img src="{% url 'favicon' crawler.doc.favicon.id %}" alt="icon">
+                      <img src="{% url 'favicon' crawler.doc.favicon.id %}" alt="icon" style="width: 16px; height:16px">
                     {% endif %}
                   </a>
                 {% endif %}

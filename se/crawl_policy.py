@@ -229,13 +229,14 @@ class CrawlPolicy(models.Model):
 
     def __str__(self):
         if self.url_regex:
-            lines = [line for line in self.url_regex.splitlines() if not line.startswith("#")]
-            if len(lines) == 1:
-                return f"「{lines[0]}」"
-            elif len(lines) > 1:
-                others = len(lines) - 1
+            url_regexs = [line.strip() for line in self.url_regex.splitlines()]
+            url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
+            if len(url_regexs) == 1:
+                return f"「{url_regexs[0]}」"
+            elif len(url_regexs) > 1:
+                others = len(url_regexs) - 1
                 others = f"{others} other{plural(others)}"
-                return f"「{lines[0]} (and {others})」"
+                return f"「{url_regexs[0]} (and {others})」"
         return "「<empty>」"
 
     def save(self, *args, **kwargs):

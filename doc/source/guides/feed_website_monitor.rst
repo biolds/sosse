@@ -8,21 +8,11 @@ watching for event announcements.
 For this use case, we’ll monitor a website for common functional errors, like missing pages, server crashes, forbidden
 access, and database issues, and generate an Atom feed of faulty pages.
 
-Modifying the Default Policy
-----------------------------
-
-Crawl policies are essential for controlling how SOSSE accesses and logs content from websites. For more details, see
-the :doc:`Crawl Policies <../crawl/policies>` documentation. The default policy will crawl any link it finds, but we
-will modify this behavior to ensure that only specified pages are crawled.
-
-To modify the default policy, edit the ``(default)`` policy (see the :doc:`Crawl Policy <../crawl/policies>`), and set
-the ``Recursion`` parameter to ``Never crawl`` instead of ``Crawl all pages``.
-
-.. image:: ../../../tests/robotframework/screenshots/guide_feed_website_monitor_default_policy.png
-   :class: sosse-screenshot
-
 Creating the Crawl Policies
 ---------------------------
+
+Crawl policies are essential for controlling how SOSSE accesses and logs content from websites. For more details, see
+the :doc:`Crawl Policies <../crawl/policies>` documentation.
 
 We add a policy for the website that we want to monitor, with the parameters:
 

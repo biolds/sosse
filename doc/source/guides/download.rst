@@ -17,51 +17,36 @@ Creating Crawl Policies
 -----------------------
 
 Crawl policies are essential for controlling how SOSSE accesses and downloads content from websites. For more details,
-see the :doc:`Crawl Policies <../crawl/policies>` documentation. The default policy will crawl any link it finds, we
-will modify this behavior to ensure that only specified pages are crawled.
+see the :doc:`Crawl Policies <../crawl/policies>` documentation.
 
-Additionally, we will create the following policies:
+For Project Gutenberg, we will create two policies:
 
-1. A policy that reads the RSS feed of Project Gutenberg daily to monitor new content.
-2. A policy to download the reference page and the EPUB version of the book for each new title identified in the RSS
-   feed.
+**RSS Feed Policy**
+This policy reads the RSS feed of Project Gutenberg daily to monitor new content. Configure it as follows:
 
-Modifying the Default Policy
-----------------------------
+- In the ``⚡ Crawl`` tab, use a regular expression ``^http://www.gutenberg.org/cache/epub/feeds/today.rss$`` to
+  target the daily RSS feed. Set ``Thumbnail mode`` to ``No thumbnail`` (disabling the screenshot thumbnail for
+  faster processing).
+- In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request``.
+- In the ``🔖 Archive`` tab, disable ``Archive content`` (as we don't need to archive the original feed).
+- In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Constant time`` and clear the ``Recrawl dt max`` field.
 
-To modify the default policy, edit the ``(default)`` policy (see the :doc:`Crawl Policy <../crawl/policies>`), and set
-the ``Recursion`` parameter to ``Never crawl`` instead of ``Crawl all pages``.
+**Book Download Policy**
+This policy downloads the reference page and the EPUB version of each new book identified in the RSS feed.
+Configure it as follows:
 
-.. image:: ../../../tests/robotframework/screenshots/guide_download_default_policy.png
-   :class: sosse-screenshot
+- In the ``⚡ Crawl`` tab, use the regular expressions:
 
-Creating New Policies for Project Gutenberg
--------------------------------------------
+  - ``^https://www.gutenberg.org/ebooks/[0-9]+$`` for the reference page.
+  - ``^https://www.gutenberg.org/ebooks/[0-9]+.epub3.images$`` and
+    ``^https://www.gutenberg.org/cache/epub/.*epub$`` for the EPUB files.
 
-For the Project Gutenberg pages, we will create two new policies:
+  Set ``Thumbnail mode`` to ``Page preview from metadata`` (disabling the screenshot thumbnail for faster processing).
 
-- **RSS Feed Policy:** create the policy and set up the following parameters:
-
-  - In the ``⚡ Crawl`` tab, use a regular expression ``^http://www.gutenberg.org/cache/epub/feeds/today.rss$`` to
-    target the daily RSS feed. Set ``Thumbnail mode`` to ``No thumbnail`` (this disables the screenshot thumbnail,
-    allowing the crawl to run without a browser for faster processing).
-  - In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request``.
-  - In the ``🔖 Archive`` tab, disable ``Archive content`` (as we don't need to archive the original feed).
-  - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Constant time`` and clear the ``Recrawl dt max``
-    field.
-
-- **Book Download Policy:** create this policy and set up the following parameters:
-
-  - In the ``⚡ Crawl`` tab, use the regular expressions ``^https://www.gutenberg.org/ebooks/[0-9]+$`` for the
-    reference page, ``^https://www.gutenberg.org/ebooks/[0-9]+.epub3.images$`` and
-    ``^https://www.gutenberg.org/cache/epub/.*epub$`` for the EPUB files. Set ``Thumbnail mode`` to
-    ``Page preview from metadata`` (this disables the screenshot thumbnail, allowing the crawl to run without a
-    browser for faster processing).
-  - In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request`` (since Project Gutenberg does not
-    require a browser to render pages correctly).
-  - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Once`` (since the reference pages and books will not be
-    updated, and we only need to download them once). Additionally, clear both the ``Recrawl dt min`` and
-    ``Recrawl dt max`` fields.
+- In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request`` (since Project Gutenberg does not
+  require a browser to render pages correctly).
+- In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Once`` (as reference pages and books do not need
+  updates after initial download). Additionally, clear both the ``Recrawl dt min`` and ``Recrawl dt max`` fields.
 
 .. image:: ../../../tests/robotframework/screenshots/guide_download_crawl_policies.png
    :class: sosse-screenshot

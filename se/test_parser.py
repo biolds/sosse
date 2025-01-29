@@ -202,16 +202,16 @@ RSS_FEED = b"""
 
 class PageTest(TransactionTestCase):
     @classmethod
-    def setUpClass(cls):
-        cls.policy = CrawlPolicy.create_default()
-        cls.policy.snapshot_html = False
-        cls.policy.save()
-
-    @classmethod
     def tearDownClass(cls):
         BrowserChromium.destroy()
         BrowserFirefox.destroy()
-        cls.policy.delete()
+
+    def setUp(self):
+        super().setUp()
+        self.crawl_policy = CrawlPolicy.create_default()
+        self.crawl_policy.snapshot_html = False
+        self.crawl_policy.recursion = CrawlPolicy.CRAWL_ALL
+        self.crawl_policy.save()
 
     def test_10_beautifulsoup(self):
         page = Page("http://127.0.0.1/", FAKE_PAGE, None)
@@ -227,7 +227,7 @@ class PageTest(TransactionTestCase):
     def test_20_no_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
         doc = Document.objects.create(url=page.url)
-        doc.index(page, self.policy)
+        doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "text")
         links = Link.objects.order_by("id")
         self.assertEqual(len(links), 1)
@@ -242,8 +242,8 @@ class PageTest(TransactionTestCase):
     def test_30_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
         doc = Document.objects.create(url=page.url)
-        self.policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
-        doc.index(page, self.policy)
+        self.crawl_policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
+        doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "header nav link text footer")
 
         links = Link.objects.order_by("id")
@@ -280,14 +280,14 @@ class PageTest(TransactionTestCase):
     def test_60_no_comment(self):
         page = Page("http://test/", b"<html><body><!-- nothing -->text</body></html>", None)
         doc = Document(url=page.url)
-        doc.index(page, self.policy)
+        doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "text")
 
     def test_70_feeds(self):
         for feed in (ATOM_FEED, ATOM_FEED_WITH_HEADER, RSS_FEED):
             page = Page("http://test/", feed, None)
             doc = Document.objects.create(url=page.url)
-            doc.index(page, self.policy)
+            doc.index(page, self.crawl_policy)
 
             self.assertEqual(Document.objects.count(), 4)
             self.assertEqual(doc.url, page.url)

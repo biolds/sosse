@@ -18,9 +18,6 @@
 |  | Run Command | tar | -x | -C | /var/lib/sosse/ | -f | ${CURDIR}/../guide_download/guide_download_html.tar
 |  | Run Command | dd | if\=/dev/zero | of\=/var/lib/sosse/html/https,3A/www.gutenberg.org/cache/epub/75210/pg75210-images-3.epub_b9a445dff6.epub | count\=5000
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
-|  | Click Link | (default)
-|  | SOSSE Capture Page Screenshot | guide_download_default_policy.png
-|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | SOSSE Capture Page Screenshot | guide_download_crawl_policies.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | SOSSE Capture Page Screenshot | guide_download_crawl_queue.png

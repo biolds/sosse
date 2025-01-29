@@ -257,7 +257,9 @@ class CrawlPolicy(models.Model):
     @staticmethod
     def create_default():
         # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(url_regex="(default)", defaults={"url_regex_pg": ".*"})
+        policy, _ = CrawlPolicy.objects.get_or_create(
+            url_regex="(default)", defaults={"url_regex_pg": ".*", "recursion": CrawlPolicy.CRAWL_NEVER}
+        )
         return policy
 
     @staticmethod

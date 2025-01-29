@@ -8,13 +8,13 @@ No limit recursion
 -------------------
 
 Recursing with no limit is achieved by using a policy with a :ref:`Recursion <recursion_depth_params>` set to
-``Crawl all pages`` (the default).
+``Crawl all pages``.
 
 For example, a full domain can be extracted with 2 policies:
 
 * A policy for the domain with a ``URL regex`` that matches the domain, and ``Recursion`` set to ``Crawl all pages``
 
-* A default policy with a ``Recursion`` set to ``Never crawl``
+* A default policy with a ``Recursion`` set to ``Never crawl`` (the default)
 
 Limited recursion
 -----------------

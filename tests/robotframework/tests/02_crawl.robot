@@ -11,6 +11,12 @@
 |  | SOSSE Capture Page Screenshot | admin_ui.png
 
 | Crawl a new URL
+|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | Input Text | id=id_url_regex | http://127.0.0.1/screenshots/website/.*
+|  | Click Link | 🌍 Browser
+|  | Select From List By Label | id=id_default_browse_mode | Chromium
+|  | Select Checkbox | id=id_take_screenshots
+|  | Click Element | xpath=//input[@value="Save"]
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
@@ -59,6 +65,8 @@
 |  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
 # The default policy is read-only so the help text is hidden
 |  | Page should not contain | URL regular expressions for this policy
+|  | ${recursion} | Get Selected List Label | id=id_recursion
+|  | Should Be Equal As Strings | ${recursion} | Never crawl
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision_no_hilight.png
 |  | Scroll To Elem | id=tabs
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision.png
@@ -66,6 +74,8 @@
 # Non default policy should show the help
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Page should contain | URL regular expressions for this policy
+|  | ${recursion} | Get Selected List Label | id=id_recursion
+|  | Should Be Equal As Strings | ${recursion} | Crawl all pages
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs

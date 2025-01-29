@@ -10,7 +10,9 @@ multiple URLs to be crawled when a worker is available.
 .. image:: ../../../tests/robotframework/screenshots/crawl_new_url.png
    :class: sosse-screenshot
 
-By default, all links found in the page will be visited and the crawlers will recurse until all pages are discovered.
-Submitting redirects to the :doc:`queue` page.
+By default, only the URLs queued for crawling will be visited. The crawler will not recurse into discovered links unless
+explicitly configured.
 
-How pages are indexed and which pages to recurse into is defined by :doc:`policies`.
+To control how pages are indexed and whether recursion occurs, update the relevant settings in :doc:`policies`.
+
+After submitting a URL, the next page shows the :doc:`queue`.

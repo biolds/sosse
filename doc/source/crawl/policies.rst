@@ -236,7 +236,7 @@ Define how changes between recrawl are detected:
 🔒 Authentication
 -----------------
 
-See :doc:`../authentication` for general guidelines on authentication.
+See :doc:`../guides/authentication` for an example on authentication.
 
 .. image:: ../../../tests/robotframework/screenshots/crawl_policy_auth.png
    :class: sosse-screenshot

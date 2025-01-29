@@ -174,7 +174,10 @@ _rf_functional_tests_deps:
 
 _rf_functional_tests: _rf_functional_tests_deps
 	cp tests/pages/test.zip /var/lib/sosse/static/Cat\ photos.zip
-	cd ./tests/robotframework && tar xvzf guide_download.tar.gz && /rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
+	cd ./tests/robotframework && \
+		tar xvzf guide_download.tar.gz && \
+		tar xvzf guide_auth.tar.gz && \
+		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
 
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'

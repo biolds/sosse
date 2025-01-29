@@ -92,6 +92,8 @@
 |  | Hilight | id=online_mode
 |  | SOSSE Capture Page Screenshot | online_mode.png
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
+|  | Run Command | sed | -e | s/^online_search_redirect.*/#online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
+|  | Run Command | killall | -s | HUP | uwsgi
 
 | Swagger
 |  | [Tags] | swagger

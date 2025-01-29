@@ -13,7 +13,6 @@ Administration
    crawl/policies.rst
    crawl/recursion_depth.rst
    crawl/feeds.rst
-   authentication.rst
    documents.rst
    domain_settings.rst
    cookies.rst

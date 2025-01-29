@@ -42,6 +42,7 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
   ([doc](https://sosse.readthedocs.io/en/stable/guides/feed_website_monitor.html))
 
 - 🔒 **Authentication**: The crawler can authenticate to access private pages and retrieve content.
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/authentication.html))
 
 - 👥 **Permissions**: Admins can configure crawlers and view statistics, while authenticated users can search or do so anonymously.
   ([doc](https://sosse.readthedocs.io/en/stable/permissions.html))

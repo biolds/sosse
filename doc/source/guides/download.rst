@@ -25,9 +25,7 @@ For Project Gutenberg, we will create two policies:
 This policy reads the RSS feed of Project Gutenberg daily to monitor new content. Configure it as follows:
 
 - In the ``⚡ Crawl`` tab, use a regular expression ``^http://www.gutenberg.org/cache/epub/feeds/today.rss$`` to
-  target the daily RSS feed. Set ``Thumbnail mode`` to ``No thumbnail`` (disabling the screenshot thumbnail for
-  faster processing).
-- In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request``.
+  target the daily RSS feed.
 - In the ``🔖 Archive`` tab, disable ``Archive content`` (as we don't need to archive the original feed).
 - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Constant time`` and clear the ``Recrawl dt max`` field.
 
@@ -41,10 +39,6 @@ Configure it as follows:
   - ``^https://www.gutenberg.org/ebooks/[0-9]+.epub3.images$`` and
     ``^https://www.gutenberg.org/cache/epub/.*epub$`` for the EPUB files.
 
-  Set ``Thumbnail mode`` to ``Page preview from metadata`` (disabling the screenshot thumbnail for faster processing).
-
-- In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request`` (since Project Gutenberg does not
-  require a browser to render pages correctly).
 - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Once`` (as reference pages and books do not need
   updates after initial download). Additionally, clear both the ``Recrawl dt min`` and ``Recrawl dt max`` fields.
 

@@ -158,4 +158,34 @@ class Migration(migrations.Migration):
                 max_length=8,
             ),
         ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="thumbnail_mode",
+            field=models.CharField(
+                choices=[
+                    ("preview", "Page preview from metadata"),
+                    ("prevscreen", "Preview from meta, screenshot as fallback"),
+                    ("screenshot", "Take a screenshot"),
+                    ("none", "No thumbnail"),
+                ],
+                default="preview",
+                help_text="Save thumbnails to display in search results",
+                max_length=10,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="default_browse_mode",
+            field=models.CharField(
+                choices=[
+                    ("detect", "Detect"),
+                    ("selenium", "Chromium"),
+                    ("firefox", "Firefox"),
+                    ("requests", "Python Requests"),
+                ],
+                default="detect",
+                help_text="Python Request is faster, but can't execute Javascript and may break pages",
+                max_length=8,
+            ),
+        ),
     ]

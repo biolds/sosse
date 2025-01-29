@@ -127,7 +127,7 @@ class CrawlPolicy(models.Model):
     default_browse_mode = models.CharField(
         max_length=8,
         choices=DomainSetting.BROWSE_MODE,
-        default=DomainSetting.BROWSE_CHROMIUM,
+        default=DomainSetting.BROWSE_DETECT,
         help_text="Python Request is faster, but can't execute Javascript and may break pages",
     )
 
@@ -156,7 +156,7 @@ class CrawlPolicy(models.Model):
     )
 
     thumbnail_mode = models.CharField(
-        default=THUMBNAIL_MODE_PREV_OR_SCREEN,
+        default=THUMBNAIL_MODE_PREVIEW,
         help_text="Save thumbnails to display in search results",
         choices=THUMBNAIL_MODE,
         max_length=10,

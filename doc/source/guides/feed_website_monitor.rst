@@ -17,9 +17,7 @@ the :doc:`Crawl Policies <../crawl/policies>` documentation.
 We add a policy for the website that we want to monitor, with the parameters:
 
 - In the ``⚡ Crawl`` tab, use a regular expression ``^https://my.broken-website.com/.*`` to
-  target the website. Set ``Thumbnail mode`` to ``No thumbnail`` (this disables the screenshot thumbnail,
-  allowing the crawl to run without a browser for faster processing).
-- In the ``🌍 Browser`` tab, set ``Default browse mode`` to ``Python Request``.
+  target the website.
 - In the ``🔖 Archive`` tab, disable ``Archive content`` (as we don't need to archive the original feed).
 - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Constant time`` and clear the ``Recrawl dt max``
   field.

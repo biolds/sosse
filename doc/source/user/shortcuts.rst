@@ -13,6 +13,6 @@ The default list of shortcuts is available in the :doc:`shortcut_list` page, new
 The special character (``!`` by default) used to trigger the shortcut can be modified in the
 :ref:`configuration <conf_option_search_shortcut_char>`.
 
-It is possible to make SOSSE redirect to an external search engin by default by setting the option
+It is possible to make SOSSE redirect to an external search engine by default by setting the option
 :ref:`default_search_redirect <conf_option_default_search_redirect>`. In this case SOSSE internal searches can still be
 reached using the shortcut defined by :ref:`sosse_shortcut <conf_option_sosse_shortcut>`.

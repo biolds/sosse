@@ -596,6 +596,12 @@ class CrawlPolicyForm(CharFieldForm):
         model = CrawlPolicy
         exclude = tuple()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get("instance")
+        if instance and instance.url_regex == "(default)":
+            self._meta.help_texts = {"url_regex": None}
+
     def clean(self):
         cleaned_data = super().clean()
 

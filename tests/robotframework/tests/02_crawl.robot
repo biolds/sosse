@@ -57,9 +57,18 @@
 |  | Wait Until Element Is Visible | id=result_list
 |  | SOSSE Capture Page Screenshot | crawl_policy_list.png
 |  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
+# The default policy is read-only so the help text is hidden
+|  | Page should not contain | URL regular expressions for this policy
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision_no_hilight.png
 |  | Scroll To Elem | id=tabs
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision.png
+
+
+# Non default policy should show the help
+|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Wait Until Element Is Visible | id=result_list
+|  | Click Element | xpath=//table[@id='result_list']//a[contains(., 'zip')]
+|  | Page should contain | URL regular expressions for this policy
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs

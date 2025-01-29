@@ -5,6 +5,7 @@ Guides
    :maxdepth: 2
    :caption: Contents:
 
+   guides/search.rst
    guides/archive.rst
    guides/captcha.rst
    guides/download.rst

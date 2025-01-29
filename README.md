@@ -26,7 +26,7 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
 ## Key Features
 
 - 🌍 **Web Page Search**: Search the content of web pages, including dynamically rendered ones, with advanced queries.
-  ([doc](https://sosse.readthedocs.io/en/stable/user/search.html))
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/search.html))
 
 - 🕑 **Recurring Crawling**: Crawl pages at fixed intervals or adapt the rate based on content changes.
   ([doc](https://sosse.readthedocs.io/en/stable/crawl/policies.html))

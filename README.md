@@ -31,11 +31,11 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
 - 🕑 **Recurring Crawling**: Crawl pages at fixed intervals or adapt the rate based on content changes.
   ([doc](https://sosse.readthedocs.io/en/stable/crawl/policies.html))
 
+- 🔖 **Web Page Archiving**: Archive HTML content, adjust links for local use, download required assets, and support
+  dynamic content. ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
+
 - 📂 **File Downloads**: Batch download binary files from web pages.
   ([doc](https://sosse.readthedocs.io/en/stable/guides/download.html))
-
-- 🔖 **Web Page Archiving**: Save web pages for offline browsing.
-  ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
 
 - 🔔 **Atom Feeds**: Generate content feeds for websites that don’t have them, or receive updates when a new page
   containing a keyword is published.
@@ -47,10 +47,11 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
 - 👥 **Permissions**: Admins can configure crawlers and view statistics, while authenticated users can search or do so anonymously.
   ([doc](https://sosse.readthedocs.io/en/stable/permissions.html))
 
-- 👤 **Advanced Search Features**: Includes private search history ([doc](https://sosse.readthedocs.io/en/stable/user/history.html)),
+- 👤 **Search Features**: Includes private search history ([doc](https://sosse.readthedocs.io/en/stable/user/history.html)),
   and external search engine shortcuts ([doc](https://sosse.readthedocs.io/en/stable/user/shortcuts.html)), etc.
 
-Explore the full [documentation](https://sosse.readthedocs.io/en/stable/) and check out some [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
+Explore the 📚 [documentation](https://sosse.readthedocs.io/en/stable/index.html) and check out some
+📷 [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
 
 SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
 [Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. SOSSE is lightweight and uses

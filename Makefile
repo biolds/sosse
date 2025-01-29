@@ -64,8 +64,6 @@ doc_gen:
 	cat README.md | grep -v '^=\+$$' | \
 		sed -e 's/^\(SOSSE 🦦\)$$/# \1/' \
 				-e 's_https://sosse.readthedocs.io/en/stable/\([^.]\+\)\(.html\)\?\(#[a-z]\+\)\?_\1\3_g' \
-				-e 's#\[documentation\]()#documentation#' \
-				-e 's#\[documentation\](install)#[install pages](install)#' \
 		> doc/source/introduction.md
 
 docker_run:

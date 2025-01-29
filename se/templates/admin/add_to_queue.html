@@ -11,7 +11,7 @@
 
 
         {% if crawl_policies %}
-            <input type="submit" name="action" value="Refresh">
+            <input type="submit" name="action" value="Refresh" style="margin-top: 5px">
 
             <h3>Crawl polic{{ crawl_policies|length|pluralize:"y,ies" }}</h3>
             {% if crawl_policies|length == 1 %}
@@ -59,7 +59,7 @@
                 <input type="submit" name="action" value="Confirm" autofocus>
             </p>
         {% else %}
-            <input type="submit" name="action" value="Check and queue">
+            <input type="submit" name="action" value="Check and queue" style="margin-top: 5px">
         {% endif %}
     </form>
 {% endblock %}

@@ -257,8 +257,18 @@ class HTMLSnapshot:
                 elem.extract()
                 continue
 
+            if elem.attrs.get("href", "").endswith(".js"):
+                # Javascript files may be referenced as <link rel="prefetch" href="script.js" /> elements
+                # (prefetch, preload, preconnect, etc.)
+                elem.extract()
+                continue
+
             rel = " ".join(elem.attrs.get("rel", []))
-            for val in ("icon", "canonical", "alternate", "preload"):
+            # We don't want to download element pointed by these
+            # - icon: already downloaded
+            # - canonical: refers to an alternate url of the current page
+            # - alternate: different representation of the current page (ie. RSS feed, etc.)
+            for val in ("icon", "canonical", "alternate"):
                 if val in rel:
                     elem.extract()
                     break

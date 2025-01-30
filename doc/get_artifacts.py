@@ -33,10 +33,12 @@ pipeline_id = commit.last_pipeline["id"]
 print("Pipeline ID %s" % pipeline_id)
 pipeline = project.pipelines.get(pipeline_id)
 
-for job in pipeline.jobs.list():
+print(f"Pipeline status: {pipeline.status}")
+
+for job in pipeline.jobs.list(get_all=True):
     if job.name in jobs_name:
         if job.status != "success":
-            print(f"Job {job.web_url} did not succeed, state: {job.state}")
+            print(f"Job {job.web_url} did not succeed, state: {job.status}")
             exit(1)
 
         artifact = job.web_url + "/artifacts/download"

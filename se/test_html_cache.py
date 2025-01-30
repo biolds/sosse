@@ -96,7 +96,7 @@ class HTMLCacheTest(TransactionTestCase):
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
                     check_status=True,
-                    max_file_size=5000,
+                    max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers={"Accept": "*/*", "If-Modified-Since": modified_since},
                 )
             ],
@@ -115,7 +115,7 @@ class HTMLCacheTest(TransactionTestCase):
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
                     check_status=True,
-                    max_file_size=5000,
+                    max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=headers,
                 )
             ],

@@ -159,7 +159,7 @@ doc:
   needs:
     - doc_gen
     - functional_tests_chromium
-    #- functional_tests_firefox -> commenteed because only the artifacts (screenshot) from Chromium are needed
+    #- functional_tests_firefox -> commented because only the artifacts (screenshot) from Chromium are needed
   script:
     - make _build_doc
     - test -n "$RTD_TOKEN" && curl -X POST -d "branches=main" -d "token=$RTD_TOKEN" -d "default_branch=main" https://readthedocs.org/api/v2/webhook/sosse/236935/ || true

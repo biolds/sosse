@@ -90,9 +90,9 @@ Following the link, you will be able to download the book:
 Additional Options
 ------------------
 
-You may also be interested in the :ref:`max_file_size <conf_option_max_file_size>` (defaults to 500 kB) and
-:ref:`max_html_asset_size <conf_option_max_html_asset_size>` (defaults to 5 MB) configuration options, which control the
-size limits of files being downloaded.
+You may also be interested in the :ref:`max_file_size <conf_option_max_file_size>` (defaults to 5 MB) and
+:ref:`max_html_asset_size <conf_option_max_html_asset_size>` (defaults to 50 MB) configuration options, which control
+the size limits of files being downloaded.
 
 Additionally, you can use the :ref:`atom feed <ui_atom_feeds>` feature to create an Atom feed that points to the
 downloaded EPUB files, which could be useful for integrating with an EPUB reader or sharing updates.

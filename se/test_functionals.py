@@ -279,6 +279,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Link.objects.count(), 0)
 
+    @override_settings(SOSSE_MAX_FILE_SIZE=1)
     def test_80_file_too_big(self):
         FILE_SIZE = settings.SOSSE_MAX_FILE_SIZE * 1024
         page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}")

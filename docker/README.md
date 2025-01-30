@@ -1,0 +1,8 @@
+- debian: Docker image using the Sosse Debian package, for testing purpose only
+- debian-pkg: image that builds the Debian package
+- debian-test FROM debian: image used in the Gitlab CI to run some tests (unit tests, static checks, etc.)
+- doc: image used to build the documentation (for testing only, the published doc is built on readthedoc)
+- docker FROM pip-test: image used to rebuild the Docker package to upgrade packages on Docker Hub
+- pip-base: base image for the pip-test and pip-release images
+- pip-release: official Docker image
+- pip-test: image used to test the pip package

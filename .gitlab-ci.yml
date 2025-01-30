@@ -252,7 +252,7 @@ doc_test_pip:
     - make _doc_test_pip
 
 .debian_pkg_check: &debian_pkg_check
-  image: debian:bookworm
+  image: biolds/sosse:debian-base
   stage: build_check
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"

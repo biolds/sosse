@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM biolds/sosse:debian-base
 ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=

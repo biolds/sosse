@@ -8,4 +8,3 @@
 | *Keywords* |
 | Setup
 |  | Login
-|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../fixtures.json | shell=True

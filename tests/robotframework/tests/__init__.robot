@@ -6,6 +6,5 @@
 
 | *Keywords* |
 | Setup
-|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../fixtures.json | shell=True
 |  | Login
 |  | Execute Javascript | window.onerror = function(errorMessage) { dialog(errorMessage); }

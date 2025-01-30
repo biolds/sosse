@@ -63,11 +63,8 @@
 |  | Scroll To Elem | id=tabs
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision.png
 
-
 # Non default policy should show the help
-|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
-|  | Wait Until Element Is Visible | id=result_list
-|  | Click Element | xpath=//table[@id='result_list']//a[contains(., 'zip')]
+|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Page should contain | URL regular expressions for this policy
 
 |  | Reload Page

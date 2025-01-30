@@ -71,19 +71,27 @@ unit_tests:
       - log/*
   script:
     - make _pip_functional_tests
-    - (make _rf_functional_tests ; echo -n $? > /tmp/ret_code) || true
+    - (make _rf_functional_$TEST_SUITE ; echo -n $? > /tmp/ret_code) || true
     - mv /var/log/sosse log
     - test "$(cat /tmp/ret_code)" -eq 0
 
 functional_tests_chromium:
   <<: *functional_tests
   variables:
+    TEST_SUITE: tests
     BROWSER: chromium
 
 functional_tests_firefox:
   <<: *functional_tests
   variables:
+    TEST_SUITE: tests
     BROWSER: firefox
+
+functional_guides_chromium:
+  <<: *functional_tests
+  variables:
+    TEST_SUITE: guides
+    BROWSER: chromium
 
 migrations:
   image: biolds/sosse:debian-test
@@ -160,6 +168,7 @@ doc:
     - doc_gen
     - functional_tests_chromium
     #- functional_tests_firefox -> commented because only the artifacts (screenshot) from Chromium are needed
+    - functional_guides_chromium
   script:
     - make _build_doc
     - test -n "$RTD_TOKEN" && curl -X POST -d "branches=main" -d "token=$RTD_TOKEN" -d "default_branch=main" https://readthedocs.org/api/v2/webhook/sosse/236935/ || true
@@ -276,11 +285,13 @@ doc_test_pip:
 debian_pkg_check_chromium:
   <<: *debian_pkg_check
   variables:
+    TEST_SUITE: tests
     BROWSER: chromium
 
 debian_pkg_check_firefox:
   <<: *debian_pkg_check
   variables:
+    TEST_SUITE: tests
     BROWSER: firefox
 
 .pip_pkg_check: &pip_pkg_check
@@ -306,11 +317,13 @@ debian_pkg_check_firefox:
 pip_pkg_check_chromium:
   <<: *pip_pkg_check
   variables:
+    TEST_SUITE: tests
     BROWSER: chromium
 
 pip_pkg_check_firefox:
   <<: *pip_pkg_check
   variables:
+    TEST_SUITE: tests
     BROWSER: firefox
 
 discord_tag_notif:

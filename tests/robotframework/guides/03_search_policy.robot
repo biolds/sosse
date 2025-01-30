@@ -1,6 +1,6 @@
 | *Settings* |
 | Library | SeleniumLibrary
-| Resource | common.robot
+| Resource | ../tests/common.robot
 
 | *Test Cases* |
 | Search website

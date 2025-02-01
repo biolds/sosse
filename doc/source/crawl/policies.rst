@@ -163,6 +163,12 @@ For example, the following script could be used to click on a
        button.singleNodeValue.click();
    }
 
+Or, this script scrolls to the bottom of the page (this can be useful in case some content loads when scrolling):
+
+.. code-block:: javascript
+
+   window.scrollTo(0, document.body.scrollHeight);
+
 In case the script triggers an error, further processing of the page is aborted and the error message is stored in the
 :ref:`document error field <document_error>`. It can be useful to use a tool such as
 `Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.

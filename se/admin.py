@@ -190,7 +190,7 @@ class DocumentOrphanFilter(admin.SimpleListFilter):
         return (
             ("no_children", "No children"),
             ("no_parent", "No parent"),
-            ("full", "No parent or children"),
+            ("full", "No parent and children"),
         )
 
     def queryset(self, request, queryset):

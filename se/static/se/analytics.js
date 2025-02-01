@@ -107,9 +107,6 @@ loadChart("hdd_chart", "/api/hdd_stats/", function (data) {
 });
 
 loadChart("lang_chart", "/api/lang_stats/", function (data) {
-  const docCount = sum(data.map((l) => l.doc_count));
-  const panel = document.getElementById("doc_count");
-  panel.innerText = `${docCount}\nDocuments`;
   showChart("doc_count_panel");
 
   const langs = data.filter((l) => l.doc_count).slice(0, 8);
@@ -166,6 +163,10 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
 });
 
 loadChart("mime_chart", "/api/mime_stats/", function (data) {
+  const docCount = sum(data.map((l) => l.doc_count));
+  const panel = document.getElementById("doc_count");
+  panel.innerText = `${docCount}\nDocuments`;
+
   const mimes = data.filter((m) => m.doc_count);
   const chart = document.getElementById("mime_chart");
   const mimeChartJS = new Chart(chart, {

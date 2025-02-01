@@ -17,6 +17,7 @@ import os
 
 from django.conf import settings
 from django.db import connection, models
+from django.db.models.functions import Coalesce
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiTypes,
@@ -148,14 +149,30 @@ class MimeStatsViewSet(viewsets.ViewSet):
     )
     def list(self, request):
         indexed_mimes = (
-            Document.objects.values("mimetype")
-            .annotate(doc_count=models.Count("mimetype"))
+            Document.objects.annotate(
+                mimetype_coalesced=Coalesce("mimetype", models.Value("NULL"))
+            )  # Coalesce otherwise PG does not count NULL values
+            .values("mimetype_coalesced")
+            .annotate(doc_count=models.Count("*"))
             .order_by("-doc_count", "mimetype")
         )
+
+        indexed_mimes = {a["mimetype_coalesced"]: a["doc_count"] for a in indexed_mimes}
+        null_count = indexed_mimes.pop("NULL", 0)
+
+        if null_count:
+            indexed_mimes[""] = indexed_mimes.get("", 0) + null_count
+
+        indexed_mimes = sorted(
+            [{"mimetype": mime, "doc_count": count} for mime, count in indexed_mimes.items()],
+            key=lambda x: -x["doc_count"],
+        )
+
         for indexed_mime in indexed_mimes:
-            icon = mimetype_icon(indexed_mime["mimetype"])
-            if indexed_mime["mimetype"]:
-                indexed_mime["mimetype"] = f"{icon} {indexed_mime['mimetype']}"
+            mimetype = indexed_mime["mimetype"]
+            icon = mimetype_icon(mimetype)
+            if mimetype:
+                indexed_mime["mimetype"] = f"{icon} {mimetype}"
             else:
                 indexed_mime["mimetype"] = f"{icon} <None>"
 

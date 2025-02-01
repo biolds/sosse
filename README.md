@@ -54,7 +54,7 @@ Explore the 📚 [documentation](https://sosse.readthedocs.io/en/stable/index.ht
 📷 [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
 
 SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
-[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. SOSSE is lightweight and uses
+[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. SOSSE uses
 [PostgreSQL](https://www.postgresql.org/) for data storage.
 
 ## Try It Out

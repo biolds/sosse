@@ -233,7 +233,7 @@ function loadDocCharts(dt) {
   const freq = dt === 24 ? "M" : "D";
   loadChart(
     `doc_count_${dt}_chart`,
-    `/api/stats/?freq=${freq}&limit=1000`,
+    `/api/stats/?freq=${freq}&limit=2000`,
     function (data) {
       if (dt === 24) {
         let urlQueued = 0;

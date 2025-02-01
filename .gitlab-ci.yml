@@ -286,6 +286,8 @@ debian_pkg_check_firefox:
 .pip_pkg_check: &pip_pkg_check
   image: biolds/sosse:pip-test
   stage: build_check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
   artifacts:
     when: always
     paths:

@@ -206,7 +206,7 @@ vrt:
 	docker run -v $(current_dir):/sosse -p 8001:80 -ti biolds/sosse:pip-test bash -c 'cd /sosse && echo "SOSSE_ADMIN: /opt/sosse-venv/bin/sosse-admin" > tests/robotframework/config.yaml && make _pip_functional_tests _rf_functional_tests_deps && /rf-venv/bin/pip install git+https://github.com/biolds/robotframework-VRTLibrary/ && git config --global --add safe.directory /sosse && bash -i'
 
 _docker_unit_test_prepare:
-	echo 'sudo --preserve-env=PYTHONPATH -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$$@"' > /tmp/sudo_sosse
+	echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$$@"' > /tmp/sudo_sosse
 	chmod 755 /tmp/sudo_sosse
 	apt update
 	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y

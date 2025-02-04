@@ -6,5 +6,6 @@
 
 | *Keywords* |
 | Setup
+|  | Set Selenium Timeout | 1 min
 |  | Login
 |  | Execute Javascript | window.onerror = function(errorMessage) { dialog(errorMessage); }

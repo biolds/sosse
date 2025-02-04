@@ -27,6 +27,7 @@ from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
 from .domain_setting import DomainSetting
+from .tag import Tag
 from .utils import build_multiline_re, plural
 from .webhook import Webhook
 
@@ -241,22 +242,27 @@ class CrawlPolicy(models.Model):
         verbose_name="Form selector",
         help_text="CSS selector pointing to the authentication &lt;form&gt; element",
     )
+    tags = models.ManyToManyField(Tag, blank=True)
     webhooks = models.ManyToManyField(Webhook)
 
     class Meta:
         verbose_name_plural = "crawl policies"
 
     def __str__(self):
+        title = self.get_title_label()
+        return "「" + title + "」"
+
+    def get_title_label(self):
         if self.url_regex:
             url_regexs = [line.strip() for line in self.url_regex.splitlines()]
             url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
             if len(url_regexs) == 1:
-                return f"「{url_regexs[0]}」"
+                return f"{url_regexs[0]}"
             elif len(url_regexs) > 1:
                 others = len(url_regexs) - 1
                 others = f"{others} other{plural(others)}"
-                return f"「{url_regexs[0]} (and {others})」"
-        return "「<empty>」"
+                return f"{url_regexs[0]} (and {others})"
+        return "<empty>"
 
     def save(self, *args, **kwargs):
         if self.url_regex == "(default)":

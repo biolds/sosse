@@ -100,7 +100,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertFalse(doc.has_html_snapshot)
         self.assertFalse(doc.has_thumbnail)
         self.assertEqual(doc.webhooks_result, {})
-        self.assertEqual(len(Document._meta.get_fields()), 36)
+        self.assertEqual(doc.tags.count(), 0)
+        self.assertEqual(len(Document._meta.get_fields()), 37)
 
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
@@ -255,7 +256,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertFalse(doc.has_html_snapshot)
         self.assertFalse(doc.has_thumbnail)
         self.assertEqual(doc.webhooks_result, {})
-        self.assertEqual(len(Document._meta.get_fields()), 36)
+        self.assertEqual(doc.tags.count(), 0)
+        self.assertEqual(len(Document._meta.get_fields()), 37)
 
         self.assertEqual(Cookie.objects.count(), 2)
         cookies = Cookie.objects.order_by("name").values()

@@ -287,3 +287,5 @@ Using the actions dropdown, the following actions can be applied to the selected
 
 * ``Enable/Disable``: Toggles the Crawl Policy state.
 * ``Duplicate``: Makes a copy of the Crawl Policy.
+* ``Update doc tags``: Updates the tags of all documents matching the policy.
+* ``Clear & update doc tags``: Clears the tags of all documents matching the policy and updates them.

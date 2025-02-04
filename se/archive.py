@@ -129,6 +129,11 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             }
         )
 
+        model_tags = []
+        for tag in self.doc.tags.all().order_by("name"):
+            tag.href = reverse("search") + f"?tag={tag.id}"
+            model_tags.append(tag)
+
         return context | {
             "crawl_policy": crawl_policy,
             "doc": self.doc,
@@ -143,6 +148,9 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             "view_name": self.view_name,
             "settings": settings,
             "online_status": online_status(self.request),
+            "tags_edit_title": f"⭐ Tags of {self.doc.get_title_label()}",
+            "tags_edit_onclick": f"show_tags('/tags/document/{self.doc.id}')",
+            "model_tags": model_tags,
         }
 
     def _unknown_url_view(self):

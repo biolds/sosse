@@ -40,6 +40,7 @@ from .document import Document
 from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
 from .models import AuthField, ExcludedUrl, Link, SearchEngine
+from .tag import Tag
 from .utils import mimetype_icon, reverse_no_escape
 from .webhook import Webhook, webhook_html_status
 
@@ -54,6 +55,7 @@ class SEAdminSite(admin.AdminSite):
                 "se",
                 (
                     "CrawlPolicy",
+                    "Tag",
                     "Document",
                     "DomainSetting",
                     "Cookie",
@@ -96,6 +98,28 @@ admin_site = SEAdminSite(name="admin")
 def get_admin():
     global admin_site
     return admin_site
+
+
+def render_tags(tags, obj, model):
+    for tag in tags:
+        tag.href = reverse(f"admin:se_{model}_changelist") + f"?tags={tag.id}"
+
+    if obj and obj.pk:
+        title = f"⭐ Tags of {obj.get_title_label()}"
+        obj_id = obj.pk
+    else:
+        title = "⭐ Tags"
+        obj_id = 0
+    return render_to_string(
+        "se/components/tags_list.html",
+        {
+            "model_tags": tags,
+            "model_tags_pks": ",".join([str(tag.pk) for tag in tags]),
+            "django_admin": True,
+            "tags_edit_title": title,
+            "tags_edit_onclick": f"show_tags('/tags/{model}/{obj_id}?django_admin=1')",
+        },
+    )
 
 
 class CharFieldForm(forms.ModelForm):
@@ -290,6 +314,19 @@ class DocumentOrphanFilter(admin.SimpleListFilter):
         return queryset
 
 
+class TagsFilter(admin.SimpleListFilter):
+    title = "Tags"
+    parameter_name = "tags"
+
+    def lookups(self, request, model_admin):
+        return [(tag.id, tag.path_name()) for tag in Tag.objects.all()]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(tags__id=self.value()).distinct()
+        return queryset
+
+
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), manual_crawl=True)
@@ -336,13 +373,18 @@ def trigger_webhooks(modeladmin, request, queryset):
         doc.save()
 
 
+@admin.action(description="Clear tags", permissions=["change"])
+def clear_tags(modeladmin, request, queryset):
+    Document.tags.through.objects.filter(document__in=queryset).delete()
+
+
 @admin.register(Document)
 class DocumentAdmin(InlineActionModelAdmin):
     list_display = (
         "_url",
-        "_title",
-        "lang",
         "status",
+        "_title",
+        "active_tags",
         "err",
         "_crawl_last",
         "_crawl_next",
@@ -355,10 +397,11 @@ class DocumentAdmin(InlineActionModelAdmin):
         "show_on_homepage",
         "hidden",
         DocumentOrphanFilter,
+        TagsFilter,
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)
-    actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg, switch_hidden, trigger_webhooks]
+    actions = [crawl_now, remove_from_crawl_queue, clear_tags, convert_to_jpg, switch_hidden, trigger_webhooks]
     if settings.DEBUG:
         actions += [crawl_later]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
@@ -369,6 +412,7 @@ class DocumentAdmin(InlineActionModelAdmin):
             {
                 "fields": (
                     "_title",
+                    "_tags",
                     "_links",
                     "show_on_homepage",
                     "hidden",
@@ -410,6 +454,7 @@ class DocumentAdmin(InlineActionModelAdmin):
     )
     readonly_fields = [
         "_title",
+        "_tags",
         "_links",
         "_status",
         "_robotstxt_rejected",
@@ -425,6 +470,9 @@ class DocumentAdmin(InlineActionModelAdmin):
         "crawl_recurse",
         "_webhooks_result",
     ]
+
+    class Media:
+        js = ("se/tags.js",)
 
     def get_queryset(self, request):
         return Document.objects.w_content()
@@ -474,6 +522,16 @@ class DocumentAdmin(InlineActionModelAdmin):
         if lookup in ("linked_from__doc_from", "links_to__doc_to"):
             return True
         return super().lookup_allowed(lookup, value)
+
+    def save_model(self, request, obj, form, change):
+        r = super().save_model(request, obj, form, change)
+        tags_ids = request.POST["tags"]
+        if tags_ids:
+            tags_list = [int(tag_id) for tag_id in tags_ids.split(",")]
+            obj.tags.set(tags_list)
+        else:
+            obj.tags.clear()
+        return r
 
     def add_to_queue(self, request):
         return AddToQueueView.as_view(admin_site=self.admin_site)(request)
@@ -568,6 +626,24 @@ class DocumentAdmin(InlineActionModelAdmin):
         return format_html('<span title="{}">{} {}</span>', title, fav, title)
 
     @staticmethod
+    @admin.display(description="Tags")
+    def _tags(obj):
+        return render_tags(obj.tags.all(), obj, "document")
+
+    @staticmethod
+    @admin.display(description="Tags")
+    def active_tags(obj):
+        html = ""
+        for tag in obj.tags.order_by("name"):
+            tag.href = reverse("admin:se_document_changelist") + f"?tags={tag.id}"
+            html += render_to_string(
+                "se/components/tag.html",
+                {"tag": tag, "suffix": f"-doc-{obj.id}"},
+            )
+
+        return mark_safe(html)
+
+    @staticmethod
     @admin.display(description="Links")
     def _links(obj):
         try:
@@ -577,6 +653,9 @@ class DocumentAdmin(InlineActionModelAdmin):
                 reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
                 crawl_policy,
             )
+
+            tags_url = reverse("admin:se_tag_changelist") + f"?document__id={obj.id}"
+            tags = format_html('⭐&nbsp<a href="{}">Tags</a>', tags_url)
 
             domain_setting = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
             domain = format_html(
@@ -599,9 +678,11 @@ class DocumentAdmin(InlineActionModelAdmin):
             links_from_here = format_html('🔗&nbsp<a href="{}">Links from here</a>', links_from_here_url)
 
             return format_html(
-                '<span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>'
+                '<span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>'
+                '<span class="label_tag">{}</span><span class="label_tag">{}</span>'
                 '<span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>',
                 policy,
+                tags,
                 domain,
                 cookies,
                 archive,
@@ -795,9 +876,11 @@ def crawl_policy_enable_disable(modeladmin, request, queryset):
 @admin.action(description="Duplicate", permissions=["change"])
 def crawl_policy_duplicate(modeladmin, request, queryset):
     for crawl_policy in queryset.all():
+        tags = list(crawl_policy.tags.all())
         crawl_policy.id = None
         crawl_policy.url_regex = f"Copy of {crawl_policy.url_regex}"
         crawl_policy.save()
+        crawl_policy.tags.set(tags)
         msg = format_html(
             "Crawl policy <a href='{}'>{}</a> created.",
             reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
@@ -806,19 +889,44 @@ def crawl_policy_duplicate(modeladmin, request, queryset):
         messages.success(request, msg)
 
 
+@admin.action(description="Update doc tags", permissions=["document_change"])
+def update_doc_tags(modeladmin, request, queryset, clear_first=False):
+    for obj in queryset:
+        documents = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg)
+
+        if clear_first:
+            Document.tags.through.objects.filter(document__in=documents).delete()
+
+        tags = obj.tags.all()
+        documents_id = documents.values_list("id", flat=True)
+        new_tags = [(doc_id, tag.id) for doc_id in documents_id for tag in tags]
+
+        if new_tags:
+            Document.tags.through.objects.bulk_create(
+                [Document.tags.through(document_id=doc_id, tag_id=tag_id) for doc_id, tag_id in new_tags],
+                ignore_conflicts=True,
+            )
+
+
+@admin.action(description="Clear & update doc tags", permissions=["document_change"])
+def clear_update_doc_tags(modeladmin, request, queryset):
+    update_doc_tags(modeladmin, request, queryset, True)
+
+
 @admin.register(CrawlPolicy)
-class CrawlPolicyAdmin(admin.ModelAdmin):
+class CrawlPolicyAdmin(InlineActionModelAdmin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
     list_display = (
         "url_regex",
         "enabled",
+        "active_tags",
         "docs",
         "crawl_policy_desc",
     )
-    list_filter = ("enabled",)
+    list_filter = ("enabled", TagsFilter)
     search_fields = ("url_regex",)
-    readonly_fields = ("documents", "webhooks_link")
+    readonly_fields = ("_tags", "documents", "webhooks_link")
     fieldsets = (
         (
             "⚡ Crawl",
@@ -826,6 +934,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
                 "fields": (
                     "url_regex",
                     "enabled",
+                    "_tags",
                     "documents",
                     "recursion",
                     "recursion_depth",
@@ -888,7 +997,10 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             },
         ),
     )
-    actions = [crawl_policy_enable_disable, crawl_policy_duplicate]
+    actions = [crawl_policy_enable_disable, crawl_policy_duplicate, update_doc_tags, clear_update_doc_tags]
+
+    class Media:
+        js = ("se/tags.js",)
 
     def get_queryset(self, request):
         # Keep the (default) policy at the top
@@ -917,6 +1029,41 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
         if obj and obj.url_regex == "(default)":
             return False
         return super().has_delete_permission(request, obj)
+
+    def has_document_change_permission(self, request, obj=None):
+        return request.user.has_perm("se.document_change")
+
+    def save_model(self, request, obj, form, change):
+        r = super().save_model(request, obj, form, change)
+        tags_ids = request.POST["tags"]
+        if tags_ids:
+            tags_list = [int(tag_id) for tag_id in tags_ids.split(",")]
+            obj.tags.set(tags_list)
+        else:
+            obj.tags.clear()
+        return r
+
+    @staticmethod
+    @admin.display(description="Tags")
+    def active_tags(obj):
+        html = ""
+        for tag in obj.tags.order_by("name"):
+            tag.href = reverse("admin:se_crawlpolicy_changelist") + f"?tags={tag.id}"
+            html += render_to_string(
+                "se/components/tag.html",
+                {"tag": tag, "suffix": f"-crawlpolicy-{obj.id}"},
+            )
+
+        return mark_safe(html)
+
+    @staticmethod
+    @admin.display(description="Tags")
+    def _tags(obj):
+        if obj and obj.pk:
+            tags = obj.tags.all()
+        else:
+            tags = []
+        return render_tags(tags, obj, "crawlpolicy")
 
     @staticmethod
     def documents(obj):
@@ -1048,6 +1195,57 @@ class ExcludedUrlAdmin(admin.ModelAdmin):
     search_fields = ("url", "comment")
     ordering = ("url",)
     form = ExcludedUrlForm
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("_name", "docs", "policies")
+    ordering = ("tree_id", "lft", "rght")
+    fields = ("name", "parent", "documents", "crawl_policies")
+    readonly_fields = ("documents", "crawl_policies")
+    search_fields = ("name",)
+
+    @staticmethod
+    def _name(obj):
+        return render_to_string("se/components/tag.html", {"tag": obj, "with_padding": True})
+
+    @staticmethod
+    def documents(obj):
+        count = Document.objects.wo_content().filter(tags__id=obj.id).count()
+        return format_html(
+            '🔤 <a href="{}">Matching documents ({})</a>',
+            reverse("admin:se_document_changelist") + f"?tags={obj.id}",
+            count,
+        )
+
+    @staticmethod
+    def docs(obj):
+        count = Document.objects.wo_content().filter(tags__id=obj.id).count()
+        return format_html(
+            '🔤 <a href="{}">{}</a>',
+            reverse("admin:se_document_changelist") + f"?tags={obj.id}",
+            count,
+        )
+
+    @staticmethod
+    @admin.display(description="⚡ Crawl Policies")
+    def crawl_policies(obj):
+        count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
+        return format_html(
+            '⚡ <a href="{}">Matching Crawl Policies ({})</a>',
+            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            count,
+        )
+
+    @staticmethod
+    @admin.display(description="Crawl Policies")
+    def policies(obj):
+        count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
+        return format_html(
+            '⚡ <a href="{}">{}</a>',
+            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            count,
+        )
 
 
 @admin.register(Webhook)

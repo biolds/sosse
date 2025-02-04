@@ -14,6 +14,7 @@ Administration
    crawl/recursion_depth.rst
    crawl/feeds.rst
    documents.rst
+   tags.rst
    domain_settings.rst
    cookies.rst
    webhooks.rst

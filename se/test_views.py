@@ -44,6 +44,8 @@ from .preferences import PreferencesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
+from .tags import SearchTagsView, Tag, TagsView
+from .tags_list import TagsListView
 from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
 from .words import WordsView
@@ -61,6 +63,7 @@ class ViewsTest:
         self.crawl_policy.take_screenshots = True
         self.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
         self.crawl_policy.save()
+        self.tag = Tag.objects.create(name="tag")
         self.doc = Document.objects.wo_content().create(url=CRAWL_URL)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
@@ -104,6 +107,25 @@ class ViewsTest:
                 HTMLExcludedView,
                 {"crawl_policy": self.crawl_policy.id, "method": "url"},
             ),
+            ("/search_tags/", SearchTagsView, {}),
+            (f"/tags/document/{self.doc.id}/", TagsView, {"model": "document", "pk": self.doc.id}),
+            (f"/tags_list/document/{self.doc.id}/", TagsListView, {"model": "document", "pk": self.doc.id}),
+            (
+                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}",
+                TagsListView,
+                {"model": "document", "pk": self.doc.id},
+            ),
+            (
+                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}&django_admin=1",
+                TagsListView,
+                {"model": "document", "pk": self.doc.id},
+            ),
+            (
+                f"/tags_list/crawlpolicy/{self.crawl_policy.id}/?tag={self.tag.id}&django_admin=1",
+                TagsListView,
+                {"model": "crawlpolicy", "pk": self.crawl_policy.id},
+            ),
+            ("/online_check/" + CRAWL_URL, OnlineCheckView, {}),
         ):
             self._view_request(url, view_cls, params, self.admin_user, 200)
             self._view_request(url, view_cls, params, self.simple_user, 200)
@@ -143,7 +165,7 @@ class ViewsTest:
     def test_new_urls(self):
         from sosse.urls import urlpatterns
 
-        self.assertEqual(len(urlpatterns), 25)
+        self.assertEqual(len(urlpatterns), 28)
 
     def test_archive_redirect(self):
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)
@@ -177,6 +199,7 @@ class ViewsTest:
             ("/admin/se/excludedurl/", None),
             ("/admin/se/searchengine/", None),
             ("/admin/se/searchengine/?conflict=yes", None),
+            ("/admin/se/tag/", None),
             ("/admin/se/htmlasset/", None),
             ("/admin/se/webhook/", None),
         ):

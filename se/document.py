@@ -39,6 +39,7 @@ from .document_meta import DocumentMeta
 from .domain_setting import DomainSetting
 from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
+from .tag import Tag
 from .url import url_beautify, validate_url
 from .utils import reverse_no_escape
 from .webhook import Webhook
@@ -154,6 +155,8 @@ class Document(models.Model):
     worker_no = models.PositiveIntegerField(blank=True, null=True)
     webhooks_result = models.JSONField(default=dict)
 
+    tags = models.ManyToManyField(Tag, blank=True)
+
     supported_langs = None
 
     objects = DocumentManager()
@@ -199,7 +202,7 @@ class Document(models.Model):
     def get_title_label(self):
         if self.redirect_url:
             return f"<Redirect to {self.redirect_url}>"
-        return self.title
+        return self.title or self.url
 
     def image_name(self):
         if not self._image_name:
@@ -402,6 +405,7 @@ class Document(models.Model):
             self.modified_date = n
 
         self._clear_dump_content()
+        self.tags.add(*crawl_policy.tags.values_list("pk", flat=True))
 
         if self.mimetype.startswith("text/"):
             self._parse_xml(page, crawl_policy, stats, verbose)

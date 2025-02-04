@@ -297,7 +297,6 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         query = SearchQuery(data=request.data)
         query.is_valid(raise_exception=True)
-        # ×raise Exception(query.validated_data)
         f = SearchForm(
             data={
                 "q": query.validated_data["query"],

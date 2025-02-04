@@ -17,41 +17,43 @@
               {% endif %}
             </h4>
           </caption>
-          {% if app.app_label == 'se' %}
-            {% if 'se.add_document' in perms %}
-              <tr>
-                <th scope="row">🌐  <a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
-                <td></td>
-              </tr>
-            {% endif %}
-            {% if 'se.view_crawlerstats' in perms %}
-              <tr>
-                <th scope="row"><div style="display: inline; color: #1ce51c">✔ </div><a href="{% url 'admin:crawl_queue' %}">Crawl queue</a></th>
-                <td></td>
-              </tr>
-            {% endif %}
+        {% if app.app_label == 'se' %}
+          {% if 'se.add_document' in perms %}
             <tr>
-              <th scope="row">📊 <a href="{% url 'admin:analytics' %}">Analytics</a></th>
+              <th scope="row">🌐  <a href="{% url 'admin:queue' %}">Crawl a new URL</a></th>
               <td></td>
             </tr>
-            {% if 'se.view_crawlerstats' in perms %}
-              <tr>
-                <th scope="row">🕷 <a href="{% url 'admin:crawlers' %}">Crawlers</a></th>
-                <td></td>
-              </tr>
-            {% endif %}
           {% endif %}
-          {% for model in app.models %}
-            <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
-              {% if model.admin_url %}
-                <th scope="row">
-                  {% if model.name == 'Crawl policies' %}
-                    ⚡
-                  {% endif %}
-                <a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
-              {% else %}
-                <th scope="row">{{ model.name }}</th>
-              {% endif %}
+          {% if 'se.view_crawlerstats' in perms %}
+            <tr>
+              <th scope="row"><div style="display: inline; color: #1ce51c">✔ </div><a href="{% url 'admin:crawl_queue' %}">Crawl queue</a></th>
+              <td></td>
+            </tr>
+          {% endif %}
+          <tr>
+            <th scope="row">📊 <a href="{% url 'admin:analytics' %}">Analytics</a></th>
+            <td></td>
+          </tr>
+          {% if 'se.view_crawlerstats' in perms %}
+            <tr>
+              <th scope="row">🕷 <a href="{% url 'admin:crawlers' %}">Crawlers</a></th>
+              <td></td>
+            </tr>
+          {% endif %}
+        {% endif %}
+        {% for model in app.models %}
+          <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
+            {% if model.admin_url %}
+              <th scope="row">
+                {% if model.name == 'Crawl policies' %}
+                  ⚡
+                {% elif model.name == 'Tags' %}
+                  ⭐
+                {% endif %}
+              <a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
+            {% else %}
+              <th scope="row">{{ model.name }}</th>
+            {% endif %}
 
               {% if model.add_url %}
                 <td>
@@ -64,7 +66,7 @@
                 <td></td>
               {% endif %}
             </tr>
-            {% if app.app_label == 'se' and model.name == 'Crawl policies' %}
+            {% if app.app_label == 'se' and model.name == 'Tags' %}
             {# hack to insert a title #}
             </table>
             </div>

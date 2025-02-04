@@ -15,8 +15,10 @@
 
 from django import forms
 from django.conf import settings
+from django.http import QueryDict
 
 from .document import Document
+from .tag import Tag
 
 SORT = (
     ("-rank", "Most relevant first"),
@@ -42,6 +44,7 @@ FILTER_FIELDS = (
     ("lto_txt", "Links to text"),
     ("lby_url", "Linked by url"),
     ("lby_txt", "Linked by text"),
+    ("tag", "Tag"),
 )
 
 
@@ -65,6 +68,11 @@ class SearchForm(forms.Form):
         required=False,
     )
     i = forms.BooleanField(widget=forms.CheckboxInput, required=False)
+    tag = forms.MultipleChoiceField(widget=forms.MultipleHiddenInput, choices=[], required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tag"].choices = [(str(a), b) for a, b in Tag.objects.values_list("id", "name")]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -116,4 +124,12 @@ class SearchForm(forms.Form):
         cleaned_data["order_by"] = order_by
 
         cleaned_data["c"] = bool(cleaned_data["c"])
+        if isinstance(self.data, QueryDict):
+            tags = self.data.getlist("tag")
+        elif isinstance(self.data, dict):
+            tags = self.data.get("tag", [])
+        else:
+            raise Exception("Unknown data type")
+
+        cleaned_data["tag"] = Tag.objects.filter(id__in=tags)
         return cleaned_data

@@ -1,3 +1,13 @@
+{% load static %}
+{% include "se/components/modal.html" with id="tags" title=tags_edit_title %}
+
+{% block head %}
+    <script src="{% static 'se/tags.js' %}"></script>
+
+    {# Token used by Javscript code to make ``fetch`` requests #}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
+
 <div id="top_bar_links">
     {% if doc.has_thumbnail %}
         <img src="{{ settings.SOSSE_THUMBNAILS_URL }}{{ doc.image_name }}.jpg" class="archive-preview" />
@@ -5,6 +15,12 @@
     <p style="color: #081; font-size: 13px">
         {{ beautified_url }}
     </p>
+    <p>
+        <div id="document_tags">
+            {% include "se/components/tags_list.html" %}
+        </div>
+    </p>
+
     <ul class="archive_links" style="margin-bottom: 20px">
       {% if 'se.view_document' in perms %}
         <li>🛠️<a href="{% url 'admin:se_document_change' doc.id %}">Administration</a></li>

@@ -16,6 +16,18 @@ keyword based searches. This makes the search bar behave like most search engine
 - Using ``-`` in front of a search term removes matching pages from the result list.
 - Parenthesis can be used to make complex queries and prioritize operators.
 
+Tags filtering
+--------------
+
+.. image:: ../../../tests/robotframework/screenshots/tags_filter.png
+   :class: sosse-screenshot
+
+Clicking the ``Tags`` button, shows a list of tags that can be used to filter the search results. Tags are organized
+in a tree structure, and filtering on a tag also include all its children.
+
+Avanced filtering
+-----------------
+
 More search options are available when clicking on ``Params``:
 
 .. image:: ../../../tests/robotframework/screenshots/extended_search.png
@@ -53,6 +65,7 @@ This defines against which field the keyword is matched:
   document) matching the keyword
 - ``Linked by url``: returns documents which are the target of the links of URLs matching the keyword
 - ``Linked by text``: returns documents which are pointed by links whose text match the keyword
+- ``Tag``: this finds matching tags and returns documents containing them or any of their descendants
 
 Operator
 """"""""
@@ -78,6 +91,7 @@ From top to bottom, left to right, the elements displayed are:
 - the favicon of the page
 - the title of the page, or its URL if it has no title
 - the URL
+- the tags of the page
 - the score of the page for the provided search keywords from 0.0 to 1.0
 - the language of the page
 - the ``archive`` link to the archived version, or ``source`` link to the original page (depending on the

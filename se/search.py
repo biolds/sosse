@@ -17,11 +17,13 @@ import logging
 import re
 import uuid
 from collections import OrderedDict
+from urllib.parse import urlparse, urlunparse
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank
 from django.core.paginator import Paginator
 from django.db import models
+from django.http import QueryDict
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -29,12 +31,49 @@ from .document import Document, extern_link_flags, remove_accent
 from .html_asset import HTMLAsset
 from .models import SearchEngine, SearchHistory
 from .search_form import FILTER_FIELDS, SearchForm
+from .tag import Tag
 from .utils import human_nb
 from .views import RedirectException, UserView
 
 logger = logging.getLogger("web")
 
 FILTER_RE = "(ft|ff|fo|fv|fc)[0-9]+$"
+
+
+def remove_query_param(request, key, value=None):
+    url_parts = list(urlparse(request.get_full_path()))
+    query = QueryDict(url_parts[4], mutable=True)
+
+    if key in query:
+        if value is None:
+            query.pop(key)
+        else:
+            values = query.getlist(key)
+            if value in values:
+                values.remove(value)
+                if values:
+                    query.setlist(key, values)
+                else:
+                    query.pop(key)
+
+    url_parts[4] = query.urlencode()
+    return urlunparse(url_parts)
+
+
+def add_query_param(request, key, value):
+    url_parts = list(urlparse(request.get_full_path()))
+    query = QueryDict(url_parts[4], mutable=True)
+
+    if key in query:
+        values = query.getlist(key)
+        if value not in values:
+            values.append(value)
+            query.setlist(key, values)
+    else:
+        query[key] = value
+
+    url_parts[4] = query.urlencode()
+    return urlunparse(url_parts)
 
 
 def get_documents_from_request(request, form, stats_call=False):
@@ -58,7 +97,7 @@ def get_documents(request, params, form, stats_call):
     results = Document.objects.w_content().all()
     has_query = False
 
-    q = form.cleaned_data["q"]
+    q = form.cleaned_data.get("q", "")
     q = remove_accent(q)
     query = None
     if q:
@@ -140,6 +179,11 @@ def get_documents(request, params, form, stats_call):
             else:
                 key = f"{field}__text{param}"
                 qf = models.Q(**{key: value})
+        elif field == "tag":
+            key = f"name{param}"
+            tags = Tag.objects.filter(**{key: value})
+            tags = Tag.get_queryset_descendants(tags, include_self=True)
+            qf = models.Q(tags__in=tags)
         else:
             qparams = {field + param: value}
             qf = models.Q(**qparams)
@@ -154,6 +198,10 @@ def get_documents(request, params, form, stats_call):
         logger.debug(f"filter {ftype} {qf}")
         results = results.filter(qf)
 
+    tags = form.cleaned_data.get("tag", [])
+    for tag in tags:
+        results = results.filter(tags__in=tag.get_descendants(include_self=True))
+
     doc_lang = form.cleaned_data.get("doc_lang")
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
@@ -162,7 +210,7 @@ def get_documents(request, params, form, stats_call):
         order_by = form.cleaned_data["order_by"]
         results = results.order_by(*order_by).distinct()
 
-    if not has_query:
+    if not has_query and not tags:
         results = Document.objects.none()
 
     return has_query, results, query
@@ -289,14 +337,28 @@ class SearchView(UserView):
                     if asset:
                         preview_url = self.request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
                         r.preview = preview_url
+                r.ordered_tags = r.tags.order_by("name")
+                for tag in r.ordered_tags:
+                    tag.href = add_query_param(self.request, "tag", str(tag.id))
 
         extra_link_txt = "archive"
         if form.cleaned_data["c"]:
             extra_link_txt = "source"
 
+        tags = []
+        for tag in form.cleaned_data["tag"]:
+            tag.clear_href = remove_query_param(self.request, "tag", str(tag.id))
+            tags.append(tag)
+
         home_entries = None
-        if not has_query and settings.SOSSE_BROWSABLE_HOME:
-            home_entries = Document.objects.wo_content().filter(show_on_homepage=True).order_by("title")
+        if (not has_query or tags) and settings.SOSSE_BROWSABLE_HOME:
+            home_entries = Document.objects.wo_content().filter(show_on_homepage=True)
+            if tags:
+                for tag in tags:
+                    home_entries = home_entries.filter(tags__in=tag.get_descendants(include_self=True))
+                if not home_entries:
+                    has_query = True
+            home_entries = home_entries.order_by("title").distinct()
 
         context.update(self._get_pagination(paginated))
         return context | {
@@ -312,4 +374,6 @@ class SearchView(UserView):
             "sosse_langdetect_to_postgres": sosse_langdetect_to_postgres,
             "extra_link_txt": extra_link_txt,
             "FILTER_FIELDS": FILTER_FIELDS,
+            "tags": tags,
+            "clear_tags_href": remove_query_param(self.request, "tag"),
         }

@@ -19,6 +19,11 @@
     <link rel="stylesheet" type="text/css" href="{% static "se/admin-forms.css" %}">
 {% endblock %}
 
+{% block content %}
+  {{ block.super }}
+  {% include "se/components/modal.html" with id="tags" title=tags_edit_title %}
+{% endblock %}
+
 {% block object-tools %}
     <span style="text-align: right">
         <form action="{{ action_url }}" method="post">

@@ -4,6 +4,7 @@
 {% block head %}
     <script type="text/javascript" src="{% static "se/index.js" %}"></script>
     <link rel="search" type="application/opensearchdescription+xml" title="SOSSE" href="/opensearch.xml">
+    <script src="{% static 'se/tags.js' %}"></script>
 {% endblock %}
 
 {% block css %}
@@ -42,6 +43,9 @@
     }
     .res-highlight {
         background-color: #c6dcff;
+    }
+    .res .tag {
+      min-height: 15px;
     }
 
     #home-grid {
@@ -242,6 +246,19 @@
 {% endblock %}
 
 {% block body %}
+    {% include "se/components/modal.html" with id="tags" title="⭐ Filtering" %}
+    <div id="search_tags">
+        {% if tags %}
+            Filters:
+            {% for tag in tags %}
+                {% include "se/components/tag.html" with suffix="-search" bold=True %}
+            {% endfor %}
+            {% include "se/components/tag_action.html" with id="clear_tags" text="⨉ Clear" href=clear_tags_href padding=True %}
+        {% endif %}
+        <div style="float: right">
+            {% include "se/components/tag_action.html" with id="edit_search_tags" onclick="show_tags()" %}
+        </div>
+    </div>
     {% if has_query %}
         {% if results_count == '0' %}
             <div>
@@ -295,6 +312,13 @@
                 <a href="{{ r.link }}" class="res-url" {{ r.link_flag }}>
                     {{ r.url }}
                 </a>
+                {% if r.ordered_tags %}
+                    <div class="res-rank">
+                        {% for tag in r.ordered_tags %}
+                            {% include "se/components/tag.html" with cursor_pointer=True %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="res-rank"> · {{ r.rank|floatformat:"1" }}</div>
                 <div class="res-rank"> · {{ r.lang_flag }}</div>
                 <div class="res-rank"> · <a href="{{ r.extra_link }}" {{ r.extra_link_flag }}>{{ extra_link_txt }}</a></div>

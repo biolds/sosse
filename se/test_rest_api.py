@@ -24,6 +24,7 @@ from django.utils import timezone
 
 from .document import Document
 from .models import CrawlerStats
+from .tag import Tag
 
 now = timezone.now()
 now_str = now.isoformat().replace("+00:00", "Z")
@@ -54,6 +55,7 @@ SERIALIZED_DOC1 = {
     "screenshot_format": "",
     "screenshot_size": "",
     "show_on_homepage": False,
+    "tags": [],
     "title": "Title",
     "too_many_redirects": False,
     "url": "http://127.0.0.1/test",
@@ -108,6 +110,10 @@ class RestAPITest:
         self.crawler_stat1 = CrawlerStats.objects.create(t=now, doc_count=23, queued_url=24, indexing_speed=2, freq="M")
         self.crawler_stat2 = CrawlerStats.objects.create(t=now, doc_count=33, queued_url=34, indexing_speed=4, freq="D")
 
+        self.tag = Tag.objects.create(name="Group")
+        self.subtag = Tag.objects.create(name="Sub Tag", parent=self.tag)
+        self.doc2.tags.set([self.subtag])
+
 
 class APIQueryTest(RestAPITest, TransactionTestCase):
     def test_document_list(self):
@@ -149,6 +155,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "screenshot_format": "",
                         "screenshot_size": "",
                         "show_on_homepage": False,
+                        "tags": ["Sub Tag"],
                         "title": "Title2",
                         "too_many_redirects": False,
                         "url": "http://127.0.0.1/test2",
@@ -366,3 +373,70 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 ],
             },
         )
+
+    def test_search_tags(self):
+        response = self.client.post(
+            "/api/search/",
+            {"adv_params": [{"field": "tag", "term": "Sub Tag", "operator": "equal"}]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "doc_id": self.doc2.id,
+                        "url": "http://127.0.0.1/test2",
+                        "title": "Title2",
+                        "score": None,
+                    },
+                ],
+            },
+        )
+
+    def test_search_subtags(self):
+        response = self.client.post(
+            "/api/search/",
+            {"adv_params": [{"field": "tag", "term": "Group", "operator": "equal"}]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "doc_id": self.doc2.id,
+                        "url": "http://127.0.0.1/test2",
+                        "title": "Title2",
+                        "score": None,
+                    },
+                ],
+            },
+        )
+
+    def test_document_tags_str_update(self):
+        response = self.client.patch(
+            f"/api/document/{self.doc1.id}/", {"tags": ["tag1", "tag2"]}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.doc1.refresh_from_db()
+        tags = list(self.doc1.tags.values_list("name", flat=True))
+        self.assertEqual(tags, ["tag1", "tag2"])
+
+    def test_document_tags_pk_update(self):
+        tag = Tag.objects.create(name="test tag")
+        response = self.client.patch(
+            f"/api/document/{self.doc1.id}/", {"tags": [tag.pk]}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.doc1.refresh_from_db()
+        tags = list(self.doc1.tags.values_list("name", flat=True))
+        self.assertEqual(tags, ["test tag"])

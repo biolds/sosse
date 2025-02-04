@@ -32,3 +32,5 @@
 |  | SOSSE Capture Page Screenshot | clear_admin_document.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/webhook/
 |  | SOSSE Capture Page Screenshot | clear_admin_webhook.png
+|  | SOSSE Go To | http://127.0.0.1/admin/se/tag/
+|  | SOSSE Capture Page Screenshot | clear_admin_tag.png

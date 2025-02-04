@@ -1,6 +1,7 @@
 | *Settings* |
 | Library | SeleniumLibrary
 | Resource | ../tests/common.robot
+| Resource | ../tests/tags.robot
 
 | *Test Cases* |
 | Admin UI access
@@ -185,3 +186,16 @@
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${dom_count} | 1
 |  | SOSSE Capture Page Screenshot | webhook_list.png
+
+
+| Tags
+|  | Create sample tags
+|  | SOSSE Go To | http://127.0.0.1/admin/se/tag/
+|  | Wait Until Element Is Visible | id=result_list
+|  | SOSSe Capture Page Screenshot | tags_list.png
+|  | Click Element | xpath=//th[@class='field-_name']//div[contains(., 'Motherboard')]
+|  | SOSSE Capture Page Screenshot | edit_tag.png
+|  | SOSSE Go To | http://127.0.0.1/
+|  | Click Element | id=edit_search_tags
+|  | Wait Until Element Is Visible | id=tags
+|  | SOSSE Capture Page Screenshot | tags_filter.png

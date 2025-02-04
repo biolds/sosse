@@ -279,7 +279,7 @@ class PageTest(TransactionTestCase):
 
     def test_60_no_comment(self):
         page = Page("http://test/", b"<html><body><!-- nothing -->text</body></html>", None)
-        doc = Document(url=page.url)
+        doc = Document.objects.create(url=page.url)
         doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "text")
 

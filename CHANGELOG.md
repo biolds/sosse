@@ -1,3 +1,9 @@
+## 1.12.1 (2025-02-04)
+### Bug fixes (3 changes)
+- [fix counting doc with no language in the total count in analytics](https://gitlab.com/biolds1/sosse/-/commit/27b70b6bdb09a64fd74eb054d8fbc4a1f5a1946e) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/145))
+- [fix displaying the 24h analytics graphs](https://gitlab.com/biolds1/sosse/-/commit/1bf06a874adf48edc049047741f8fef94df688fb) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/145))
+- [fix docker build status when no upgrade is available](https://gitlab.com/biolds1/sosse/-/commit/26de1e90dbe3af5682ca2989ab61eb83f6903c8d)
+
 ## 1.12.0 (2025-01-30)
 ### Features (12 changes)
 - [enable browser detection by default](https://gitlab.com/biolds1/sosse/-/commit/11e7d2ec898e46b2260ba191a5af338a482c8bd3) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/142))

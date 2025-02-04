@@ -143,8 +143,8 @@ class BrowserRequest(Browser):
         redirect_count = 0
 
         if max_file_size is None:
-            # max_file_size cannot be set a kwargs paramater, as it prevents
-            # to overide the value of settings.SOSSE_MAX_FILE_SIZE with override_settings
+            # max_file_size cannot be set as a kwargs paramater, as it prevents
+            # to override the value of settings.SOSSE_MAX_FILE_SIZE with override_settings
             max_file_size = settings.SOSSE_MAX_FILE_SIZE
 
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:

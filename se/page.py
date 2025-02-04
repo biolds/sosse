@@ -41,7 +41,7 @@ class Page:
         self.status_code = status_code
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
-        magic_head = self.content[:20].strip().lower()
+        magic_head = self.content[: 1024 * 1024].strip().lower()
         is_html = False
         for header in ("<html", "<!doctype html"):
             is_html |= isinstance(magic_head, str) and magic_head.startswith(header)

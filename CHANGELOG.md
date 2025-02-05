@@ -1,3 +1,7 @@
+## 1.12.2 (2025-02-02)
+### Bug fixes (1 change)
+- [fix documentation build](https://gitlab.com/biolds1/sosse/-/commit/4537d229f64feb2ec5491d7bbd6ab91cc30165b8)
+
 ## 1.12.1 (2025-02-04)
 ### Bug fixes (3 changes)
 - [fix counting doc with no language in the total count in analytics](https://gitlab.com/biolds1/sosse/-/commit/27b70b6bdb09a64fd74eb054d8fbc4a1f5a1946e) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/145))

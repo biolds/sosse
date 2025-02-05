@@ -50,6 +50,8 @@ unit_tests:
 coverage_report:
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   image: biolds/sosse:debian-test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
   needs:
     - unit_tests
   artifacts:

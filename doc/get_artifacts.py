@@ -28,12 +28,10 @@ gl = gitlab.Gitlab()
 project = gl.projects.get(PROJECT_ID)
 
 commit_hash = os.environ["READTHEDOCS_GIT_COMMIT_HASH"]
-commit = project.commits.get(commit_hash)
-pipeline_id = commit.last_pipeline["id"]
-print("Pipeline ID %s" % pipeline_id)
-pipeline = project.pipelines.get(pipeline_id)
+ref_name = os.environ["READTHEDOCS_GIT_IDENTIFIER"]
+pipeline = project.pipelines.list(ref=ref_name, sha=commit_hash)[0]
 
-print(f"Pipeline status: {pipeline.status}")
+print(f"Pipeline: {pipeline.id} {pipeline.status} {ref_name} {commit_hash}")
 
 for job in pipeline.jobs.list(get_all=True):
     if job.name in jobs_name:

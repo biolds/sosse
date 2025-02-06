@@ -472,6 +472,23 @@ class Document(models.Model):
             self.error_hash = md5(err.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     @staticmethod
+    def manual_queue(url, show_on_homepage, crawl_depth):
+        from .crawl_policy import CrawlPolicy
+
+        if crawl_depth is None:
+            crawl_policy = CrawlPolicy.get_from_url(url)
+            crawl_depth = crawl_policy.recursion_depth
+
+        doc, created = Document.objects.wo_content().get_or_create(url=url, defaults={"crawl_recurse": crawl_depth})
+        if not created:
+            doc.crawl_next = now()
+            if crawl_depth:
+                doc.recursion_depth = crawl_depth
+
+        doc.show_on_homepage = show_on_homepage
+        doc.save()
+
+    @staticmethod
     def queue(url, parent_policy, parent):
         from .crawl_policy import CrawlPolicy
         from .models import ExcludedUrl

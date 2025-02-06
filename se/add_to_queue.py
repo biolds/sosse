@@ -18,7 +18,6 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.timezone import now
 from django.views.generic import FormView
 
 from .crawl_policy import CrawlPolicy
@@ -100,28 +99,14 @@ class AddToQueueConfirmationView(AddToQueueView):
 
     def form_valid(self, form):
         if self.request.POST.get("action") == "Confirm":
-            crawl_recurse = form.cleaned_data.get("recursion_depth")
-
             urls = form.cleaned_data["urls"]
             for url in urls:
-                recursion_depth = crawl_recurse
-                if recursion_depth is None:
-                    crawl_policy = CrawlPolicy.get_from_url(url)
-                    recursion_depth = crawl_policy.recursion_depth
-
-                doc, created = Document.objects.wo_content().get_or_create(
-                    url=url, defaults={"crawl_recurse": recursion_depth}
-                )
-                if not created:
-                    doc.crawl_next = now()
-                    if recursion_depth:
-                        doc.recursion_depth = recursion_depth
-
-                doc.show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
-                doc.save()
+                show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
+                crawl_recurse = form.cleaned_data.get("recursion_depth")
+                Document.manual_queue(url, show_on_homepage, crawl_recurse)
             url_count = len(urls)
             if url_count > 1:
-                msg = f"{url_count} URL{plural(url_count)} were queued."
+                msg = f"{url_count} URLs were queued."
             else:
                 msg = "URL was queued."
             messages.success(self.request, msg)

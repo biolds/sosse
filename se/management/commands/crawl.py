@@ -44,6 +44,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "--one-shot",
+            action="store_true",
+            help="Quit when the queue is empty.",
+        )
+        parser.add_argument(
             "urls",
             nargs="*",
             type=str,
@@ -86,6 +91,8 @@ class Command(BaseCommand):
                 worker_stats = WorkerStats.get_worker(worker_no)
 
                 if worker_stats.state == "paused" or not Document.crawl(worker_no):
+                    if worker_stats.state != "paused" and options["one_shot"]:
+                        return
                     if worker_stats.state == "running":
                         worker_stats.update_state("idle")
                     if sleep_count % 60 == 0:
@@ -107,7 +114,7 @@ class Command(BaseCommand):
         CrawlPolicy.create_default()
 
         for url in options["urls"]:
-            Document.queue(url, None, 0)
+            Document.manual_queue(url, False, None)
 
         worker_count = settings.SOSSE_CRAWLER_COUNT
         if worker_count is None:
@@ -122,7 +129,6 @@ class Command(BaseCommand):
             p = Process(target=self.process, args=(crawler_no, options))
             p.start()
             workers.append(p)
-            sleep(5)
 
         crawl_logger.info("Crawlers started")
         for worker in workers:

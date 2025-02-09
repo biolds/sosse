@@ -3,12 +3,9 @@ ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
 RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
-ADD sid.list /etc/apt/sources.list.d/
-ADD 99sid /etc/apt/preferences.d/
 RUN apt update
 RUN apt purge -y sosse
 RUN apt install -y python3-coverage python3-virtualenv flake8 sudo jq make git
-RUN apt install -y -t sid pre-commit
 RUN /etc/init.d/postgresql start && \
     su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'" && \
     /etc/init.d/postgresql stop
@@ -22,6 +19,9 @@ RUN mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.co
 RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf
 
 # Pre-commit installation
+RUN virtualenv /pre-commit-venv && /pre-commit-venv/bin/pip install pre-commit
 RUN mkdir -p /tmp/pre-commit && cd /tmp/pre-commit && git init
 ADD pre-commit-config.yaml /tmp/pre-commit/.pre-commit-config.yaml
-RUN cd /tmp/pre-commit && pre-commit autoupdate && pre-commit run -a
+RUN cd /tmp/pre-commit && \
+    /pre-commit-venv/bin/pre-commit autoupdate && \
+    /pre-commit-venv/bin/pre-commit run -a

@@ -27,7 +27,9 @@ USER postgres
 RUN /etc/init.d/postgresql start && \
     (until pg_isready; do sleep 1; done) && \
     psql --command "CREATE USER sosse WITH PASSWORD 'sosse';" && \
-    createdb -O sosse sosse
+    createdb -O sosse sosse && \
+    /etc/init.d/postgresql stop && \
+    tar -c -p -C / -f /tmp/postgres_sosse.tar.gz /var/lib/postgresql
 
 USER root
 CMD ["/usr/bin/bash", "/run.sh"]

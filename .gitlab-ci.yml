@@ -137,9 +137,9 @@ pre_commit:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   script:
-    - pre-commit autoupdate
+    - /pre-commit-venv/bin/pre-commit autoupdate
     - git diff --exit-code
-    - pre-commit run -a
+    - /pre-commit-venv/bin/pre-commit run -a
 
 doc_gen:
   image: biolds/sosse:debian-test

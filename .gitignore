@@ -10,6 +10,7 @@ docker/doc/requirements.txt
 docker/debian-base/control
 docker/debian-test/requirements.txt
 docker/debian-test/pre-commit-config.yaml
+docker/pip-release/run.sh
 docker/pip-release/uwsgi.*
 docker/pip-release/sosse.conf
 se/static/swagger/

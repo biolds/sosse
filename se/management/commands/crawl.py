@@ -103,7 +103,7 @@ class Command(BaseCommand):
             raise
 
     def handle(self, *args, **options):
-        Document.objects.exclude(worker_no=None).update(worker_no=None)
+        Document.objects.wo_content().exclude(worker_no=None).update(worker_no=None)
         CrawlPolicy.create_default()
 
         for url in options["urls"]:

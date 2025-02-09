@@ -45,7 +45,7 @@ class WordStatsView(LoginRequiredMixin, View):
             raw_query = cursor.db.ops.last_executed_query(cursor, sql, params)
             raw_query = raw_query[len("EXPLAIN ") :]
 
-            results = Document.objects.raw(
+            results = Document.objects.wo_content().raw(
                 "SELECT 1 AS id, word, ndoc FROM ts_stat(%s) ORDER BY ndoc DESC, word ASC LIMIT 100",
                 (raw_query,),
             )

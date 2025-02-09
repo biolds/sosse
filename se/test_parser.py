@@ -226,7 +226,7 @@ class PageTest(TransactionTestCase):
 
     def test_20_no_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
-        doc = Document.objects.create(url=page.url)
+        doc = Document.objects.wo_content().create(url=page.url)
         doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "text")
         links = Link.objects.order_by("id")
@@ -241,7 +241,7 @@ class PageTest(TransactionTestCase):
 
     def test_30_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
-        doc = Document.objects.create(url=page.url)
+        doc = Document.objects.wo_content().create(url=page.url)
         self.crawl_policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
         doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "header nav link text footer")
@@ -286,7 +286,7 @@ class PageTest(TransactionTestCase):
     def test_70_feeds(self):
         for feed in (ATOM_FEED, ATOM_FEED_WITH_HEADER, RSS_FEED):
             page = Page("http://test/", feed, None)
-            doc = Document.objects.create(url=page.url)
+            doc = Document.objects.wo_content().create(url=page.url)
             doc.index(page, self.crawl_policy)
 
             self.assertEqual(Document.objects.count(), 4)
@@ -308,4 +308,4 @@ class PageTest(TransactionTestCase):
             self.assertEqual(links[2].text, "Entry two")
             self.assertEqual(links[2].doc_to.url, "http://192.168.120.5/entry-two")
 
-            Document.objects.all().delete()
+            Document.objects.wo_content().all().delete()

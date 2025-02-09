@@ -109,7 +109,9 @@ class AddToQueueConfirmationView(AddToQueueView):
                     crawl_policy = CrawlPolicy.get_from_url(url)
                     recursion_depth = crawl_policy.recursion_depth
 
-                doc, created = Document.objects.get_or_create(url=url, defaults={"crawl_recurse": recursion_depth})
+                doc, created = Document.objects.wo_content().get_or_create(
+                    url=url, defaults={"crawl_recurse": recursion_depth}
+                )
                 if not created:
                     doc.crawl_next = now()
                     if recursion_depth:

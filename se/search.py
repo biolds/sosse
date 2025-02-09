@@ -55,7 +55,7 @@ def get_documents_from_request(request, form, stats_call=False):
 def get_documents(request, params, form, stats_call):
     REQUIRED_KEYS = ("ft", "ff", "fo", "fv")
 
-    results = Document.objects.all()
+    results = Document.objects.w_content().all()
     has_query = False
 
     q = form.cleaned_data["q"]
@@ -66,8 +66,12 @@ def get_documents(request, params, form, stats_call):
         lang = form.cleaned_data["l"]
 
         query = SearchQuery(q, config=lang, search_type="websearch")
-        all_results = Document.objects.filter(vector=query).annotate(
-            rank=SearchRank(models.F("vector"), query),
+        all_results = (
+            Document.objects.w_content()
+            .filter(vector=query)
+            .annotate(
+                rank=SearchRank(models.F("vector"), query),
+            )
         )
         results = all_results.exclude(rank__lte=0.01)
 
@@ -177,7 +181,8 @@ def add_headlines(paginated, query):
         if query:
             rnd = uuid.uuid1().hex
             pg_headline = (
-                Document.objects.filter(id=res.id)
+                Document.objects.w_content()
+                .filter(id=res.id)
                 .annotate(
                     headline=SearchHeadline(
                         "normalized_content",
@@ -291,7 +296,7 @@ class SearchView(UserView):
 
         home_entries = None
         if not has_query and settings.SOSSE_BROWSABLE_HOME:
-            home_entries = Document.objects.filter(show_on_homepage=True).order_by("title")
+            home_entries = Document.objects.wo_content().filter(show_on_homepage=True).order_by("title")
 
         context.update(self._get_pagination(paginated))
         return context | {

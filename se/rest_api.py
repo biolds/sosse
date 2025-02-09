@@ -117,7 +117,8 @@ class LangStatsViewSet(viewsets.ViewSet):
     def list(self, request):
         langs = []
         indexed_langs = (
-            Document.objects.exclude(lang_iso_639_1__isnull=True)
+            Document.objects.wo_content()
+            .exclude(lang_iso_639_1__isnull=True)
             .values("lang_iso_639_1")
             .annotate(count=models.Count("lang_iso_639_1"))
             .order_by("-count")
@@ -149,7 +150,8 @@ class MimeStatsViewSet(viewsets.ViewSet):
     )
     def list(self, request):
         indexed_mimes = (
-            Document.objects.annotate(
+            Document.objects.wo_content()
+            .annotate(
                 mimetype_coalesced=Coalesce("mimetype", models.Value("NULL"))
             )  # Coalesce otherwise PG does not count NULL values
             .values("mimetype_coalesced")
@@ -186,7 +188,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Document.objects.all()
+    queryset = Document.objects.w_content()
     serializer_class = DocumentSerializer
 
 
@@ -263,7 +265,9 @@ class SearchQuery(serializers.Serializer):
 
 
 class SearchResult(serializers.Serializer):
-    doc_id = serializers.PrimaryKeyRelatedField(source="id", queryset=Document.objects.all(), help_text="Document id")
+    doc_id = serializers.PrimaryKeyRelatedField(
+        source="id", queryset=Document.objects.w_content(), help_text="Document id"
+    )
     url = serializers.CharField(help_text="Document URL")
     title = serializers.CharField(help_text="Document Title")
     score = serializers.SerializerMethodField(

@@ -33,7 +33,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
         super().setUp()
         now = timezone.now()
         yesterday = now - timedelta(days=1)
-        Document.objects.create(
+        Document.objects.wo_content().create(
             url="http://127.0.0.1",
             title="title",
             content="content",
@@ -41,7 +41,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
             crawl_first=now,
             crawl_last=now,
         )
-        Document.objects.create(
+        Document.objects.wo_content().create(
             url="http://127.0.0.1/bin",
             title="title",
             content="content",

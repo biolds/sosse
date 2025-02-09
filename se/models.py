@@ -150,7 +150,7 @@ class WorkerStats(models.Model):
                 w.state = "exited"
 
             if w.state != "exited":
-                w.doc = Document.objects.filter(worker_no=w.worker_no).first()
+                w.doc = Document.objects.wo_content().filter(worker_no=w.worker_no).first()
         return workers
 
 
@@ -171,8 +171,8 @@ class CrawlerStats(models.Model):
 
         doc_count = Document.objects.count()
         queued_url = (
-            Document.objects.filter(crawl_last__isnull=True).count()
-            + Document.objects.filter(crawl_next__lte=now()).count()
+            Document.objects.wo_content().filter(crawl_last__isnull=True).count()
+            + Document.objects.wo_content().filter(crawl_next__lte=now()).count()
         )
 
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)

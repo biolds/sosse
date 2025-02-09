@@ -80,7 +80,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_OGP_URL)
         self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
@@ -116,7 +116,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, TEST_SERVER_URL)
         self.assertEqual(doc.error, "")
         self.assertFalse(doc.has_thumbnail)
@@ -140,7 +140,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_OGP_URL)
         self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
@@ -176,7 +176,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
         self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)

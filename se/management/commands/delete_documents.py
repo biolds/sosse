@@ -42,9 +42,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options["ignore_case"]:
-            docs = Document.objects.filter(url__regex=options["url regex"])
+            docs = Document.objects.wo_content().filter(url__regex=options["url regex"])
         else:
-            docs = Document.objects.filter(url__iregex=options["url regex"])
+            docs = Document.objects.wo_content().filter(url__iregex=options["url regex"])
 
         count = docs.count()
         if options["dry_run"]:

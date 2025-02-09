@@ -67,6 +67,26 @@ def extern_link_flags():
     return format_html(opt)
 
 
+class DocumentManager(models.Manager):
+    def count(self):
+        return super().get_queryset().count()
+
+    def none(self):
+        return super().get_queryset().none()
+
+    def update(self, *args, **kwargs):
+        return super().get_queryset().update(*args, **kwargs)
+
+    def w_content(self):
+        return super().get_queryset()
+
+    def wo_content(self):
+        return super().get_queryset().defer("content", "normalized_content", "vector", "error")
+
+    def get_queryset(self):
+        raise Exception("Use w_content() or wo_content()")
+
+
 class Document(models.Model):
     SCREENSHOT_PNG = "png"
     SCREENSHOT_JPG = "jpg"
@@ -119,6 +139,8 @@ class Document(models.Model):
     worker_no = models.PositiveIntegerField(blank=True, null=True)
 
     supported_langs = None
+
+    objects = DocumentManager()
 
     class Meta:
         indexes = [
@@ -467,21 +489,21 @@ class Document(models.Model):
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL or parent is None:
             crawl_logger.debug(f"{url} -> always crawl")
-            return Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            return Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug(f"{url} -> never crawl")
-            return Document.objects.filter(url=url).first()
+            return Document.objects.wo_content().filter(url=url).first()
 
         doc = None
         url_depth = None
 
         if parent_policy.recursion == CrawlPolicy.CRAWL_ALL and parent_policy.recursion_depth > 0:
-            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            doc = Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent_policy.recursion_depth, doc.crawl_recurse)
             crawl_logger.debug(f"{url} -> recurse for {url_depth}")
         elif parent_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
-            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            doc = Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug(f"{url} -> recurse at {url_depth}")
         else:
@@ -491,7 +513,7 @@ class Document(models.Model):
             doc.crawl_recurse = url_depth
             doc.save()
 
-        doc = doc or Document.objects.filter(url=url).first()
+        doc = doc or Document.objects.wo_content().filter(url=url).first()
         return doc
 
     def _schedule_next(self, changed, crawl_policy):
@@ -531,12 +553,13 @@ class Document(models.Model):
         if worker_stats.state != "running":
             worker_stats.update_state("running")
 
-        queued_count = Document.objects.filter(crawl_last__isnull=True).count()
-        indexed_count = Document.objects.filter(crawl_last__isnull=False).count()
+        if settings.DEBUG:
+            queued_count = Document.objects.wo_content().filter(crawl_last__isnull=True).count()
+            indexed_count = Document.objects.wo_content().filter(crawl_last__isnull=False).count()
 
-        crawl_logger.debug(
-            f"Worker:{worker_no} Queued:{queued_count} Indexed:{indexed_count} Id:{doc.id} {doc.url} ..."
-        )
+            crawl_logger.debug(
+                f"Worker:{worker_no} Queued:{queued_count} Indexed:{indexed_count} Id:{doc.id} {doc.url} ..."
+            )
 
         while True:
             # Loop until we stop redirecting
@@ -600,7 +623,7 @@ class Document(models.Model):
                         doc.save()
 
                         # Process the page if it's new, otherwise skip it since it'll be processed depending on `crawl_next`
-                        if Document.objects.filter(url=page.url).count():
+                        if Document.objects.wo_content().filter(url=page.url).count():
                             break
 
                         doc = Document.pick_or_create(page.url, worker_no)
@@ -628,10 +651,16 @@ class Document(models.Model):
     @staticmethod
     def pick_queued(worker_no):
         while True:
-            doc = Document.objects.filter(worker_no__isnull=True, crawl_last__isnull=True).order_by("id").first()
+            doc = (
+                Document.objects.wo_content()
+                .filter(worker_no__isnull=True, crawl_last__isnull=True)
+                .order_by("id")
+                .first()
+            )
             if doc is None:
                 doc = (
-                    Document.objects.filter(
+                    Document.objects.wo_content()
+                    .filter(
                         worker_no__isnull=True,
                         crawl_last__isnull=False,
                         crawl_next__lte=now(),
@@ -642,7 +671,9 @@ class Document(models.Model):
                 if doc is None:
                     return None
 
-            updated = Document.objects.filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
+            updated = (
+                Document.objects.wo_content().filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
+            )
 
             if updated == 0:
                 sleep(0.1)
@@ -658,11 +689,11 @@ class Document(models.Model):
 
     @staticmethod
     def pick_or_create(url, worker_no):
-        doc, created = Document.objects.get_or_create(url=url, defaults={"worker_no": worker_no})
+        doc, created = Document.objects.wo_content().get_or_create(url=url, defaults={"worker_no": worker_no})
         if created:
             return doc
 
-        updated = Document.objects.filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
+        updated = Document.objects.wo_content().filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
 
         if updated == 0:
             return None
@@ -679,7 +710,7 @@ class Document(models.Model):
             if self.mimetype and self.mimetype.startswith("text/"):
                 HTMLAsset.html_delete_url(self.url)
             else:
-                for asset in HTMLAsset.objects.filter(url=self.url):
+                for asset in HTMLAsset.objects.wo_content().filter(url=self.url):
                     asset.remove_ref()
             self.has_html_snapshot = False
 

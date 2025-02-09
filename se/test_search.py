@@ -26,7 +26,7 @@ from .search_form import SearchForm
 
 class SearchTest(TransactionTestCase):
     def setUp(self):
-        self.root = Document.objects.create(
+        self.root = Document.objects.wo_content().create(
             url="http://127.0.0.1/",
             normalized_url="http://127.0.0.1/",
             content="Hello world one two three",
@@ -35,7 +35,7 @@ class SearchTest(TransactionTestCase):
             normalized_title="Root",
             crawl_last=timezone.now(),
         )
-        self.page = Document.objects.create(
+        self.page = Document.objects.wo_content().create(
             url="http://127.0.0.1/page1",
             normalized_url="http://127.0.0.1/page1",
             content="Page1, World Télé one three",

@@ -78,7 +78,7 @@ class RestAPITest:
         self.user.save()
         self.client.login(username="admin", password="admin")
 
-        self.doc1 = Document.objects.create(
+        self.doc1 = Document.objects.wo_content().create(
             url="http://127.0.0.1/test",
             normalized_url="http test",
             title="Title",
@@ -90,7 +90,7 @@ class RestAPITest:
             lang_iso_639_1="en",
             mimetype="text/html",
         )
-        self.doc2 = Document.objects.create(
+        self.doc2 = Document.objects.wo_content().create(
             url="http://127.0.0.1/test2",
             normalized_url="http test2",
             title="Title2",

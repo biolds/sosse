@@ -205,7 +205,9 @@ class DocumentOrphanFilter(admin.SimpleListFilter):
         if self.value() in ("no_parent", "full"):
             parents = set(links.values_list("doc_to", flat=True).distinct())
             queryset = queryset.exclude(id__in=parents)
-            redirects_url = Document.objects.filter(redirect_url__isnull=False).values_list("redirect_url", flat=True)
+            redirects_url = (
+                Document.objects.w_content().filter(redirect_url__isnull=False).values_list("redirect_url", flat=True)
+            )
             queryset = queryset.exclude(url__in=redirects_url)
 
         return queryset
@@ -331,6 +333,9 @@ class DocumentAdmin(admin.ModelAdmin):
         "crawl_dt",
         "crawl_recurse",
     ]
+
+    def get_queryset(self, request):
+        return Document.objects.w_content()
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -777,7 +782,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
 
     @staticmethod
     def documents(obj):
-        count = Document.objects.filter(url__regex=obj.url_regex_pg).count()
+        count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
         params = urlencode({"q": obj.url_regex_pg})
         return format_html(
             '<a href="{}">Matching documents ({})</a>', reverse("admin:se_document_changelist") + "?" + params, count
@@ -785,7 +790,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
 
     @staticmethod
     def docs(obj):
-        count = Document.objects.filter(url__regex=obj.url_regex_pg).count()
+        count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
         params = urlencode({"q": obj.url_regex_pg})
         return format_html(
             '<a href="{}">{}</a>',

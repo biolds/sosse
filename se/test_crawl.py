@@ -83,7 +83,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(domain_setting.robots_status, DomainSetting.ROBOTS_EMPTY)
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_recurse, 0)
@@ -107,7 +107,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 2)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -162,7 +162,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 4)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -212,7 +212,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 1)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -243,7 +243,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -264,7 +264,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -276,7 +276,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -297,7 +297,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -309,7 +309,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -321,7 +321,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -348,7 +348,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 2)
-        doc1, doc2 = Document.objects.order_by("id")
+        doc1, doc2 = Document.objects.w_content().order_by("id")
         self.assertEqual(doc1.url, "http://127.0.0.1/")
         self.assertEqual(doc1.content, "base test")
         self.assertEqual(doc2.url, "http://127.0.0.1/base/test")
@@ -360,9 +360,9 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": Exception("Generic exception")})
 
         self._crawl()
-        doc = Document.objects.get()
-
         self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "")
         self.assertIn("Generic exception", doc.error)
@@ -374,9 +374,9 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": SkipIndexing("Skip test")})
 
         self._crawl()
-        doc = Document.objects.get()
-
         self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "")
         self.assertIn("Skip test", doc.error)
@@ -389,9 +389,9 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": AuthElemFailed(page, "xxx not found")})
 
         self._crawl()
-        doc = Document.objects.get()
-
         self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "test")
         self.assertIn("xxx not found", doc.error)
@@ -412,9 +412,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.save()
 
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "extern link")
 
@@ -431,10 +431,10 @@ class CrawlerTest(TransactionTestCase):
         self._crawl("http://127.0.0.1/extern.html")
 
         self.assertEqual(Document.objects.count(), 2)
-        doc1 = Document.objects.order_by("id").first()
+        doc1 = Document.objects.w_content().order_by("id").first()
         self.assertEqual(doc1.url, "http://127.0.0.1/")
         self.assertEqual(doc1.content, "extern link")
-        doc2 = Document.objects.order_by("id").last()
+        doc2 = Document.objects.w_content().order_by("id").last()
         self.assertEqual(doc2.url, "http://127.0.0.1/extern.html")
         self.assertEqual(doc2.content, "extern page")
 
@@ -458,7 +458,8 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock(self.MAILTO)
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "mail")
         self.assertEqual(Link.objects.count(), 0)
@@ -469,9 +470,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "mail")
 
@@ -487,9 +488,9 @@ class CrawlerTest(TransactionTestCase):
     def test_090_invalid_link(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock(self.INVALID_LINK)
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "link")
         self.assertEqual(Link.objects.count(), 0)
@@ -500,9 +501,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "link")
 
@@ -519,7 +520,6 @@ class CrawlerTest(TransactionTestCase):
         )
         ExcludedUrl.objects.create(url="http://127.0.0.1/page.html")
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
 
     @mock.patch("se.browser_request.BrowserRequest.get")
@@ -533,7 +533,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 2)
-        urls = Document.objects.values_list("url", flat=True).order_by("url")
+        urls = Document.objects.wo_content().values_list("url", flat=True).order_by("url")
         self.assertEqual(list(urls), ["http://127.0.0.1/", "http://127.0.0.1/page.html"])
 
     @mock.patch("se.browser_request.BrowserRequest.get")
@@ -547,7 +547,7 @@ class CrawlerTest(TransactionTestCase):
 
         now.side_effect = lambda: self.fake_now
         self._crawl()
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "aaa 42")
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
 
@@ -556,7 +556,7 @@ class CrawlerTest(TransactionTestCase):
         )
         now.side_effect = lambda: self.fake_next
         self._crawl()
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "aaa 24")
         self.assertEqual(doc.crawl_dt, timedelta(hours=2))
 
@@ -569,7 +569,7 @@ class CrawlerTest(TransactionTestCase):
 
         now.side_effect = lambda: self.fake_next2
         self._crawl()
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "bbb")
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
 
@@ -588,7 +588,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 2)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Nested")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -611,9 +611,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.save()
 
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertTrue(doc.hidden)
 
@@ -628,15 +628,15 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertTrue(doc.hidden)
 
     def _test_modification_base(self):
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
 
         # Mark the document as modified in the past
@@ -654,7 +654,7 @@ class CrawlerTest(TransactionTestCase):
         self._test_modification_base()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 1")
         self.assertEqual(doc.content_hash, md5(b"Hello world 1").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_yesterday)
@@ -670,10 +670,9 @@ class CrawlerTest(TransactionTestCase):
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
 
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 2")
         self.assertEqual(doc.content_hash, md5(b"Hello world 2").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_now)
@@ -689,10 +688,9 @@ class CrawlerTest(TransactionTestCase):
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
 
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 2")
         self.assertEqual(doc.content_hash, md5(b"Hello world 0").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_yesterday)
@@ -706,10 +704,9 @@ class CrawlerTest(TransactionTestCase):
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
 
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world change")
         self.assertEqual(doc.content_hash, md5(b"Hello world change").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_now)

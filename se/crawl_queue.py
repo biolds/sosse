@@ -35,23 +35,29 @@ class CrawlQueueContentView(AdminView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        queue_new_count = Document.objects.filter(crawl_last__isnull=True).count()
-        queue_recurring_count = Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False).count()
-        queue_pending_count = Document.objects.filter(
-            models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now())
-        ).count()
+        queue_new_count = Document.objects.wo_content().filter(crawl_last__isnull=True).count()
+        queue_recurring_count = (
+            Document.objects.wo_content().filter(crawl_last__isnull=False, crawl_next__isnull=False).count()
+        )
+        queue_pending_count = (
+            Document.objects.wo_content()
+            .filter(models.Q(crawl_last__isnull=True) | models.Q(crawl_next__lte=now()))
+            .count()
+        )
 
         QUEUE_SIZE = 10
-        queue = list(Document.objects.filter(worker_no__isnull=False).order_by("id")[:QUEUE_SIZE])
+        queue = list(Document.objects.wo_content().filter(worker_no__isnull=False).order_by("id")[:QUEUE_SIZE])
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(
-                Document.objects.filter(crawl_last__isnull=True)
+                Document.objects.wo_content()
+                .filter(crawl_last__isnull=True)
                 .exclude(id__in=[q.pk for q in queue])
                 .order_by("id")[:QUEUE_SIZE]
             )
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(
-                Document.objects.filter(crawl_last__isnull=False, crawl_next__isnull=False)
+                Document.objects.wo_content()
+                .filter(crawl_last__isnull=False, crawl_next__isnull=False)
                 .exclude(id__in=[q.pk for q in queue])
                 .order_by("crawl_next", "id")[: QUEUE_SIZE - len(queue)]
             )
@@ -60,7 +66,9 @@ class CrawlQueueContentView(AdminView):
 
         queue.reverse()
 
-        history = list(Document.objects.filter(crawl_last__isnull=False).order_by("-crawl_last")[:QUEUE_SIZE])
+        history = list(
+            Document.objects.wo_content().filter(crawl_last__isnull=False).order_by("-crawl_last")[:QUEUE_SIZE]
+        )
 
         for doc in queue:
             if doc in history:

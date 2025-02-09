@@ -5,7 +5,7 @@
 | *Test Cases* |
 | Monitor website
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import Link ; Link.objects.all().delete()
-|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.document import Document ; Document.objects.all().delete()
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.document import Document ; Document.objects.wo_content().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.crawl_policy import CrawlPolicy ; CrawlPolicy.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../guide_feed_website_monitor.json | shell=True
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/

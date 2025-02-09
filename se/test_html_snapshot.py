@@ -1058,7 +1058,7 @@ class HTMLSnapshotTest:
                 mock.patch("se.html_asset.open", mock_open),
                 mock.patch("se.html_cache.open", mock_open),
             ):
-                Document.objects.create(url=f"http://127.0.0.1/page{no}.html")
+                Document.objects.wo_content().create(url=f"http://127.0.0.1/page{no}.html")
                 Document.crawl(0)
                 self.assertEqual(
                     mock_open.mock_calls[0],
@@ -1081,7 +1081,7 @@ class HTMLSnapshotTest:
             mock.patch("se.html_asset.open", mock_open),
             mock.patch("se.html_cache.open", mock_open),
         ):
-            obj = Document.objects.first()
+            obj = Document.objects.wo_content().first()
             obj.delete_html()
             obj.delete()
             self.assertEqual(HTMLAsset.objects.count(), 2)
@@ -1093,7 +1093,7 @@ class HTMLSnapshotTest:
             )
             unlink.reset_mock()
 
-            obj = Document.objects.first()
+            obj = Document.objects.wo_content().first()
             obj.delete_html()
             obj.delete()
             self.assertEqual(HTMLAsset.objects.count(), 0)

@@ -60,7 +60,7 @@ class AddToQueueTest(ViewsTestMixin, TransactionTestCase):
         response = self._request({"urls": urls, "action": "Confirm"})
         self.assertEqual(response.status_code, 302)
 
-        docs = Document.objects.order_by("url")
+        docs = Document.objects.wo_content().order_by("url")
         self.assertEqual(len(docs), 1)
         self.assertEqual(docs[0].url, "https://example-1.com/")
 
@@ -69,7 +69,7 @@ class AddToQueueTest(ViewsTestMixin, TransactionTestCase):
         response = self._request({"urls": urls, "action": "Confirm"})
         self.assertEqual(response.status_code, 302)
 
-        docs = Document.objects.order_by("url")
+        docs = Document.objects.wo_content().order_by("url")
         self.assertEqual(len(docs), 2)
         self.assertEqual(docs[0].url, "https://example-1.com/")
         self.assertEqual(docs[1].url, "https://example-2.com/")

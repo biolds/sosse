@@ -61,7 +61,7 @@ class ViewsTest:
         self.crawl_policy.take_screenshots = True
         self.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
         self.crawl_policy.save()
-        self.doc = Document.objects.create(url=CRAWL_URL)
+        self.doc = Document.objects.wo_content().create(url=CRAWL_URL)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
 

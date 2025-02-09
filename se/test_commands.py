@@ -21,7 +21,7 @@ from .document import Document
 
 class CommandsTest(TransactionTestCase):
     def setUp(self):
-        Document.objects.create(url="http://test/")
+        Document.objects.wo_content().create(url="http://test/")
 
     def test_delete_document_match(self):
         self.assertEqual(Document.objects.count(), 1)

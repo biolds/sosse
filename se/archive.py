@@ -54,7 +54,7 @@ class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
         if doc is None:
             return self._unknown_url_view()
         if settings.SOSSE_ARCHIVE_FOLLOWS_REDIRECT and doc.redirect_url:
-            new_doc = Document.objects.filter(url=doc.redirect_url).first()
+            new_doc = Document.objects.w_content().filter(url=doc.redirect_url).first()
             if new_doc:
                 raise RedirectException(new_doc.get_absolute_url())
             raise RedirectException(reverse_no_escape(self.view_name, args=[doc.redirect_url]))
@@ -62,7 +62,7 @@ class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
 
     def _get_document(self):
         url = self._url_from_request()
-        return Document.objects.filter(url=url).first()
+        return Document.objects.w_content().filter(url=url).first()
 
     def get_context_data(self):
         context = super().get_context_data()

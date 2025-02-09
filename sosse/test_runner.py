@@ -58,3 +58,7 @@ class SuiteRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         settings.TEST_MODE = True
+
+        # Force settings.DEBUG to True
+        # Since tests depend on it
+        self.debug_mode = True

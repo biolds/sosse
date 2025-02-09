@@ -67,7 +67,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
         self.assertEqual(doc.normalized_url, "127.0.0.1:8000")
         self.assertEqual(doc.title, TEST_SERVER_URL)
@@ -221,7 +221,7 @@ class FunctionalTest(BaseFunctionalTest):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "admin/")
         self.assertEqual(doc.normalized_url, "127.0.0.1:8000 admin")
         self.assertEqual(doc.title, "Site administration | Django site admin")
@@ -313,9 +313,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "nav")
+        self.assertEqual(Document.objects.w_content().get().content, "nav")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 2)
+            self.assertEqual(Document.objects.w_content().get().screenshot_count, 2)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -341,9 +341,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "")
+        self.assertEqual(Document.objects.w_content().get().content, "")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 2)
+            self.assertEqual(Document.objects.wo_content().get().screenshot_count, 2)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -369,9 +369,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "")
+        self.assertEqual(Document.objects.w_content().get().content, "")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 1)
+            self.assertEqual(Document.objects.wo_content().get().screenshot_count, 1)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -397,9 +397,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "")
+        self.assertEqual(Document.objects.w_content().get().content, "")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 1)
+            self.assertEqual(Document.objects.wo_content().get().screenshot_count, 1)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertNotIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -434,7 +434,7 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "")
         self.assertEqual(doc.mimetype, mimetype)
 
@@ -541,7 +541,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "static/pages/browser_detect_js.html")
         self.assertIn("has JS", doc.content)
 
@@ -566,7 +566,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "static/pages/browser_detect_no_js.html")
         self.assertIn("has no JS", doc.content)
 

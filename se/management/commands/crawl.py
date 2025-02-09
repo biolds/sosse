@@ -111,7 +111,8 @@ class Command(BaseCommand):
 
         worker_count = settings.SOSSE_CRAWLER_COUNT
         if worker_count is None:
-            worker_count = cpu_count()
+            worker_count = int(cpu_count() / 2)
+            worker_count = max(worker_count, 1)
 
         WorkerStats.objects.filter(worker_no__gte=worker_count).delete()
         crawl_logger.info(f"Starting {worker_count} crawlers")

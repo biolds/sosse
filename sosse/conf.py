@@ -234,7 +234,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
     },
     "crawler": {
         "crawler_count": ConfOption(
-            comment="Number of crawlers running concurrently (defaults to the number of CPU available).",
+            comment="Number of crawlers running concurrently (defaults to the number of CPU available divided by 2).",
             default="",
         ),
         "proxy": ConfOption(

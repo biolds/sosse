@@ -566,7 +566,10 @@ class Document(models.Model):
         if doc is None:
             return False
 
-        worker_stats = WorkerStats.get_worker(worker_no)
+        if getattr(settings, "TEST_MODE", False):
+            worker_stats = WorkerStats.get_worker(worker_no)
+        else:
+            worker_stats = WorkerStats.objects.get(worker_no=worker_no)
         if worker_stats.state != "running":
             worker_stats.update_state("running")
 

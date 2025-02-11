@@ -23,7 +23,7 @@ from .browser import AuthElemFailed, SkipIndexing
 from .crawl_policy import CrawlPolicy
 from .document import Document
 from .domain_setting import DomainSetting
-from .models import ExcludedUrl, Link
+from .models import ExcludedUrl, Link, WorkerStats
 from .page import Page
 from .test_mock import BrowserMock
 
@@ -64,6 +64,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.delete()
 
     def _crawl(self, url="http://127.0.0.1/"):
+        # Force create the worker
+        WorkerStats.get_worker(0)
+
         Document.queue(url, None, None)
         while Document.crawl(0):
             pass

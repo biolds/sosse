@@ -80,6 +80,8 @@ class Command(BaseCommand):
                     next_stat = now()
                 next_stat += timedelta(minutes=1)
 
+            worker_stats = WorkerStats.get_worker(worker_no)
+
             sleep_count = 0
             while True:
                 if worker_no == 0:
@@ -88,8 +90,7 @@ class Command(BaseCommand):
                         CrawlerStats.create(t)
                         next_stat = t + timedelta(minutes=1)
 
-                worker_stats = WorkerStats.get_worker(worker_no)
-
+                worker_stats.refresh_from_db()
                 if worker_stats.state == "paused" or not Document.crawl(worker_no):
                     if worker_stats.state != "paused" and options["one_shot"]:
                         return

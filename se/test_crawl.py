@@ -396,7 +396,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
-        self.assertEqual(doc.content, "test")
+        self.assertEqual(doc.content, "")
         self.assertIn("xxx not found", doc.error)
         self.assertNotIn("Traceback (most recent call last):", doc.error)
 

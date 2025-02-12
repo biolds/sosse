@@ -602,6 +602,8 @@ class Document(models.Model):
                             doc.crawl_first = n
                         doc.crawl_next = None
                         doc.crawl_dt = None
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.save()
                         break
                     else:
@@ -613,12 +615,16 @@ class Document(models.Model):
                         doc.content = e.page.content.decode("utf-8")
                         doc._schedule_next(True, crawl_policy)
                         doc.set_error(f"Locating authentication element failed at {e.page.url}:\n{e.args[0]}")
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.save()
                         crawl_logger.error(f"Locating authentication element failed at {e.page.url}:\n{e.args[0]}")
                         break
                     except SkipIndexing as e:
                         doc._schedule_next(False, crawl_policy)
                         doc.set_error(e.args[0])
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.save()
                         crawl_logger.debug(f"{doc.url}: {e.args[0]}")
                         break

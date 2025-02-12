@@ -317,7 +317,7 @@ class Document(models.Model):
         self._index_log("bulk", stats, verbose)
         return links
 
-    def index(self, page, crawl_policy, verbose=False, force=False):
+    def index(self, page, crawl_policy, verbose=False):
         from .crawl_policy import CrawlPolicy
 
         n = now()
@@ -358,7 +358,7 @@ class Document(models.Model):
         self.content_hash = self._hash_content(self.content, crawl_policy)
         self._schedule_next(current_hash != self.content_hash, crawl_policy)
 
-        if current_hash == self.content_hash and not force:
+        if current_hash == self.content_hash:
             return
         if current_hash != self.content_hash:
             self.modified_date = n

@@ -131,6 +131,7 @@ class Document(models.Model):
     crawl_dt = models.DurationField(blank=True, null=True, verbose_name="Crawl DT")
     crawl_recurse = models.PositiveIntegerField(default=0, verbose_name="Recursion remaining")
     modified_date = models.DateTimeField(blank=True, null=True, verbose_name="Last modification date")
+    manual_crawl = models.BooleanField(default=False)
 
     error = models.TextField(blank=True, default="")
     error_hash = models.TextField(blank=True, default="")
@@ -261,8 +262,6 @@ class Document(models.Model):
         stats["prev"] = n
 
     def _clear_base_content(self):
-        from .models import Link
-
         self.redirect_url = None
         self.too_many_redirects = False
         self.content = ""
@@ -272,9 +271,12 @@ class Document(models.Model):
         self.normalized_title = ""
         self.robotstxt_rejected = False
         self.mimetype = ""
-        Link.objects.filter(doc_from=self).delete()
+        self.manual_crawl = False
 
     def _clear_dump_content(self):
+        from .models import Link
+
+        Link.objects.filter(doc_from=self).delete()
         self.delete_html()
         self.delete_screenshot()
         self.delete_thumbnail()
@@ -325,6 +327,7 @@ class Document(models.Model):
         self._index_log("start", stats, verbose)
 
         current_hash = self.content_hash
+        manual_crawl = self.manual_crawl
         self._clear_base_content()
         self._index_log("queuing links", stats, verbose)
 
@@ -350,20 +353,26 @@ class Document(models.Model):
             crawl_logger.debug(f"skipping {self.url} due to mimetype {self.mimetype}")
             return
 
-        if self.mimetype.startswith("text/"):
-            self._parse_xml(page, crawl_policy, stats, verbose)
-
-            links = self._parse_text(page, crawl_policy, stats, verbose)
+        links = page.dom_walk(crawl_policy, False, None)
+        self.content = links["text"]
 
         self.content_hash = self._hash_content(self.content, crawl_policy)
         self._schedule_next(current_hash != self.content_hash, crawl_policy)
 
         if current_hash == self.content_hash:
-            return
+            if crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_ON_CHANGE or (
+                crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_MANUAL and not manual_crawl
+            ):
+                return
         if current_hash != self.content_hash:
             self.modified_date = n
 
         self._clear_dump_content()
+
+        if self.mimetype.startswith("text/"):
+            self._parse_xml(page, crawl_policy, stats, verbose)
+
+            links = self._parse_text(page, crawl_policy, stats, verbose)
 
         if self.mimetype.startswith("text/"):
             if crawl_policy.thumbnail_mode in (

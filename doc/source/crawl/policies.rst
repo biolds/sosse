@@ -237,6 +237,17 @@ Define how changes between recrawl are detected:
 * ``Normalize numbers``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock
   changes, ...
 
+Condition
+"""""""""
+
+Defines when the page is reprocessed:
+
+* ``On change only``: the content is reprocessed only when a change is detected.
+* ``Always``: the content is reprocessed every time the page is recrawled. (this can be useful if
+  the page only has pictures)
+* ``On change or manual trigger``: the content is reprocessed when a change is detected or when the
+  crawl was manually triggered.
+
 .. _authentication_params:
 
 🔒 Authentication

@@ -40,4 +40,20 @@ class Migration(migrations.Migration):
             old_name="recrawl_mode",
             new_name="recrawl_freq",
         ),
+        migrations.AddField(
+            model_name="crawlpolicy",
+            name="recrawl_condition",
+            field=models.CharField(
+                choices=[("change", "On change only"), ("always", "Always"), ("manual", "On change or manual trigger")],
+                default="change",
+                help_text="Specifies the conditions under which a page is reprocessed",
+                max_length=10,
+                verbose_name="Condition",
+            ),
+        ),
+        migrations.AddField(
+            model_name="document",
+            name="manual_crawl",
+            field=models.BooleanField(default=False),
+        ),
     ]

@@ -214,6 +214,9 @@ class Page:
 
     def dom_walk(self, crawl_policy, queue_links, document):
         links = {"links": [], "text": ""}
+        soup = self.get_soup()
+        if not soup:
+            return links
         for elem in self.get_soup().children:
             self._dom_walk(elem, crawl_policy, links, queue_links, document, False)
         return links

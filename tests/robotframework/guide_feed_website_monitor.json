@@ -26,7 +26,7 @@
       "recrawl_dt_min": "1 00:00:00",
       "recrawl_dt_max": "365 00:00:00",
       "hash_mode": "no_numbers",
-      "auth_login_url_re": "",
+      "recrawl_condition": "change", "auth_login_url_re": "",
       "auth_form_selector": ""
     }
   },
@@ -57,7 +57,7 @@
       "recrawl_dt_min": "1 00:00:00",
       "recrawl_dt_max": null,
       "hash_mode": "no_numbers",
-      "auth_login_url_re": "",
+      "recrawl_condition": "change", "auth_login_url_re": "",
       "auth_form_selector": ""
     }
   }

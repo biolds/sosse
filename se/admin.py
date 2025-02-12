@@ -215,7 +215,7 @@ class DocumentOrphanFilter(admin.SimpleListFilter):
 
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
-    queryset.update(crawl_next=now(), content_hash=None)
+    queryset.update(crawl_next=now(), manual_crawl=True)
     return redirect(reverse("admin:crawl_queue"))
 
 
@@ -740,6 +740,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
                     "recrawl_dt_min",
                     "recrawl_dt_max",
                     "hash_mode",
+                    "recrawl_condition",
                 )
             },
         ),

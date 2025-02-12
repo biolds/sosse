@@ -75,6 +75,15 @@ class CrawlPolicy(models.Model):
         (HASH_NO_NUMBERS, "Normalize numbers"),
     ]
 
+    RECRAWL_COND_ON_CHANGE = "change"
+    RECRAWL_COND_ALWAYS = "always"
+    RECRAWL_COND_MANUAL = "manual"
+    RECRAWL_CONDITION = [
+        (RECRAWL_COND_ON_CHANGE, "On change only"),
+        (RECRAWL_COND_ALWAYS, "Always"),
+        (RECRAWL_COND_MANUAL, "On change or manual trigger"),
+    ]
+
     CRAWL_ALL = "always"
     CRAWL_ON_DEPTH = "depth"
     CRAWL_NEVER = "never"
@@ -210,6 +219,13 @@ class CrawlPolicy(models.Model):
         default=HASH_NO_NUMBERS,
         verbose_name="Change detection",
         help_text="Content to check for modifications",
+    )
+    recrawl_condition = models.CharField(
+        max_length=10,
+        choices=RECRAWL_CONDITION,
+        default=RECRAWL_COND_ON_CHANGE,
+        verbose_name="Condition",
+        help_text="Specifies the conditions under which a page is reprocessed",
     )
 
     auth_login_url_re = models.TextField(

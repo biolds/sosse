@@ -18,6 +18,7 @@ from hashlib import md5
 from unittest import mock
 
 from django.test import TransactionTestCase, override_settings
+from feedparser import parse
 
 from .browser import AuthElemFailed, SkipIndexing
 from .crawl_policy import CrawlPolicy
@@ -713,3 +714,84 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(doc.content, "Hello world change")
         self.assertEqual(doc.content_hash, md5(b"Hello world change").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_now)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_220_recrawl_cond_on_change__no_change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_230_recrawl_cond_on_change__change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 2)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_240_recrawl_cond_always(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_ALWAYS
+        self.crawl_policy.save()
+
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 2)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_250_recrawl_cond_manual__change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
+        self.crawl_policy.save()
+
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 2)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_260_recrawl_cond_manual__no_change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
+        self.crawl_policy.save()
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_270_recrawl_cond_manual__manual(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
+        self.crawl_policy.save()
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        Document.objects.update(manual_crawl=True)
+        self._crawl()
+
+        self.assertEqual(feedparser_parse.call_count, 2)
+        self.assertFalse(Document.objects.wo_content().get().manual_crawl)

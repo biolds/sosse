@@ -59,13 +59,13 @@ def validate_url_regexp(val):
 
 
 class CrawlPolicy(models.Model):
-    RECRAWL_NONE = "none"
-    RECRAWL_CONSTANT = "constant"
-    RECRAWL_ADAPTIVE = "adaptive"
-    RECRAWL_MODE = [
-        (RECRAWL_NONE, "Once"),
-        (RECRAWL_CONSTANT, "Constant time"),
-        (RECRAWL_ADAPTIVE, "Adaptive"),
+    RECRAWL_FREQ_NONE = "none"
+    RECRAWL_FREQ_CONSTANT = "constant"
+    RECRAWL_FREQ_ADAPTIVE = "adaptive"
+    RECRAWL_FREQ = [
+        (RECRAWL_FREQ_NONE, "Once"),
+        (RECRAWL_FREQ_CONSTANT, "Constant time"),
+        (RECRAWL_FREQ_ADAPTIVE, "Adaptive"),
     ]
 
     HASH_RAW = "raw"
@@ -185,10 +185,10 @@ class CrawlPolicy(models.Model):
     )
     store_extern_links = models.BooleanField(default=False, help_text="Store links to non-indexed pages")
 
-    recrawl_mode = models.CharField(
+    recrawl_freq = models.CharField(
         max_length=8,
-        choices=RECRAWL_MODE,
-        default=RECRAWL_ADAPTIVE,
+        choices=RECRAWL_FREQ,
+        default=RECRAWL_FREQ_ADAPTIVE,
         verbose_name="Crawl frequency",
         help_text="Adaptive frequency will increase delay between two crawls when the page stays unchanged",
     )

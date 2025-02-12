@@ -542,13 +542,13 @@ class Document(models.Model):
         ):
             stop = True
 
-        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE or stop:
+        if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_NONE or stop:
             self.crawl_next = None
             self.crawl_dt = None
-        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
+        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT:
             self.crawl_next = self.crawl_last + crawl_policy.recrawl_dt_min
             self.crawl_dt = None
-        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_ADAPTIVE:
+        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_ADAPTIVE:
             if self.crawl_dt is None:
                 self.crawl_dt = crawl_policy.recrawl_dt_min
             elif not changed:

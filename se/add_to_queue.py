@@ -135,9 +135,9 @@ class AddToQueueConfirmationView(AddToQueueView):
                 "form": form,
             }
         )
-        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
+        if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT:
             context["recrawl_every"] = human_datetime(crawl_policy.recrawl_dt_min)
-        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_ADAPTIVE:
+        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_ADAPTIVE:
             context.update(
                 {
                     "recrawl_min": human_datetime(crawl_policy.recrawl_dt_min),

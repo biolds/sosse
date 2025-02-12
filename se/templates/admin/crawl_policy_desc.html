@@ -45,9 +45,9 @@
 
 <span class="{{ label_tag }}">
     🕑
-    {% if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE %}
+    {% if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_NONE %}
         only once
-    {% elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT %}
+    {% elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT %}
         {% if add_to_queue %}
             every {{ recrawl_every }}
         {% else %}

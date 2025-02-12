@@ -234,7 +234,7 @@ class CrawlerTest(TransactionTestCase):
     def test_005_recrawl_none(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         now.side_effect = lambda: self.fake_now
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_NONE
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_NONE
         self.crawl_policy.recrawl_dt_min = None
         self.crawl_policy.recrawl_dt_max = None
         self.crawl_policy.save()
@@ -258,7 +258,7 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_006_recrawl_constant(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_CONSTANT
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_CONSTANT
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = None
         self.crawl_policy.save()
@@ -291,7 +291,7 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_007_recrawl_adaptive(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_ADAPTIVE
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
         self.crawl_policy.save()
@@ -543,7 +543,7 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_130_reschedule_no_change(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>aaa 42</body></html>"})
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_ADAPTIVE
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
         self.crawl_policy.save()

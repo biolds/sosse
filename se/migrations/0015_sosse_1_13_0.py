@@ -35,4 +35,9 @@ class Migration(migrations.Migration):
                 verbose_name="Change detection",
             ),
         ),
+        migrations.RenameField(
+            model_name="crawlpolicy",
+            old_name="recrawl_mode",
+            new_name="recrawl_freq",
+        ),
     ]

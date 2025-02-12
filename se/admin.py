@@ -611,9 +611,9 @@ class CrawlPolicyForm(CharFieldForm):
         cleaned_data = super().clean()
 
         keys_required = {
-            "recrawl_dt_min": cleaned_data["recrawl_mode"]
-            in (CrawlPolicy.RECRAWL_ADAPTIVE, CrawlPolicy.RECRAWL_CONSTANT),
-            "recrawl_dt_max": cleaned_data["recrawl_mode"] in (CrawlPolicy.RECRAWL_ADAPTIVE,),
+            "recrawl_dt_min": cleaned_data["recrawl_freq"]
+            in (CrawlPolicy.RECRAWL_FREQ_ADAPTIVE, CrawlPolicy.RECRAWL_FREQ_CONSTANT),
+            "recrawl_dt_max": cleaned_data["recrawl_freq"] in (CrawlPolicy.RECRAWL_FREQ_ADAPTIVE,),
         }
 
         for key, required in keys_required.items():
@@ -736,7 +736,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             "🕑 Recurrence",
             {
                 "fields": (
-                    "recrawl_mode",
+                    "recrawl_freq",
                     "recrawl_dt_min",
                     "recrawl_dt_max",
                     "hash_mode",

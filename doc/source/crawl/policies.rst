@@ -228,13 +228,13 @@ How often pages should be reindexed:
   ``Recrawl dt min``. Then, when the page is recrawled the interval is multiplied by 2 if the content is unchanged,
   divided by 2 otherwise. The interval stays enclosed between ``Recrawl dt min`` and ``Recrawl dt max``.
 
-Hash mode
-"""""""""
+Change detection
+""""""""""""""""
 
 Define how changes between recrawl are detected:
 
-* ``Hash raw content``: raw text content is compared.
-* ``Normalize numbers before``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock
+* ``Raw content``: raw text content is compared.
+* ``Normalize numbers``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock
   changes, ...
 
 .. _authentication_params:

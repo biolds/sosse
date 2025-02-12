@@ -71,8 +71,8 @@ class CrawlPolicy(models.Model):
     HASH_RAW = "raw"
     HASH_NO_NUMBERS = "no_numbers"
     HASH_MODE = [
-        (HASH_RAW, "Hash raw content"),
-        (HASH_NO_NUMBERS, "Normalize numbers before"),
+        (HASH_RAW, "Raw content"),
+        (HASH_NO_NUMBERS, "Normalize numbers"),
     ]
 
     CRAWL_ALL = "always"
@@ -208,7 +208,8 @@ class CrawlPolicy(models.Model):
         max_length=10,
         choices=HASH_MODE,
         default=HASH_NO_NUMBERS,
-        help_text="Page content hashing method used to detect changes in the content",
+        verbose_name="Change detection",
+        help_text="Content to check for modifications",
     )
 
     auth_login_url_re = models.TextField(

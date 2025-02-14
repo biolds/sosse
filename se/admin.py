@@ -265,7 +265,6 @@ class DocumentAdmin(admin.ModelAdmin):
     )
     list_filter = (
         DocumentQueueFilter,
-        "lang_iso_639_1",
         DocumentErrorFilter,
         "show_on_homepage",
         "hidden",

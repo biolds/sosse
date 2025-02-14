@@ -1,4 +1,4 @@
-<span {% if add_to_queue %}class="{{ label_tag }}"{% endif %}>
+<span {% if add_to_queue %}class="{{ label_tag }}"{% else %}title="Recursion"{% endif %}>
     ⚡
     {% if add_to_queue %}
         {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
@@ -25,7 +25,7 @@
     {% endif %}
 </span>
 
-<span class="{{ label_tag }}">
+<span class="{{ label_tag }}"{% if not add_to_queue %} title="Browser"{% endif %}>
     🌐 {% if add_to_queue %}with{% endif %}
     {% if crawl_policy.default_browse_mode == DomainSetting.BROWSE_DETECT %}
         {{ settings.SOSSE_DEFAULT_BROWSER|title }}
@@ -43,7 +43,7 @@
     {% endif %}
 </span>
 
-<span class="{{ label_tag }}">
+<span class="{{ label_tag }}"{% if not add_to_queue %} title="Recurrence"{% endif %}>
     🕑
     {% if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_NONE %}
         only once

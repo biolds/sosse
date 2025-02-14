@@ -669,7 +669,7 @@ def crawl_policy_enable_disable(modeladmin, request, queryset):
     )
 
 
-@admin.action(description="Copy", permissions=["change"])
+@admin.action(description="Duplicate", permissions=["change"])
 def crawl_policy_switch(modeladmin, request, queryset):
     for crawl_policy in queryset.all():
         crawl_policy.id = None

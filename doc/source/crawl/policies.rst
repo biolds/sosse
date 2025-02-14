@@ -275,3 +275,15 @@ Authentication fields
 This defines the ``<input>`` fields to fill in the form. The fields are matched by their ``name`` attribute and filled
 with the ``value``. (hidden fields, like `CSRF <https://en.wikipedia.org/wiki/Cross-site_request_forgery>`_ preventing
 field, are automatically populated by the crawler)
+
+
+Actions
+-------
+
+.. image:: ../../../tests/robotframework/screenshots/crawl_policy_actions.png
+   :class: sosse-screenshot
+
+Using the actions dropdown, the following actions can be applied to the selected crawl policies:
+
+* ``Enable/Disable``: Toggles the Crawl Policy state.
+* ``Duplicate``: Makes a copy of the Crawl Policy.

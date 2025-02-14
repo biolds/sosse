@@ -62,6 +62,8 @@
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Wait Until Element Is Visible | id=result_list
 |  | SOSSE Capture Page Screenshot | crawl_policy_list.png
+|  | Hilight | class=actions
+|  | SOSSE Capture Page Screenshot | crawl_policy_actions.png
 |  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
 # The default policy is read-only so the help text is hidden
 |  | Page should not contain | URL regular expressions for this policy
@@ -118,8 +120,12 @@
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/
 |  | Wait Until Element Is Visible | id=result_list
 |  | SOSSE Capture Page Screenshot | documents_list.png
+|  | Hilight | class=actions
+|  | SOSSE Capture Page Screenshot | documents_actions.png
 |  | ${doc_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${doc_count} | 5
+|  | Click Link | http://127.0.0.1/screenshots/website/cats.html
+|  | SOSSE Capture Page Screenshot | documents_details.png
 
 | Domain
 |  | SOSSE Go To | http://127.0.0.1/admin/se/domainsetting/

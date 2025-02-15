@@ -190,11 +190,12 @@ class HTMLCache:
         url = sanitize_url(url)
         filename_url = HTMLCache.html_filename(url, _hash, extension)
         dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
-        dest_dir, _ = dest.rsplit("/", 1)
-        os.makedirs(dest_dir, 0o755, exist_ok=True)
+        if not os.path.isfile(dest):
+            dest_dir, _ = dest.rsplit("/", 1)
+            os.makedirs(dest_dir, 0o755, exist_ok=True)
 
-        with open(dest, "wb") as fd:
-            fd.write(content)
+            with open(dest, "wb") as fd:
+                fd.write(content)
 
         return HTMLCache.create_cache_entry(url, filename_url, page)
 

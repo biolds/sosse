@@ -137,9 +137,23 @@ class ConflictingSearchEngineFilter(admin.SimpleListFilter):
 
 @admin.register(SearchEngine)
 class SearchEngineAdmin(admin.ModelAdmin):
-    list_display = ("short_name", "shortcut")
+    list_display = ("short_name", "shortcut", "builtin")
     search_fields = ("short_name", "shortcut")
-    list_filter = (ConflictingSearchEngineFilter,)
+    readonly_fields = ("builtin",)
+    list_filter = (
+        "builtin",
+        ConflictingSearchEngineFilter,
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.builtin:
+            return self.get_fields(request)
+        return self.readonly_fields
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.builtin:
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 class DocumentErrorFilter(admin.SimpleListFilter):

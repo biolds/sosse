@@ -215,6 +215,7 @@ class SearchEngine(models.Model):
     description = models.CharField(max_length=1024, blank=True, default="")
     html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
+    builtin = models.BooleanField(default=False, verbose_name="Built-in")
 
     def __str__(self):
         return self.short_name

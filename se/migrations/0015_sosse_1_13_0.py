@@ -56,4 +56,9 @@ class Migration(migrations.Migration):
             name="manual_crawl",
             field=models.BooleanField(default=False),
         ),
+        migrations.AddField(
+            model_name="searchengine",
+            name="builtin",
+            field=models.BooleanField(default=False, verbose_name="Built-in"),
+        ),
     ]

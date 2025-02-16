@@ -33,6 +33,7 @@ unit_tests:
     - make _docker_unit_test_prepare
     - failed=0
     - /tmp/sudo_sosse test -v3 --failfast || failed=1
+    - /tmp/sudo_sosse migrate || failed=1
     - /tmp/sudo_sosse load_se tests/opensearch.xml || failed=1
     - /tmp/sudo_sosse update_se || failed=1
     - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()' || failed=1
@@ -42,7 +43,6 @@ unit_tests:
     - /tmp/sudo_sosse extract_doc conf > /dev/null || failed=1
     - /tmp/sudo_sosse extract_doc se > /dev/null || failed=1
     - python3 ./sosse/sosse_admin.py makemigrations || failed=1
-    - /tmp/sudo_sosse migrate || failed=1
     - /tmp/sudo_sosse migrate se 0001 || failed=1
     - mv /var/log/sosse log
     - exit $failed

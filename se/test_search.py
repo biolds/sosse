@@ -210,7 +210,7 @@ class SearchTest(TransactionTestCase):
 
 class ShortcutTest(TransactionTestCase):
     def setUp(self):
-        SearchEngine.objects.create(
+        self.se = SearchEngine.objects.create(
             short_name="fake",
             shortcut="f",
             html_template=self._search_url("{searchTerms}"),
@@ -261,3 +261,14 @@ class ShortcutTest(TransactionTestCase):
             self._search_url("test", "test2.com"),
         )
         self.assertEqual(SearchEngine.should_redirect("!s test"), None)
+
+    def test_50_shortcut_disable(self):
+        self.se.enabled = False
+        self.se.save()
+        SearchEngine.objects.create(
+            short_name="fake enabled",
+            shortcut="f",
+            html_template=self._search_url("{searchTerms}", "test-enabled.com"),
+        )
+
+        self.assertEqual(SearchEngine.should_redirect("!f test"), self._search_url("test", "test-enabled.com"))

@@ -122,7 +122,8 @@ class ConflictingSearchEngineFilter(admin.SimpleListFilter):
     @staticmethod
     def conflicts(queryset):
         return (
-            SearchEngine.objects.values("shortcut")
+            SearchEngine.objects.exclude(enabled=False)
+            .values("shortcut")
             .annotate(shortcut_count=models.Count("shortcut"))
             .filter(shortcut_count__gt=1)
         )
@@ -135,15 +136,27 @@ class ConflictingSearchEngineFilter(admin.SimpleListFilter):
         return queryset
 
 
+@admin.action(description="Enable/Disable", permissions=["change"])
+def search_engine_enable_disable(modeladmin, request, queryset):
+    queryset.update(
+        enabled=models.Case(
+            models.When(enabled=True, then=models.Value(False)),
+            models.When(enabled=False, then=models.Value(True)),
+        )
+    )
+
+
 @admin.register(SearchEngine)
 class SearchEngineAdmin(admin.ModelAdmin):
-    list_display = ("short_name", "shortcut", "builtin")
+    list_display = ("short_name", "enabled", "shortcut", "builtin")
     search_fields = ("short_name", "shortcut")
     readonly_fields = ("builtin",)
     list_filter = (
+        "enabled",
         "builtin",
         ConflictingSearchEngineFilter,
     )
+    actions = (search_engine_enable_disable,)
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.builtin:
@@ -673,7 +686,7 @@ class CrawlPolicyForm(CharFieldForm):
         return cleaned_data
 
 
-@admin.action(description="Enable/disable", permissions=["change"])
+@admin.action(description="Enable/Disable", permissions=["change"])
 def crawl_policy_enable_disable(modeladmin, request, queryset):
     queryset.exclude(url_regex="(default)").update(
         enabled=models.Case(

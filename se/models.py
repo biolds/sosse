@@ -210,6 +210,7 @@ def validate_search_url(value):
 
 
 class SearchEngine(models.Model):
+    enabled = models.BooleanField(default=True)
     short_name = models.CharField(unique=True, max_length=32, blank=True, default="")
     long_name = models.CharField(max_length=48, blank=True, default="")
     description = models.CharField(max_length=1024, blank=True, default="")
@@ -323,7 +324,7 @@ class SearchEngine(models.Model):
             if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and se_str == settings.SOSSE_SOSSE_SHORTCUT:
                 return
 
-            se = SearchEngine.objects.filter(shortcut=se_str).first()
+            se = SearchEngine.objects.filter(enabled=True, shortcut=se_str).first()
             if se is None:
                 continue
 
@@ -333,11 +334,13 @@ class SearchEngine(models.Model):
             break
         else:
             if settings.SOSSE_ONLINE_SEARCH_REDIRECT and request and online_status(request) == "online":
-                se = SearchEngine.objects.filter(short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
+                se = SearchEngine.objects.filter(enabled=True, short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
 
             # Follow the default redirect if a query was provided
             if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and query.strip():
-                se = SearchEngine.objects.filter(short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT).first()
+                se = SearchEngine.objects.filter(
+                    enabled=True, short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT
+                ).first()
 
         if se:
             return se.get_search_url(query)

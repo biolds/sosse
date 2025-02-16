@@ -61,4 +61,9 @@ class Migration(migrations.Migration):
             name="builtin",
             field=models.BooleanField(default=False, verbose_name="Built-in"),
         ),
+        migrations.AddField(
+            model_name="searchengine",
+            name="enabled",
+            field=models.BooleanField(default=True),
+        ),
     ]

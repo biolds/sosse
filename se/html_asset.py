@@ -222,7 +222,8 @@ class HTMLAsset(models.Model):
 
         if page.headers.get("Expires") and max_age is None:
             expires = http_date_parser(page.headers.get("Expires"))
-            max_age = (expires - last_modified).total_seconds()
+            if expires is not None and last_modified is not None:
+                max_age = (expires - last_modified).total_seconds()
 
         if max_age and max_age < 0:
             max_age = 0

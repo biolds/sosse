@@ -1,11 +1,4 @@
 #!/bin/bash -x
-test -e /var/lib/postgresql/15 || tar -x -p -C / -f /tmp/postgres_sosse.tar.gz
-
-/etc/init.d/postgresql start
-until pg_isready; do
-  sleep 1
-done
-
 test -e /etc/sosse/sosse.conf || /venv/bin/sosse-admin default_conf | sed -e "s/^#db_pass.*/db_pass=sosse/" -e "s/^#\(chromium_options=.*\)$/\\1 --no-sandbox --disable-dev-shm-usage/" >/etc/sosse_src/sosse.conf
 test -e /etc/sosse/sosse.conf || cp -p /etc/sosse_src/* /etc/sosse/
 mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/html/

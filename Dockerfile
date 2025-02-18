@@ -11,6 +11,7 @@ ADD package.json .
 ADD swagger-initializer.js .
 ADD se/ se/
 ADD sosse/ sosse/
+RUN apt-get update && apt-get install -y postgresql && apt-get clean
 RUN make install_js_deps
 RUN virtualenv /venv
 RUN /venv/bin/pip install ./ && /venv/bin/pip install uwsgi && /venv/bin/pip cache purge
@@ -19,8 +20,8 @@ RUN mkdir -p /etc/sosse/ /etc/sosse_src/ /var/log/sosse /var/log/uwsgi /var/www/
 ADD debian/uwsgi.* /etc/sosse_src/
 RUN chown -R root:www-data /etc/sosse /etc/sosse_src && chmod 750 /etc/sosse_src/ && chmod 640 /etc/sosse_src/*
 RUN chown www-data:www-data /var/log/sosse /var/www/.cache /var/www/.mozilla
-ADD docker/run.sh /
-RUN chmod 755 /run.sh
+ADD docker/run.sh docker/pg_run.sh /
+RUN chmod 755 /run.sh /pg_run.sh
 
 WORKDIR /
 USER postgres
@@ -32,4 +33,4 @@ RUN /etc/init.d/postgresql start && \
     tar -c -p -C / -f /tmp/postgres_sosse.tar.gz /var/lib/postgresql
 
 USER root
-CMD ["/usr/bin/bash", "/run.sh"]
+CMD ["/usr/bin/bash", "/pg_run.sh"]

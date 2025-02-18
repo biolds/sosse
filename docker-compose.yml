@@ -1,0 +1,35 @@
+services:
+  sosse:
+    image: biolds/sosse:pip-compose
+    container_name: sosse_app
+    depends_on:
+      - postgres
+    environment:
+      # Available configuration variables can be found on https://sosse.readthedocs.io/en/stable/config_file.html
+      # any option can be set by using the SOSSE_ prefix
+      - SOSSE_DB_NAME=sosse_db
+      - SOSSE_DB_USER=sosse_user
+      - SOSSE_DB_PASS=sosse_password
+      - SOSSE_DB_HOST=postgres
+    ports:
+      - "8000:80"
+    volumes:
+      - sosse_data:/var/lib/sosse
+    restart: always
+
+  postgres:
+    image: postgres:latest
+    container_name: sosse_db
+    environment:
+      POSTGRES_USER: sosse_user
+      POSTGRES_PASSWORD: sosse_password
+      POSTGRES_DB: sosse_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  sosse_data:
+  postgres_data:

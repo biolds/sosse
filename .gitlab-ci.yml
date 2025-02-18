@@ -403,6 +403,7 @@ rebuild_docker:
     - test "$CI_PIPELINE_SOURCE" != schedule || make docker_release_build
     - test "$CI_PIPELINE_SOURCE" != push || make docker_release_build_test
     - "docker tag biolds/sosse:pip-release registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
+    - "docker tag biolds/sosse:pip-compose registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID-compose"
     - "docker push registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
 
 rebuild_unit_tests:
@@ -504,6 +505,8 @@ rebuild_docker_push:
     - docker pull "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
     - docker tag "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID" biolds/sosse:latest
     - docker tag "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID" biolds/sosse:stable
+    - docker tag "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID-compose" biolds/sosse:pip-compose
     - 'echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$DOCKER_KEY\"}}}" > ~/.docker/config.json'
     - docker push biolds/sosse:latest
     - docker push biolds/sosse:stable
+    - docker push biolds/sosse:pip-compose

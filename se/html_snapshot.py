@@ -355,7 +355,9 @@ class HTMLSnapshot:
                         filename_url = reverse("html_excluded", args=(self.crawl_policy.id, "element"))
                     else:
                         force_mime = None
-                        if elem.name == "link" and "stylesheet" in elem.attrs.get("rel", []):
+                        if elem.name == "link" and (
+                            "stylesheet" in elem.attrs.get("rel", []) or elem.attrs.get("as") == "style"
+                        ):
                             # Force the mime since because libmagic sometimes fails to identify it correctly
                             force_mime = "text/css"
 

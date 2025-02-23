@@ -36,6 +36,19 @@ def dict_merge(a, b):
     return a
 
 
+def requests_params(_params):
+    params = {}
+
+    if settings.SOSSE_PROXY:
+        params["proxies"] = {
+            "http": settings.SOSSE_PROXY,
+            "https": settings.SOSSE_PROXY,
+        }
+    if settings.SOSSE_REQUESTS_TIMEOUT:
+        params["timeout"] = settings.SOSSE_REQUESTS_TIMEOUT
+    return dict_merge(params, _params)
+
+
 class BrowserRequest(Browser):
     @classmethod
     def _init(cls):
@@ -81,23 +94,16 @@ class BrowserRequest(Browser):
 
     @classmethod
     def _requests_params(cls):
-        params = {
-            "stream": True,
-            "allow_redirects": False,
-            "headers": {
-                "User-Agent": user_agent(),
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            },
-        }
-
-        if settings.SOSSE_PROXY:
-            params["proxies"] = {
-                "http": settings.SOSSE_PROXY,
-                "https": settings.SOSSE_PROXY,
+        return requests_params(
+            {
+                "allow_redirects": False,
+                "stream": True,
+                "headers": {
+                    "User-Agent": user_agent(),
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                },
             }
-        if settings.SOSSE_REQUESTS_TIMEOUT:
-            params["timeout"] = settings.SOSSE_REQUESTS_TIMEOUT
-        return params
+        )
 
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):

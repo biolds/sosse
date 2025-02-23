@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import os
 
 from django.conf import settings
 from django.db import connection, models
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiTypes,
@@ -26,15 +28,20 @@ from drf_spectacular.utils import (
     extend_schema_serializer,
 )
 from rest_framework import mixins, routers, serializers, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from .document import Document
+from .document import Document, example_doc
 from .models import CrawlerStats
 from .rest_permissions import IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
 from .utils import mimetype_icon
+from .webhook import Webhook, webhook_html_status
+
+webhook_logger = logging.getLogger("webhooks")
 
 
 class CrawlerStatsSerializer(serializers.ModelSerializer):
@@ -306,6 +313,36 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         return self.get_paginated_response(serializer.data)
 
 
+class WebhookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Webhook
+        fields = "__all__"
+
+
+class WebhookViewSet(viewsets.ModelViewSet):
+    queryset = Webhook.objects.all()
+    serializer_class = WebhookSerializer
+    permissions = [DjangoModelPermissions]
+
+    @action(detail=False, methods=["post"])
+    def test_trigger(self, request, pk=None):
+        as_html = request.GET.get("as_html")
+        serializer = WebhookSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        webhook = Webhook(**serializer.validated_data)
+        try:
+            result = webhook.send(example_doc())
+        except ValueError as e:
+            webhook_logger.exception("Webhook error")
+            if not as_html:
+                return Response({"error": str(e)}, status=400)
+            result = {"error": str(e)}
+
+        if request.GET.get("as_html"):
+            return HttpResponse(webhook_html_status(result))
+        return Response(result)
+
+
 router = routers.DefaultRouter()
 router.register("document", DocumentViewSet)
 router.register("search", SearchViewSet, basename="search")
@@ -313,3 +350,4 @@ router.register("stats", CrawlerStatsViewSet)
 router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
 router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
 router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
+router.register("webhooks", WebhookViewSet, basename="webhooks")

@@ -41,10 +41,21 @@ from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
 from .url import url_beautify, validate_url
 from .utils import reverse_no_escape
+from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
 
 DetectorFactory.seed = 0
+
+
+def example_doc():
+    return Document(
+        url="https://example.com/",
+        title="Example Title",
+        mimetype="text/html",
+        lang_iso_639_1="en",
+        content="Example",
+    )
 
 
 def remove_accent(s):
@@ -73,6 +84,9 @@ class DocumentManager(models.Manager):
 
     def none(self):
         return super().get_queryset().none()
+
+    def create(self, *args, **kwargs):
+        return super().get_queryset().create(*args, **kwargs)
 
     def update(self, *args, **kwargs):
         return super().get_queryset().update(*args, **kwargs)
@@ -138,6 +152,7 @@ class Document(models.Model):
     show_on_homepage = models.BooleanField(default=False, help_text="Display this document on the homepage")
 
     worker_no = models.PositiveIntegerField(blank=True, null=True)
+    webhooks_result = models.JSONField(default=dict)
 
     supported_langs = None
 
@@ -328,6 +343,8 @@ class Document(models.Model):
 
         current_hash = self.content_hash
         manual_crawl = self.manual_crawl
+        first_crawl = self.crawl_first is None
+
         self._clear_base_content()
         self._index_log("queuing links", stats, verbose)
 
@@ -359,10 +376,24 @@ class Document(models.Model):
         self.content_hash = self._hash_content(self.content, crawl_policy)
         self._schedule_next(current_hash != self.content_hash, crawl_policy)
 
+        webhook_trigger_cond = {Webhook.TRIGGER_COND_ALWAYS}
+
+        if first_crawl:
+            webhook_trigger_cond |= {
+                Webhook.TRIGGER_COND_DISCOVERY,
+                Webhook.TRIGGER_COND_ON_CHANGE,
+                Webhook.TRIGGER_COND_MANUAL,
+            }
+        if current_hash != self.content_hash:
+            webhook_trigger_cond |= {Webhook.TRIGGER_COND_ON_CHANGE, Webhook.TRIGGER_COND_MANUAL}
+        if manual_crawl:
+            webhook_trigger_cond |= {Webhook.TRIGGER_COND_MANUAL}
+
         if current_hash == self.content_hash:
             if crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_ON_CHANGE or (
                 crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_MANUAL and not manual_crawl
             ):
+                Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
                 return
         if current_hash != self.content_hash:
             self.modified_date = n
@@ -419,6 +450,8 @@ class Document(models.Model):
                 self.screenshot_index(links["links"], crawl_policy)
 
         self._index_log("done", stats, verbose)
+
+        Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
 
     def convert_to_jpg(self):
         d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.image_name())

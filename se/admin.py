@@ -27,7 +27,7 @@ from django.shortcuts import redirect, reverse
 from django.template import defaultfilters
 from django.template.loader import render_to_string
 from django.urls import path
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from django.utils.timezone import now
 
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
@@ -41,6 +41,7 @@ from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
 from .models import AuthField, ExcludedUrl, Link, SearchEngine
 from .utils import mimetype_icon, reverse_no_escape
+from .webhook import Webhook, webhook_html_status
 
 
 class SEAdminSite(admin.AdminSite):
@@ -56,6 +57,7 @@ class SEAdminSite(admin.AdminSite):
                     "Document",
                     "DomainSetting",
                     "Cookie",
+                    "Webhook",
                     "ExcludedUrl",
                     "SearchEngine",
                     "HTMLAsset",
@@ -388,6 +390,12 @@ class DocumentAdmin(InlineActionModelAdmin):
                 )
             },
         ),
+        (
+            "📡 Webhooks",
+            {
+                "fields": ("_webhooks_result",),
+            },
+        ),
     )
     readonly_fields = [
         "_title",
@@ -404,6 +412,7 @@ class DocumentAdmin(InlineActionModelAdmin):
         "_crawl_next_txt",
         "crawl_dt",
         "crawl_recurse",
+        "_webhooks_result",
     ]
 
     def get_queryset(self, request):
@@ -624,6 +633,41 @@ class DocumentAdmin(InlineActionModelAdmin):
             return format_html('This page redirects to <a href="{}">{}</a>', url, obj.redirect_url)
         return obj.content
 
+    @staticmethod
+    @admin.display(description="Results")
+    def _webhooks_result(obj):
+        status = []
+        if obj.webhooks_result == {}:
+            crawl_policy = CrawlPolicy.get_from_url(obj.url)
+            if crawl_policy.webhooks.count() == 0:
+                return format_html(
+                    "Matching ⚡ Crawl Policy <a href={}>{}</a> has no 📡 Webhooks.",
+                    reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
+                    crawl_policy,
+                )
+            return "No webhook was triggered yet."
+
+        for webhook_id, result in obj.webhooks_result.items():
+            try:
+                webhook = Webhook.objects.get(id=webhook_id)
+            except Webhook.DoesNotExist:
+                status.append(
+                    format_html(
+                        "<div><p>📡 Deleted webhook</p><p>{}</p></div>\n",
+                        webhook_html_status(result),
+                    )
+                )
+            else:
+                status.append(
+                    format_html(
+                        '<div><p>📡 <a href="{}">Webhook {}</a></p><p>{}</p></div>\n',
+                        reverse("admin:se_webhook_change", args=(webhook.id,)),
+                        webhook.name,
+                        webhook_html_status(result),
+                    )
+                )
+        return mark_safe("\n".join(status))
+
     def delete_model(self, request, obj):
         obj.delete_all()
         return super().delete_model(request, obj)
@@ -640,6 +684,12 @@ class InlineAuthField(admin.TabularInline):
 
 class CrawlPolicyForm(CharFieldForm):
     TEXT_FIELDS = ("url_regex", "script")
+
+    webhooks = forms.ModelMultipleChoiceField(
+        queryset=Webhook.objects.all(),
+        widget=admin.widgets.FilteredSelectMultiple("Webhooks", is_stacked=False),
+        required=False,
+    )
 
     class Meta:
         model = CrawlPolicy
@@ -734,7 +784,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
     )
     list_filter = ("enabled",)
     search_fields = ("url_regex",)
-    readonly_fields = ("documents",)
+    readonly_fields = ("documents", "webhooks_link")
     fieldsets = (
         (
             "⚡ Crawl",
@@ -792,6 +842,15 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             "🔒 Authentication",
             {
                 "fields": ("auth_login_url_re", "auth_form_selector"),
+            },
+        ),
+        (
+            "📡 Webhooks",
+            {
+                "fields": (
+                    "webhooks_link",
+                    "webhooks",
+                ),
             },
         ),
     )
@@ -856,6 +915,17 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
                 "settings": settings,
             },
         )
+
+    @staticmethod
+    @admin.display(description="Edit")
+    def webhooks_link(obj):
+        if not Webhook.objects.count():
+            return format_html('<a href="{}">Create a Webhook</a>', reverse("admin:se_webhook_add"))
+        elif not obj or not obj.webhooks.count():
+            return format_html('<a href="{}">Edit Webhooks</a>', reverse("admin:se_webhook_changelist"))
+
+        webhooks = reverse("admin:se_webhook_changelist") + f"?crawlpolicy__id={obj.id}"
+        return format_html('<a href="{}">Edit Webhooks</a>', webhooks)
 
     def get_search_results(self, request, queryset, search_term):
         if search_term.startswith("http://") or search_term.startswith("https://"):
@@ -944,6 +1014,56 @@ class ExcludedUrlAdmin(admin.ModelAdmin):
     search_fields = ("url", "comment")
     ordering = ("url",)
     form = ExcludedUrlForm
+
+
+@admin.register(Webhook)
+class WebhookAdmin(admin.ModelAdmin):
+    list_display = ("name", "crawl_policies_count", "url", "trigger_condition")
+    search_fields = ("name", "url", "trigger_condition")
+    ordering = ("name",)
+    exclude = tuple()
+    readonly_fields = (
+        "crawl_policies_link",
+        "webhook_test",
+    )
+
+    class Media:
+        js = ("se/admin-webhooks.js",)
+
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+        fields.remove("crawl_policies_link")
+        fields.insert(1, "crawl_policies_link")
+        return fields
+
+    @staticmethod
+    @admin.display(description="Crawl Policies")
+    def crawl_policies_count(obj):
+        crawl_policies_count = obj.crawlpolicy_set.count()
+        webhooks = reverse("admin:se_crawlpolicy_changelist") + f"?webhooks__id={obj.id}"
+        return format_html('<a href="{}">{}</a>', webhooks, crawl_policies_count)
+
+    @staticmethod
+    @admin.display(description="Crawl Policies")
+    def crawl_policies_link(obj):
+        crawl_policies_count = 0
+        if obj and obj.id:
+            crawl_policies_count = obj.crawlpolicy_set.count()
+
+        if not crawl_policies_count:
+            return format_html(
+                '<a href="{}">No Crawl Policies use this Webhook</a>', reverse("admin:se_crawlpolicy_changelist")
+            )
+
+        webhooks = reverse("admin:se_crawlpolicy_changelist") + f"?webhooks__id={obj.id}"
+        return format_html('<a href="{}">Edit Crawl Policies ({})</a>', webhooks, crawl_policies_count)
+
+    def webhook_test(self, obj):
+        return format_html(
+            '<button id="webhook_test_button" class="button" type="button" onclick="test_webhook()">Trigger</button>'
+        )
+
+    webhook_test.short_description = "Webhook test"
 
 
 if settings.DEBUG:

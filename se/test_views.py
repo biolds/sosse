@@ -178,6 +178,7 @@ class ViewsTest:
             ("/admin/se/searchengine/", None),
             ("/admin/se/searchengine/?conflict=yes", None),
             ("/admin/se/htmlasset/", None),
+            ("/admin/se/webhook/", None),
         ):
             response = self.admin_client.get(url)
             self.assertEqual(response.status_code, 200, f"{url} / {response}")

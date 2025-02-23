@@ -17,6 +17,8 @@
 
 from django.db import migrations, models
 
+import se
+
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -65,5 +67,80 @@ class Migration(migrations.Migration):
             model_name="searchengine",
             name="enabled",
             field=models.BooleanField(default=True),
+        ),
+        migrations.CreateModel(
+            name="Webhook",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=512, unique=True)),
+                (
+                    "trigger_condition",
+                    models.CharField(
+                        choices=[
+                            ("change", "On content change"),
+                            ("discovery", "On discovery"),
+                            ("always", "On every crawl"),
+                            ("manual", "On content change or manual crawl"),
+                        ],
+                        default="manual",
+                        max_length=10,
+                    ),
+                ),
+                ("url", models.URLField()),
+                (
+                    "method",
+                    models.CharField(
+                        choices=[
+                            ("get", "GET"),
+                            ("post", "POST"),
+                            ("put", "PUT"),
+                            ("patch", "PATCH"),
+                            ("delete", "DELETE"),
+                        ],
+                        default="post",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "username",
+                    models.CharField(
+                        blank=True,
+                        help_text="Username for basic authentication, leave empty for no auth",
+                        max_length=128,
+                    ),
+                ),
+                (
+                    "password",
+                    models.CharField(
+                        blank=True,
+                        help_text="Password for basic authentication, leave empty for no auth",
+                        max_length=128,
+                    ),
+                ),
+                (
+                    "headers",
+                    models.TextField(
+                        blank=True,
+                        help_text="Additional headers to send with the request",
+                        validators=[se.webhook.parse_headers],
+                    ),
+                ),
+                (
+                    "body_template",
+                    models.TextField(
+                        blank=True, help_text="Template for the request body", validators=[se.webhook.validate_template]
+                    ),
+                ),
+            ],
+        ),
+        migrations.AddField(
+            model_name="document",
+            name="webhooks_result",
+            field=models.JSONField(default=dict),
+        ),
+        migrations.AddField(
+            model_name="crawlpolicy",
+            name="webhooks",
+            field=models.ManyToManyField(to="se.Webhook"),
         ),
     ]

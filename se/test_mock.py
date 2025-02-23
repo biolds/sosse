@@ -58,6 +58,7 @@ class BrowserMock:
             "http://127.0.0.1/police.woff": b"WOFF test",
             "http://127.0.0.1/toobig.png": PageTooBig(2000, 1),
             "http://127.0.0.1/exception.png": Exception("Generic exception"),
+            "http://127.0.0.1/full_page.html": b"<html><body>Content</body></html>",
         }
         self.web.update(web)
 

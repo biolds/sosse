@@ -23,6 +23,7 @@ from typing import Any, Type, TypeAlias
 from django.core.management.utils import get_random_secret_key
 
 CONF_FILE = "/etc/sosse/sosse.conf"
+DEFAULT_USER_AGENT = "SOSSE"
 
 ConfOptionValue: TypeAlias = bool | int | float | str | None
 
@@ -241,7 +242,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             comment="Url of the HTTP proxy server to use.\nExample: http://192.168.0.1:8080/",
             default="",
         ),
-        "user_agent": ConfOption(comment="User agent sent by crawlers.", default="SOSSE"),
+        "user_agent": ConfOption(comment="User agent sent by crawlers.", default=DEFAULT_USER_AGENT),
         "fake_user_agent_browser": ConfOption(
             comment="""Use a preset UA using the `fake-useragent <https://github.com/fake-useragent/fake-useragent>`_ library.
 The UA will be selected among the provided browser, specified as a comma-separated list of values among: `chrome`, `edge`, `firefox`, `safari`.
@@ -389,6 +390,12 @@ LOGGING = {
             "filename": "/var/log/sosse/webserver.log",
             "formatter": "timestamp",
         },
+        "webhooks_file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "/var/log/sosse/webhooks.log",
+            "formatter": "timestamp",
+        },
     },
     "root": {
         "handlers": ["console"],
@@ -412,6 +419,11 @@ LOGGING = {
         },
         "html_snapshot": {
             "handlers": ["crawler_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "webhooks": {
+            "handlers": ["webhooks_file"],
             "level": "INFO",
             "propagate": False,
         },

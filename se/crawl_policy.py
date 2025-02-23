@@ -28,6 +28,7 @@ from .browser_request import BrowserRequest
 from .document import Document
 from .domain_setting import DomainSetting
 from .utils import plural
+from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
 BROWSER_MAP = {
@@ -240,6 +241,7 @@ class CrawlPolicy(models.Model):
         verbose_name="Form selector",
         help_text="CSS selector pointing to the authentication &lt;form&gt; element",
     )
+    webhooks = models.ManyToManyField(Webhook)
 
     class Meta:
         verbose_name_plural = "crawl policies"

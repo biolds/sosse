@@ -59,6 +59,7 @@ SERIALIZED_DOC1 = {
     "url": "http://127.0.0.1/test",
     "vector": "'content':4C 'http':2A 'test':3A 'title':1A",
     "vector_lang": "simple",
+    "webhooks_result": {},
     "worker_no": None,
 }
 
@@ -153,6 +154,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "url": "http://127.0.0.1/test2",
                         "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
                         "vector_lang": "simple",
+                        "webhooks_result": {},
                         "worker_no": None,
                     },
                 ],

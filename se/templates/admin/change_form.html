@@ -9,6 +9,11 @@
 </div>
 {% endblock %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "se/admin-change_form.js" %}"></script>
+{% endblock %}
+
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static "se/admin-forms.css" %}">

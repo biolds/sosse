@@ -112,6 +112,52 @@ class CharFieldForm(forms.ModelForm):
                 self.fields[name].widget = widget
 
 
+class InlineActionModelAdmin(admin.ModelAdmin):
+    def get_urls(self):
+        urls = super().get_urls()
+        view_name = f"do_{self.model._meta.app_label}_{self.model._meta.model_name}_action"
+        return [
+            path(
+                "<path:object_id>/do_action/",
+                self.admin_site.admin_view(self.do_action),
+                name=view_name,
+            ),
+        ] + urls
+
+    def do_action(self, request, object_id):
+        if not request.user.has_perm(f"{self.model._meta.app_label}.change_{self.model._meta.model_name}"):
+            raise PermissionDenied
+
+        action_name = request.POST.get("action")
+
+        for action in self.actions:
+            if action.__name__ == action_name:
+                break
+        else:
+            raise Exception(f"Action {action_name} not supported ({self.actions})")
+
+        queryset = self.get_queryset(request).filter(id=object_id)
+        r = action(self, request, queryset)
+
+        # Display a "Done" message if no other message was set
+        if len(messages.get_messages(request)) == 0:
+            messages.success(request, "Done.")
+
+        if isinstance(r, HttpResponse):
+            return r
+        view_name = f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_change"
+        return redirect(reverse(view_name, args=(object_id,)))
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+        action_url = reverse(
+            f"admin:do_{self.model._meta.app_label}_{self.model._meta.model_name}_action", args=[object_id]
+        )
+        extra_context |= {"action_url": action_url, "actions": self.get_action_choices(request)}
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+
 class ConflictingSearchEngineFilter(admin.SimpleListFilter):
     title = "conflicting"
     parameter_name = "conflict"
@@ -278,7 +324,7 @@ def switch_hidden(modeladmin, request, queryset):
 
 
 @admin.register(Document)
-class DocumentAdmin(admin.ModelAdmin):
+class DocumentAdmin(InlineActionModelAdmin):
     list_display = (
         "_url",
         "_title",
@@ -369,11 +415,6 @@ class DocumentAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         return [
-            path(
-                "<path:object_id>/do_action/",
-                self.admin_site.admin_view(self.do_action),
-                name="doaction",
-            ),
             path("analytics/", self.admin_site.admin_view(self.analytics), name="analytics"),
             path("queue/", self.admin_site.admin_view(self.add_to_queue), name="queue"),
             path(
@@ -403,34 +444,11 @@ class DocumentAdmin(admin.ModelAdmin):
             ),
         ] + urls
 
-    def do_action(self, request, object_id):
-        if not request.user.has_perm("se.change_document"):
-            raise PermissionDenied
-
-        action_name = request.POST.get("action")
-
-        for action in self.actions:
-            if action.__name__ == action_name:
-                break
-        else:
-            raise Exception(f"Action {action} not support")
-
-        queryset = self.get_queryset(request).filter(id=object_id)
-        r = action(self, request, queryset)
-        messages.success(request, "Done.")
-        if isinstance(r, HttpResponse):
-            return r
-        return redirect(reverse("admin:se_document_change", args=(object_id,)))
-
     def get_fields(self, request, obj=None):
         fields = copy(super().get_fields(request, obj))
         if not settings.SOSSE_BROWSABLE_HOME:
             fields.remove("show_on_homepage")
         return fields
-
-    def render_change_form(self, request, context, *args, **kwargs):
-        context["actions"] = self.get_action_choices(request)
-        return super().render_change_form(request, context, *args, **kwargs)
 
     def lookup_allowed(self, lookup, value):
         if lookup in ("linked_from__doc_from", "links_to__doc_to"):

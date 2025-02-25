@@ -360,15 +360,15 @@ class DocumentAdmin(InlineActionModelAdmin):
                     "show_on_homepage",
                     "hidden",
                     "_status",
+                    "robotstxt_rejected",
+                    "too_many_redirects",
                 )
             },
         ),
         (
-            "📂 Data",
+            "📂 Content",
             {
                 "fields": (
-                    "robotstxt_rejected",
-                    "too_many_redirects",
                     "_mimetype",
                     "_lang_txt",
                     "_content",
@@ -376,7 +376,7 @@ class DocumentAdmin(InlineActionModelAdmin):
             },
         ),
         (
-            "🕑 Crawl info",
+            "🕑 Crawl time",
             {
                 "fields": (
                     "crawl_first",

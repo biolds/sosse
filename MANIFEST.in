@@ -1,3 +1,4 @@
+include se/deps/fake-useragent/src/fake_useragent/data/*
 include se/deps/unicode_mime_icons/*
 include se/static/se/*
 include se/static/se/node_modules/@kurkle/color/dist/*.js

@@ -1,3 +1,7 @@
+## 1.12.3 (2025-02-24)
+### Bug fixes (1 change)
+- [fix fake_useragent in the pypi package](https://gitlab.com/biolds1/sosse/-/commit/41be1cbdff6122c53e75a245020797ed3382b1df) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/156))
+
 ## 1.12.2 (2025-02-02)
 ### Bug fixes (1 change)
 - [fix documentation build](https://gitlab.com/biolds1/sosse/-/commit/4537d229f64feb2ec5491d7bbd6ab91cc30165b8)

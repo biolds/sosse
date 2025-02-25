@@ -28,47 +28,47 @@ set -e
 
 case "$1" in
 
-  configure)
-    # Set up our config for apache
-    #/bin/cp /usr/share/webpy-example/postinstall/webpy-config /etc/apache2/conf.d/
-    #/usr/sbin/a2enmod wsgi
-    #/usr/sbin/a2enmod rewrite
-    #/etc/init.d/apache2 reload
+configure)
+  # Set up our config for apache
+  #/bin/cp /usr/share/webpy-example/postinstall/webpy-config /etc/apache2/conf.d/
+  #/usr/sbin/a2enmod wsgi
+  #/usr/sbin/a2enmod rewrite
+  #/etc/init.d/apache2 reload
 
-    # set up database
-    #dbc_pgsql_createdb_encoding="UTF8"
-    #dbc_generate_include=template:/usr/share/webpy-example/lib/credentials.py
-    #dbc_generate_include_args="-U -o template_infile='/usr/share/doc/webpy-example/credentials_template.py'"
-    #dbc_generate_include_owner="root:www-data"
-    #dbc_generate_include_perms="0660"
-    #dbc_go webpy-example $@ || true
+  # set up database
+  #dbc_pgsql_createdb_encoding="UTF8"
+  #dbc_generate_include=template:/usr/share/webpy-example/lib/credentials.py
+  #dbc_generate_include_args="-U -o template_infile='/usr/share/doc/webpy-example/credentials_template.py'"
+  #dbc_generate_include_owner="root:www-data"
+  #dbc_generate_include_perms="0660"
+  #dbc_go webpy-example $@ || true
 
-    mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html /var/www/.mozilla /var/www/.cache
-    touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
-    chown www-data:www-data /run/sosse /var/lib/sosse/ /var/log/sosse /var/www/.mozilla /var/www/.cache
+  mkdir -p /run/sosse /var/log/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html /var/www/.mozilla /var/www/.cache
+  touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
+  chown www-data:www-data /run/sosse /var/lib/sosse/ /var/log/sosse /var/www/.mozilla /var/www/.cache
 
-    test -e /etc/sosse/sosse.conf || sosse-admin default_conf > /etc/sosse/sosse.conf
-    chmod 750 /etc/sosse/
-    chmod 640 /etc/sosse/*
-    chown -R root:www-data /etc/sosse
-    systemctl stop sosse-uwsgi 2>/dev/null >/dev/null ||:
-    systemctl stop sosse-crawler 2>/dev/null >/dev/null ||:
+  test -e /etc/sosse/sosse.conf || sosse-admin default_conf >/etc/sosse/sosse.conf
+  chmod 750 /etc/sosse/
+  chmod 640 /etc/sosse/*
+  chown -R root:www-data /etc/sosse
+  systemctl stop sosse-uwsgi 2>/dev/null >/dev/null || :
+  systemctl stop sosse-crawler 2>/dev/null >/dev/null || :
 
-    sosse-admin collectstatic --noinput --clear
-    sosse-admin migrate 2>/dev/null >/dev/null ||:
-    sosse-admin update_se 2>/dev/null >/dev/null ||:
+  sosse-admin collectstatic --noinput --clear
+  sosse-admin migrate 2>/dev/null >/dev/null || :
+  sosse-admin update_se 2>/dev/null >/dev/null || :
 
-    systemctl try-restart sosse-uwsgi 2>/dev/null >/dev/null ||:
-    systemctl try-restart sosse-crawler 2>/dev/null >/dev/null ||:
+  systemctl try-restart sosse-uwsgi 2>/dev/null >/dev/null || :
+  systemctl try-restart sosse-crawler 2>/dev/null >/dev/null || :
   ;;
 
-  abort-upgrade|abort-remove|abort-deconfigure)
-    exit 0
+abort-upgrade | abort-remove | abort-deconfigure)
+  exit 0
   ;;
 
-  *)
-    echo "postinst called with unknown argument \`$1'" >&2
-    exit 1
+*)
+  echo "postinst called with unknown argument \`$1'" >&2
+  exit 1
   ;;
 
 esac

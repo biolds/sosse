@@ -18,6 +18,7 @@ import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from django.core.exceptions import ValidationError
 from django.shortcuts import reverse
 from django.utils.html import mark_safe
 from django.utils.timezone import now
@@ -214,3 +215,24 @@ def mimetype_icon(mime: str | None) -> str:
             if re.match(regex, mime):
                 return icon
     return "🗎"
+
+
+def build_multiline_re(r):
+    # Converts a multiline regex with comments to a single line regex
+    url_regexs = [line.strip() for line in r.splitlines()]
+    url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
+    match len(url_regexs):
+        case 0:
+            return ""
+        case 1:
+            return url_regexs[0]
+        case _:
+            return "(" + "|".join(url_regexs) + ")"
+
+
+def validate_multiline_re(r):
+    r = build_multiline_re(r)
+    try:
+        re.match(r, "")
+    except re.error as e:
+        raise ValidationError(str(e))

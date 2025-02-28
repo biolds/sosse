@@ -208,3 +208,10 @@ class WebhookTest(TransactionTestCase):
 
             # Tiggers on change
             self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_MANUAL, 1, True)
+
+    def test_150_trigger_webhook_no_regexp_match(self):
+        self.webhook.content_re = "No match"
+        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 0)
+
+        self.webhook.content_re = "Content"
+        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)

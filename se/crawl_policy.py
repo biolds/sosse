@@ -27,7 +27,7 @@ from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
 from .domain_setting import DomainSetting
-from .utils import plural
+from .utils import build_multiline_re, plural
 from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
@@ -263,15 +263,7 @@ class CrawlPolicy(models.Model):
             self.url_regex_pg = ".*"
             self.enabled = True
         else:
-            url_regexs = [line.strip() for line in self.url_regex.splitlines()]
-            url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
-            match len(url_regexs):
-                case 0:
-                    self.url_regex_pg = ""
-                case 1:
-                    self.url_regex_pg = url_regexs[0]
-                case _:
-                    self.url_regex_pg = "(" + "|".join(url_regexs) + ")"
+            self.url_regex_pg = build_multiline_re(self.url_regex)
         return super().save(*args, **kwargs)
 
     @staticmethod

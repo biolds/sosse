@@ -131,6 +131,37 @@ class Migration(migrations.Migration):
                         blank=True, help_text="Template for the request body", validators=[se.webhook.validate_template]
                     ),
                 ),
+                (
+                    "mimetype_re",
+                    models.CharField(
+                        blank=True,
+                        default=".*",
+                        help_text="Run the webhook on pages with mimetype matching this regex",
+                        max_length=128,
+                        validators=[se.utils.validate_multiline_re],
+                        verbose_name="Mimetype regex",
+                    ),
+                ),
+                (
+                    "title_re",
+                    models.TextField(
+                        blank=True,
+                        default=".*",
+                        help_text="Run the webhook on pages with title matching these regexs. (one by line, lines starting with # are ignored)",
+                        validators=[se.utils.validate_multiline_re],
+                        verbose_name="Title regex",
+                    ),
+                ),
+                (
+                    "content_re",
+                    models.TextField(
+                        blank=True,
+                        default=".*",
+                        help_text="Run the webhook on pages with content matching this regexs. (one by line, lines starting with # are ignored)",
+                        validators=[se.utils.validate_multiline_re],
+                        verbose_name="Content regex",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(

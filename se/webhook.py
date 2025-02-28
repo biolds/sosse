@@ -26,6 +26,7 @@ from django.utils.html import format_html
 from sosse.conf import DEFAULT_USER_AGENT
 
 from .browser_request import requests_params
+from .utils import build_multiline_re, validate_multiline_re
 
 webhooks_logger = logging.getLogger("webhooks")
 
@@ -110,13 +111,49 @@ class Webhook(models.Model):
     body_template = models.TextField(
         blank=True, help_text="Template for the request body", validators=[validate_template]
     )
+    mimetype_re = models.CharField(
+        blank=True,
+        default=".*",
+        help_text="Run the webhook on pages with mimetype matching this regex",
+        max_length=128,
+        verbose_name="Mimetype regex",
+        validators=[validate_multiline_re],
+    )
+    title_re = models.TextField(
+        blank=True,
+        default=".*",
+        help_text="Run the webhook on pages with title matching these regexs. (one by line, lines starting with # are ignored)",
+        verbose_name="Title regex",
+        validators=[validate_multiline_re],
+    )
+    content_re = models.TextField(
+        help_text="Run the webhook on pages with content matching this regexs. (one by line, lines starting with # are ignored)",
+        blank=True,
+        default=".*",
+        verbose_name="Content regex",
+        validators=[validate_multiline_re],
+    )
 
     def __str__(self):
         return f"Webook {self.name}"
 
     @classmethod
     def trigger(cls, webhooks, doc):
+        # During crawling `doc` is not yet saved, is content is not yet in the database
+        # so we have to check if the webhook should be triggered on the current document
+        # so we iterate on all webhooks (instead of filtering them with the regexp, PG side)
         for webhook in webhooks:
+            mimetype_re = build_multiline_re(webhook.mimetype_re)
+            if not re.match(mimetype_re, doc.mimetype):
+                continue
+
+            title_re = build_multiline_re(webhook.title_re)
+            if not re.match(title_re, doc.title):
+                continue
+
+            content_re = build_multiline_re(webhook.content_re)
+            if not re.match(content_re, doc.content):
+                continue
             doc.webhooks_result[webhook.id] = webhook.send(doc)
 
     @classmethod

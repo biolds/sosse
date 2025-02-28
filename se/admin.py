@@ -325,6 +325,15 @@ def switch_hidden(modeladmin, request, queryset):
     )
 
 
+@admin.action(description="Trigger webhooks", permissions=["change"])
+def trigger_webhooks(modeladmin, request, queryset):
+    for doc in queryset.all():
+        crawl_policy = CrawlPolicy.get_from_url(doc.url)
+        webhooks = crawl_policy.webhooks.all()
+        Webhook.trigger(webhooks, doc)
+        doc.save()
+
+
 @admin.register(Document)
 class DocumentAdmin(InlineActionModelAdmin):
     list_display = (
@@ -347,7 +356,7 @@ class DocumentAdmin(InlineActionModelAdmin):
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)
-    actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg, switch_hidden]
+    actions = [crawl_now, remove_from_crawl_queue, convert_to_jpg, switch_hidden, trigger_webhooks]
     if settings.DEBUG:
         actions += [crawl_later]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE

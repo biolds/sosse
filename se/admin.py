@@ -715,7 +715,7 @@ def crawl_policy_enable_disable(modeladmin, request, queryset):
 
 
 @admin.action(description="Duplicate", permissions=["change"])
-def crawl_policy_switch(modeladmin, request, queryset):
+def crawl_policy_duplicate(modeladmin, request, queryset):
     for crawl_policy in queryset.all():
         crawl_policy.id = None
         crawl_policy.url_regex = f"Copy of {crawl_policy.url_regex}"
@@ -795,7 +795,7 @@ class CrawlPolicyAdmin(admin.ModelAdmin):
             },
         ),
     )
-    actions = [crawl_policy_enable_disable, crawl_policy_switch]
+    actions = [crawl_policy_enable_disable, crawl_policy_duplicate]
 
     def get_queryset(self, request):
         # Keep the (default) policy at the top

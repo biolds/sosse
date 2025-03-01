@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
       // Move the "Authentication fields" under the Authentication fieldset
       const authfields = document.getElementById("authfield_set-group");
       if (authfields) {
-        authfields.remove(); // removed here, it is re-added at the end of the loop beolw
+        authfields.remove(); // removed here, it is re-added at the end of the loop below
       }
 
       // Create tabs
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
           tabToSelect = tabButton;
         }
 
-        if (fieldNo === fieldsets.length - 1 && authfields) {
+        if (tabButton.innerText === "🔒 Authentication" && authfields) {
           fieldset.append(authfields);
         }
       });

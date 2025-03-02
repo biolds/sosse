@@ -121,6 +121,7 @@ migrations:
     - MIGRATION_COUNT="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - python3 ./sosse/sosse_admin.py makemigrations
     - MIGRATION_COUNT2="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
+    - 'test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2" || (ls -1 se/migrations/[0-9]*.py | tail -n 1 | xargs cat)'
     - test "$MIGRATION_COUNT" -eq "$MIGRATION_COUNT2"
 
 static_checks:

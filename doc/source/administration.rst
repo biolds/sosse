@@ -16,6 +16,7 @@ Administration
    documents.rst
    domain_settings.rst
    cookies.rst
+   webhooks.rst
    excluded_urls.rst
    search_engines.rst
    permissions.rst

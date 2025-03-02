@@ -63,6 +63,15 @@ Hidden
 
 The document does not appear in search results.
 
+Webhooks
+--------
+
+The Webhooks tab shows the result of :doc:`webhooks` that were run for this document.
+
+.. image:: ../../tests/robotframework/screenshots/webhooks_result.png
+   :class: sosse-screenshot
+
+
 Document list view
 """"""""""""""""""
 

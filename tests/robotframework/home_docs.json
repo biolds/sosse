@@ -29,6 +29,14 @@
       "error": "",
       "error_hash": "",
       "show_on_homepage": true,
+      "webhooks_result": {
+        "1": {
+          "error": null,
+          "response": "{\"message\": \"Success\", \"code\": 42}",
+          "status_code": 200,
+          "status_string": "Ok"
+        }
+      },
       "worker_no": null
     }
   },

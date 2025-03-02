@@ -108,3 +108,9 @@
 |  | Click Button | class=execute
 |  | Wait Until Element Is Visible | class=live-responses-table
 |  | Element Should Contain | class=live-responses-table | Dummy static website
+
+| Document Webhook
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/327/change/
+|  | Scroll To Elem | id=tabs
+|  | Click Link | 📡 Webhooks
+|  | SOSSE Capture Page Screenshot | webhooks_result.png

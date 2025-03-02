@@ -170,3 +170,18 @@
 |  | SOSSE Wait Until Page Contains | Important dates
 |  | Scroll To Elem | xpath=//h2[contains(., 'Permissions')]
 |  | SOSSE Capture Page Screenshot | permissions.png
+
+| Webhooks
+|  | SOSSE Go To | http://127.0.0.1/admin/se/webhook/add/
+|  | Wait Until Element Is Visible | id=footer
+|  | Input Text | id=id_name | Discord notification
+|  | Input Text | id=id_url | https://discord.com/api/webhooks/1239873455671234522/V-gFSWDCS342jin98DWEsdrfs-23lmsWEalokj345kjn213oiu4
+|  | Press Keys | id=id_url | HOME
+|  | Select From List By Label | id=id_trigger_condition | On discovery
+|  | SOSSE Capture Page Screenshot | webhook_add.png
+|  | Input Text | id=id_body_template | {"content":"New page discovered $title:\\n$url"}
+|  | Click Element | xpath=//input[@value="Save"]
+|  | Wait Until Element Is Visible | id=result_list
+|  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
+|  | Should Be Equal As Numbers | ${dom_count} | 1
+|  | SOSSE Capture Page Screenshot | webhook_list.png

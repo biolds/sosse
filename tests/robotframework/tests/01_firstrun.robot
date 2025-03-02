@@ -30,3 +30,5 @@
 |  | SOSSE Capture Page Screenshot | clear_admin_crawlpolicy.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/
 |  | SOSSE Capture Page Screenshot | clear_admin_document.png
+|  | SOSSE Go To | http://127.0.0.1/admin/se/webhook/
+|  | SOSSE Capture Page Screenshot | clear_admin_webhook.png

@@ -661,18 +661,6 @@
   },
   {
     "model": "se.searchengine",
-    "pk": 63,
-    "fields": {
-      "short_name": "Twitter",
-      "long_name": "Twitter",
-      "description": "Twitter Search",
-      "html_template": "https://twitter.com/search?q={searchTerms}",
-      "shortcut": "t",
-      "builtin": true
-    }
-  },
-  {
-    "model": "se.searchengine",
     "pk": 64,
     "fields": {
       "short_name": "WolframAlpha",

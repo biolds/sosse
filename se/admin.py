@@ -371,7 +371,7 @@ class DocumentAdmin(InlineActionModelAdmin):
                     "show_on_homepage",
                     "hidden",
                     "_status",
-                    "robotstxt_rejected",
+                    "_robotstxt_rejected",
                     "too_many_redirects",
                 )
             },
@@ -410,7 +410,7 @@ class DocumentAdmin(InlineActionModelAdmin):
         "_title",
         "_links",
         "_status",
-        "robotstxt_rejected",
+        "_robotstxt_rejected",
         "too_many_redirects",
         "_mimetype",
         "_lang_txt",
@@ -620,6 +620,23 @@ class DocumentAdmin(InlineActionModelAdmin):
             f"{settings.STATIC_URL}admin/img/{icon}",
             str(status),
             obj.error,
+        )
+
+    @staticmethod
+    @admin.display(description="Robots.txt status")
+    def _robotstxt_rejected(obj):
+        domain_setting = DomainSetting.get_from_url(obj.url)
+        if obj.robotstxt_rejected:
+            return format_html(
+                '<img src="{}" alt="Rejected" title="Rejected" /> 🤖 Rejected by robots.txt file, see corresponding 🕸 <a href="{}">Domain</a>',
+                f"{settings.STATIC_URL}admin/img/icon-no.svg",
+                reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+            )
+
+        return format_html(
+            '<img src="{}" alt="Accepted" /> Accepted, see corresponding 🕸 <a href="{}">Domain</a>',
+            f"{settings.STATIC_URL}admin/img/icon-yes.svg",
+            reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
         )
 
     @staticmethod

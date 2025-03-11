@@ -72,9 +72,13 @@
             </td>
             <td {% if not doc.in_history %}style="opacity: 0.3"{% endif %}>
                 {% if doc.error %}
-                    <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
+                    <img src="{% static "admin/img/icon-no.svg" %}">
                 {% else %}
-                    <img src="{% static "admin/img/icon-yes.svg" %}" alt="True">
+                    {% if doc.robotstxt_rejected %}
+                        <span title="Rejected by robots.txt">🤖</span>
+                    {% else %}
+                        <img src="{% static "admin/img/icon-yes.svg" %}">
+                    {% endif %}
                 {% endif %}
             </td>
             {% if doc.worker_no is not None %}

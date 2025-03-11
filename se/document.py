@@ -284,7 +284,6 @@ class Document(models.Model):
         self.normalized_content = ""
         self.title = ""
         self.normalized_title = ""
-        self.robotstxt_rejected = False
         self.mimetype = ""
         self.manual_crawl = False
 

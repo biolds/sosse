@@ -21,7 +21,7 @@ function test_webhook() {
 
   var payload = JSON.stringify(webhookData);
 
-  fetch("/api/webhooks/test_trigger/?as_html=1", {
+  fetch("/api/webhook/test_trigger/?as_html=1", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

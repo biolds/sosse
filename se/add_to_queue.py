@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
+import re
 
 from django import forms
 from django.contrib import messages
@@ -124,12 +125,13 @@ class AddToQueueConfirmationView(AddToQueueView):
         form = AddToQueueForm(self.request.POST, initial=initial)
         form.is_valid()
 
+        urls = [re.escape(url) for url in form.cleaned_data["urls"]]
         context = self.get_context_data(form=form)
         context.update(
             {
                 "crawl_policies": sorted(crawl_policies, key=lambda x: x.url_regex),
                 "crawl_policy": crawl_policy,
-                "urls": form.cleaned_data["urls"],
+                "urls": urls,
                 "CrawlPolicy": CrawlPolicy,
                 "DomainSetting": DomainSetting,
                 "form": form,

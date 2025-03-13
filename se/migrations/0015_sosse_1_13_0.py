@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
             name="recrawl_condition",
             field=models.CharField(
                 choices=[("change", "On change only"), ("always", "Always"), ("manual", "On change or manual trigger")],
-                default="change",
+                default="manual",
                 help_text="Specifies the conditions under which a page is reprocessed",
                 max_length=10,
                 verbose_name="Condition",

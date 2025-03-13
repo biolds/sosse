@@ -224,7 +224,7 @@ class CrawlPolicy(models.Model):
     recrawl_condition = models.CharField(
         max_length=10,
         choices=RECRAWL_CONDITION,
-        default=RECRAWL_COND_ON_CHANGE,
+        default=RECRAWL_COND_MANUAL,
         verbose_name="Condition",
         help_text="Specifies the conditions under which a page is reprocessed",
     )

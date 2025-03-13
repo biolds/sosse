@@ -779,7 +779,7 @@ class Document(models.Model):
             if self.mimetype and self.mimetype.startswith("text/"):
                 HTMLAsset.html_delete_url(self.url)
             else:
-                for asset in HTMLAsset.objects.wo_content().filter(url=self.url):
+                for asset in HTMLAsset.objects.filter(url=self.url):
                     asset.remove_ref()
             self.has_html_snapshot = False
 

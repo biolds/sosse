@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License along with SOSSE.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import logging
+
 from bs4 import BeautifulSoup, Comment, Doctype, Tag
 from magic import from_buffer as magic_from_buffer
 
@@ -25,6 +27,8 @@ from .url import (
 )
 
 NAV_ELEMENTS = ["nav", "header", "footer"]
+
+crawl_logger = logging.getLogger("crawler")
 
 
 class Page:
@@ -143,6 +147,7 @@ class Page:
 
         # Keep the link if it has text, or if we take screenshots
         if elem.name in (None, "a"):
+            crawl_logger.debug(f"evaluating link elem: {elem.name}, text: {s}, / {queue_links}")
             if links["text"] and links["text"][-1] not in (" ", "\n") and s and not in_nav:
                 links["text"] += " "
 
@@ -160,6 +165,7 @@ class Page:
                         if not child_policy.keep_params:
                             href = url_remove_query_string(href)
                         href = url_remove_fragment(href)
+                        crawl_logger.debug(f"queueing link: {href}")
                         target_doc = Document.queue(href, crawl_policy, document)
 
                         if target_doc != document:
@@ -172,6 +178,8 @@ class Page:
                                     pos=len(links["text"]),
                                     in_nav=in_nav,
                                 )
+                    else:
+                        crawl_logger.debug(f"not browsable scheme: {href}")
 
                     store_extern_link = not has_browsable_scheme(href) or target_doc is None
                     if crawl_policy.store_extern_links and store_extern_link:

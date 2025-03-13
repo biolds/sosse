@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import logging
 import os
 
 from django.conf import settings
@@ -22,6 +23,8 @@ from selenium.webdriver.chrome.options import Options as ChromiumOptions
 
 from .browser_selenium import BrowserSelenium
 from .domain_setting import user_agent
+
+crawl_logger = logging.getLogger("crawler")
 
 
 class BrowserChromium(BrowserSelenium):
@@ -92,6 +95,8 @@ class BrowserChromium(BrowserSelenium):
     @classmethod
     def _get_download_file(cls):
         d = os.listdir(cls._get_download_dir())
+        crawl_logger.debug(f"Download dir: {cls._get_download_dir()}, current files: {d}")
+
         d = [x for x in d if not x.startswith(".")]
         if len(d) == 0:
             return None

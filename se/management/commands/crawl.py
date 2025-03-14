@@ -62,8 +62,8 @@ class Command(BaseCommand):
             connection.close()
             connection.connect()
 
-            BrowserFirefox.worker_no = worker_no
-            BrowserChromium.worker_no = worker_no
+            BrowserFirefox._worker_no = worker_no
+            BrowserChromium._worker_no = worker_no
             base_dir = settings.SOSSE_TMP_DL_DIR + "/chromium/" + str(worker_no)
             if not os.path.isdir(base_dir):
                 os.makedirs(base_dir)

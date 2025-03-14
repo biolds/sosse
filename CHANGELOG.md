@@ -1,3 +1,7 @@
+## 1.12.4 (2025-03-14)
+### Bug fixes (1 change)
+- [fix some parallel download failures using Firefox or Chromium](https://gitlab.com/biolds1/sosse/-/commit/600aae1ac85865a3f5b0759f685f9ef5071019e5) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/160))
+
 ## 1.12.3 (2025-02-24)
 ### Bug fixes (1 change)
 - [fix fake_useragent in the pypi package](https://gitlab.com/biolds1/sosse/-/commit/41be1cbdff6122c53e75a245020797ed3382b1df) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/156))

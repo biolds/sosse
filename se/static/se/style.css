@@ -283,9 +283,10 @@ body.dark-mode .card {
 }
 
 /* Django admin apps tables */
-div.app-se > table,
-div.app-auth > table {
-  width: 70%;
+div.app-se:first-child {
+  border: 1px solid var(--input-border-br);
+  padding: 0px 10px 10px 10px;
+  margin-right: 10px;
 }
 
 div.app-se > table th,

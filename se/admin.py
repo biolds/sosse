@@ -796,6 +796,12 @@ def crawl_policy_duplicate(modeladmin, request, queryset):
         crawl_policy.id = None
         crawl_policy.url_regex = f"Copy of {crawl_policy.url_regex}"
         crawl_policy.save()
+        msg = format_html(
+            "Crawl policy <a href='{}'>{}</a> created.",
+            reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
+            crawl_policy,
+        )
+        messages.success(request, msg)
 
 
 @admin.register(CrawlPolicy)

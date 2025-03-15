@@ -31,7 +31,7 @@
         <a href="{% url "admin:se_document_changelist" %}" style="text-decoration: none">
             <div id="doc_count_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
             <div id="doc_count" class="card_text">
-              Documents
+              🔤 Documents
             </div>
         </a>
     </span>
@@ -39,7 +39,7 @@
         <a href="{% url "admin:crawl_queue" %}" style="text-decoration: none">
             <div id="url_queued_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
             <div id="url_queued" class="card_text">
-              URLs queued
+              ✔ URLs queued
             </div>
         </a>
     </span>
@@ -48,7 +48,7 @@
             <a href="{% url "admin:crawlers" %}" style="text-decoration: none">
                 <div id="url_queued" class="card_text">
                   {{ crawlers_count }}<br/>
-                  Crawler{{ crawlers_count|pluralize }}
+                  🕷 Crawler{{ crawlers_count|pluralize }}
                 </div>
             </a>
         </span>

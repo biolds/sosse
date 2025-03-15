@@ -165,7 +165,7 @@ loadChart("lang_chart", "/api/lang_stats/", function (data) {
 loadChart("mime_chart", "/api/mime_stats/", function (data) {
   const docCount = sum(data.map((l) => l.doc_count));
   const panel = document.getElementById("doc_count");
-  panel.innerText = `${docCount}\nDocuments`;
+  panel.innerText = `${docCount}\n🔤 Documents`;
 
   const mimes = data.filter((m) => m.doc_count);
   const chart = document.getElementById("mime_chart");
@@ -242,7 +242,7 @@ function loadDocCharts(dt) {
           urlQueued = data.results[data.results.length - 1].queued_url;
         }
         const panel = document.getElementById("url_queued");
-        panel.innerText = `${urlQueued}\nURLs queued`;
+        panel.innerText = `${urlQueued}\n✔ URLs queued`;
         showChart("url_queued_panel");
       }
 

@@ -164,6 +164,8 @@ class Document(models.Model):
             # models.Index(models.F('show_on_homepage') == models.Value(True),
             #             models.F('title').asc(), name='home_idx')
         ]
+        verbose_name = "🔤 Document"
+        verbose_name_plural = "🔤 Documents"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -177,4 +177,28 @@ class Migration(migrations.Migration):
             name="webhooks",
             field=models.ManyToManyField(to="se.Webhook"),
         ),
+        migrations.AlterModelOptions(
+            name="cookie",
+            options={"verbose_name": "🍪 Cookie", "verbose_name_plural": "🍪 Cookies"},
+        ),
+        migrations.AlterModelOptions(
+            name="document",
+            options={"verbose_name": "🔤 Document", "verbose_name_plural": "🔤 Documents"},
+        ),
+        migrations.AlterModelOptions(
+            name="domainsetting",
+            options={"verbose_name": "🕸 Domain Setting", "verbose_name_plural": "🕸 Domains Setting"},
+        ),
+        migrations.AlterModelOptions(
+            name="excludedurl",
+            options={"verbose_name": "🔗 Excluded URL", "verbose_name_plural": "🔗 Excluded URLs"},
+        ),
+        migrations.AlterModelOptions(
+            name="searchengine",
+            options={"verbose_name": "🔍 Search Engine", "verbose_name_plural": "🔍 Search Engines"},
+        ),
+        migrations.AlterModelOptions(
+            name="webhook",
+            options={"verbose_name": "📡 Webhook", "verbose_name_plural": "📡 Webhooks"},
+        ),
     ]

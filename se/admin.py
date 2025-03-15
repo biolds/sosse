@@ -208,8 +208,10 @@ class SearchEngineAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.builtin:
-            return self.get_fields(request)
-        return self.readonly_fields
+            fields = copy(self.get_fields(request))
+            fields.remove("shortcut")
+            return fields
+        return super().get_readonly_fields(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         if obj and obj.builtin:

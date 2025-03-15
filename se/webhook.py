@@ -109,7 +109,7 @@ class Webhook(models.Model):
         blank=True, help_text="Additional headers to send with the request", validators=[parse_headers]
     )
     body_template = models.TextField(
-        blank=True, help_text="Template for the request body", validators=[validate_template]
+        blank=True, help_text="Template for the request body", validators=[validate_template], default=dict
     )
     mimetype_re = models.CharField(
         blank=True,

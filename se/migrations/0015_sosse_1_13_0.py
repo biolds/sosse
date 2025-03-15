@@ -128,7 +128,10 @@ class Migration(migrations.Migration):
                 (
                     "body_template",
                     models.TextField(
-                        blank=True, help_text="Template for the request body", validators=[se.webhook.validate_template]
+                        blank=True,
+                        default=dict,
+                        help_text="Template for the request body",
+                        validators=[se.webhook.validate_template],
                     ),
                 ),
                 (

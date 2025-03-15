@@ -325,7 +325,7 @@ class WebhookViewSet(viewsets.ModelViewSet):
     permissions = [DjangoModelPermissions]
 
     @action(detail=False, methods=["post"])
-    def test_trigger(self, request, pk=None):
+    def test_trigger(self, request):
         as_html = request.GET.get("as_html")
         serializer = WebhookSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

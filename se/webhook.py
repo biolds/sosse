@@ -139,7 +139,7 @@ class Webhook(models.Model):
 
     @classmethod
     def trigger(cls, webhooks, doc):
-        # During crawling `doc` is not yet saved, is content is not yet in the database
+        # During crawling `doc` is not yet saved, its content is not yet in the database
         # so we have to check if the webhook should be triggered on the current document
         # so we iterate on all webhooks (instead of filtering them with the regexp, PG side)
         for webhook in webhooks:
@@ -154,7 +154,13 @@ class Webhook(models.Model):
             content_re = build_multiline_re(webhook.content_re)
             if not re.match(content_re, doc.content):
                 continue
-            doc.webhooks_result[webhook.id] = webhook.send(doc)
+
+            result = webhook.send(doc)
+            doc.webhooks_result[webhook.id] = result
+
+            status_code = result.get("status_code") or 0
+            if result.get("error") or status_code < 200 or status_code >= 400:
+                doc.error = f"Webhook {webhook.name} failed"
 
     @classmethod
     def _render_fields(cls, doc_data, body_data):
@@ -206,7 +212,7 @@ class Webhook(models.Model):
         method = getattr(requests, self.method)
         try:
             r = method(self.url, data=body, **params)
-            if r.status_code != 200:
+            if r.status_code < 200 or r.status_code >= 300:
                 webhooks_logger.error(f"Webhook {self.name} failed: {r.status_code} {r.reason} {r.text}")
             return {
                 "status_code": r.status_code,

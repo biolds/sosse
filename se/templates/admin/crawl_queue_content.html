@@ -74,7 +74,9 @@
                 {% if doc.error %}
                     <img src="{% static "admin/img/icon-no.svg" %}">
                 {% else %}
-                    {% if doc.robotstxt_rejected %}
+                    {% if doc.webhook_in_error %}
+                        <span title="Webhook {{ doc.webhook_in_error }} failed">📡</span>
+                    {% elif doc.robotstxt_rejected %}
                         <span title="Rejected by robots.txt">🤖</span>
                     {% else %}
                         <img src="{% static "admin/img/icon-yes.svg" %}">

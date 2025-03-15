@@ -807,3 +807,11 @@ class Document(models.Model):
 
     def default_domain_setting(self):
         return DomainSetting.get_from_url(self.url)
+
+    def webhook_in_error(self):
+        for webhook_id, webhook in self.webhooks_result.items():
+            if webhook.get("status_code") < 200 or webhook.get("status_code") >= 300 or webhook.get("error"):
+                webhook = Webhook.objects.filter(pk=webhook_id).first()
+                name = webhook.name if webhook else f"Deleted Webhook {webhook_id}"
+                return name
+        return None

@@ -95,6 +95,7 @@ class WebhookTest(TransactionTestCase):
 
     @mock.patch("se.webhook.requests.post")
     def test_060_send_webhook(self, post):
+        post.side_effect = lambda *args, **kwargs: mock.Mock(status_code=200, reason="OK", text="{}")
         self.webhook.send(self.document)
         self._assert_post(post)
 
@@ -127,12 +128,14 @@ class WebhookTest(TransactionTestCase):
 
     @mock.patch("se.webhook.requests.post")
     def test_070_send_custom_header(self, post):
+        post.side_effect = lambda *args, **kwargs: mock.Mock(status_code=200, reason="OK", text="{}")
         self.webhook.headers = "X-Test: Test"
         self.webhook.send(self.document)
         self._assert_post(post, {"X-Test": "Test"})
 
     @mock.patch("se.webhook.requests.post")
     def test_080_send_auth(self, post):
+        post.side_effect = lambda *args, **kwargs: mock.Mock(status_code=200, reason="OK", text="{}")
         self.webhook.username = "user"
         self.webhook.password = "pass"
         self.webhook.send(self.document)

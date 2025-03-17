@@ -20,14 +20,14 @@ from django.http import HttpResponse
 from django.views.generic import View
 
 from .document import Document, remove_accent
-from .login import LoginRequiredMixin
+from .login import SosseLoginRequiredMixin
 from .search import get_documents_from_request
 from .search_form import SearchForm
 from .utils import human_nb
 from .views import format_url
 
 
-class WordStatsView(LoginRequiredMixin, View):
+class WordStatsView(SosseLoginRequiredMixin, View):
     def get(self, request):
         results = None
         form = SearchForm(request.GET)

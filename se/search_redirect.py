@@ -18,10 +18,10 @@ from urllib.parse import quote_plus
 from django.conf import settings
 from django.views.generic import TemplateView
 
-from .login import LoginRequiredMixin
+from .login import SosseLoginRequiredMixin
 
 
-class SearchRedirectView(LoginRequiredMixin, TemplateView):
+class SearchRedirectView(SosseLoginRequiredMixin, TemplateView):
     template_name = "se/search_redirect.html"
 
     def get_context_data(self, **kwargs):

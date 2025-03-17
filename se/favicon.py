@@ -18,10 +18,10 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import View
 
 from .models import FavIcon
-from .views import LoginRequiredMixin
+from .views import SosseLoginRequiredMixin
 
 
-class FavIconView(View, LoginRequiredMixin):
+class FavIconView(View, SosseLoginRequiredMixin):
     def get(self, request, favicon_id):
         fav = get_object_or_404(FavIcon, id=favicon_id)
         return HttpResponse(fav.content, content_type=fav.mimetype)

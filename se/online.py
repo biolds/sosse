@@ -19,7 +19,7 @@ from django.http import JsonResponse
 from django.views.generic import View
 
 from .browser_request import BrowserRequest
-from .login import LoginRequiredMixin
+from .login import SosseLoginRequiredMixin
 from .search_form import SearchForm
 
 check_cache_count = 0
@@ -59,7 +59,7 @@ def online_status(request):
     return check_cache_value
 
 
-class OnlineCheckView(LoginRequiredMixin, View):
+class OnlineCheckView(SosseLoginRequiredMixin, View):
     def get(self, request):
         try:
             BrowserRequest.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)

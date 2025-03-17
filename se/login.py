@@ -20,7 +20,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.views import LoginView
 
 
-class LoginRequiredMixin(UserPassesTestMixin):
+class SosseLoginRequiredMixin(UserPassesTestMixin):
     login_url = None
     redirect_field_name = REDIRECT_FIELD_NAME
 

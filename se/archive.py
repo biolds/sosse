@@ -23,7 +23,7 @@ from django.views.generic import View
 
 from .crawl_policy import CrawlPolicy
 from .document import Document, extern_link_flags
-from .login import LoginRequiredMixin
+from .login import SosseLoginRequiredMixin
 from .online import online_status
 from .search_form import SearchForm
 from .url import sanitize_url, url_beautify
@@ -31,7 +31,7 @@ from .utils import reverse_no_escape
 from .views import RedirectException, RedirectMixin
 
 
-class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
+class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
     view_name = None
 
     def _url_from_request(self):

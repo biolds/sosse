@@ -22,7 +22,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
-from .login import LoginRequiredMixin
+from .login import SosseLoginRequiredMixin
 from .online import online_status
 
 ANIMALS = "🦓🦬🦣🦒🦦🦥🦘🦌🐢🦝🦭🦫🐆🐅🦎🐍🐘🦙🐫🐪🐏🐐🦛🦏🐂🐃🐎🐑🐒🦇🐖🐄🐛🐝🦧🦍🐜🐞🐌🦋🦗🐨🐯🦁🐮🐰🐻🐻‍❄️🐼🐶🐱🐭🐹🐗🐴🐷🐣🐥🐺🦊🐔🐧🐦🐤🐋🐊🐸🐵🐡🐬🦈🐳🦐🦪🐠🐟🐙🦑🦞🦀🦅🕊🦃🐓🦉🦤🦢🦆🪶🦜🦚🦩🐩🐕‍🦮🐕🐁🐀🐇🐈🦔🦡🦨🐿"
@@ -65,7 +65,7 @@ class RedirectMixin:
             return redirect(e.url)
 
 
-class BaseView(RedirectMixin, LoginRequiredMixin, TemplateView):
+class BaseView(RedirectMixin, SosseLoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["settings"] = settings

@@ -109,7 +109,10 @@ class Webhook(models.Model):
         blank=True, help_text="Additional headers to send with the request", validators=[parse_headers]
     )
     body_template = models.TextField(
-        blank=True, help_text="Template for the request body", validators=[validate_template], default=dict
+        help_text="Template for the request body",
+        validators=[validate_template],
+        default=dict,
+        verbose_name="JSON body template",
     )
     mimetype_re = models.CharField(
         blank=True,
@@ -187,6 +190,7 @@ class Webhook(models.Model):
         from .rest_api import DocumentSerializer
 
         try:
+            body_template = body_template.replace("\r\n", "\\n")
             body_template = json.loads(body_template)
         except ValueError as e:
             raise ValueError(f"Invalid JSON: {e}")

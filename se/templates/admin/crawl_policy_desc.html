@@ -1,5 +1,9 @@
 <span {% if add_to_queue %}class="{{ label_tag }}"{% else %}title="Recursion"{% endif %}>
-    ⚡
+    {% if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER %}
+      ⛔
+    {% else %}
+      ⚡
+    {% endif %}
     {% if add_to_queue %}
         {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
             Recurse into matching URLs

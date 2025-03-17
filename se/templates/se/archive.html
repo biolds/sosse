@@ -7,7 +7,7 @@
     </p>
     <ul class="archive_links" style="margin-bottom: 20px">
       {% if 'se.view_document' in perms %}
-        <li>⭐<a href="{% url 'admin:se_document_change' doc.id %}">Administration</a></li>
+        <li>🛠️<a href="{% url 'admin:se_document_change' doc.id %}">Administration</a></li>
       {% endif %}
       <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lto_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links to here</a></li>
       <li>🔗<a href="{% url 'search_redirect' %}?ft1=inc&ff1=lby_url&fo1=equal&fv1={{ doc.url|urlencode }}">Links from here</a></li>

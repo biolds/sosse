@@ -100,6 +100,18 @@ functional_tests_firefox:
     TEST_SUITE: tests
     BROWSER: firefox
 
+functional_docs_chromium:
+  <<: *functional_tests
+  variables:
+    TEST_SUITE: docs
+    BROWSER: chromium
+
+functional_docs_firefox:
+  <<: *functional_tests
+  variables:
+    TEST_SUITE: docs
+    BROWSER: firefox
+
 functional_guides_chromium:
   <<: *functional_tests
   variables:
@@ -181,8 +193,8 @@ doc:
   needs:
     # if any artifact is need to bild the doc, then its build step must also be added to the `jobs_name` in doc/get_artifacts.py
     - doc_gen
-    - functional_tests_chromium
-    #- functional_tests_firefox -> commented because only the artifacts (screenshot) from Chromium are needed
+    - functional_docs_chromium
+    #- functional_docs_firefox -> commented because only the artifacts (screenshot) from Chromium are needed
     - functional_guides_chromium
   script:
     - make _build_doc
@@ -202,6 +214,8 @@ pip_pkg:
     - unit_tests
     - functional_tests_chromium
     - functional_tests_firefox
+    - functional_docs_chromium
+    - functional_docs_firefox
     - static_checks
   script:
     - sed -e "s/^SOSSE_VERSION_TAG = .*/SOSSE_VERSION_TAG = '${CI_COMMIT_TAG/v/}'/" -i sosse/settings.py
@@ -220,6 +234,8 @@ debian_pkg:
     - unit_tests
     - functional_tests_chromium
     - functional_tests_firefox
+    - functional_docs_chromium
+    - functional_docs_firefox
     - static_checks
   artifacts:
     paths:
@@ -297,16 +313,28 @@ doc_test_pip:
     - mv /var/log/sosse log
     - test "$(cat /tmp/ret_code)" -eq 0
 
-debian_pkg_check_chromium:
+debian_pkg_check_chromium_tests:
   <<: *debian_pkg_check
   variables:
     TEST_SUITE: tests
     BROWSER: chromium
 
-debian_pkg_check_firefox:
+debian_pkg_check_firefox_tests:
   <<: *debian_pkg_check
   variables:
     TEST_SUITE: tests
+    BROWSER: firefox
+
+debian_pkg_check_chromium_docs:
+  <<: *debian_pkg_check
+  variables:
+    TEST_SUITE: docs
+    BROWSER: chromium
+
+debian_pkg_check_firefox_docs:
+  <<: *debian_pkg_check
+  variables:
+    TEST_SUITE: docs
     BROWSER: firefox
 
 .pip_pkg_check: &pip_pkg_check
@@ -325,20 +353,32 @@ debian_pkg_check_firefox:
     - pip_pkg
   script:
     - make _pip_pkg_functional_tests
-    - (make _rf_functional_tests ; echo -n $? > /tmp/ret_code) || true
+    - (make _rf_functional_$TEST_SUITE ; echo -n $? > /tmp/ret_code) || true
     - mv /var/log/sosse log
     - test "$(cat /tmp/ret_code)" -eq 0
 
-pip_pkg_check_chromium:
+pip_pkg_check_chromium_tests:
   <<: *pip_pkg_check
   variables:
     TEST_SUITE: tests
     BROWSER: chromium
 
-pip_pkg_check_firefox:
+pip_pkg_check_firefox_tests:
   <<: *pip_pkg_check
   variables:
     TEST_SUITE: tests
+    BROWSER: firefox
+
+pip_pkg_check_chromium_docs:
+  <<: *pip_pkg_check
+  variables:
+    TEST_SUITE: docs
+    BROWSER: chromium
+
+pip_pkg_check_firefox_docs:
+  <<: *pip_pkg_check
+  variables:
+    TEST_SUITE: docs
     BROWSER: firefox
 
 discord_tag_notif:
@@ -350,8 +390,10 @@ discord_tag_notif:
   needs:
     - doc_gen
     - pip_pkg
-    - debian_pkg_check_chromium
-    - debian_pkg_check_firefox
+    - debian_pkg_check_chromium_tests
+    - debian_pkg_check_firefox_tests
+    - debian_pkg_check_chromium_docs
+    - debian_pkg_check_firefox_docs
   script: |
     test -n "$DISCORD_TAG_NOTIF_URL"
     apt update
@@ -429,7 +471,7 @@ rebuild_unit_tests:
     - su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'"
     - sudo -E -u www-data /venv/bin/python3 -m sosse.sosse_admin test -v3
 
-rebuild_functional_tests_firefox:
+.rebuild_functional: &rebuild_functional
   image: "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
   needs:
     - job: rebuild_docker
@@ -455,35 +497,31 @@ rebuild_functional_tests_firefox:
     - 'echo "SOSSE_ADMIN: $PWD/sosse-admin.sh" > tests/robotframework/config.yaml'
     - until curl --silent --fail http://127.0.0.1/ > /dev/null; do sleep 1; done
     - mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
-    - make _rf_functional_tests
+    - make _rf_functional_$TEST_SUITE
 
 rebuild_functional_tests_chromium:
-  image: "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
-  needs:
-    - job: rebuild_docker
-  stage: schedule-test
-  artifacts:
-    when: always
-    paths:
-      - tests/robotframework/screenshots/*
-      - tests/robotframework/*.html
-      - log/*
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "stable"
-    - if: $CI_PIPELINE_SOURCE == "push"
-  script:
-    - "test -d /venv || exit 0" # No upgrade was built, we exit without error
-    - /run.sh &
-    - apt-get update
-    - apt-get install -y rsync git curl
-    - sed -e 's#python3#/venv/bin/python3#' -i ./tests/test_app.sh
-    - ./tests/test_app.sh
-    - echo -e "#!/bin/bash\nexec /venv/bin/python3 -m sosse.sosse_admin \"\$@\"" > sosse-admin.sh
-    - chmod 755 sosse-admin.sh
-    - 'echo "SOSSE_ADMIN: $PWD/sosse-admin.sh" > tests/robotframework/config.yaml'
-    - until curl --silent --fail http://127.0.0.1/ > /dev/null; do sleep 1; done
-    - mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
-    - make _rf_functional_tests
+  <<: *rebuild_functional
+  variables:
+    TEST_SUITE: tests
+    BROWSER: chromium
+
+rebuild_functional_tests_firefox:
+  <<: *rebuild_functional
+  variables:
+    TEST_SUITE: tests
+    BROWSER: firefox
+
+rebuild_functional_docs_chromium:
+  <<: *rebuild_functional
+  variables:
+    TEST_SUITE: docs
+    BROWSER: chromium
+
+rebuild_functional_docs_firefox:
+  <<: *rebuild_functional
+  variables:
+    TEST_SUITE: tests
+    BROWSER: firefox
 
 rebuild_docker_push:
   image: biolds/sosse:docker
@@ -493,6 +531,8 @@ rebuild_docker_push:
     - job: rebuild_unit_tests
     - job: rebuild_functional_tests_firefox
     - job: rebuild_functional_tests_chromium
+    - job: rebuild_functional_docs_firefox
+    - job: rebuild_functional_docs_chromium
     - job: rebuild_upgrade_check
       artifacts: true
   stage: schedule-test

@@ -172,8 +172,12 @@ _rf_functional_tests_deps:
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
 
-_rf_functional_tests: _rf_functional_tests_deps
+_rf_functional_docs: _rf_functional_tests_deps
 	cp tests/pages/test.zip /var/lib/sosse/static/Cat\ photos.zip
+	cd ./tests/robotframework && \
+		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure docs/
+
+_rf_functional_tests: _rf_functional_tests_deps
 	cd ./tests/robotframework && \
 		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
 

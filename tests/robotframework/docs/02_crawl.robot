@@ -68,7 +68,7 @@
 # The default policy is read-only so the help text is hidden
 |  | Page should not contain | URL regular expressions for this policy
 |  | ${recursion} | Get Selected List Label | id=id_recursion
-|  | Should Be Equal As Strings | ${recursion} | Never crawl
+|  | Should Be Equal As Strings | ${recursion} | Depending on depth
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision_no_hilight.png
 |  | Scroll To Elem | id=tabs
 |  | SOSSE Capture Page Screenshot | crawl_policy_decision.png

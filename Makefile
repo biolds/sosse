@@ -186,6 +186,9 @@ _rf_functional_guides: _rf_functional_tests_deps
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'
 
+functional_tests_local:
+	docker run --rm -ti -p 8001:80 -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests_deps && bash'
+
 static_checks:
 	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
 	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || exit 1 ; done'

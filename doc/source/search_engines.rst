@@ -1,5 +1,5 @@
-External Search Engines
-=======================
+🔍 External Search Engines
+==========================
 
 The list of :doc:`user/shortcuts` can be reached from the :doc:`../admin_ui`, by clicking on ``Search engines``.
 

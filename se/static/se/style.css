@@ -3,6 +3,7 @@ body.light-mode {
   --bg-rgb: 255, 255, 255;
   --text: #000;
   --text-rgb: 0, 0, 0;
+  --card-text: #3f54ff;
   --input-bg: #e7f0ff;
   --input-bg-hover: #eee;
   --input-border-br: #bcd4e2;
@@ -15,6 +16,7 @@ body.dark-mode {
   --bg-rgb: 0, 0, 0;
   --text: #fff;
   --text-rgb: 255, 255, 255;
+  --card-text: #7b92a7;
   --input-bg: #132749;
   --input-bg-hover: #081324;
   --input-border-br: #1d3e51;
@@ -266,9 +268,10 @@ select:hover {
 .card {
   display: inline-block;
   width: 24%;
+  height: 80px;
   vertical-align: top;
-  height: 100px;
-  color: #3f54ff;
+  padding-top: 10px;
+  color: var(--text);
   font-size: x-large;
   font-weight: 600;
   background-color: var(--input-bg);
@@ -277,15 +280,21 @@ select:hover {
   border-top: 1px solid var(--input-border-tl);
   border-left: 1px solid var(--input-border-tl);
 }
-body.dark-mode .card {
-  color: #7b92a7;
-}
-.card_text {
+.card > * {
   text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   height: 100%;
+  width: 100%
+}
+.card:hover {
+  background-color: var(--input-bg-hover);
+  cursor: pointer;
+}
+.card a {
+  color: var(--card-text);
+  text-decoration: none;
+}
+.card a:visited {
+  color: var(--card-text);
 }
 
 /* Django admin apps tables */

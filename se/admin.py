@@ -49,6 +49,19 @@ class SEAdminSite(admin.AdminSite):
     enable_nav_sidebar = False
     index_title = "Administration"
 
+    MODEL_ICONS = {
+        "Cookie": "🍪 ",
+        "CrawlPolicy": "⚡",
+        "Tag": "⭐",
+        "Document": "🔤 ",
+        "DomainSetting": "🕸",
+        "Webhook": "📡",
+        "ExcludedUrl": "🔗",
+        "SearchEngine": "🔍",
+        "User": "👤",
+        "Group": "👥",
+    }
+
     def get_app_list(self, request):
         MODELS_ORDER = (
             (
@@ -79,6 +92,7 @@ class SEAdminSite(admin.AdminSite):
                     for model in _models:
                         for dj_model in dj_models:
                             if dj_model["object_name"] == model:
+                                dj_model["icon"] = self.MODEL_ICONS.get(model)
                                 dj_app["models"].append(dj_model)
                                 break
                         else:
@@ -1070,7 +1084,7 @@ class CrawlPolicyAdmin(InlineActionModelAdmin):
         count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
         params = urlencode({"q": obj.url_regex_pg})
         return format_html(
-            '<a href="{}">Matching documents ({})</a>', reverse("admin:se_document_changelist") + "?" + params, count
+            '<a href="{}">Matching 🔤 Documents ({})</a>', reverse("admin:se_document_changelist") + "?" + params, count
         )
 
     @staticmethod
@@ -1144,7 +1158,7 @@ class DomainSettingAdmin(admin.ModelAdmin):
     def documents(obj):
         params = urlencode({"q": f"^https?://{obj.domain}/"})
         return format_html(
-            '<a href="{}">Matching documents</a>',
+            '<a href="{}">Matching 🔤 Documents</a>',
             reverse("admin:se_document_changelist") + "?" + params,
         )
 
@@ -1213,7 +1227,7 @@ class TagAdmin(admin.ModelAdmin):
     def documents(obj):
         count = Document.objects.wo_content().filter(tags__id=obj.id).count()
         return format_html(
-            '🔤 <a href="{}">Matching documents ({})</a>',
+            '<a href="{}">Matching 🔤 Documents ({})</a>',
             reverse("admin:se_document_changelist") + f"?tags={obj.id}",
             count,
         )
@@ -1228,11 +1242,11 @@ class TagAdmin(admin.ModelAdmin):
         )
 
     @staticmethod
-    @admin.display(description="⚡ Crawl Policies")
+    @admin.display(description="Crawl Policies")
     def crawl_policies(obj):
         count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
         return format_html(
-            '⚡ <a href="{}">Matching Crawl Policies ({})</a>',
+            '<a href="{}">Matching ⚡ Crawl Policies ({})</a>',
             reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
             count,
         )
@@ -1273,7 +1287,7 @@ class WebhookAdmin(admin.ModelAdmin):
     def crawl_policies_count(obj):
         crawl_policies_count = obj.crawlpolicy_set.count()
         webhooks = reverse("admin:se_crawlpolicy_changelist") + f"?webhooks__id={obj.id}"
-        return format_html('<a href="{}">{}</a>', webhooks, crawl_policies_count)
+        return format_html('⚡ <a href="{}">{}</a>', webhooks, crawl_policies_count)
 
     @staticmethod
     @admin.display(description="Crawl Policies")

@@ -51,8 +51,6 @@ class Cookie(models.Model):
 
     class Meta:
         unique_together = ("domain", "name", "path")
-        verbose_name = "🍪 Cookie"
-        verbose_name_plural = "🍪 Cookies"
 
     def __str__(self):
         return f"{self.domain} - {self.name}"

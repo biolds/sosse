@@ -246,7 +246,8 @@ class CrawlPolicy(models.Model):
     webhooks = models.ManyToManyField(Webhook)
 
     class Meta:
-        verbose_name_plural = "crawl policies"
+        verbose_name = "Crawl Policy"
+        verbose_name_plural = "Crawl Policies"
 
     def __str__(self):
         title = self.get_title_label()

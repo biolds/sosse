@@ -45,11 +45,7 @@
           <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
             {% if model.admin_url %}
               <th scope="row">
-                {% if model.name == 'Crawl policies' %}
-                  ⚡
-                {% elif model.name == 'Tags' %}
-                  ⭐
-                {% endif %}
+                {{ model.icon|default:"" }}
               <a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
             {% else %}
               <th scope="row">{{ model.name }}</th>
@@ -58,7 +54,7 @@
               {% if model.add_url %}
                 <td>
                   <a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a>
-                  {% if model.name == '🍪 Cookies' %}
+                  {% if model.name == 'Cookies' %}
                     <a href="{% url 'admin:cookies_import' %}" class="addlink">{% translate 'Import' %}</a>
                   {% endif %}
                 </td>

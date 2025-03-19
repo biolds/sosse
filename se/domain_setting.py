@@ -93,10 +93,6 @@ class DomainSetting(models.Model):
     robots_disallow = models.TextField(default="", blank=True, verbose_name="robots.txt disallow rules")
     ignore_robots = models.BooleanField(default=False, verbose_name="Ignore robots.txt")
 
-    class Meta:
-        verbose_name = "🕸 Domain Setting"
-        verbose_name_plural = "🕸 Domains Setting"
-
     def __str__(self):
         return self.domain
 

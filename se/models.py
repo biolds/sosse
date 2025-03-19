@@ -219,8 +219,8 @@ class SearchEngine(models.Model):
     builtin = models.BooleanField(default=False, verbose_name="Built-in")
 
     class Meta:
-        verbose_name = "🔍 Search Engine"
-        verbose_name_plural = "🔍 Search Engines"
+        verbose_name = "Search Engine"
+        verbose_name_plural = "Search Engines"
 
     def __str__(self):
         return self.short_name
@@ -468,5 +468,5 @@ class ExcludedUrl(models.Model):
     comment = models.TextField(blank=True, null=True)
 
     class Meta:
-        verbose_name = "🔗 Excluded URL"
-        verbose_name_plural = "🔗 Excluded URLs"
+        verbose_name = "Excluded URL"
+        verbose_name_plural = "Excluded URLs"

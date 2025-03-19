@@ -1,5 +1,5 @@
-Documents
-=========
+🔤 Documents
+============
 
 The list of all indexed documents can be reached from the :doc:`../admin_ui`, by clicking on ``Documents``. Regular
 expressions can be used in the search bar to match URLs or page titles.

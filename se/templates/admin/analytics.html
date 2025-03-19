@@ -31,7 +31,10 @@
         <a href="{% url "admin:se_document_changelist" %}" style="text-decoration: none">
             <div id="doc_count_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
             <div id="doc_count" class="card_text">
-              🔤 Documents
+                <div></div>
+                <div>
+                    🔤 Documents
+                </div>
             </div>
         </a>
     </span>
@@ -39,16 +42,22 @@
         <a href="{% url "admin:crawl_queue" %}" style="text-decoration: none">
             <div id="url_queued_panel_loader" class="loader" style="display: inline-block; margin-left: 50%; font-size: initial">🪃</div>
             <div id="url_queued" class="card_text">
-              ✔ URLs queued
+                <div></div>
+                <div>
+                    <span style="color: #0b0">✔</span> URLs queued
+                </div>
             </div>
         </a>
     </span>
     {% if crawlers_count %}
         <span class="chart card">
             <a href="{% url "admin:crawlers" %}" style="text-decoration: none">
-                <div id="url_queued" class="card_text">
-                  {{ crawlers_count }}<br/>
-                  🕷 Crawler{{ crawlers_count|pluralize }}
+                <div class="card_text">
+                    <div>{{ crawlers_count }}</div>
+                    <div>
+                        <span style="color: var(--text)">🕷</span>
+                        Crawler{{ crawlers_count|pluralize }}
+                    </div>
                 </div>
             </a>
         </span>

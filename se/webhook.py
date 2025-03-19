@@ -137,10 +137,6 @@ class Webhook(models.Model):
         validators=[validate_multiline_re],
     )
 
-    class Meta:
-        verbose_name = "📡 Webhook"
-        verbose_name_plural = "📡 Webhooks"
-
     def __str__(self):
         return f"Webook {self.name}"
 

@@ -1,11 +1,11 @@
 // Warn on unsaved changes
 
 document.addEventListener("DOMContentLoaded", function () {
-  let form = document.getElementById("content-main");
+  const form = document.getElementById("content-main");
   if (!form) return;
 
-  let initialData = {};
-  let inputs = form.querySelectorAll("input, textarea, select");
+  const initialData = {};
+  const inputs = form.querySelectorAll("input, textarea, select");
 
   inputs.forEach((input) => {
     if (input.type === "checkbox") {
@@ -20,24 +20,37 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  let hasUnsavedChanges = () => {
-    return Array.from(inputs).some((input) => {
-      if (input.type === "checkbox") {
-        return input.checked !== initialData[input.name];
-      } else if (input.tagName === "SELECT" && input.multiple) {
-        // For forms.ModelMultipleChoiceField, the initial widget is renamed into
-        // <name>_old, since JS code transforms the initial <select> into 2 separate
-        const name = input.name.substr(0, input.name.length - 4);
-        const newElem = document.getElementsByName(name)[0];
-        let currentValues = Array.from(newElem.options)
-          .map((option) => option.value)
-          .sort();
+  const changed = (input) => {
+    if (input.getAttribute("placeholder") === "Filter") {
+      // Ignore the "Filter" input fields of ManyToManyFields
+      return false;
+    }
 
-        return (
-          JSON.stringify(currentValues) !== JSON.stringify(initialData[name])
-        );
+    if (input.type === "checkbox") {
+      return input.checked !== initialData[input.name];
+    } else if (input.tagName === "SELECT" && input.multiple) {
+      // For forms.ModelMultipleChoiceField, the initial widget is renamed into
+      // <name>_old, since JS code transforms the initial <select> into 2 separate
+      if (input.name.endsWith("_old")) {
+        return false;
       }
-      return input.value !== initialData[input.name];
+
+      const newElem = document.getElementsByName(input.name)[0];
+      let currentValues = Array.from(newElem.options)
+        .map((option) => option.value)
+        .sort();
+
+      return (
+        JSON.stringify(currentValues) !==
+        JSON.stringify(initialData[input.name])
+      );
+    }
+    return input.value !== initialData[input.name];
+  };
+  const hasUnsavedChanges = () => {
+    const inputs = form.querySelectorAll("input, textarea, select");
+    return Array.from(inputs).some((input) => {
+      return changed(input);
     });
   };
 

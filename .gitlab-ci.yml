@@ -436,13 +436,14 @@ rebuild_docker:
     - test "$CI_PIPELINE_SOURCE" = push || test -e pkg_status/pip_upgrade
     - mkdir -p ~/.docker
     - 'echo "{\"auths\":{\"registry.gitlab.com\":{\"auth\":\"$GITLAB_DOCKER_REGISTRY_KEY\"}}}" > ~/.docker/config.json'
-    - "if (cat pkg_status/apt_list_upgradable | grep -v ^Listing | grep -q .) || (grep -q ^Would pkg_status/pip_upgrade) ; then NO_BUILD=0 ; else NO_BUILD=1 ; fi"
+    - "if (cat pkg_status/apt_list_upgradable | grep -v ^Listing | grep -q .) || (grep -q ^Would pkg_status/pip_upgrade) || (test $CI_PIPELINE_SOURCE != schedule); then NO_BUILD=0 ; else NO_BUILD=1 ; fi"
     - "test $NO_BUILD -eq 0 || docker pull debian:bookworm"
     - "test $NO_BUILD -eq 0 || docker tag debian:bookworm registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
     - "test $NO_BUILD -eq 0 || docker push registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
     - "test $NO_BUILD -eq 0 || exit 0"
-    - "docker rmi biolds/sosse:pip-base ||:"
     - "docker rmi biolds/sosse:pip-release ||:"
+    - "docker rmi biolds/sosse:pip-compose ||:"
+    - "docker rmi biolds/sosse:pip-base ||:"
     - test "$CI_PIPELINE_SOURCE" != schedule || make docker_release_build
     - test "$CI_PIPELINE_SOURCE" != push || make docker_release_build_test
     - "docker tag biolds/sosse:pip-release registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
@@ -457,6 +458,10 @@ rebuild_unit_tests:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "stable"
     - if: $CI_PIPELINE_SOURCE == "push"
   stage: schedule-test
+  artifacts:
+    when: always
+    paths:
+      - log/*
   script:
     - "test -d /venv || exit 0" # No upgrade was built, we exit without error
     - "/etc/init.d/postgresql start ||:"
@@ -469,7 +474,9 @@ rebuild_unit_tests:
     - /venv/bin/sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
     - cat /etc/sosse/sosse.conf
     - su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'"
-    - sudo -E -u www-data /venv/bin/python3 -m sosse.sosse_admin test -v3
+    - sudo -E -u www-data /venv/bin/python3 -m sosse.sosse_admin test -v3 || failed=1
+    - mv /var/log/sosse log
+    - test -z "$failed"
 
 .rebuild_functional: &rebuild_functional
   image: "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
@@ -487,6 +494,8 @@ rebuild_unit_tests:
       - log/*
   script:
     - "test -d /venv || exit 0" # No upgrade was built, we exit without error
+    - "/etc/init.d/postgresql start ||:"
+    - "until pg_isready; do sleep 1; done"
     - /run.sh &
     - apt-get update
     - apt-get install -y rsync git curl
@@ -497,7 +506,9 @@ rebuild_unit_tests:
     - 'echo "SOSSE_ADMIN: $PWD/sosse-admin.sh" > tests/robotframework/config.yaml'
     - until curl --silent --fail http://127.0.0.1/ > /dev/null; do sleep 1; done
     - mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
-    - make _rf_functional_$TEST_SUITE
+    - make _rf_functional_$TEST_SUITE || failed=1
+    - mv /var/log/sosse log
+    - test -z "$failed"
 
 rebuild_functional_tests_chromium:
   <<: *rebuild_functional

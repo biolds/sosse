@@ -85,3 +85,11 @@
         {% endif %}
     </span>
 {% endif %}
+
+{% with webhooks_count=crawl_policy.webhooks.count %}
+    {% if webhooks_count %}
+        <span class="{{ label_tag }}">
+          📡 {{ webhooks_count }} webhook{{ webhooks_count|pluralize }}
+        </span>
+    {% endif %}
+{% endwith %}

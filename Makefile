@@ -170,6 +170,7 @@ _deb_pkg_functional_tests:
 	bash ./tests/docker_run.sh docker/pip-test/Dockerfile
 
 _rf_functional_tests_deps:
+	./tests/test_app.sh
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
 

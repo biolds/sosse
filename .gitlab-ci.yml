@@ -83,6 +83,7 @@ coverage_report:
       - tests/robotframework/*.html
       - log/*
   script:
+    - sed -e 's#python3#/opt/sosse-venv/bin/python3#' -i ./tests/test_app.sh
     - make _pip_functional_tests
     - (make _rf_functional_$TEST_SUITE ; echo -n $? > /tmp/ret_code) || true
     - mv /var/log/sosse log
@@ -353,6 +354,7 @@ debian_pkg_check_firefox_docs:
     - pip_pkg
   script:
     - make _pip_pkg_functional_tests
+    - sed -e 's#python3#/opt/sosse-venv/bin/python3#' -i ./tests/test_app.sh
     - (make _rf_functional_$TEST_SUITE ; echo -n $? > /tmp/ret_code) || true
     - mv /var/log/sosse log
     - test "$(cat /tmp/ret_code)" -eq 0
@@ -496,15 +498,14 @@ rebuild_unit_tests:
     - "test -d /venv || exit 0" # No upgrade was built, we exit without error
     - "/etc/init.d/postgresql start ||:"
     - "until pg_isready; do sleep 1; done"
-    - /run.sh &
     - apt-get update
     - apt-get install -y rsync git curl
-    - sed -e 's#python3#/venv/bin/python3#' -i ./tests/test_app.sh
-    - ./tests/test_app.sh
+    - /run.sh &
     - echo -e "#!/bin/bash\nexec /venv/bin/python3 -m sosse.sosse_admin \"\$@\"" > sosse-admin.sh
     - chmod 755 sosse-admin.sh
     - 'echo "SOSSE_ADMIN: $PWD/sosse-admin.sh" > tests/robotframework/config.yaml'
     - until curl --silent --fail http://127.0.0.1/ > /dev/null; do sleep 1; done
+    - 'sed -e "s#python3#/venv/bin/python3#" -i ./tests/test_app.sh'
     - mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
     - make _rf_functional_$TEST_SUITE || failed=1
     - mv /var/log/sosse log

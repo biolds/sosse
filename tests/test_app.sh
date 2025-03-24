@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+set -e
 SERVER_DIR=/tmp/testserver
 SRC_SERVER_DIR=/tmp/srctestserver
 SOSSE_TEST_DIR="$(dirname "$0")"

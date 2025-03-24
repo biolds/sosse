@@ -32,6 +32,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from rest_framework.validators import ValidationError
 
 from .document import Document, example_doc
 from .models import CrawlerStats
@@ -318,6 +319,12 @@ class WebhookSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class WebhookTestTriggerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Webhook
+        exclude = ("name",)
+
+
 class WebhookViewSet(viewsets.ModelViewSet):
     queryset = Webhook.objects.all()
     serializer_class = WebhookSerializer
@@ -326,16 +333,18 @@ class WebhookViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def test_trigger(self, request):
         as_html = request.GET.get("as_html")
-        serializer = WebhookSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        webhook = Webhook(**serializer.validated_data)
+        serializer = WebhookTestTriggerSerializer(data=request.data)
         try:
+            serializer.is_valid(raise_exception=True)
+            webhook = Webhook(**serializer.validated_data)
             result = webhook.send(example_doc())
         except ValueError as e:
             webhook_logger.exception("Webhook error")
             if not as_html:
                 return Response({"error": str(e)}, status=400)
             result = {"error": str(e)}
+        except ValidationError as e:
+            result = {"error": f"Webhook configuration error:\n{e.detail}"}
 
         if request.GET.get("as_html"):
             return HttpResponse(webhook_html_status(result))

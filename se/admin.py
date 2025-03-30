@@ -891,10 +891,12 @@ def crawl_policy_enable_disable(modeladmin, request, queryset):
 def crawl_policy_duplicate(modeladmin, request, queryset):
     for crawl_policy in queryset.all():
         tags = list(crawl_policy.tags.all())
+        webhooks = list(crawl_policy.webhooks.all())
         crawl_policy.id = None
         crawl_policy.url_regex = f"Copy of {crawl_policy.url_regex}"
         crawl_policy.save()
         crawl_policy.tags.set(tags)
+        crawl_policy.webhooks.set(webhooks)
         msg = format_html(
             "Crawl policy <a href='{}'>{}</a> created.",
             reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),

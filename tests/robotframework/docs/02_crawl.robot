@@ -25,7 +25,7 @@
 |  | SOSSE Wait Until Page Contains | Create a new policy
 |  | SOSSE Capture Page Screenshot | crawl_new_url.png
 |  | Click Element | xpath=//input[@value='Confirm']
-|  | SOSSE Wait Until Page Contains | Crawl queue
+|  | Wait Until Element Is Visible | xpath=//h3[text()='Crawl queue']
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Page Should Not Contain | No crawlers running.
@@ -44,7 +44,7 @@
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | SOSSE Wait Until Page Contains | Create a new policy
 |  | Click Element | xpath=//input[@value='Confirm']
-|  | SOSSE Wait Until Page Contains | Crawl queue
+|  | Wait Until Element Is Visible | xpath=//h3[text()='Crawl queue']
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Wait Until Element Is Visible | xpath=//div[@id="queue_pending_count" and contains(., '0')] | 2min

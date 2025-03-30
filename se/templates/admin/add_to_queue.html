@@ -9,14 +9,25 @@
             <p class="help">{{ form.urls.help_text|safe }}</p>
         {% endif %}
 
-
         {% if crawl_policies %}
             <input type="submit" name="action" value="Refresh" style="margin-top: 5px">
 
             <h3>Crawl polic{{ crawl_policies|length|pluralize:"y,ies" }}</h3>
-            {% if crawl_policies|length == 1 %}
+            {% if form.fields.crawl_policy_choice.choices %}
+                <div style="padding-bottom: 10px">
+                    {% include "admin/crawl_policy_desc.html" with add_to_queue=True label_tag="label_tag" %}
+                    <span class="label_tag">
+                      📝 <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">Edit</a>
+                    </span>
+                </div>
+
+                {{ form.crawl_policy_choice }}
                 <p>
-                    This URL will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
+                    <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ urls|first|urlencode }}">Create a new policy</a>
+                </p>
+            {% elif crawl_policies|length == 1 %}
+                <p id="matching_policy">
+                    {{ urls|length|pluralize:"This URL,These URLs" }} will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
                 </p>
                 <p>
                     {% include "admin/crawl_policy_desc.html" with add_to_queue=True label_tag="label_tag" %}

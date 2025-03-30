@@ -532,6 +532,7 @@ class Document(models.Model):
             if crawl_depth:
                 doc.recursion_depth = crawl_depth
 
+        doc.manual_crawl = True
         doc.show_on_homepage = show_on_homepage
         doc.save()
 

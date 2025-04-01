@@ -92,6 +92,7 @@ class Webhook(models.Model):
     ]
 
     name = models.CharField(max_length=512, unique=True)
+    enabled = models.BooleanField(default=True)
     trigger_condition = models.CharField(
         default=TRIGGER_COND_MANUAL,
         max_length=10,
@@ -145,7 +146,7 @@ class Webhook(models.Model):
         # During crawling `doc` is not yet saved, its content is not yet in the database
         # so we have to check if the webhook should be triggered on the current document
         # so we iterate on all webhooks (instead of filtering them with the regexp, PG side)
-        for webhook in webhooks:
+        for webhook in webhooks.filter(enabled=True):
             mimetype_re = build_multiline_re(webhook.mimetype_re)
             if not re.match(mimetype_re, doc.mimetype):
                 continue

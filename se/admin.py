@@ -1266,7 +1266,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Webhook)
 class WebhookAdmin(admin.ModelAdmin):
-    list_display = ("name", "crawl_policies_count", "url", "trigger_condition")
+    list_display = ("name", "enabled", "crawl_policies_count", "url", "trigger_condition")
+    list_filter = ("enabled",)
     search_fields = ("name", "url", "trigger_condition")
     ordering = ("name",)
     exclude = tuple()

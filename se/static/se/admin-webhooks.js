@@ -19,6 +19,7 @@ function test_webhook() {
     webhookTestField.parentElement.appendChild(resultDiv);
   }
 
+  resultDiv.innerHTML = "Processing request...";
   var payload = JSON.stringify(webhookData);
 
   fetch("/api/webhook/test_trigger/?as_html=1", {

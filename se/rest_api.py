@@ -38,6 +38,7 @@ from .models import CrawlerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
+from .tag import Tag
 from .utils import mimetype_icon
 from .webhook import Webhook, webhook_html_status
 
@@ -188,10 +189,24 @@ class MimeStatsViewSet(viewsets.ViewSet):
         return Response(indexed_mimes)
 
 
+class TagSlugRelatedField(serializers.SlugRelatedField):
+    def to_internal_value(self, data):
+        if isinstance(data, int):
+            return Tag.objects.get(pk=data)
+        tag, _ = Tag.objects.get_or_create(name=data)
+        return tag
+
+
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = "__all__"
+
+    tags = TagSlugRelatedField(
+        many=True,
+        queryset=Tag.objects.all(),
+        slug_field="name",
+    )
 
 
 class DocumentViewSet(viewsets.ModelViewSet):

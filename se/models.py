@@ -210,13 +210,13 @@ def validate_search_url(value):
 
 
 class SearchEngine(models.Model):
-    enabled = models.BooleanField(default=True)
     short_name = models.CharField(unique=True, max_length=32, blank=True, default="")
     long_name = models.CharField(max_length=48, blank=True, default="")
     description = models.CharField(max_length=1024, blank=True, default="")
     html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
     builtin = models.BooleanField(default=False, verbose_name="Built-in")
+    enabled = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Search Engine"

@@ -248,6 +248,7 @@ class SearchEngineAdmin(admin.ModelAdmin):
         if obj and obj.builtin:
             fields = copy(self.get_fields(request))
             fields.remove("shortcut")
+            fields.remove("enabled")
             return fields
         return super().get_readonly_fields(request, obj)
 

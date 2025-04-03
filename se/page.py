@@ -32,7 +32,7 @@ crawl_logger = logging.getLogger("crawler")
 
 
 class Page:
-    def __init__(self, url, content, browser, headers=None, status_code=None):
+    def __init__(self, url, content, browser, headers=None, status_code=None, script_result=None):
         if not isinstance(content, bytes):
             raise ValueError("content must be bytes")
         self.url = sanitize_url(url)
@@ -43,6 +43,7 @@ class Page:
         self.browser = browser
         self.headers = headers or {}
         self.status_code = status_code
+        self.script_result = script_result
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
         magic_head = self.content[: 1024 * 1024].strip().lower()

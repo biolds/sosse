@@ -38,6 +38,15 @@ class Migration(migrations.Migration):
                 verbose_name="Change detection",
             ),
         ),
+        migrations.AlterField(
+            model_name="crawlpolicy",
+            name="script",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Javascript code to execute after the page is loaded. If an object is returned, its content will be used to overwrite the document's fields",
+            ),
+        ),
         migrations.RenameField(
             model_name="crawlpolicy",
             old_name="recrawl_mode",

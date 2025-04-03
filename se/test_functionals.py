@@ -514,6 +514,51 @@ class BrowserBasedFunctionalTest:
         page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}")
         self.assertEqual(len(page.content), FILE_SIZE, page.content)
 
+    def test_150_script_updating_doc(self):
+        crawl_policy = CrawlPolicy.create_default()
+        crawl_policy.default_browse_mode = self.BROWSE_MODE
+        crawl_policy.script = """
+            return {
+                title: "JS test title",
+                content: "JS test content"
+            }
+        """
+        crawl_policy.save()
+
+        Document.queue(TEST_SERVER_URL, None, None)
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.wo_content().first()
+        self.assertEqual(doc.url, TEST_SERVER_URL)
+        self.assertEqual(doc.error, "")
+        self.assertEqual(doc.title, "JS test title")
+        self.assertEqual(doc.content, "JS test content")
+
+    def test_160_script_updating_doc_invalid(self):
+        crawl_policy = CrawlPolicy.create_default()
+        crawl_policy.default_browse_mode = self.BROWSE_MODE
+        crawl_policy.script = """
+            return {
+                title: [],
+            }
+        """
+        crawl_policy.save()
+
+        Document.queue(TEST_SERVER_URL, None, None)
+        with self.assertRaises(SkipIndexing) as e:
+            self._crawl()
+
+        self.assertEqual(
+            e.exception.args[0],
+            """Javascript result validation error:
+{'title': [ErrorDetail(string='Not a valid string.', code='invalid')]}
+Input data was:
+{'title': []}
+---""",
+        )
+
 
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS

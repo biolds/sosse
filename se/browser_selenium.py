@@ -211,13 +211,14 @@ class BrowserSelenium(Browser):
 
         current_url = cls.driver.current_url
         crawl_policy = CrawlPolicy.get_from_url(current_url)
+        script_result = None
         if crawl_policy and crawl_policy.script:
-            cls.driver.execute_script(crawl_policy.script)
+            script_result = cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready(url)
 
         content = cls.driver.page_source.encode("utf-8")
         content = cls._escape_content_handler(content)
-        page = Page(current_url, content, cls)
+        page = Page(current_url, content, cls, script_result=script_result)
         page.title = cls.driver.title
         page.redirect_count = redirect_count
         return page

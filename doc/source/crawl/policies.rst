@@ -173,8 +173,13 @@ In case the script triggers an error, further processing of the page is aborted 
 :ref:`document error field <document_error>`. It can be useful to use a tool such as
 `Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
 
-.. note::
+.. warning::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
+
+.. note::
+   The value returned by the script is used to update the document's data. This can be used to programmatically set the
+   document's title, content, tags, etc. All fields of the document available in the :doc:`../user/rest_api` can be
+   overwritten.
 
 .. _policy_archive:
 

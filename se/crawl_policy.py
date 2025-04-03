@@ -191,7 +191,8 @@ class CrawlPolicy(models.Model):
     )
     script = models.TextField(
         default="",
-        help_text="Javascript code to execute after the page is loaded",
+        help_text="Javascript code to execute after the page is loaded. If an object is returned, its content will be "
+        "used to overwrite the document's fields",
         blank=True,
     )
     store_extern_links = models.BooleanField(default=False, help_text="Store links to non-indexed pages")

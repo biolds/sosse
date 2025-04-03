@@ -19,7 +19,7 @@ from django.contrib.admin.apps import AdminConfig
 
 class SEConfig(AppConfig):
     name = "se"
-    verbose_name = "Search Engine"
+    verbose_name = "Crawling"
     default_auto_field = "django.db.models.AutoField"
 
 

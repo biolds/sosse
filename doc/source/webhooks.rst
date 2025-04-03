@@ -34,6 +34,13 @@ Defines when the webhook should be triggered. Available options:
    Webhooks for a document can also be manually triggered from the :doc:`document's settings <documents>`, regardless of
    the *Trigger Condition* parameter.
 
+Update document with webhook response
+-------------------------------------
+
+When enabled, the 'Overwrite Document's Fields with Webhook Response' option allows the webhook response to update
+specific fields in the indexed document. If the webhook returns data, those corresponding fields will be overwritten
+with the new values.
+
 Webhook URL
 -----------
 

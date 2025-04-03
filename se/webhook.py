@@ -25,6 +25,7 @@ from django.utils.html import format_html
 
 from sosse.conf import DEFAULT_USER_AGENT
 
+from .browser import SkipIndexing
 from .browser_request import requests_params
 from .utils import build_multiline_re, validate_multiline_re
 
@@ -98,6 +99,7 @@ class Webhook(models.Model):
         max_length=10,
         choices=TIGGER_CONDITION,
     )
+    updates_doc = models.BooleanField(default=False, verbose_name="Overwrite document's fields with webhook response")
     url = models.URLField()
     method = models.CharField(max_length=10, choices=HTTP_METHODS, default="post")
     username = models.CharField(
@@ -143,6 +145,8 @@ class Webhook(models.Model):
 
     @classmethod
     def trigger(cls, webhooks, doc):
+        from .rest_api import DocumentSerializer
+
         # During crawling `doc` is not yet saved, its content is not yet in the database
         # so we have to check if the webhook should be triggered on the current document
         # so we iterate on all webhooks (instead of filtering them with the regexp, PG side)
@@ -165,6 +169,17 @@ class Webhook(models.Model):
             status_code = result.get("status_code") or 0
             if result.get("error") or status_code < 200 or status_code >= 400:
                 doc.error = f"Webhook {webhook.name} failed"
+            elif webhook.updates_doc:
+                response = result.get("response")
+                try:
+                    body = json.loads(response)
+                except json.JSONDecodeError as e:
+                    raise SkipIndexing(
+                        f"Webhook {webhook.name} failed to decode response:\n{e}\nInput data was:\n{response}\n---"
+                    )
+
+                serializer = DocumentSerializer(doc, data=body, partial=True)
+                serializer.user_doc_update("Webhook")
 
     @classmethod
     def _render_fields(cls, doc_data, body_data):

@@ -33,7 +33,6 @@ from django.utils.timezone import now
 from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
 from PIL import Image
-from rest_framework.validators import ValidationError
 
 from .browser import AuthElemFailed, SkipIndexing
 from .document_meta import DocumentMeta
@@ -460,19 +459,8 @@ class Document(models.Model):
         if page.script_result:
             from .rest_api import DocumentSerializer
 
-            try:
-                # Perform a partial update of the document (self) with the script result
-                serializer = DocumentSerializer(self, data=page.script_result, partial=True)
-                serializer.is_valid(raise_exception=True)
-                serializer.update(self, serializer.validated_data)
-            except ValidationError as e:
-                raise SkipIndexing(
-                    f"Javascript result validation error:\n{e.detail}\nInput data was:\n{page.script_result}\n---"
-                )
-            except Exception as e:
-                msg = f"Javascript document update error:\n{e.args[0]}\nInput data was:\n{page.script_result}\n---"
-                e.args = (msg,) + e.args[1:]
-                raise e
+            serializer = DocumentSerializer(self, data=page.script_result, partial=True)
+            serializer.user_doc_update("Javascript")
 
         Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
 

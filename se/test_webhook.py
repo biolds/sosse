@@ -22,6 +22,7 @@ from django.utils.timezone import now
 
 from sosse.conf import DEFAULT_USER_AGENT
 
+from .browser import SkipIndexing
 from .crawl_policy import CrawlPolicy
 from .document import Document, example_doc
 from .domain_setting import DomainSetting
@@ -218,3 +219,35 @@ class WebhookTest(TransactionTestCase):
 
         self.webhook.content_re = "Content"
         self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
+
+    def test_160_update_document(self):
+        self.webhook.updates_doc = True
+        self.webhook.body_template = '{"tags": ["New tag"]}'
+        self.webhook.url = f"{TEST_SERVER_URL}echo/"
+        self.webhook.save()
+
+        doc = self._crawl()
+
+        self.assertEqual(doc.error, "")
+        result = doc.webhooks_result[str(self.webhook.id)]
+        self.assertEqual(result["status_code"], 200, result)
+        self.assertEqual(result["response"], self.webhook.body_template)
+        self.assertEqual(doc.tags.first().name, "New tag")
+
+    def test_170_update_document_failure(self):
+        self.webhook.updates_doc = True
+        self.webhook.body_template = '{"tags": null}'
+        self.webhook.url = f"{TEST_SERVER_URL}echo/"
+        self.webhook.save()
+
+        with self.assertRaises(SkipIndexing) as e:
+            self._crawl()
+
+        self.assertEqual(
+            e.exception.args[0],
+            """Webhook result validation error:
+{'tags': [ErrorDetail(string='This field may not be null.', code='null')]}
+Input data was:
+{'tags': None}
+---""",
+        )

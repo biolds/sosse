@@ -33,6 +33,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
 
+from .browser import SkipIndexing
 from .document import Document, example_doc
 from .models import CrawlerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
@@ -207,6 +208,17 @@ class DocumentSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         slug_field="name",
     )
+
+    def user_doc_update(self, ctx_msg):
+        try:
+            self.is_valid(raise_exception=True)
+            self.update(self.instance, self.validated_data)
+        except ValidationError as e:
+            raise SkipIndexing(f"{ctx_msg} result validation error:\n{e.detail}\nInput data was:\n{self.data}\n---")
+        except Exception as e:
+            msg = f"{ctx_msg} document update error:\n{e.args[0]}\nInput data was:\n{self.data}\n---"
+            e.args = (msg,) + e.args[1:]
+            raise e
 
 
 class DocumentViewSet(viewsets.ModelViewSet):

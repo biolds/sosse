@@ -210,6 +210,12 @@ class Migration(migrations.Migration):
                         verbose_name="Content regex",
                     ),
                 ),
+                (
+                    "updates_doc",
+                    models.BooleanField(
+                        default=False, verbose_name="Overwrite document's fields with webhook response"
+                    ),
+                ),
             ],
         ),
         migrations.AddField(

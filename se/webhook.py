@@ -202,8 +202,7 @@ class Webhook(models.Model):
         from .rest_api import DocumentSerializer
 
         try:
-            body_template = body_template.replace("\r\n", "\\n")
-            body_template = json.loads(body_template)
+            body_template = json.loads(body_template, strict=False)
         except ValueError as e:
             raise ValueError(f"Invalid JSON: {e}")
 

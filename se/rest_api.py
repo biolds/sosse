@@ -29,14 +29,13 @@ from drf_spectacular.utils import (
 )
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
 
 from .document import Document, example_doc
 from .models import CrawlerStats
-from .rest_permissions import IsSuperUserOrStaff
+from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
 from .utils import mimetype_icon
@@ -195,9 +194,10 @@ class DocumentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
+class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.w_content()
     serializer_class = DocumentSerializer
+    permission_classes = [DjangoModelPermissionsRW]
 
 
 class SearchAdvancedQuery(serializers.Serializer):
@@ -328,7 +328,7 @@ class WebhookTestTriggerSerializer(serializers.ModelSerializer):
 class WebhookViewSet(viewsets.ModelViewSet):
     queryset = Webhook.objects.all()
     serializer_class = WebhookSerializer
-    permissions = [DjangoModelPermissions]
+    permissions = [DjangoModelPermissionsRW]
 
     @action(detail=False, methods=["post"])
     def test_trigger(self, request):

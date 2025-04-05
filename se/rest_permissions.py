@@ -27,3 +27,17 @@ class LoginRequiredPermission(permissions.BasePermission):
 class IsSuperUserOrStaff(permissions.BasePermission):
     def has_permission(self, request, _):
         return request.user and (request.user.is_superuser or request.user.is_staff)
+
+
+class DjangoModelPermissionsRW(permissions.DjangoModelPermissions):
+    """Permission checking class that checks Django model permissions.
+
+    Contrary to DjangoModelPermissions, this class also checks for read
+    permissions.
+    """
+
+    perms_map = permissions.DjangoModelPermissions.perms_map | {
+        "GET": ["%(app_label)s.view_%(model_name)s"],
+        "HEAD": ["%(app_label)s.view_%(model_name)s"],
+        "OPTIONS": ["%(app_label)s.view_%(model_name)s"],
+    }

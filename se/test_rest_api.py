@@ -18,8 +18,7 @@ from collections import namedtuple
 from unittest import mock
 
 from django.contrib.auth.models import User
-from django.test import TransactionTestCase
-from django.test.client import Client
+from django.test import Client, TransactionTestCase
 from django.utils import timezone
 
 from .document import Document
@@ -77,9 +76,9 @@ class RestAPITest:
 
     def setUp(self):
         self.client = Client(HTTP_USER_AGENT="Mozilla/5.0")
-        self.user = User.objects.create(username="admin", password="admin", is_superuser=True)
-        self.user.set_password("admin")
+        self.user = User.objects.create_user(username="admin", password="admin", is_superuser=True)
         self.user.save()
+
         self.client.login(username="admin", password="admin")
 
         self.doc1 = Document.objects.wo_content().create(

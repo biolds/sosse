@@ -61,7 +61,7 @@
 
 | Binary archive
 |  | SOSSE Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
-|  | SOSSE Wait Until Page Contains | Download
+|  | SOSSE Wait Until Page Contains | Download | 5min
 |  | SOSSE Capture Page Screenshot | archive_download.png
 
 | Syndication feed

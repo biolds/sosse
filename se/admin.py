@@ -1265,6 +1265,15 @@ class TagAdmin(admin.ModelAdmin):
         )
 
 
+class WebhookForm(forms.ModelForm):
+    # Force use a regular CharField for the URL field
+    url = forms.CharField()
+
+    class Meta:
+        model = Webhook
+        fields = "__all__"
+
+
 @admin.register(Webhook)
 class WebhookAdmin(admin.ModelAdmin):
     list_display = ("name", "enabled", "crawl_policies_count", "url", "trigger_condition")
@@ -1276,6 +1285,7 @@ class WebhookAdmin(admin.ModelAdmin):
         "crawl_policies_link",
         "webhook_test",
     )
+    form = WebhookForm
 
     class Media:
         js = ("se/admin-webhooks.js",)

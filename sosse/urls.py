@@ -51,7 +51,6 @@ from se.search_redirect import SearchRedirectView
 from se.tags import SearchTagsView, TagsView
 from se.tags_list import TagsListView
 from se.words import WordsView
-from se.words_stats import WordStatsView
 from se.www import WWWView
 
 urlpatterns = [
@@ -62,7 +61,6 @@ urlpatterns = [
     path("prefs/", PreferencesView.as_view()),
     path("atom/", AtomView.as_view(), name="atom"),
     path("online_check/", OnlineCheckView.as_view(), name="online_check"),
-    path("word_stats/", WordStatsView.as_view()),
     path("history/", HistoryView.as_view(), name="history"),
     path("login/", SELoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),

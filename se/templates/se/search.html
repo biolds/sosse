@@ -116,44 +116,10 @@
     #adv_search {
         padding-top: 20px;
     }
-    #stats_menu {
-        right: 8px;
-        width: 160px;
-        top: 88px;
-    }
     #atom_menu {
         right: 8px;
         width: 160px;
-        top: 128px;
-    }
-    #word_stats {
-        float: right;
-        text-align: left;
-        overflow-y: scroll;
-        height: 300px;
-        width: 250px;
-    }
-    #word_stats_list {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-    }
-    .word_stats_txt {
-        width: 90%;
-        margin-right: -8px;
-        padding: 2px 0px 2px 8px;
-        display: inline;
-    }
-    .links:hover .word_stats_txt {
-        background-color: #e7f0ff;
-    }
-    .word_stats_count {
-        width: 10%;
-        text-align: right;
-        display: inline;
-    }
-    .links:hover .word_stats_count {
-        background-color: #e7f0ff;
+        top: 88px;
     }
     .dyn_button {
         width: 38px;
@@ -172,9 +138,6 @@
         margin-left: 5px;
         width: 40px;
         height: 40px;
-    }
-    #stats_button {
-        background-image: url('{% static "se/icon-stats.svg" %}');
     }
     #atom_button {
         background-image: url('{% static "se/icon-atom.svg" %}');
@@ -271,22 +234,6 @@
                 {{ results_count }} site{{ results|pluralize:"s" }} found
             </div>
         {% endif %}
-        <div class="menu" id="stats_menu">
-            <button id="stats_button" title="Words statistics" class="menu_button img_button" onclick="return show_word_stats()">
-            </button>
-            <div id="word_stats" class="panel">
-                <ul id="word_stats_list" class="ul_stripe">
-                    <li>
-                        <div>
-                            Document's word statistics
-                        </div>
-                    </li>
-                </ul>
-                <div id="please_wait">
-                    Please wait.
-                </div>
-            </div>
-        </div>
         <div class="menu" id="atom_menu">
             <button id="atom_button" title="Atom feeds" class="menu_button img_button"></button>
             <div id="atom_menu_panel" class="panel">

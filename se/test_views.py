@@ -49,7 +49,6 @@ from .tags_list import TagsListView
 from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
 from .words import WordsView
-from .words_stats import WordStatsView
 from .www import WWWView
 
 CRAWL_URL = "http://127.0.0.1:8000/cookies"
@@ -93,7 +92,6 @@ class ViewsTest:
             ("/history/", HistoryView, {}),
             ("/?q=page", SearchView, {}),
             ("/s/?q=page", SearchRedirectView, {}),
-            ("/word_stats/?q=page", WordStatsView, {}),
             ("/html/" + CRAWL_URL, HTMLView, {}),
             ("/www/" + CRAWL_URL, WWWView, {}),
             ("/www/http://unknown/", WWWView, {}),
@@ -165,7 +163,7 @@ class ViewsTest:
     def test_new_urls(self):
         from sosse.urls import urlpatterns
 
-        self.assertEqual(len(urlpatterns), 28)
+        self.assertEqual(len(urlpatterns), 27)
 
     def test_archive_redirect(self):
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)

@@ -97,17 +97,6 @@ From top to bottom, left to right, the elements displayed are:
 - the ``archive`` link to the archived version, or ``source`` link to the original page (depending on the
   :ref:`related option <pref_principal_link>`)
 
-Word stats
-----------
-
-Clicking on the |stats_button| button, shows the top 100 most frequent words (after stemming) in the result webpages:
-
-.. |stats_button| image:: ../../../tests/robotframework/screenshots/stats_button.png
-   :class: sosse-inline-screenshot
-
-.. image:: ../../../tests/robotframework/screenshots/word_stats.png
-   :class: sosse-screenshot
-
 .. _ui_atom_feeds:
 
 Atom feeds

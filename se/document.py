@@ -154,6 +154,7 @@ class Document(models.Model):
 
     worker_no = models.PositiveIntegerField(blank=True, null=True)
     webhooks_result = models.JSONField(default=dict)
+    metadata = models.JSONField(default=dict)
 
     tags = models.ManyToManyField(Tag, blank=True)
 

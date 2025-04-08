@@ -220,6 +220,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="document",
+            name="metadata",
+            field=models.JSONField(default=dict),
+        ),
+        migrations.AddField(
+            model_name="document",
             name="webhooks_result",
             field=models.JSONField(default=dict),
         ),

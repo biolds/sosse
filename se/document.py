@@ -318,6 +318,14 @@ class Document(models.Model):
 
         crawl_logger.debug(f"{self.url} is a rss/atom feed with {len(parsed['entries'])} items")
 
+    @staticmethod
+    def _normalized_title(title):
+        return remove_accent(title)
+
+    @staticmethod
+    def _normalized_content(content):
+        return remove_accent(content)
+
     def _parse_text(self, page, crawl_policy, stats, verbose):
         crawl_logger.debug(f"parsing {self.url}")
         links = page.dom_walk(crawl_policy, True, self)
@@ -326,7 +334,7 @@ class Document(models.Model):
         self._index_log(f"text / {len(links['links'])} links extraction", stats, verbose)
 
         self.content = text
-        self.normalized_content = remove_accent(text)
+        self.normalized_content = self._normalized_content(self.content)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or "") + "\n" + text)
         self._index_log("remove accent", stats, verbose)
 
@@ -359,7 +367,7 @@ class Document(models.Model):
         else:
             self.title = beautified_url
 
-        self.normalized_title = remove_accent(self.title)
+        self.normalized_title = self._normalized_title(self.title)
         self.mimetype = page.mimetype
         self.hidden = crawl_policy.hide_documents
 

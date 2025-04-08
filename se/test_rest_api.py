@@ -439,3 +439,16 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         self.doc1.refresh_from_db()
         tags = list(self.doc1.tags.values_list("name", flat=True))
         self.assertEqual(tags, ["test tag"])
+
+    def test_document_normalize(self):
+        response = self.client.patch(
+            f"/api/document/{self.doc1.id}/", {"title": "tïtle", "content": "contènt"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.doc1.refresh_from_db()
+        self.assertEqual(self.doc1.normalized_title, "title")
+        self.assertEqual(self.doc1.normalized_content, "content")
+
+    def test_document_create_prohibited(self):
+        response = self.client.post("/api/document/", {"url": "http://127.0.0.1/"}, content_type="application/json")
+        self.assertEqual(response.status_code, 405, response.content)

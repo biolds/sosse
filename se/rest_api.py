@@ -29,6 +29,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
@@ -202,6 +203,32 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = "__all__"
+        read_only_fields = (
+            "url",
+            "normalized_url",
+            "normalized_title",
+            "normalized_content",
+            "content_hash",
+            "favicon",
+            "robotstxt_rejected",
+            "has_html_snapshot",
+            "redirect_url",
+            "too_many_redirects",
+            "screenshot_count",
+            "screenshot_format",
+            "screenshot_size",
+            "has_thumbnail",
+            "crawl_first",
+            "crawl_last",
+            "crawl_next",
+            "crawl_dt",
+            "crawl_recurse",
+            "modified_date",
+            "manual_crawl",
+            "error",
+            "error_hash",
+            "worker_no",
+        )
 
     tags = TagSlugRelatedField(
         many=True,
@@ -220,11 +247,24 @@ class DocumentSerializer(serializers.ModelSerializer):
             e.args = (msg,) + e.args[1:]
             raise e
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        title = attrs.get("title")
+        if title is not None:
+            attrs["normalized_title"] = Document._normalized_title(title)
+        content = attrs.get("content")
+        if content is not None:
+            attrs["normalized_content"] = Document._normalized_content(content)
+        return attrs
+
 
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.w_content()
     serializer_class = DocumentSerializer
     permission_classes = [DjangoModelPermissionsRW]
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed("POST")
 
 
 class SearchAdvancedQuery(serializers.Serializer):

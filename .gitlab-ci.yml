@@ -8,8 +8,8 @@ stages:
   - schedule-test
 
 before_script:
-  - export COVERAGE_FILE=coverage-$CI_NODE_INDEX-$CI_PIPELINE_ID
-  - echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
+  - export COVERAGE_FILE=/tmp/coverage-$CI_NODE_INDEX-$CI_PIPELINE_ID
+  - echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data /opt/sosse-venv/bin/coverage run -a --source se,sosse ./sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
   - chmod 755 /tmp/sudo_sosse
   - test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
 
@@ -17,7 +17,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 unit_tests:
-  image: biolds/sosse:debian-test
+  image: biolds/sosse:pip-test
   parallel: 3
   artifacts:
     when: always
@@ -42,18 +42,24 @@ unit_tests:
     - /tmp/sudo_sosse extract_doc cli > /dev/null || failed=1
     - /tmp/sudo_sosse extract_doc conf > /dev/null || failed=1
     - /tmp/sudo_sosse extract_doc se > /dev/null || failed=1
-    - python3 ./sosse/sosse_admin.py makemigrations || failed=1
+    - /tmp/sudo_sosse makemigrations || failed=1
     - /tmp/sudo_sosse migrate se 0001 || failed=1
     - mv /var/log/sosse log
+    - mv /tmp/coverage-* .
     - exit $failed
 
 coverage_report:
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
-  image: biolds/sosse:debian-test
+  image: biolds/sosse:pip-test
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   needs:
     - unit_tests
+    - functional_tests_chromium
+    - functional_tests_firefox
+    - functional_docs_chromium
+    - functional_docs_firefox
+    - functional_guides_chromium
   artifacts:
     when: always
     paths:
@@ -64,10 +70,12 @@ coverage_report:
         path: coverage.xml
   script:
     - export COVERAGE_FILE=coverage
-    - python3-coverage combine --data-file=coverage coverage-*
-    - python3-coverage report --omit "*/se/deps/*,*/dist-packages/*"
-    - python3-coverage html --omit "*/se/deps/*,*/dist-packages/*"
-    - python3-coverage xml --omit "*/se/deps/*,*/dist-packages/*"
+    - virtualenv -p python3 /opt/sosse-venv
+    - /opt/sosse-venv/bin/pip install coverage
+    - /opt/sosse-venv/bin/coverage combine --data-file=coverage coverage-*
+    - /opt/sosse-venv/bin/coverage report --omit "*/se/deps/*,*/dist-packages/*,*/sosse/*"
+    - /opt/sosse-venv/bin/coverage html --omit "*/se/deps/*,*/dist-packages/*,*/sosse/*"
+    - /opt/sosse-venv/bin/coverage xml --omit "*/se/deps/*,*/dist-packages/*,*/sosse/*"
 
 .functional_tests: &functional_tests
   image: biolds/sosse:pip-test
@@ -82,11 +90,16 @@ coverage_report:
       - tests/robotframework/screenshots/*
       - tests/robotframework/*.html
       - log/*
+      - coverage-*
   script:
     - sed -e 's#python3#/opt/sosse-venv/bin/python3#' -i ./tests/test_app.sh
+    - patch -p1 < tests/coverage.patch
     - make _pip_functional_tests
     - (make _rf_functional_$TEST_SUITE ; echo -n $? > /tmp/ret_code) || true
+    - curl http://127.0.0.1/coverage_stop/
     - mv /var/log/sosse log
+    - mv /var/log/uwsgi/* log
+    - mv /tmp/coverage-* .
     - test "$(cat /tmp/ret_code)" -eq 0
 
 functional_tests_chromium:
@@ -130,7 +143,7 @@ migrations:
     - /etc/init.d/postgresql start
     - export PYTHONPATH="$CI_PROJECT_DIR"
     - chown www-data:www-data -R /var/log/sosse
-    - /tmp/sudo_sosse default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
+    - python3 ./sosse/sosse_admin.py default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" > /etc/sosse/sosse.conf
     - MIGRATION_COUNT="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"
     - python3 ./sosse/sosse_admin.py makemigrations
     - MIGRATION_COUNT2="$(ls se/migrations/*.py|grep '/[0-9]'|wc -l)"

@@ -1,0 +1,52 @@
+diff --git a/sosse/urls.py b/sosse/urls.py
+index f37a01f..dded493 100644
+--- a/sosse/urls.py
++++ b/sosse/urls.py
+@@ -53,6 +53,15 @@ from se.tags_list import TagsListView
+ from se.words import WordsView
+ from se.www import WWWView
+
++
++def coverage_stop(request):
++    import uwsgi
++    from django.http import HttpResponse
++
++    uwsgi.signal(1)
++    return HttpResponse("Coverage stopped\n")
++
++
+ urlpatterns = [
+     path("admin/", admin.site.urls),
+     path("", SearchView.as_view(), name="search"),
+@@ -85,4 +94,5 @@ urlpatterns = [
+         HTMLExcludedView.as_view(),
+         name="html_excluded",
+     ),
++    path("coverage_stop/", coverage_stop),
+ ]
+diff --git a/sosse/wsgi.py b/sosse/wsgi.py
+index 4bb9baf..ae706ee 100644
+--- a/sosse/wsgi.py
++++ b/sosse/wsgi.py
+@@ -33,4 +33,21 @@ sys.path.insert(0, str(linkpreview))
+ fake_useragent = Path(__file__).parent.parent / "se/deps/fake-useragent/src"
+ sys.path.insert(0, str(fake_useragent))
+
++from coverage import Coverage
++import uwsgi
++import random
++
++rnd = random.randint(0, 1000000)
++data_file = f"/tmp/coverage-{rnd}"
++cov = Coverage(data_file=data_file, data_suffix=True, source=["se", "sosse"])
++cov.start()
++
++
++def handle_sigterm(signum):
++    cov.stop()
++    cov.save()
++
++
++uwsgi.register_signal(1, "workers", handle_sigterm)
++
+ application = get_wsgi_application()

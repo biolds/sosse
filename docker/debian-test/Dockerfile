@@ -5,6 +5,7 @@ ARG PIP_TRUSTED_HOST=
 RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
 RUN apt update
 RUN apt purge -y sosse
+# Remove python3-coverage after version 1.13 is released
 RUN apt install -y python3-coverage python3-virtualenv flake8 sudo jq make git rsync
 RUN /etc/init.d/postgresql start && \
     su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'" && \

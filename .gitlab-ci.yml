@@ -33,6 +33,25 @@ unit_tests:
     - make _docker_unit_test_prepare
     - failed=0
     - /tmp/sudo_sosse test -v3 --failfast || failed=1
+    - mv /var/log/sosse log
+    - mv /tmp/coverage-* .
+    - exit $failed
+
+manage_cmd_tests:
+  image: biolds/sosse:pip-test
+  artifacts:
+    when: always
+    paths:
+      - se/migrations/*.py
+      - log/*
+      - coverage-*
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  script:
+    - export PYTHONPATH="$CI_PROJECT_DIR"
+    - make _docker_unit_test_prepare
+    - failed=0
     - /tmp/sudo_sosse migrate || failed=1
     - /tmp/sudo_sosse load_se tests/opensearch.xml || failed=1
     - /tmp/sudo_sosse update_se || failed=1
@@ -54,6 +73,7 @@ coverage_report:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   needs:
+    - manage_cmd_tests
     - unit_tests
     - functional_tests_chromium
     - functional_tests_firefox
@@ -225,6 +245,7 @@ pip_pkg:
   needs:
     - doc
     - migrations
+    - manage_cmd_tests
     - unit_tests
     - functional_tests_chromium
     - functional_tests_firefox
@@ -245,6 +266,7 @@ debian_pkg:
   needs:
     - doc
     - migrations
+    - manage_cmd_tests
     - unit_tests
     - functional_tests_chromium
     - functional_tests_firefox

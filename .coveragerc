@@ -1,9 +1,0 @@
-[paths]
-source = se
-    sosse
-    /opt/sosse-venv/lib/python3.11/site-packages/se/
-    /opt/sosse-venv/lib/python3.11/site-packages/sosse/
-    /builds/biolds1/sosse/se/
-    /builds/biolds1/sosse/sosse/
-    /builds/biolds1/sosse-wip/se/
-    /builds/biolds1/sosse-wip/sosse/

@@ -9,7 +9,7 @@ stages:
 
 before_script:
   - export COVERAGE_FILE=/tmp/coverage-$CI_NODE_INDEX-$CI_PIPELINE_ID
-  - echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data /opt/sosse-venv/bin/coverage run -a --source se,sosse ./sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
+  - echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data /opt/sosse-venv/bin/coverage run -a --source se,sosse $PWD/sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
   - chmod 755 /tmp/sudo_sosse
   - test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
 
@@ -89,13 +89,18 @@ coverage_report:
         coverage_format: cobertura
         path: coverage.xml
   script:
+    - 'echo "[paths]" > .coveragerc'
+    - 'echo "se_package = $CI_PROJECT_DIR/se" >> .coveragerc'
+    - 'echo "    /opt/sosse-venv/lib/python3.11/site-packages/se" >> .coveragerc'
+    - 'echo "sosse_package = $CI_PROJECT_DIR/sosse" >> .coveragerc'
+    - 'echo "    /opt/sosse-venv/lib/python3.11/site-packages/sosse" >> .coveragerc'
     - export COVERAGE_FILE=coverage
-    - virtualenv -p python3 /opt/sosse-venv
-    - /opt/sosse-venv/bin/pip install coverage
-    - /opt/sosse-venv/bin/coverage combine --data-file=coverage coverage-*
-    - /opt/sosse-venv/bin/coverage report --omit "*/se/deps/*,*/dist-packages/*,*/sosse/*"
-    - /opt/sosse-venv/bin/coverage html --omit "*/se/deps/*,*/dist-packages/*,*/sosse/*"
-    - /opt/sosse-venv/bin/coverage xml --omit "*/se/deps/*,*/dist-packages/*,*/sosse/*"
+    - virtualenv -p python3 /venv
+    - /venv/bin/pip install coverage
+    - /venv/bin/coverage combine --data-file=coverage coverage-*
+    - /venv/bin/coverage report --omit "*/se/deps/*"
+    - /venv/bin/coverage html --omit "*/se/deps/*"
+    - /venv/bin/coverage xml --omit "*/se/deps/*"
 
 .functional_tests: &functional_tests
   image: biolds/sosse:pip-test
@@ -117,6 +122,7 @@ coverage_report:
     - make _pip_functional_tests
     - (make _rf_functional_$TEST_SUITE ; echo -n $? > /tmp/ret_code) || true
     - curl http://127.0.0.1/coverage_stop/
+    - sleep 10s
     - mv /var/log/sosse log
     - mv /var/log/uwsgi/* log
     - mv /tmp/coverage-* .

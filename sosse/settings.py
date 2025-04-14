@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "django_filters",
+    "treebeard",
     "se.apps.SEConfig",
     "se.apps.SEAdminConfig",
 ]

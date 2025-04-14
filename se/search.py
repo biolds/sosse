@@ -181,8 +181,10 @@ def get_documents(request, params, form, stats_call):
                 qf = models.Q(**{key: value})
         elif field == "tag":
             key = f"name{param}"
-            tags = Tag.objects.filter(**{key: value})
-            tags = Tag.get_queryset_descendants(tags, include_self=True)
+            _tags = Tag.objects.filter(**{key: value})
+            tags = set()
+            for tag in _tags:
+                tags |= set(Tag.get_tree(tag))
             qf = models.Q(tags__in=tags)
         else:
             qparams = {field + param: value}
@@ -200,7 +202,7 @@ def get_documents(request, params, form, stats_call):
 
     tags = form.cleaned_data.get("tag", [])
     for tag in tags:
-        results = results.filter(tags__in=tag.get_descendants(include_self=True))
+        results = results.filter(tags__in=Tag.get_tree(tag))
 
     doc_lang = form.cleaned_data.get("doc_lang")
     if doc_lang:
@@ -355,7 +357,7 @@ class SearchView(UserView):
             home_entries = Document.objects.wo_content().filter(show_on_homepage=True)
             if tags:
                 for tag in tags:
-                    home_entries = home_entries.filter(tags__in=tag.get_descendants(include_self=True))
+                    home_entries = home_entries.filter(tags__in=Tag.get_tree())
                 if not home_entries:
                     has_query = True
             home_entries = home_entries.order_by("title").distinct()

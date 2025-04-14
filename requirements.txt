@@ -3,7 +3,7 @@ cssutils
 defusedxml
 django<4
 django-filter
-django-mptt
+django-treebeard
 django-uwsgi
 djangorestframework
 drf-spectacular

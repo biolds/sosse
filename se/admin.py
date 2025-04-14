@@ -29,6 +29,8 @@ from django.template.loader import render_to_string
 from django.urls import path
 from django.utils.html import format_html, mark_safe
 from django.utils.timezone import now
+from treebeard.admin import TreeAdmin
+from treebeard.forms import movenodeform_factory
 
 from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
 from .analytics import AnalyticsView
@@ -1214,20 +1216,33 @@ class ExcludedUrlAdmin(admin.ModelAdmin):
     form = ExcludedUrlForm
 
 
+BaseTagForm = movenodeform_factory(Tag)
+
+
+class TagForm(BaseTagForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["_ref_node_id"].label = "Parent"
+        self.fields["_position"].widget = forms.HiddenInput()
+        self.fields["_position"].initial = "sorted-child"
+
+
 @admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
+class TagAdmin(TreeAdmin):
+    form = TagForm
     list_display = ("_name", "docs", "policies")
-    ordering = ("tree_id", "lft", "rght")
-    fields = ("name", "parent", "documents", "crawl_policies")
+    fields = ("name", "_ref_node_id", "documents", "crawl_policies", "_position")
     readonly_fields = ("documents", "crawl_policies")
     search_fields = ("name",)
 
     @staticmethod
     def _name(obj):
-        return render_to_string("se/components/tag.html", {"tag": obj, "with_padding": True})
+        return render_to_string("se/components/tag.html", {"tag": obj})
 
     @staticmethod
     def documents(obj):
+        if not obj or not obj.id:
+            return ""
         count = Document.objects.wo_content().filter(tags__id=obj.id).count()
         return format_html(
             '<a href="{}">Matching 🔤 Documents ({})</a>',
@@ -1247,6 +1262,8 @@ class TagAdmin(admin.ModelAdmin):
     @staticmethod
     @admin.display(description="Crawl Policies")
     def crawl_policies(obj):
+        if not obj or not obj.id:
+            return ""
         count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
         return format_html(
             '<a href="{}">Matching ⚡ Crawl Policies ({})</a>',

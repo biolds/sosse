@@ -3,7 +3,7 @@
 | Create Tag | [Arguments] | ${name} | ${parent}=None
 |  | SOSSE Go To | http://127.0.0.1/admin/se/tag/add/
 |  | Input Text | id=id_name | ${name}
-|  | Run Keyword If | '${parent}' != 'None' | Select From List By Label | id=id_parent | ${parent}
+|  | Run Keyword If | '${parent}' != 'None' | Select From List By Label | id=id__ref_node_id | ${parent}
 |  | Click Element | xpath=//input[@value="Save"]
 
 | Clear Tags

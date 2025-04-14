@@ -80,10 +80,10 @@ class TagsView(SosseLoginRequiredMixin, TemplateView):
             tags.append(tag)
 
         root_tags = []
-        for tag in Tag.objects.filter(parent=None):
-            tag.descendants = tag.get_descendants(include_self=True)
+        for tag in Tag.get_root_nodes():
+            tag.descendants = Tag.get_tree(tag)
             for _tag in tag.descendants:
-                objs = self._counter_objs_queryset().filter(tags__in=_tag.get_descendants(include_self=True))
+                objs = self._counter_objs_queryset().filter(tags__in=Tag.get_tree(_tag))
                 count = objs.distinct().count()
                 _tag.doc_count = human_nb(count)
             root_tags.append(tag)

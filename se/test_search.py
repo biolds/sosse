@@ -257,7 +257,7 @@ class SearchTest(TransactionTestCase):
         self.page.tags.add(subtag)
 
         docs = self._search_docs(f"tag={self.tag1.id}")
-        self.assertEqual(docs.count(), 3)
+        self.assertEqual(docs.count(), 3, docs)
         self.assertEqual(
             sorted(docs, key=lambda x: x.id),
             sorted([self.tagged_page, self.tagged_page2, self.page], key=lambda x: x.id),

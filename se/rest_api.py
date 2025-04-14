@@ -195,6 +195,7 @@ class TagSlugRelatedField(serializers.SlugRelatedField):
     def to_internal_value(self, data):
         if isinstance(data, int):
             return Tag.objects.get(pk=data)
+
         tag, _ = Tag.objects.get_or_create(name=data)
         return tag
 

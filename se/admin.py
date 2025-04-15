@@ -1266,7 +1266,7 @@ class TagAdmin(TreeAdmin):
             return ""
         count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
         return format_html(
-            '<a href="{}">Matching ⚡ Crawl Policies ({})</a>',
+            '<a href="{}">Used in ⚡ Crawl Policies ({})</a>',
             reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
             count,
         )

@@ -113,12 +113,12 @@ class SearchTagsView(TagsView):
     def _objs_queryset(self):
         has_query, results, query = get_documents_from_request(self.request, self.form)
 
-        if has_query:
+        if results.count():
             return results
 
         return Document.objects.wo_content()
 
-    def _counter_obj_queryset(self):
+    def _counter_objs_queryset(self):
         return self._objs_queryset()
 
     def _submit_onclick(self):

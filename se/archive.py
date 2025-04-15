@@ -131,7 +131,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
 
         model_tags = []
         for tag in self.doc.tags.all().order_by("name"):
-            tag.href = reverse("search") + f"?tag={tag.id}"
+            tag.href = reverse("search_redirect") + f"?tag={tag.id}"
             model_tags.append(tag)
 
         return context | {

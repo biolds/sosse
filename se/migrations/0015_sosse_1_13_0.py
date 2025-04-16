@@ -249,4 +249,9 @@ class Migration(migrations.Migration):
             name="tags",
             field=models.ManyToManyField(blank=True, to="se.Tag"),
         ),
+        migrations.AddField(
+            model_name="searchhistory",
+            name="tags",
+            field=models.JSONField(blank=True, null=True),
+        ),
     ]

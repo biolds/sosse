@@ -26,6 +26,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.http import QueryDict
+from django.urls import reverse
 from django.utils.timezone import now
 
 from .browser_request import BrowserRequest
@@ -421,16 +422,23 @@ class SearchHistory(models.Model):
     querystring = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tags = models.JSONField(blank=True, null=True)
 
     @classmethod
     def save_history(cls, request, q):
         from .search import FILTER_RE
 
+        tags = None
         params = {}
 
         queryparams = ""
-        for key, val in request.GET.items():
-            if not re.match(FILTER_RE, key) and key not in ("l", "doc_lang", "s", "q"):
+        for key, val in sorted(request.GET.items(), key=lambda x: x[0]):
+            if key == "tag":
+                tags = request.GET.getlist("tag")
+                tags = [int(tag) for tag in tags]
+                continue
+
+            if not re.match(FILTER_RE, key) and key not in ("doc_lang", "s", "q"):
                 continue
             params[key] = val
 
@@ -440,6 +448,9 @@ class SearchHistory(models.Model):
             if queryparams:
                 queryparams += " "
             queryparams += val
+
+        if tags:
+            tags = sorted(tags)
 
         if q:
             if queryparams:
@@ -453,13 +464,22 @@ class SearchHistory(models.Model):
 
         if not request.user.is_anonymous:
             last = SearchHistory.objects.filter(user=request.user).order_by("date").last()
-            if last and last.querystring == qs:
+            if last and last.querystring == qs and last.tags == tags:
                 return
 
-            if not q and not qs:
+            if not q and not qs and not tags:
                 return
 
-            SearchHistory.objects.create(querystring=qs, query=q, user=request.user)
+            SearchHistory.objects.create(querystring=qs, query=q, user=request.user, tags=tags)
+
+    def search_url(self):
+        url = reverse("search_redirect") + f"?{self.querystring}"
+
+        if self.tags:
+            url += "&"
+            url += "&".join([f"tag={tag.pk}" for tag in self.tags])
+
+        return url
 
 
 class ExcludedUrl(models.Model):

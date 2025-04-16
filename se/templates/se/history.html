@@ -19,6 +19,10 @@ function del_item(id) {
 {% endblock %}
 
 {% block css %}
+    .tag_link {
+        color: var(--text);
+        text-decoration: none;
+    }
     .del_button {
         background-image: url('{% static "se/icon-trash.svg" %}');
         width: 40px;
@@ -50,7 +54,16 @@ function del_item(id) {
             <p>
                 <input type="submit" title="Delete" class="del_button img_button" id="del_{{ e.id }}" name="del_{{ e.id }}" value="" onclick="return del_item({{ e.id }})">
                 {{ e.date }} ·
-                <a href="{% url 'search_redirect' %}?{{ e.querystring}}">{{ e.query }}</a>
+                {% if e.tags %}
+                <a href="{{ e.search_url }}" class="tag_link">
+                    {% for tag in e.tags %}
+                      {% include "se/components/tag.html" %}
+                    {% endfor %}
+                  </a>
+                {% endif %}
+                <a href="{{ e.search_url }}">
+                  {{ e.query }}
+                </a>
             </p>
         {% endfor %}
     </form>

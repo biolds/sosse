@@ -17,6 +17,7 @@ from django.conf import settings
 from django.core.paginator import Paginator
 
 from .models import SearchHistory
+from .tag import Tag
 from .views import UserView
 
 
@@ -37,6 +38,15 @@ class HistoryView(UserView):
         paginator = Paginator(history, page_size)
         page_number = int(self.request.GET.get("p", 1))
         paginated = paginator.get_page(page_number)
+
+        for entry in paginated:
+            if entry.tags:
+                _tags = []
+                for tag in entry.tags:
+                    tag = Tag.objects.filter(pk=tag).first()
+                    if tag:
+                        _tags.append(tag)
+                entry.tags = _tags
 
         context["paginated"] = paginated
         context.update(self._get_pagination(paginated))

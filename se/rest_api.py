@@ -381,6 +381,22 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         return self.get_paginated_response(serializer.data)
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = "__all__"
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permissions = [DjangoModelPermissionsRW]
+
+    @action(detail=False)
+    def tree_doc_counts(self, request):
+        return Response(Tag.tree_doc_counts())
+
+
 class WebhookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Webhook
@@ -421,6 +437,7 @@ class WebhookViewSet(viewsets.ModelViewSet):
 
 router = routers.DefaultRouter()
 router.register("document", DocumentViewSet)
+router.register("tag", TagViewSet)
 router.register("search", SearchViewSet, basename="search")
 router.register("stats", CrawlerStatsViewSet)
 router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")

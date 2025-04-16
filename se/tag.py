@@ -18,6 +18,8 @@ from colorsys import hsv_to_rgb
 from django.db import models, transaction
 from treebeard.mp_tree import MP_Node, MP_NodeManager
 
+from .utils import human_nb
+
 
 class TagManager(MP_NodeManager):
     @transaction.atomic
@@ -46,6 +48,40 @@ class Tag(MP_Node):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def tree_doc_counts():
+        from .document import Document
+
+        all_tags = list(Tag.get_tree())
+        tag_to_count = {}
+
+        for tag in reversed(all_tags):
+            docs = Document.objects.wo_content().filter(tags=tag.pk)
+
+            # Exclude documents that are tagged with any of the descendants of the current tags
+            # This is to avoid counting documents that are tagged with both the current tag and its
+            # descendants
+            descendant_ids = tag.get_descendants().values_list("pk", flat=True)
+            if descendant_ids:
+                docs = docs.exclude(tags__in=descendant_ids)
+
+            tag_to_count[tag.pk] = docs.distinct().count()
+
+        _total_counts = dict(tag_to_count)
+
+        for tag in reversed(all_tags):
+            parent = tag.get_parent()
+            if parent:
+                _total_counts[parent.pk] = _total_counts.get(parent.pk, 0) + _total_counts.get(tag.pk, 0)
+
+        total_counts = {}
+        for tag_pk, count in _total_counts.items():
+            total_counts[tag_pk] = {
+                "count": count,
+                "human_count": human_nb(count),
+            }
+        return total_counts
 
     @staticmethod
     def _from_palette(val):

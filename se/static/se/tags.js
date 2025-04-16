@@ -10,20 +10,7 @@ async function show_tags(tags_url = null) {
   const tagsContent = document.getElementById("tags-content");
   const tagsOverlay = document.getElementById("tags-overlay");
 
-  try {
-    const _tags_url = tags_url || "/search_tags/" + window.location.search;
-    const response = await fetch(_tags_url);
-    if (!response.ok) {
-      throw new Error("Error loading tags");
-    }
-    const data = await response.text();
-
-    tagsContent.innerHTML = data;
-  } catch (error) {
-    console.error("Error:", error);
-    tagsContent.innerHTML = "Failed to load tags.";
-  }
-
+  // Show the tags modal
   tags.style.display = "block";
   tags.classList.add("fadeIn");
   tags.classList.remove("fadeOut");
@@ -31,6 +18,21 @@ async function show_tags(tags_url = null) {
   tagsOverlay.classList.remove("fadeOut");
   tagsOverlay.style.display = "block";
   document.body.style.overflow = "hidden";
+
+  try {
+    const _tags_url = tags_url || "/search_tags/" + window.location.search;
+    const response = await fetch(_tags_url);
+    if (!response.ok) {
+      throw new Error("Error loading tags");
+    }
+
+    const data = await response.text();
+
+    tagsContent.innerHTML = data;
+  } catch (error) {
+    console.error("Error:", error);
+    tagsContent.innerHTML = "Failed to load tags.";
+  }
 
   // Set a bold font-weight on all tags that are active
   const activeTags = document.getElementById("editing_tags");
@@ -46,6 +48,24 @@ async function show_tags(tags_url = null) {
         const tag = document.getElementById(`tag-${tagId}`);
         tag.style.fontWeight = "bold";
       }
+    }
+  });
+
+  const counts_url = "/api/tag/tree_doc_counts/";
+  const response = await fetch(counts_url);
+  if (!response.ok) {
+    throw new Error("Error loading counters");
+  }
+
+  const data = await response.json();
+
+  const tagsList = document.querySelectorAll("#tags_list div.tag");
+  tagsList.forEach((tag) => {
+    const tagId = tag.id.split("-")[1];
+    const count = data[tagId];
+    if (count !== undefined) {
+      const counter = tag.querySelectorAll("span.tag-counter")[0];
+      counter.innerHTML = count.human_count;
     }
   });
 }

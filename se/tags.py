@@ -22,7 +22,6 @@ from .login import SosseLoginRequiredMixin
 from .search import get_documents_from_request
 from .search_form import SearchForm
 from .tag import Tag
-from .utils import human_nb
 
 
 class TagsView(SosseLoginRequiredMixin, TemplateView):
@@ -37,9 +36,6 @@ class TagsView(SosseLoginRequiredMixin, TemplateView):
             return model.objects.wo_content()
         else:
             return model.objects.all()
-
-    def _counter_objs_queryset(self):
-        return Document.objects.wo_content()
 
     def _get_obj(self):
         if self.kwargs["pk"] == "0":
@@ -82,10 +78,6 @@ class TagsView(SosseLoginRequiredMixin, TemplateView):
         root_tags = []
         for tag in Tag.get_root_nodes():
             tag.descendants = Tag.get_tree(tag)
-            for _tag in tag.descendants:
-                objs = self._counter_objs_queryset().filter(tags__in=Tag.get_tree(_tag))
-                count = objs.distinct().count()
-                _tag.doc_count = human_nb(count)
             root_tags.append(tag)
 
         return context | {
@@ -117,9 +109,6 @@ class SearchTagsView(TagsView):
             return results
 
         return Document.objects.wo_content()
-
-    def _counter_objs_queryset(self):
-        return self._objs_queryset()
 
     def _submit_onclick(self):
         return "submit_search()"

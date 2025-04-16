@@ -9,7 +9,7 @@
       <a class="tag_delete" {% if tag.clear_href %}href="{{ tag.clear_href }}" {% endif %} style="color: {{ tag.get_text_color }}; cursor: pointer" {% if on_delete %}onclick="{{ on_delete }}" {% endif %}>✖</a>
     {% endif %}
     {% if with_counters %}
-      <span class="tag-counter">{{ tag.doc_count }}</span>
+      <span class="tag-counter">-</span>
     {% endif %}
   {% endif %}
 </div>

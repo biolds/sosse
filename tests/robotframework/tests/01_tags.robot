@@ -37,7 +37,7 @@
 | Modal test
 |  | SOSSE Go To | http://127.0.0.1/
 |  | Click Element | id=edit_search_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | Click Element | xpath=//button[contains(., 'Cancel')]
 |  | Element Should Not Be Visible | id=tags
 
@@ -46,7 +46,7 @@
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
 |  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | Click Element | xpath=//div[@id='tags_list']/div/div[1]/div
 |  | Click Element | xpath=//div[@id='tags_list']/div/div[2]/div
 |  | Click Element | id=tags_submit
@@ -66,10 +66,10 @@
 |  | SOSSE Go To | http://127.0.0.1/
 |  | Element Should Be Visible | id=search_tags
 |  | Click Element | id=edit_search_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 # Check counters
 |  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1] | General Usage
-|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]//span[@class='tag-counter'] | 1
+|  | Wait Until Element Contains | xpath=//div[@id='tags_list']/div/div[1]//span[@class='tag-counter'] | 1
 |  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[2] | AI
 |  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[2]//span[@class='tag-counter'] | 1
 # Activate tags check
@@ -87,10 +87,10 @@
 |  | Should Be Equal As Integers | ${results_count} | 1
 # Reopen modal - Delete filter
 |  | Click Element | id=edit_search_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | Element Should Be Visible | xpath=//div[@id='tag-edit-${tag_pk}' and contains(., 'General Usage')]
 |  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1] | General Usage
-|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]//span[@class='tag-counter'] | 1
+|  | Wait Until Element Contains | xpath=//div[@id='tags_list']/div/div[1]//span[@class='tag-counter'] | 1
 |  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[2] | AI
 |  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[2]//span[@class='tag-counter'] | 1
 |  | Element Should Be Visible | id=tag-edit-${tag_pk}
@@ -160,7 +160,7 @@
 |  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//div[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//div[@class='tag tag-select' and not(contains(@style, 'display: none'))]
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | xpath=//div[@class='tag' and contains(., 'CPU')]
@@ -185,7 +185,7 @@
 |  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//div[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//div[@class='tag tag-select' and not(contains(@style, 'display: none'))]
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | xpath=//div[@class='tag' and contains(., 'CPU')]
@@ -210,7 +210,7 @@
 |  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//div[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//div[@class='tag tag-select' and not(contains(@style, 'display: none'))]
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | id=clear_selected_tags
@@ -230,7 +230,7 @@
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Input Text | id=id_url_regex | http://example.com/.*
 |  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | Click Element | xpath=//div[@id='tags_list']//div[@class='tag' and contains(., 'AI')]
 |  | Click Element | id=tags_submit
 |  | Wait Until Element Is Not Visible | id=tags
@@ -246,7 +246,7 @@
 |  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Click Link | http://example.com/.*
 |  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Visible | id=tags_list
 |  | Click Element | xpath=//div[@id='tags_list']//div[@class='tag' and contains(., 'General Usage')]
 |  | Click Element | id=tags_submit
 |  | Wait Until Element Is Not Visible | id=tags

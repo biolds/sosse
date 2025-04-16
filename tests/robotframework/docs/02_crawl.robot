@@ -193,7 +193,7 @@
 |  | SOSSE Go To | http://127.0.0.1/admin/se/tag/
 |  | Wait Until Element Is Visible | id=result_list
 |  | SOSSe Capture Page Screenshot | tags_list.png
-|  | Click Element | xpath=//th[@class='field-_name']//div[contains(., 'Motherboard')]
+|  | Click Element | xpath=//th[@class='field-_name']//span[contains(., 'Motherboard')]
 |  | SOSSE Capture Page Screenshot | edit_tag.png
 |  | SOSSE Go To | http://127.0.0.1/
 |  | Click Element | id=edit_search_tags

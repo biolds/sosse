@@ -38,7 +38,7 @@ async function show_tags(tags_url = null) {
   const activeTags = document.getElementById("editing_tags");
   activeTags.childNodes.forEach((activeTag) => {
     if (
-      activeTag.nodeName === "DIV" &&
+      activeTag.nodeName === "SPAN" &&
       activeTag.className.includes("tag") &&
       !activeTag.className.includes("tag-action")
     ) {
@@ -59,7 +59,7 @@ async function show_tags(tags_url = null) {
 
   const data = await response.json();
 
-  const tagsList = document.querySelectorAll("#tags_list div.tag");
+  const tagsList = document.querySelectorAll("#tags_list span.tag");
   tagsList.forEach((tag) => {
     const tagId = tag.id.split("-")[1];
     const count = data[tagId];
@@ -72,14 +72,14 @@ async function show_tags(tags_url = null) {
 
 async function switch_tag(tagId) {
   const tagEdit = document.evaluate(
-    `//div[@id='tags-content']//div[@id='tag-edit-${tagId}']`,
+    `//div[@id='tags-content']//span[@id='tag-edit-${tagId}']`,
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
     null,
   ).singleNodeValue;
   const tag = document.evaluate(
-    `//div[@id='tags-content']//div[@id='tag-${tagId}']`,
+    `//div[@id='tags-content']//span[@id='tag-${tagId}']`,
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,

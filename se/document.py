@@ -167,6 +167,11 @@ class Document(models.Model):
             GinIndex(fields=(("vector",))),
             # models.Index(models.F('show_on_homepage') == models.Value(True),
             #             models.F('title').asc(), name='home_idx')
+            # Indexes for crawl scheduling
+            models.Index(fields=["worker_no"]),
+            models.Index(fields=["crawl_last"]),
+            models.Index(fields=["crawl_next"]),
+            models.Index(fields=["worker_no", "crawl_last", "crawl_next", "id"]),
         ]
 
     def __init__(self, *args, **kwargs):
@@ -742,23 +747,19 @@ class Document(models.Model):
         while True:
             doc = (
                 Document.objects.wo_content()
-                .filter(worker_no__isnull=True, crawl_last__isnull=True)
-                .order_by("id")
+                .filter(
+                    models.Q(crawl_last__isnull=True) | models.Q(crawl_last__isnull=False, crawl_next__lte=now()),
+                    worker_no__isnull=True,
+                )
+                .order_by(
+                    "crawl_last",  # to prioritize documents with no crawl_last
+                    "crawl_next",
+                    "id",
+                )
                 .first()
             )
             if doc is None:
-                doc = (
-                    Document.objects.wo_content()
-                    .filter(
-                        worker_no__isnull=True,
-                        crawl_last__isnull=False,
-                        crawl_next__lte=now(),
-                    )
-                    .order_by("crawl_next", "id")
-                    .first()
-                )
-                if doc is None:
-                    return None
+                return None
 
             updated = (
                 Document.objects.wo_content().filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)

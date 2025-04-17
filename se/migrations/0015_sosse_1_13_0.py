@@ -254,4 +254,22 @@ class Migration(migrations.Migration):
             name="tags",
             field=models.JSONField(blank=True, null=True),
         ),
+        migrations.AddIndex(
+            model_name="document",
+            index=models.Index(fields=["worker_no"], name="se_document_worker__d7f116_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="document",
+            index=models.Index(fields=["crawl_last"], name="se_document_crawl_l_9a8166_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="document",
+            index=models.Index(fields=["crawl_next"], name="se_document_crawl_n_307c1a_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="document",
+            index=models.Index(
+                fields=["worker_no", "crawl_last", "crawl_next", "id"], name="se_document_worker__6e0d8e_idx"
+            ),
+        ),
     ]

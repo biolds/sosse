@@ -41,7 +41,7 @@ from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
-from .models import AuthField, ExcludedUrl, Link, SearchEngine
+from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
 from .tag import Tag
 from .utils import mimetype_icon, reverse_no_escape
 from .webhook import Webhook, webhook_html_status
@@ -347,6 +347,7 @@ class TagsFilter(admin.SimpleListFilter):
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
     queryset.update(crawl_next=now(), manual_crawl=True)
+    WorkerStats.wake_up()
     return redirect(reverse("admin:crawl_queue"))
 
 

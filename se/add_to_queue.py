@@ -25,6 +25,7 @@ from django.views.generic import FormView
 from .crawl_policy import CrawlPolicy
 from .document import Document
 from .domain_setting import DomainSetting
+from .models import WorkerStats
 from .url import sanitize_url, validate_url
 from .utils import human_datetime, plural
 from .views import AdminView
@@ -210,6 +211,7 @@ class AddToQueueConfirmationView(AddToQueueView):
                 msg = f"{url_count} URLs were queued."
             else:
                 msg = "URL was queued."
+            WorkerStats.wake_up()
             messages.success(self.request, msg)
             return redirect(reverse("admin:crawl_queue"))
 

@@ -15,9 +15,10 @@
 
 import logging
 import os
+import signal
+import threading
 from datetime import timedelta
 from multiprocessing import Process, cpu_count
-from time import sleep
 from traceback import format_exc
 
 from django.conf import settings
@@ -32,6 +33,7 @@ from ...document import Document
 from ...models import MINUTELY, CrawlerStats, WorkerStats
 
 crawl_logger = logging.getLogger("crawler")
+wake_event = None
 
 
 class Command(BaseCommand):
@@ -56,11 +58,59 @@ class Command(BaseCommand):
         )
 
     @staticmethod
+    def next_stat():
+        last = CrawlerStats.objects.filter(freq=MINUTELY).order_by("t").last()
+
+        if last:
+            next_stat = last.t + timedelta(minutes=1)
+        else:
+            next_stat = now()
+        return next_stat
+
+    @staticmethod
+    def next_doc():
+        doc = (
+            Document.objects.wo_content()
+            .filter(crawl_next__isnull=False, worker_no__isnull=True)
+            .order_by("crawl_next")
+            .first()
+        )
+        next_doc = None
+        if doc:
+            next_doc = (doc.crawl_next - now()).total_seconds()
+        return next_doc
+
+    @staticmethod
+    def sleep_time(worker_no):
+        next_doc = Command.next_doc()
+        next_stat = None
+        if worker_no == 0:
+            next_stat = Command.next_stat()
+            next_stat = (next_stat - now()).total_seconds()
+            if next_doc:
+                return min(next_doc, next_stat)
+            return next_stat
+
+        if next_doc:
+            return next_doc
+        return 60 * 60
+
+    @staticmethod
+    def wake_up_handler(signum, frame):
+        crawl_logger.debug("Signal received, waking up worker")
+        global wake_event
+        wake_event.set()
+
+    @staticmethod
     def process(worker_no, options):
         try:
             crawl_logger.info(f"Crawler {worker_no} initializing")
             connection.close()
             connection.connect()
+
+            global wake_event
+            wake_event = threading.Event()
+            signal.signal(signal.SIGUSR1, Command.wake_up_handler)
 
             BrowserFirefox._worker_no = worker_no
             BrowserChromium._worker_no = worker_no
@@ -72,23 +122,15 @@ class Command(BaseCommand):
 
             crawl_logger.info(f"Crawler {worker_no} starting")
 
-            if worker_no == 0:
-                last = CrawlerStats.objects.filter(freq=MINUTELY).order_by("t").last()
-                if last:
-                    next_stat = last.t
-                else:
-                    next_stat = now()
-                next_stat += timedelta(minutes=1)
-
             worker_stats = WorkerStats.get_worker(worker_no)
+            next_stat = Command.next_stat()
 
-            sleep_count = 0
             while True:
                 if worker_no == 0:
                     t = now()
-                    if next_stat < t:
+                    if next_stat <= t:
                         CrawlerStats.create(t)
-                        next_stat = t + timedelta(minutes=1)
+                        next_stat = Command.next_stat()
 
                 worker_stats.refresh_from_db()
                 if worker_stats.state == "paused" or not Document.crawl(worker_no):
@@ -96,15 +138,28 @@ class Command(BaseCommand):
                         return
                     if worker_stats.state == "running":
                         worker_stats.update_state("idle")
-                    if sleep_count % 60 == 0:
-                        crawl_logger.debug(f"{worker_no} {worker_stats.state.title()}...")
-                    sleep_count += 1
-                    if sleep_count > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
-                        BrowserChromium.destroy()
-                        BrowserFirefox.destroy()
-                    sleep(1)
-                else:
-                    sleep_count = 0
+
+                    if BrowserChromium.inited or BrowserFirefox.inited:
+                        next_doc = Command.next_doc()
+                        if next_doc is not None and next_doc > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
+                            BrowserChromium.destroy()
+                            BrowserFirefox.destroy()
+
+                    if worker_stats.state == "paused" and worker_no == 0:
+                        next_stat = Command.next_stat()
+                        sleep_time = (next_stat - now()).total_seconds()
+                        crawl_logger.debug(f"Sleeping for {sleep_time} seconds")
+                    elif worker_stats.state == "paused" and worker_no != 0:
+                        sleep_time = None
+                        crawl_logger.debug("Worker paused")
+                    else:
+                        sleep_time = Command.sleep_time(worker_no)
+                        crawl_logger.debug(f"Sleeping for {sleep_time} seconds")
+
+                    wake_event.clear()
+                    woke_up = wake_event.wait(timeout=sleep_time)
+                    if woke_up:
+                        crawl_logger.debug(f"Worker {worker_no} woke up")
 
         except Exception:
             crawl_logger.error(format_exc())

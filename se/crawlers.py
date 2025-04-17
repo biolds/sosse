@@ -29,6 +29,7 @@ class CrawlersOperationMixin:
             WorkerStats.objects.update(state="paused")
         if "resume" in request.POST:
             WorkerStats.objects.update(state="running")
+            WorkerStats.wake_up()
         return self.get(request)
 
 

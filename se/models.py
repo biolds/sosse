@@ -16,6 +16,7 @@
 import logging
 import os
 import re
+import signal
 import urllib.parse
 from base64 import b64decode, b64encode
 from datetime import timedelta
@@ -128,8 +129,25 @@ class WorkerStats(models.Model):
     pid = models.PositiveIntegerField()
     state = models.CharField(max_length=8, choices=STATE, default="idle")
 
+    @staticmethod
+    def wake_up():
+        if getattr(settings, "TEST_MODE", False):
+            return
+        worker_pids = WorkerStats.objects.values_list("pid", flat=True)
+        for worker_pid in worker_pids:
+            try:
+                os.kill(worker_pid, signal.SIGUSR1)
+            except Exception as e:
+                crawl_logger.error(f"Error waking up worker {worker_pid}: {e}")
+
+            if not worker_pids:
+                crawl_logger.error("No worker running")
+
     @classmethod
-    def get_worker(cls, worker_no):
+    def get_worker(
+        cls,
+        worker_no,
+    ):
         return cls.objects.update_or_create(worker_no=worker_no, defaults={"pid": os.getpid()})[0]
 
     def update_state(self, state):
@@ -171,6 +189,7 @@ class CrawlerStats(models.Model):
 
     @staticmethod
     def create(t):
+        crawl_logger.debug("Creating crawler stats")
         CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=MINUTELY).delete()
         CrawlerStats.objects.filter(t__lt=t - timedelta(days=365), freq=DAILY).delete()
 

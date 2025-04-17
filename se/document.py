@@ -347,6 +347,10 @@ class Document(models.Model):
         # The bulk request triggers a deadlock: Link.objects.bulk_create(links['links'])
         for link in links["links"]:
             link.save()
+        if len(links["links"]) > 0:
+            from .models import WorkerStats
+
+            WorkerStats.wake_up()
         self._index_log("bulk", stats, verbose)
         return links
 

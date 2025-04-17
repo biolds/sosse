@@ -176,6 +176,7 @@ class BrowserRequest(Browser):
             # Check for an HTML / meta redirect
             soup = page.get_soup()
             if soup:
+                has_redirect = False
                 for meta in page.get_soup().find_all("meta"):
                     if meta.get("http-equiv", "").lower() == "refresh" and meta.get("content", ""):
                         # handle redirect
@@ -190,8 +191,11 @@ class BrowserRequest(Browser):
                         url = absolutize_url(url, dest)
                         url = url_remove_fragment(url)
                         redirect_count += 1
+                        has_redirect = True
                         crawl_logger.debug(f"{url}: html redirected")
-                        continue
+                        break
+                if has_redirect:
+                    continue
             break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:

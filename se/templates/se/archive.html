@@ -16,9 +16,7 @@
         {{ beautified_url }}
     </p>
     <p>
-        <div id="document_tags">
-            {% include "se/components/tags_list.html" %}
-        </div>
+        {% include "se/components/tags_list.html" with id="document_tags" %}
     </p>
 
     <ul class="archive_links" style="margin-bottom: 20px">

@@ -147,9 +147,9 @@
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
 |  | ${loc}= | Get Location
 |  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/document/[0-9]+/change/
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
-|  | Click Element | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select'][1]
+|  | Click Element | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1]
 |  | ${loc}= | Get Location
 |  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/document/\\?tags\=[0-9]+
 |  | Page Should Contain | 1 result
@@ -161,7 +161,7 @@
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
 |  | ${loc}= | Get Location
 |  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/document/[0-9]+/change/
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -172,11 +172,11 @@
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | xpath=//button[contains(., 'Ok')]
 |  | Wait Until Element Is Not Visible | id=tags
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | xpath=//input[@value='Save and continue editing']
 |  | Wait Until Page Contains | You may edit it again below
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 3
 
 | Admin - Remove tag from document
@@ -186,7 +186,7 @@
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
 |  | ${loc}= | Get Location
 |  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/document/[0-9]+/change/
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -197,11 +197,11 @@
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | xpath=//button[contains(., 'Ok')]
 |  | Wait Until Element Is Not Visible | id=tags
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | xpath=//input[@value='Save and continue editing']
 |  | Wait Until Page Contains | You may edit it again below
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
 
 | Admin - Clear tags
@@ -211,7 +211,7 @@
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
 |  | ${loc}= | Get Location
 |  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/document/[0-9]+/change/
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -222,11 +222,11 @@
 |  | Should Be Equal As Integers | ${tags_count} | 0
 |  | Click Element | xpath=//button[contains(., 'Ok')]
 |  | Wait Until Element Is Not Visible | id=tags
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 0
 |  | Click Element | xpath=//input[@value='Save and continue editing']
 |  | Wait Until Page Contains | You may edit it again below
-|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
+|  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 0
 
 | Admin - Create crawl policy with tag
@@ -238,8 +238,8 @@
 |  | Click Element | xpath=//div[@id='tags_list']//span[@class='tag' and contains(., 'AI')]
 |  | Click Element | id=tags_submit
 |  | Wait Until Element Is Not Visible | id=tags
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select']
-|  | Element Should Contain | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select'] | AI
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | AI
 |  | Click Element | xpath=//input[@value="Save"]
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/
@@ -254,10 +254,10 @@
 |  | Click Element | xpath=//div[@id='tags_list']//span[@class='tag' and contains(., 'General Usage')]
 |  | Click Element | id=tags_submit
 |  | Wait Until Element Is Not Visible | id=tags
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select'][1]
-|  | Element Should Contain | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select'][1] | AI
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select'][2]
-|  | Element Should Contain | xpath=//div[@class='form-row field-_tags']//span[@class='tag tag-select'][2] | General Usage
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1]
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1] | AI
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][2]
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][2] | General Usage
 |  | Click Element | xpath=//input[@value="Save"]
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/

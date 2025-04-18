@@ -126,7 +126,7 @@ async function save_tags(url, restUrl = null, admin_ui = false) {
 
   const target = admin_ui
     ? document.evaluate(
-        "//div[@class='form-row field-_tags']/div/div",
+        "//div[@class='form-row field-tags']/div/div",
         document,
         null,
         XPathResult.FIRST_ORDERED_NODE_TYPE,

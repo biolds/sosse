@@ -43,6 +43,7 @@ from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
 from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
 from .tag import Tag
+from .tag_field import TagField
 from .utils import mimetype_icon, reverse_no_escape
 from .webhook import Webhook, webhook_html_status
 
@@ -117,28 +118,6 @@ admin_site = SEAdminSite(name="admin")
 def get_admin():
     global admin_site
     return admin_site
-
-
-def render_tags(tags, obj, model):
-    for tag in tags:
-        tag.href = reverse(f"admin:se_{model}_changelist") + f"?tags={tag.id}"
-
-    if obj and obj.pk:
-        title = f"⭐ Tags of {obj.get_title_label()}"
-        obj_id = obj.pk
-    else:
-        title = "⭐ Tags"
-        obj_id = 0
-    return render_to_string(
-        "se/components/tags_list.html",
-        {
-            "model_tags": tags,
-            "model_tags_pks": ",".join([str(tag.pk) for tag in tags]),
-            "django_admin": True,
-            "tags_edit_title": title,
-            "tags_edit_onclick": f"show_tags('/tags/{model}/{obj_id}?django_admin=1')",
-        },
-    )
 
 
 class CharFieldForm(forms.ModelForm):
@@ -281,6 +260,23 @@ class DocumentErrorFilter(admin.SimpleListFilter):
             return queryset.filter(error="")
 
 
+class ActiveTagMixin:
+    @staticmethod
+    @admin.display(description="Tags")
+    def active_tags(obj):
+        model = obj.__class__._meta.model_name
+
+        html = ""
+        for tag in obj.tags.order_by("name"):
+            tag.href = reverse(f"admin:se_{model}_changelist") + f"?tags={tag.id}"
+            html += render_to_string(
+                "se/components/tag.html",
+                {"tag": tag, "suffix": f"-{model}-{obj.id}"},
+            )
+
+        return mark_safe(html)
+
+
 class DocumentQueueFilter(admin.SimpleListFilter):
     title = "queued"
     parameter_name = "queued"
@@ -399,8 +395,20 @@ def clear_tags(modeladmin, request, queryset):
     Document.tags.through.objects.filter(document__in=queryset).delete()
 
 
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get("instance")
+        self.fields["tags"] = TagField(model=Document, instance=instance)
+
+
 @admin.register(Document)
-class DocumentAdmin(InlineActionModelAdmin):
+class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
+    form = DocumentForm
     list_display = (
         "_url",
         "status",
@@ -433,7 +441,7 @@ class DocumentAdmin(InlineActionModelAdmin):
             {
                 "fields": (
                     "_title",
-                    "_tags",
+                    "tags",
                     "_links",
                     "show_on_homepage",
                     "hidden",
@@ -475,7 +483,6 @@ class DocumentAdmin(InlineActionModelAdmin):
     )
     readonly_fields = [
         "_title",
-        "_tags",
         "_links",
         "_status",
         "_robotstxt_rejected",
@@ -543,16 +550,6 @@ class DocumentAdmin(InlineActionModelAdmin):
         if lookup in ("linked_from__doc_from", "links_to__doc_to"):
             return True
         return super().lookup_allowed(lookup, value)
-
-    def save_model(self, request, obj, form, change):
-        r = super().save_model(request, obj, form, change)
-        tags_ids = request.POST["tags"]
-        if tags_ids:
-            tags_list = [int(tag_id) for tag_id in tags_ids.split(",")]
-            obj.tags.set(tags_list)
-        else:
-            obj.tags.clear()
-        return r
 
     def add_to_queue(self, request):
         return AddToQueueView.as_view(admin_site=self.admin_site)(request)
@@ -645,24 +642,6 @@ class DocumentAdmin(InlineActionModelAdmin):
 
         title = obj.get_title_label()
         return format_html('<span title="{}">{} {}</span>', title, fav, title)
-
-    @staticmethod
-    @admin.display(description="Tags")
-    def _tags(obj):
-        return render_tags(obj.tags.all(), obj, "document")
-
-    @staticmethod
-    @admin.display(description="Tags")
-    def active_tags(obj):
-        html = ""
-        for tag in obj.tags.order_by("name"):
-            tag.href = reverse("admin:se_document_changelist") + f"?tags={tag.id}"
-            html += render_to_string(
-                "se/components/tag.html",
-                {"tag": tag, "suffix": f"-doc-{obj.id}"},
-            )
-
-        return mark_safe(html)
 
     @staticmethod
     @admin.display(description="Links")
@@ -831,6 +810,8 @@ class CrawlPolicyForm(CharFieldForm):
         if instance and instance.url_regex == "(default)":
             self._meta.help_texts = {"url_regex": None}
 
+        self.fields["tags"] = TagField(model=CrawlPolicy, instance=instance)
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -937,7 +918,7 @@ def clear_update_doc_tags(modeladmin, request, queryset):
 
 
 @admin.register(CrawlPolicy)
-class CrawlPolicyAdmin(InlineActionModelAdmin):
+class CrawlPolicyAdmin(InlineActionModelAdmin, ActiveTagMixin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
     list_display = (
@@ -949,7 +930,7 @@ class CrawlPolicyAdmin(InlineActionModelAdmin):
     )
     list_filter = ("enabled", TagsFilter)
     search_fields = ("url_regex",)
-    readonly_fields = ("_tags", "documents", "webhooks_link")
+    readonly_fields = ("documents", "webhooks_link")
     fieldsets = (
         (
             "⚡ Crawl",
@@ -957,7 +938,7 @@ class CrawlPolicyAdmin(InlineActionModelAdmin):
                 "fields": (
                     "url_regex",
                     "enabled",
-                    "_tags",
+                    "tags",
                     "documents",
                     "recursion",
                     "recursion_depth",
@@ -1055,38 +1036,6 @@ class CrawlPolicyAdmin(InlineActionModelAdmin):
 
     def has_document_change_permission(self, request, obj=None):
         return request.user.has_perm("se.document_change")
-
-    def save_model(self, request, obj, form, change):
-        r = super().save_model(request, obj, form, change)
-        tags_ids = request.POST["tags"]
-        if tags_ids:
-            tags_list = [int(tag_id) for tag_id in tags_ids.split(",")]
-            obj.tags.set(tags_list)
-        else:
-            obj.tags.clear()
-        return r
-
-    @staticmethod
-    @admin.display(description="Tags")
-    def active_tags(obj):
-        html = ""
-        for tag in obj.tags.order_by("name"):
-            tag.href = reverse("admin:se_crawlpolicy_changelist") + f"?tags={tag.id}"
-            html += render_to_string(
-                "se/components/tag.html",
-                {"tag": tag, "suffix": f"-crawlpolicy-{obj.id}"},
-            )
-
-        return mark_safe(html)
-
-    @staticmethod
-    @admin.display(description="Tags")
-    def _tags(obj):
-        if obj and obj.pk:
-            tags = obj.tags.all()
-        else:
-            tags = []
-        return render_tags(tags, obj, "crawlpolicy")
 
     @staticmethod
     def documents(obj):

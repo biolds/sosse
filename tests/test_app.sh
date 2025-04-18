@@ -23,30 +23,30 @@ if [ ! -e /tmp/httpbin-db.sqlite3 ]; then
   python3 manage.py shell -c "from django.contrib.auth.models import User ; u = User.objects.create(username='admin', is_superuser=True, is_staff=True) ; u.set_password('admin') ; u.save()"
 fi
 
-if [ ! -e /etc/systemd/system/django-test.service ]; then
-  if [ "$GITLAB_CI" == "" ]; then
+if [ -e /.dockerenv ]; then
+  python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000 &
+else
+  if [ ! -e /etc/systemd/system/django-test.service ]; then
     cat <<EOF >/etc/systemd/system/django-test.service
-  [Unit]
-  Description=TestServer
+    [Unit]
+    Description=TestServer
 
-  [Service]
-  ExecStart=/usr/bin/python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000
-  WorkingDirectory=$SERVER_DIR
-  Restart=always
-  RestartSec=10
+    [Service]
+    ExecStart=/usr/bin/python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000
+    WorkingDirectory=$SERVER_DIR
+    Restart=always
+    RestartSec=10
 
-  [Install]
-  WantedBy=multi-user.target
+    [Install]
+    WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload
     systemctl enable django-test.service
     systemctl restart django-test.service
   else
-    python3 $SERVER_DIR/httpbin/manage.py runserver 0.0.0.0:8000 &
+    echo "Service already exist" >&2
   fi
-else
-  echo "Service already exist" >&2
 fi
 
 cd "$CURRENT_DIR"

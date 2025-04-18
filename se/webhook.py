@@ -27,6 +27,7 @@ from sosse.conf import DEFAULT_USER_AGENT
 
 from .browser import SkipIndexing
 from .browser_request import requests_params
+from .tag import Tag
 from .utils import build_multiline_re, validate_multiline_re
 
 webhooks_logger = logging.getLogger("webhooks")
@@ -117,6 +118,12 @@ class Webhook(models.Model):
         default=dict,
         verbose_name="JSON body template",
     )
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        help_text="Run the webhook on documents with all these tags, their children, or all if none are specified",
+        verbose_name="Tags",
+    )
     mimetype_re = models.CharField(
         blank=True,
         default=".*",
@@ -143,6 +150,9 @@ class Webhook(models.Model):
     def __str__(self):
         return f"Webook {self.name}"
 
+    def get_title_label(self):
+        return self.name
+
     @classmethod
     def trigger(cls, webhooks, doc):
         from .rest_api import DocumentSerializer
@@ -151,6 +161,15 @@ class Webhook(models.Model):
         # so we have to check if the webhook should be triggered on the current document
         # so we iterate on all webhooks (instead of filtering them with the regexp, PG side)
         for webhook in webhooks.filter(enabled=True):
+            if webhook.tags.exists():
+                has_all_tags = True
+                for tag in webhook.tags.all():
+                    if not doc.tags.filter(id__in=tag.get_tree()).exists():
+                        has_all_tags = False
+                        break
+                if not has_all_tags:
+                    continue
+
             mimetype_re = build_multiline_re(webhook.mimetype_re)
             if not re.match(mimetype_re, doc.mimetype):
                 continue

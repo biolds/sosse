@@ -99,8 +99,10 @@ align with those returned by the :doc:`user/rest_api`.
 Filtering Webhooks
 ------------------
 
-Webhooks can be restricted to specific documents using regex-based filters:
+Webhooks can be restricted to specific documents using the following filters:
 
+- **Tags** - Triggers only for documents that have all specified tags, their children, or all documents if no tags are
+  specified.
 - **Mimetype regex** - Triggers only for documents whose mimetype matches this regex.
 - **Title regex** - Triggers only for documents with a title matching this regex (one per line).
 - **Content regex** - Triggers only for documents with content matching this regex (one per line).

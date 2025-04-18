@@ -78,6 +78,19 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=True),
         ),
         migrations.CreateModel(
+            name="Tag",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("path", models.CharField(max_length=255, unique=True)),
+                ("depth", models.PositiveIntegerField()),
+                ("numchild", models.PositiveIntegerField(default=0)),
+                ("name", models.CharField(max_length=128, unique=True)),
+            ],
+            options={
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
             name="Webhook",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
@@ -142,6 +155,15 @@ class Migration(migrations.Migration):
                         help_text="Template for the request body",
                         validators=[se.webhook.validate_template],
                         verbose_name="JSON body template",
+                    ),
+                ),
+                (
+                    "tags",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Run the webhook on documents with all these tags, their children, or all if none are specified",
+                        to="se.Tag",
+                        verbose_name="Tags",
                     ),
                 ),
                 (
@@ -225,19 +247,6 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name="webhook",
             options={},
-        ),
-        migrations.CreateModel(
-            name="Tag",
-            fields=[
-                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("path", models.CharField(max_length=255, unique=True)),
-                ("depth", models.PositiveIntegerField()),
-                ("numchild", models.PositiveIntegerField(default=0)),
-                ("name", models.CharField(max_length=128, unique=True)),
-            ],
-            options={
-                "abstract": False,
-            },
         ),
         migrations.AddField(
             model_name="crawlpolicy",

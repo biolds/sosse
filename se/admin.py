@@ -1239,14 +1239,20 @@ class WebhookForm(forms.ModelForm):
     # Force use a regular CharField for the URL field
     url = forms.CharField()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get("instance")
+        model_field = self._meta.model._meta.get_field("tags")
+        self.fields["tags"] = TagField(model=Webhook, instance=instance, help_text=model_field.help_text)
+
     class Meta:
         model = Webhook
         fields = "__all__"
 
 
 @admin.register(Webhook)
-class WebhookAdmin(admin.ModelAdmin):
-    list_display = ("name", "enabled", "crawl_policies_count", "url", "trigger_condition")
+class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
+    list_display = ("name", "enabled", "crawl_policies_count", "active_tags", "url", "trigger_condition")
     list_filter = ("enabled",)
     search_fields = ("name", "url", "trigger_condition")
     ordering = ("name",)
@@ -1258,7 +1264,7 @@ class WebhookAdmin(admin.ModelAdmin):
     form = WebhookForm
 
     class Media:
-        js = ("se/admin-webhooks.js",)
+        js = ("se/admin-webhooks.js", "se/tags.js")
 
     def get_fields(self, request, obj=None):
         fields = list(super().get_fields(request, obj))

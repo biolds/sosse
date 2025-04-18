@@ -27,6 +27,7 @@ from .crawl_policy import CrawlPolicy
 from .document import Document, example_doc
 from .domain_setting import DomainSetting
 from .models import WorkerStats
+from .tag import Tag
 from .test_functionals import TEST_SERVER_URL
 from .test_mock import BrowserMock
 from .webhook import Webhook
@@ -55,6 +56,9 @@ class WebhookTest(TransactionTestCase):
             take_screenshots=False,
         )
         self.crawl_policy.webhooks.add(self.webhook)
+        self.tag = Tag.objects.create(name="Test")
+        self.tag_child = Tag.objects.create(name="Test Child", parent=self.tag)
+        self.crawl_policy.tags.add(self.tag_child)
 
     def _check_render(self, doc, expected):
         body = self.webhook._render_template(doc, self.webhook.body_template)
@@ -220,7 +224,20 @@ class WebhookTest(TransactionTestCase):
         self.webhook.content_re = "Content"
         self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
 
-    def test_160_update_document(self):
+    def test_160_trigger_webhook_tag_match(self):
+        self.webhook.tags.add(self.tag)
+        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
+
+    def test_170_trigger_webhook_child_tag_match(self):
+        self.webhook.tags.add(self.tag)
+        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
+
+    def test_180_trigger_webhook_no_tag_match(self):
+        self.crawl_policy.tags.clear()
+        self.webhook.tags.add(self.tag)
+        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 0)
+
+    def test_190_update_document(self):
         self.webhook.updates_doc = True
         self.webhook.body_template = '{"tags": ["New tag"]}'
         self.webhook.url = f"{TEST_SERVER_URL}echo/"
@@ -234,7 +251,7 @@ class WebhookTest(TransactionTestCase):
         self.assertEqual(result["response"], self.webhook.body_template)
         self.assertEqual(doc.tags.first().name, "New tag")
 
-    def test_170_update_document_failure(self):
+    def test_200_update_document_failure(self):
         self.webhook.updates_doc = True
         self.webhook.body_template = '{"tags": null}'
         self.webhook.url = f"{TEST_SERVER_URL}echo/"

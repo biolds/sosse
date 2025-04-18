@@ -107,6 +107,9 @@ class SEAdminSite(admin.AdminSite):
                             raise Exception(f"Model {dj_model['object_name']} not referenced in MODELS_ORDER")
         return app_list
 
+    def app_index(self, request, app_label, extra_context=None):
+        return redirect("admin:index")
+
 
 admin_site = SEAdminSite(name="admin")
 

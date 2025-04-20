@@ -68,11 +68,15 @@ class Link(models.Model):
         unique_together = ("doc_from", "link_no")
 
     def __str__(self):
-        if self.doc_to:
-            url = self.doc_to.url
+        if self.doc_from:
+            src_url = self.doc_from.url
         else:
-            url = self.extern_url
-        return f"{self.doc_from.url} → {url} ({self.link_no})"
+            src_url = "<deleted>"
+        if self.doc_to:
+            dst_url = self.doc_to.url
+        else:
+            dst_url = self.extern_url
+        return f"{src_url} → {dst_url} ({self.link_no})"
 
     def pos_left(self):
         if not self.screen_pos:

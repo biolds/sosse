@@ -116,13 +116,17 @@ function submit_search() {
   window.location.href = `/s/?${params}`;
 }
 
-async function save_tags(url, restUrl = null, admin_ui = false) {
+async function save_tags(_tagsListUrl = null, saveUrl = null) {
   const tags = editing_tags();
   const tagsParam = tags.length
-    ? tags.map((tag) => `tag=${tag}`).join("&")
-    : "tag=";
-  const djangoAdmin = admin_ui ? "&django_admin=1" : "";
-  const tagsListUrl = `${url}?${tagsParam}${djangoAdmin}`;
+    ? "&" + tags.map((tag) => `tag=${tag}`).join("&")
+    : "";
+  const tagsListUrl = `${_tagsListUrl}${tagsParam}`;
+
+  const admin_ui =
+    window.location.pathname.startsWith("/admin/se/") &&
+    !window.location.pathname.startsWith("/admin/se/queue/") &&
+    !window.location.pathname.startsWith("/admin/se/queue_confirm/");
 
   const target = admin_ui
     ? document.evaluate(
@@ -147,11 +151,11 @@ async function save_tags(url, restUrl = null, admin_ui = false) {
     target.innerHTML = "Failed to load tags.";
   }
 
-  if (!admin_ui) {
+  if (saveUrl) {
     const csrfToken = document
       .querySelector('meta[name="csrf-token"]')
       .getAttribute("content");
-    const response = await fetch(restUrl, {
+    const response = await fetch(saveUrl, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

@@ -34,17 +34,23 @@ class TagsListView(TagsView):
             tags = self._get_obj().tags.all()
         return tag in tags
 
+    def _tag_link(self, tag):
+        link = self.request.GET.get("link")
+        if link == "admin":
+            return reverse("admin:se_document_changelist") + f"?tag={tag.id}"
+        elif link == "search":
+            return reverse("search_redirect") + f"?tag={tag.id}"
+        else:
+            raise ValueError("Invalid link type")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        django_admin = self.request.GET.get("django_admin") == "1"
         model_tags = []
         for tag in Tag.objects.order_by("name"):
             if self._is_enabled(tag):
                 model_tags.append(tag)
-
-                if django_admin:
-                    tag.href = reverse("admin:se_document_changelist") + f"?tag={tag.id}"
+                tag.href = self._tag_link(tag)
 
         obj = self._get_obj()
         if obj:
@@ -53,6 +59,8 @@ class TagsListView(TagsView):
         else:
             title = "⭐ Tags"
             obj_pk = 0
+
+        django_admin = self.request.GET.get("django_admin") == "1"
         model = self._get_model()._meta.model_name
         tags_edit_onclick = f"show_tags('/tags/{model}/{obj_pk}?django_admin={int(django_admin)}')"
         return context | {

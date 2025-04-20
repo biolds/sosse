@@ -56,10 +56,10 @@ class TagsView(SosseLoginRequiredMixin, TemplateView):
 
         django_admin = int(self.request.GET.get("django_admin", 0))
         if django_admin:
-            return f"save_tags('{tags_list}', null, true)"
+            return f"save_tags('{tags_list}?link=admin', null)"
 
         save_tag_url = reverse(f"{model._meta.model_name}-detail", kwargs={"pk": self._get_obj().pk})
-        return f"save_tags('{tags_list}', '{save_tag_url}')"
+        return f"save_tags('{tags_list}?link=search', '{save_tag_url}')"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

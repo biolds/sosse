@@ -22,12 +22,12 @@
 |  | ${doc_count}= | Get Element Count | xpath=//table[@id="result_list"]//tr
 
 | *Test Cases* |
-| Default policy - Index only this page
+| Default policy - Index only this URL
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
-|  | Element Should Be Visible | xpath=//b[text()='Index only this page']
+|  | Element Should Be Visible | xpath=//b[text()='Index only this URL']
 |  | Element Should Be Visible | xpath=//b[text()='Index all pages of https://127.0.0.1/']
 |  | Element Should Be Visible | id=id_recursion_depth
 |  | Click Element | xpath=//input[@value='Confirm']
@@ -41,7 +41,7 @@
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
-|  | Element Should Be Visible | xpath=//b[text()='Index only this page']
+|  | Element Should Be Visible | xpath=//b[text()='Index only this URL']
 |  | Element Should Be Visible | xpath=//b[text()='Index all pages of https://127.0.0.1/']
 |  | Element Should Be Visible | id=id_recursion_depth
 |  | Click Element | xpath=//b[text()='Index all pages of https://127.0.0.1/']

@@ -28,9 +28,11 @@ class TagWidget(CheckboxSelectMultiple):
         self.instance = instance
 
     def render(self, name, value, attrs=None, renderer=None):
+        model_name = None
+        tags = []
+
         model_name = self.model._meta.model_name
 
-        tags = []
         if value:
             for tag_id in value:
                 if not tag_id:
@@ -46,6 +48,7 @@ class TagWidget(CheckboxSelectMultiple):
         else:
             title = "⭐ Tags"
             obj_id = 0
+        tags_url = f"'/admin_tags/{model_name}/{obj_id}/'"
         return render_to_string(
             "se/components/tags_list.html",
             {
@@ -53,7 +56,7 @@ class TagWidget(CheckboxSelectMultiple):
                 "model_tags_pks": ",".join([str(tag.pk) for tag in tags]),
                 "django_admin": True,
                 "tags_edit_title": title,
-                "tags_edit_onclick": f"show_tags('/admin_tags/{model_name}/{obj_id}/')",
+                "tags_edit_onclick": f"show_tags({tags_url})",
             },
         )
 

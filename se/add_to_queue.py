@@ -26,6 +26,7 @@ from .crawl_policy import CrawlPolicy
 from .document import Document
 from .domain_setting import DomainSetting
 from .models import WorkerStats
+from .tag_field import TagField
 from .url import sanitize_url, validate_url
 from .utils import human_datetime, plural
 from .views import AdminView
@@ -81,6 +82,7 @@ class AddToQueueConfirmForm(AddToQueueForm):
         choices=[],
         required=False,
     )
+    tags = TagField(Document, None)
     recursion_depth = forms.IntegerField(min_value=0, required=False, help_text="Maximum depth of links to follow")
     show_on_homepage = forms.BooleanField(
         initial=True,
@@ -126,6 +128,7 @@ class AddToQueueConfirmationView(AddToQueueView):
 
         initial = {"urls": "\n".join(urls)}
         choices = []
+        domain = None
         if len(urls) == 1:
             # In case the policy matches the default, we give the possibility to
             # create a new policy for the domain
@@ -135,9 +138,9 @@ class AddToQueueConfirmationView(AddToQueueView):
                     if matching.recursion_depth:
                         default_txt = f"<b>Follow links up to {matching.recursion_depth} level</b> (override below)"
                     else:
-                        default_txt = "<b>Index only this page</b> (or override <i>recursion depth</i> below)"
+                        default_txt = "<b>Index only this URL</b> (or override <i>recursion depth</i> below)"
                 elif matching.recursion == CrawlPolicy.CRAWL_NEVER:
-                    default_txt = "<b>Index only this page</b>"
+                    default_txt = "<b>Index only this URL</b>"
 
                 default_txt += ' using the policy <a href="{}">{}</a>'
                 default_txt = format_html(
@@ -168,6 +171,7 @@ class AddToQueueConfirmationView(AddToQueueView):
             "CrawlPolicy": CrawlPolicy,
             "DomainSetting": DomainSetting,
             "form": form,
+            "domain": domain,
         }
 
         if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT:
@@ -185,10 +189,9 @@ class AddToQueueConfirmationView(AddToQueueView):
     def _domain_name(self, url):
         return re.match(r"https?://([^/]+)", url).group(1)
 
-    def _create_domain_policy(self, url):
+    def _create_domain_policy(self, url, tags):
         domain = self._domain_name(url)
         policy = CrawlPolicy.create_default()
-        tags = list(policy.tags.all())
         webhooks = list(policy.webhooks.all())
         policy.id = None
         policy.url_regex = f"^https?://{re.escape(domain)}/"
@@ -200,12 +203,16 @@ class AddToQueueConfirmationView(AddToQueueView):
     def form_valid(self, form):
         if self.request.POST.get("action") == "Confirm":
             if self.request.POST.get("crawl_policy_choice") == "domain":
-                self._create_domain_policy(form.cleaned_data["urls"][0])
+                self._create_domain_policy(form.cleaned_data["urls"][0], form.cleaned_data["tags"])
+
             urls = form.cleaned_data["urls"]
             for url in urls:
                 show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
                 crawl_recurse = form.cleaned_data.get("recursion_depth")
-                Document.manual_queue(url, show_on_homepage, crawl_recurse)
+                doc = Document.manual_queue(url, show_on_homepage, crawl_recurse)
+                if self.request.POST.get("crawl_policy_choice") == "default":
+                    doc.tags.set(form.cleaned_data["tags"])
+
             url_count = len(urls)
             if url_count > 1:
                 msg = f"{url_count} URLs were queued."

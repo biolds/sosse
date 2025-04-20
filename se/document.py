@@ -559,6 +559,7 @@ class Document(models.Model):
         doc.manual_crawl = True
         doc.show_on_homepage = show_on_homepage
         doc.save()
+        return doc
 
     @staticmethod
     def queue(url, parent_policy, parent):

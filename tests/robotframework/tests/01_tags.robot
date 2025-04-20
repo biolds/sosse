@@ -59,6 +59,19 @@
 |  | Element Should Contain | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][1] | AI
 |  | Element Should Be Visible | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][2]
 |  | Element Should Contain | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][2] | General Usage
+# Make sure editing again still works
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]/span | General Usage
+|  | Wait Until Element Contains | xpath=//div[@id='tags_list']/div/div[1]/span//span[@class='tag-counter'] | 1
+|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[2]/span | AI
+|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[2]/span//span[@class='tag-counter'] | 1
+|  | Click Element | id=tags_submit
+|  | Wait Until Element Is Not Visible | id=tags
+|  | Element Should Be Visible | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][1]
+|  | Element Should Contain | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][1] | AI
+|  | Element Should Be Visible | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][2]
+|  | Element Should Contain | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][2] | General Usage
 |  | Reload Page
 |  | Click Element | id=fold_button
 |  | Element Should Be Visible | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][1]
@@ -172,6 +185,14 @@
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | xpath=//button[contains(., 'Ok')]
 |  | Wait Until Element Is Not Visible | id=tags
+# Make sure editing again still works
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))]
+|  | Should Be Equal As Integers | ${tags_count} | 3
+|  | Click Element | xpath=//button[contains(., 'Ok')]
+|  | Wait Until Element Is Not Visible | id=tags
+# Check the updated tags on the admin change page
 |  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 3
 |  | Click Element | xpath=//input[@value='Save and continue editing']
@@ -251,7 +272,22 @@
 |  | Click Link | http://example.com/.*
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
+|  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))]
+|  | Should Be Equal As Integers | ${tags_count} | 1
 |  | Click Element | xpath=//div[@id='tags_list']//span[@class='tag' and contains(., 'General Usage')]
+|  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))]
+|  | Should Be Equal As Integers | ${tags_count} | 2
+|  | Click Element | id=tags_submit
+|  | Wait Until Element Is Not Visible | id=tags
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1]
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1] | AI
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][2]
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][2] | General Usage
+# Make sure editing again still works
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))]
+|  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | id=tags_submit
 |  | Wait Until Element Is Not Visible | id=tags
 |  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1]

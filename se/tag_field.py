@@ -44,11 +44,9 @@ class TagWidget(CheckboxSelectMultiple):
 
         if self.instance and self.instance.pk:
             title = f"⭐ Tags of {self.instance.get_title_label()}"
-            obj_id = self.instance.pk
         else:
             title = "⭐ Tags"
-            obj_id = 0
-        tags_url = f"'/admin_tags/{model_name}/{obj_id}/'"
+        tags_url = f"'/admin_tags/{model_name}/0/'"
         return render_to_string(
             "se/components/tags_list.html",
             {

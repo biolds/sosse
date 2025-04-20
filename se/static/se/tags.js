@@ -34,22 +34,37 @@ async function show_tags(tags_url = null) {
     tagsContent.innerHTML = "Failed to load tags.";
   }
 
-  // Set a bold font-weight on all tags that are active
-  const activeTags = document.getElementById("editing_tags");
-  activeTags.childNodes.forEach((activeTag) => {
-    if (
-      activeTag.nodeName === "SPAN" &&
-      activeTag.className.includes("tag") &&
-      !activeTag.className.includes("tag-action")
-    ) {
+  // Display tags that are currently selected in the edit bar
+  if (tags_url) {
+    const django_admin = window.location.pathname.startsWith("/admin/se/");
+    const selectedTags = django_admin
+      ? document.querySelectorAll(".field-tags .tag.tag-select")
+      : document.querySelectorAll("#document_tags .tag.tag-select");
+    selectedTags.forEach((tag) => {
+      const tagId = tag.id.split("-")[2];
+      const tagElement = document.getElementById(`tag-${tagId}`);
+      tagElement.style.fontWeight = "bold";
+      const activeTag = document.getElementById(`tag-edit-${tagId}`);
       activeTag.style.fontWeight = "bold";
-      if (activeTag.style.display !== "none") {
-        const tagId = activeTag.id.split("-")[2];
-        const tag = document.getElementById(`tag-${tagId}`);
-        tag.style.fontWeight = "bold";
+      activeTag.style.display = "inline-block";
+    });
+  } else {
+    // Set a bold font-weight on all tags that are active
+    const activeTags = document.getElementById("editing_tags");
+    activeTags.childNodes.forEach((activeTag) => {
+      if (
+        activeTag.nodeName === "SPAN" &&
+        activeTag.className.includes("tag") &&
+        !activeTag.className.includes("tag-action")
+      ) {
+        if (activeTag.style.display !== "none") {
+          const tagId = activeTag.id.split("-")[2];
+          const tag = document.getElementById(`tag-${tagId}`);
+          tag.style.fontWeight = "bold";
+        }
       }
-    }
-  });
+    });
+  }
 
   const counts_url = "/api/tag/tree_doc_counts/";
   const response = await fetch(counts_url);

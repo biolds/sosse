@@ -19,7 +19,7 @@
       Selected:
       <div id="editing_tags">
         {% for tag in tags %}
-          {% include "se/components/tag.html" with suffix="-edit" on_delete=tag.js_add_tag_onclick classes="tag-select" %}
+          {% include "se/components/tag.html" with suffix="-edit" on_delete=tag.js_add_tag_onclick classes="tag-select" bold=True %}
         {% endfor %}
         {% include "se/components/tag_action.html" with id="clear_selected_tags" text="⨉ Clear" onclick="clear_tags()" %}
       </div>

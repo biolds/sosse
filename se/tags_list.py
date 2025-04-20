@@ -68,7 +68,7 @@ class TagsListView(AdminTagsView):
         django_admin = self.request.GET.get("django_admin") == "1"
         model = self._get_model()._meta.model_name
         if django_admin:
-            tags_edit_onclick = f"show_tags('/admin_tags/{model}/{obj_pk}/')"
+            tags_edit_onclick = f"show_tags('/admin_tags/{model}/0/')"
         else:
             tags_edit_onclick = f"show_tags('/archive_tags/{obj_pk}/')"
         return context | {

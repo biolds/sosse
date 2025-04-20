@@ -30,11 +30,33 @@
 |  | Element Should Be Visible | xpath=//b[text()='Index only this URL']
 |  | Element Should Be Visible | xpath=//b[text()='Index all pages of https://127.0.0.1/']
 |  | Element Should Be Visible | id=id_recursion_depth
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]/span | General Usage
+|  | Click Element | xpath=//div[@id='tags_list']/div/div[1]/span
+|  | Click Element | id=tags_submit
+|  | Wait Until Element Is Not Visible | id=tags
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
+# Check tags can be edited again
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))]
+|  | Should Be Equal As Integers | ${tags_count} | 1
+|  | Element Should Contain | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))] | General Usage
+|  | Click Element | id=tags_submit
+|  | Wait Until Element Is Not Visible | id=tags
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
 |  | Click Element | xpath=//input[@value='Confirm']
 |  | SOSSE Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Wait For Queue | 1
+|  | SOSSE Go To | http://127.0.0.1/admin/se/document/
+|  | Click Link | http://127.0.0.1/screenshots/website/index.html
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
 
 | Default policy - Index domain pages
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
@@ -45,6 +67,12 @@
 |  | Element Should Be Visible | xpath=//b[text()='Index all pages of https://127.0.0.1/']
 |  | Element Should Be Visible | id=id_recursion_depth
 |  | Click Element | xpath=//b[text()='Index all pages of https://127.0.0.1/']
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]/span | General Usage
+|  | Click Element | xpath=//div[@id='tags_list']/div/div[1]/span
+|  | Click Element | id=tags_submit
+|  | Wait Until Element Is Not Visible | id=tags
 |  | Click Element | xpath=//input[@value='Confirm']
 |  | SOSSE Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
@@ -56,6 +84,8 @@
 |  | Click Link | ^https?://127\\.0\\.0\\.1/
 |  | ${recursion}= | Get Selected List Label | id=id_recursion
 |  | Should Be Equal | ${recursion} | Crawl all pages
+|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
+|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
 
 # Existing policy
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/

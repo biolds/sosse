@@ -123,11 +123,7 @@ async function save_tags(_tagsListUrl = null, saveUrl = null) {
     : "";
   const tagsListUrl = `${_tagsListUrl}${tagsParam}`;
 
-  const admin_ui =
-    window.location.pathname.startsWith("/admin/se/") &&
-    !window.location.pathname.startsWith("/admin/se/queue/") &&
-    !window.location.pathname.startsWith("/admin/se/queue_confirm/");
-
+  const admin_ui = window.location.pathname.startsWith("/admin/se/");
   const target = admin_ui
     ? document.evaluate(
         "//div[@class='form-row field-tags']/div/div",

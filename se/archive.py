@@ -149,7 +149,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             "settings": settings,
             "online_status": online_status(self.request),
             "tags_edit_title": f"⭐ Tags of {self.doc.get_title_label()}",
-            "tags_edit_onclick": f"show_tags('/tags/document/{self.doc.id}')",
+            "tags_edit_onclick": f"show_tags('/archive_tags/{self.doc.id}/')",
             "model_tags": model_tags,
         }
 

@@ -48,7 +48,7 @@ from se.rest_api import router
 from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView
-from se.tags import SearchTagsView, TagsView
+from se.tags import AdminTagsView, ArchiveTagsView, SearchTagsView
 from se.tags_list import TagsListView
 from se.words import WordsView
 from se.www import WWWView
@@ -78,7 +78,8 @@ urlpatterns = [
     re_path(r"^archive/.*", ArchiveRedirectView.as_view(), name="archive"),
     re_path(r"^download/.*", DownloadView.as_view(), name=DownloadView.view_name),
     path("search_tags/", SearchTagsView.as_view(), name="search_tags"),
-    re_path(r"^tags/(?P<model>[a-z]+)/(?P<pk>[0-9]+)/", TagsView.as_view(), name="tags"),
+    re_path(r"^admin_tags/(?P<model>[a-z]+)/(?P<pk>[0-9]+)/", AdminTagsView.as_view(), name="admin_tags"),
+    re_path(r"^archive_tags/(?P<pk>[0-9]+)/", ArchiveTagsView.as_view(), name="archive_tags"),
     re_path(r"^tags_list/(?P<model>[a-z]+)/(?P<pk>[0-9]+)/", TagsListView.as_view(), name="tags_list"),
     re_path(
         r"^html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$",

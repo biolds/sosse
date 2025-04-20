@@ -73,8 +73,8 @@ class ViewsTestMixin:
                 response.render()
         except PermissionDenied:
             response = HttpResponse(content="Permission denied", status=403)
-        except Exception as e:
-            raise Exception(f"Failed on {url}: {e.msg}")
+        except Exception:
+            raise Exception(f"Failed on {url}")
 
         self.assertEqual(
             response.status_code,

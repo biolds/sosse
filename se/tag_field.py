@@ -53,7 +53,7 @@ class TagWidget(CheckboxSelectMultiple):
                 "model_tags_pks": ",".join([str(tag.pk) for tag in tags]),
                 "django_admin": True,
                 "tags_edit_title": title,
-                "tags_edit_onclick": f"show_tags('/tags/{model_name}/{obj_id}?django_admin=1')",
+                "tags_edit_onclick": f"show_tags('/admin_tags/{model_name}/{obj_id}/')",
             },
         )
 

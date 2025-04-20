@@ -44,7 +44,8 @@ from .preferences import PreferencesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
-from .tags import SearchTagsView, Tag, TagsView
+from .tag import Tag
+from .tags import AdminTagsView, ArchiveTagsView, SearchTagsView
 from .tags_list import TagsListView
 from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
@@ -106,20 +107,25 @@ class ViewsTest:
                 {"crawl_policy": self.crawl_policy.id, "method": "url"},
             ),
             ("/search_tags/", SearchTagsView, {}),
-            (f"/tags/document/{self.doc.id}/", TagsView, {"model": "document", "pk": self.doc.id}),
-            (f"/tags_list/document/{self.doc.id}/", TagsListView, {"model": "document", "pk": self.doc.id}),
+            (f"/admin_tags/document/{self.doc.id}/", AdminTagsView, {"model": "document", "pk": self.doc.id}),
             (
-                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}",
+                f"/admin_tags/crawlpolicy/{self.crawl_policy.id}/",
+                AdminTagsView,
+                {"model": "crawlpolicy", "pk": self.crawl_policy.id},
+            ),
+            (f"/archive_tags/{self.doc.id}/", ArchiveTagsView, {"pk": self.doc.id}),
+            (
+                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}&link=admin",
                 TagsListView,
                 {"model": "document", "pk": self.doc.id},
             ),
             (
-                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}&django_admin=1",
+                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}&link=search",
                 TagsListView,
                 {"model": "document", "pk": self.doc.id},
             ),
             (
-                f"/tags_list/crawlpolicy/{self.crawl_policy.id}/?tag={self.tag.id}&django_admin=1",
+                f"/tags_list/crawlpolicy/{self.crawl_policy.id}/?tag={self.tag.id}&link=admin",
                 TagsListView,
                 {"model": "crawlpolicy", "pk": self.crawl_policy.id},
             ),
@@ -163,7 +169,7 @@ class ViewsTest:
     def test_new_urls(self):
         from sosse.urls import urlpatterns
 
-        self.assertEqual(len(urlpatterns), 27)
+        self.assertEqual(len(urlpatterns), 28)
 
     def test_archive_redirect(self):
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)

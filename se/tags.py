@@ -24,7 +24,7 @@ from .search_form import SearchForm
 from .tag import Tag
 
 
-class TagsView(SosseLoginRequiredMixin, TemplateView):
+class AdminTagsView(SosseLoginRequiredMixin, TemplateView):
     template_name = "se/tags.html"
 
     def _get_model(self):
@@ -49,17 +49,8 @@ class TagsView(SosseLoginRequiredMixin, TemplateView):
 
     def _submit_onclick(self):
         model = self._get_model()
-        if self._get_obj() is None:
-            tags_list = reverse("tags_list", kwargs={"model": model._meta.model_name, "pk": 0})
-        else:
-            tags_list = reverse("tags_list", kwargs={"model": model._meta.model_name, "pk": self._get_obj().pk})
-
-        django_admin = int(self.request.GET.get("django_admin", 0))
-        if django_admin:
-            return f"save_tags('{tags_list}?link=admin', null)"
-
-        save_tag_url = reverse(f"{model._meta.model_name}-detail", kwargs={"pk": self._get_obj().pk})
-        return f"save_tags('{tags_list}?link=search', '{save_tag_url}')"
+        tags_list = reverse("tags_list", kwargs={"model": model._meta.model_name, "pk": 0})
+        return f"save_tags('{tags_list}?link=admin&django_admin=1', null)"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -91,7 +82,22 @@ class TagsView(SosseLoginRequiredMixin, TemplateView):
         }
 
 
-class SearchTagsView(TagsView):
+class ArchiveTagsView(AdminTagsView):
+    def _get_model(self):
+        return Document
+
+    def _submit_onclick(self):
+        model = self._get_model()
+        if self._get_obj() is None:
+            tags_list = reverse("tags_list", kwargs={"model": model._meta.model_name, "pk": 0})
+        else:
+            tags_list = reverse("tags_list", kwargs={"model": model._meta.model_name, "pk": self._get_obj().pk})
+
+        save_tag_url = reverse(f"{model._meta.model_name}-detail", kwargs={"pk": self._get_obj().pk})
+        return f"save_tags('{tags_list}?link=search', '{save_tag_url}')"
+
+
+class SearchTagsView(AdminTagsView):
     def dispatch(self, request, *args, **kwargs):
         self.form = SearchForm(self.request.GET)
         return super().dispatch(request, *args, **kwargs)

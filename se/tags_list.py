@@ -16,10 +16,10 @@
 from django.shortcuts import reverse
 
 from .tag import Tag
-from .tags import TagsView
+from .tags import AdminTagsView
 
 
-class TagsListView(TagsView):
+class TagsListView(AdminTagsView):
     template_name = "se/components/tags_list.html"
 
     def _is_enabled(self, tag):
@@ -31,13 +31,18 @@ class TagsListView(TagsView):
                 tags_pk = query_params.getlist("tag")
                 tags = Tag.objects.filter(pk__in=tags_pk)
         else:
-            tags = self._get_obj().tags.all()
+            obj = self._get_obj()
+            if obj:
+                tags = self.tags.all()
+            else:
+                return False
         return tag in tags
 
     def _tag_link(self, tag):
         link = self.request.GET.get("link")
         if link == "admin":
-            return reverse("admin:se_document_changelist") + f"?tag={tag.id}"
+            model = self._get_model()._meta.model_name
+            return reverse(f"admin:se_{model}_changelist") + f"?tag={tag.id}"
         elif link == "search":
             return reverse("search_redirect") + f"?tag={tag.id}"
         else:
@@ -62,7 +67,10 @@ class TagsListView(TagsView):
 
         django_admin = self.request.GET.get("django_admin") == "1"
         model = self._get_model()._meta.model_name
-        tags_edit_onclick = f"show_tags('/tags/{model}/{obj_pk}?django_admin={int(django_admin)}')"
+        if django_admin:
+            tags_edit_onclick = f"show_tags('/admin_tags/{model}/{obj_pk}/')"
+        else:
+            tags_edit_onclick = f"show_tags('/archive_tags/{obj_pk}/')"
         return context | {
             "django_admin": django_admin,
             "model_tags": model_tags,

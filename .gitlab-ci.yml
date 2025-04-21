@@ -7,6 +7,9 @@ stages:
   - schedule
   - schedule-test
 
+default:
+  retry: 1
+
 before_script:
   - export COVERAGE_FILE=/tmp/coverage-$CI_NODE_INDEX-$CI_PIPELINE_ID
   - echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data /opt/sosse-venv/bin/coverage run -a --source se,sosse $PWD/sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse

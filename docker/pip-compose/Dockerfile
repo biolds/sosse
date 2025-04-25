@@ -1,6 +1,8 @@
 FROM biolds/sosse:pip-base
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
+RUN apt-get update
+RUN apt-get install -y postgresql-client # for pg_isready
 RUN virtualenv /venv
 RUN /venv/bin/pip install sosse uwsgi && /venv/bin/pip cache purge
 RUN mkdir -p /etc/sosse/ /etc/sosse_src/ /var/log/sosse /var/log/uwsgi

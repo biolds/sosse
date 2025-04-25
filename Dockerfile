@@ -9,6 +9,7 @@ ADD MANIFEST.in .
 ADD Makefile .
 ADD package.json .
 ADD swagger-initializer.js .
+ADD README.md .
 ADD se/ se/
 ADD sosse/ sosse/
 RUN apt-get update && apt-get install -y postgresql && apt-get clean

@@ -9,7 +9,7 @@ readme = "README.md"
 description = "Selenium Open Source Search Engine"
 requires-python = ">=3.9"
 keywords = ["search engine", "crawler"]
-license = { text = "GNU Affero General Public License v3" }
+license = "AGPL-3.0-only"
 classifiers = ["Framework :: Django", "Programming Language :: Python :: 3"]
 
 dynamic = ["version", "dependencies"]

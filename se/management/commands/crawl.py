@@ -141,7 +141,7 @@ class Command(BaseCommand):
 
                     if BrowserChromium.inited or BrowserFirefox.inited:
                         next_doc = Command.next_doc()
-                        if next_doc is not None and next_doc > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
+                        if next_doc is not None or next_doc > settings.SOSSE_BROWSER_IDLE_EXIT_TIME:
                             BrowserChromium.destroy()
                             BrowserFirefox.destroy()
 

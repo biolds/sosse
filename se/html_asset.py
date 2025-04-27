@@ -156,29 +156,6 @@ class HTMLAsset(models.Model):
 
         return assets
 
-    def add_refs_from_cache(self):
-        from .html_snapshot import css_parser
-
-        self.add_file_ref(self.filename)
-
-        if "." not in self.filename:
-            return
-        _, extension = self.filename.rsplit(".", 1)
-
-        if extension not in ("css", "htm", "html"):
-            return
-
-        filename = settings.SOSSE_HTML_SNAPSHOT_DIR + self.filename
-        with open(filename, "rb") as f:
-            content = f.read()
-
-        if extension == "css":
-            assets = css_parser().css_extract_assets(content, False)
-        else:
-            assets = HTMLAsset.html_extract_assets(content)
-        for asset in assets:
-            HTMLAsset.remove_file_ref(asset)
-
     def update_from_page(self, page):
         download_date = http_date_parser(page.headers.get("Date")) or timezone.now()
         last_modified = http_date_parser(page.headers.get("Last-Modified"))

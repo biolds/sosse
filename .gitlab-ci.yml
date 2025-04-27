@@ -551,6 +551,7 @@ rebuild_unit_tests:
     - until curl --silent --fail http://127.0.0.1/ > /dev/null; do sleep 1; done
     - 'sed -e "s#python3#/venv/bin/python3#" -i ./tests/test_app.sh'
     - mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
+    - chown www-data:www-data -R /var/lib/sosse/screenshots
     - make _rf_functional_$TEST_SUITE || failed=1
     - mv /var/log/sosse log
     - test -z "$failed"

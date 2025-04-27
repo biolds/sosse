@@ -15,5 +15,5 @@ chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse
 /venv/bin/sosse-admin default_admin
 /venv/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log &
 /etc/init.d/nginx start
-/venv/bin/sosse-admin crawl &
+sudo --preserve-env -u www-data /venv/bin/sosse-admin crawl &
 tail -F /var/log/sosse/crawler.log

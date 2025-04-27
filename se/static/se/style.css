@@ -12,7 +12,7 @@ body.light-mode {
   --shadow: #e3e5f6;
 }
 body.dark-mode {
-  --bg: #000;
+  --bg: #101010;
   --bg-rgb: 0, 0, 0;
   --text: #fff;
   --text-rgb: 255, 255, 255;
@@ -22,7 +22,7 @@ body.dark-mode {
   --input-border-br: #1d3e51;
   --input-border-tl: #253741;
   --input-focus: #545eff;
-  --shadow: #272b58;
+  --shadow: #1e152e;
 }
 body {
   --animation-duration: 150ms;

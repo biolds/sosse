@@ -125,7 +125,7 @@ class Command(BaseCommand):
                 raise Exception("Failed")
         elif options["component"] == "se":
             se_file = os.path.join(settings.BASE_DIR, SE_FILE)
-            with open(se_file) as f:
+            with open(se_file, encoding="utf-8") as f:
                 search_engines = json.load(f)
             search_engines = [entry["fields"] for entry in search_engines]
             SE_STR = "**Search Engine**"

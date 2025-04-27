@@ -439,7 +439,7 @@ class Conf:
         # Read the real conf
         conf = ConfigParser()
         try:
-            conf.read_file(open(CONF_FILE), CONF_FILE)
+            conf.read_file(open(CONF_FILE, encoding="utf-8"), CONF_FILE)
         except FileNotFoundError:
             if "default_conf" not in sys.argv:
                 sys.stderr.write(f"WARNING: Configuration file {CONF_FILE} is missing\n")

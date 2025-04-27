@@ -152,7 +152,7 @@ class HTMLAsset(models.Model):
 
                     if url.endswith(".css"):
                         filename = settings.SOSSE_HTML_SNAPSHOT_DIR + filename
-                        assets |= css_parser().css_extract_assets(open(filename).read(), False)
+                        assets |= css_parser().css_extract_assets(open(filename, encoding="utf-8").read(), False)
 
         return assets
 

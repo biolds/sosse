@@ -284,7 +284,7 @@ class SearchEngine(models.Model):
 
     @classmethod
     def parse_xml_file(cls, f):
-        with open(f) as fd:
+        with open(f, encoding="utf-8") as fd:
             buf = fd.read()
 
         cls.parse_odf(buf)

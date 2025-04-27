@@ -33,7 +33,7 @@ class Command(BaseCommand):
         count = 0
 
         se_file = os.path.join(settings.BASE_DIR, SE_FILE)
-        for se in json.load(open(se_file)):
+        for se in json.load(open(se_file, encoding="utf-8")):
             if se["model"] != "se.searchengine":
                 raise ValueError(f"Invalid model {se['model']} in {se_file}")
             se = se["fields"]

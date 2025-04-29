@@ -795,3 +795,22 @@ class CrawlerTest(TransactionTestCase):
 
         self.assertEqual(feedparser_parse.call_count, 2)
         self.assertFalse(Document.objects.wo_content().get().manual_crawl)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_280_recrawl_keeps_tags(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.tags.create(name="tag1")
+
+        self.assertEqual(Document.objects.count(), 0)
+        self._crawl()
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.w_content().get()
+        self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1"])
+
+        doc.tags.create(name="tag2")
+        self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1", "tag2"])
+
+        self._crawl()
+        doc = Document.objects.w_content().get()
+        self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1", "tag2"])

@@ -238,6 +238,7 @@ doc:
     - doc_gen
     - functional_docs_chromium
     #- functional_docs_firefox -> commented because only the artifacts (screenshot) from Chromium are needed
+    - functional_tests_chromium
     - functional_guides_chromium
   script:
     - make _build_doc

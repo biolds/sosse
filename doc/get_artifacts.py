@@ -22,7 +22,7 @@ import gitlab
 import requests
 
 PROJECT_ID = 41220530
-jobs_name = ["doc_gen", "functional_tests_chromium", "functional_guides_chromium"]
+jobs_name = ["doc_gen", "functional_docs_chromium", "functional_tests_chromium", "functional_guides_chromium"]
 
 gl = gitlab.Gitlab()
 project = gl.projects.get(PROJECT_ID)

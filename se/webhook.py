@@ -160,7 +160,7 @@ class Webhook(models.Model):
         # During crawling `doc` is not yet saved, its content is not yet in the database
         # so we have to check if the webhook should be triggered on the current document
         # so we iterate on all webhooks (instead of filtering them with the regexp, PG side)
-        for webhook in webhooks.filter(enabled=True):
+        for webhook in webhooks.filter(enabled=True).order_by("name"):
             if webhook.tags.exists():
                 has_all_tags = True
                 for tag in webhook.tags.all():

@@ -41,6 +41,11 @@ When enabled, the 'Overwrite Document's Fields with Webhook Response' option all
 specific fields in the indexed document. If the webhook returns data, those corresponding fields will be overwritten
 with the new values.
 
+.. note::
+   Webhooks are executed in alphabetical order. This means simple workflows can be created by prefixing the webhook names
+   with numbers (e.g., 1-Webhook, 2-Webhook, etc.) to ensure the desired execution order. Then, the webhook response can be
+   used to update the document with tags or other metadata to control the execution of the next webhook.
+
 Webhook URL
 -----------
 

@@ -814,3 +814,32 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
         doc = Document.objects.w_content().get()
         self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1", "tag2"])
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("se.document.now")
+    def test_290_recrawl_new_pages_first(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        now.side_effect = lambda: self.fake_now
+
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_NONE
+        self.crawl_policy.save()
+
+        already_crawled = Document.objects.create(
+            url="http://127.0.0.1/page.html",
+            content="done",
+            crawl_last=self.fake_yesterday,
+            crawl_next=self.fake_yesterday,
+        )
+
+        WorkerStats.get_worker(0)
+        Document.queue("http://127.0.0.1/", None, None)
+        Document.crawl(0)
+
+        self.assertEqual(Document.objects.count(), 2)
+
+        doc = Document.objects.w_content().get(url="http://127.0.0.1/")
+        self.assertEqual(doc.crawl_last, self.fake_now)
+
+        already_crawled.refresh_from_db()
+        self.assertEqual(already_crawled.crawl_last, self.fake_yesterday)
+        self.assertEqual(already_crawled.crawl_next, self.fake_yesterday)

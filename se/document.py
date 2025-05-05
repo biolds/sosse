@@ -757,7 +757,7 @@ class Document(models.Model):
                     worker_no__isnull=True,
                 )
                 .order_by(
-                    "crawl_last",  # to prioritize documents with no crawl_last
+                    "-crawl_last",  # to prioritize documents with no crawl_last
                     "crawl_next",
                     "id",
                 )

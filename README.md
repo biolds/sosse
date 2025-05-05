@@ -62,7 +62,7 @@ SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](htt
 To quickly try the latest version with Docker:
 
 ```
-docker run -p 8005:80 biolds/sosse:latest
+docker run -p 8005:80 biolds/sosse:stable
 ```
 
 Then, open [http://127.0.0.1:8005/](http://127.0.0.1:8005/) and log in with the username `admin` and password `admin`.

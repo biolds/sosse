@@ -55,7 +55,7 @@ ul.ul_stripe li:nth-of-type(2n + 1) {
   border-color: var(--input-bg);
   margin: 0px 0px 25px 0px;
   padding: 8px;
-  box-shadow: 0px 5px 5px 0px var(--shadow);
+  box-shadow: 0px 2px 5px 0px var(--shadow);
 }
 #logo img {
   vertical-align: middle;
@@ -388,7 +388,7 @@ div.app-auth > table td {
   right: 10%;
   background-color: var(--bg);
   z-index: 1000;
-  box-shadow: 10px 10px 10px rgba(var(--text-rgb), 0.2);
+  box-shadow: 5px 5px 5px rgba(var(--text-rgb), 0.2);
   overflow-y: hidden;
   transform: translateY(10px);
 }
@@ -402,7 +402,7 @@ div.app-auth > table td {
   100% {
     opacity: 1;
     transform: translateY(0);
-    box-shadow: 10px 10px 10px rgba(var(--text-rgb), 0.2);
+    box-shadow: 5px 5px 5px rgba(var(--text-rgb), 0.2);
   }
 }
 
@@ -410,7 +410,7 @@ div.app-auth > table td {
   0% {
     opacity: 1;
     transform: translateY(0);
-    box-shadow: 10px 10px 10px rgba(var(--text-rgb), 0.2);
+    box-shadow: 5px 5px 5px rgba(var(--text-rgb), 0.2);
   }
   100% {
     opacity: 0;

@@ -237,6 +237,14 @@ class DocumentSerializer(serializers.ModelSerializer):
         slug_field="name",
     )
 
+    tags_str = serializers.SerializerMethodField()
+
+    def get_tags_str(self, obj):
+        if obj.id:
+            # Accessing obj.tags thru many-to-many relation requires the object to exist
+            return ", ".join([tag.name for tag in obj.tags.order_by("name")])
+        return ""
+
     def user_doc_update(self, ctx_msg):
         try:
             self.is_valid(raise_exception=True)

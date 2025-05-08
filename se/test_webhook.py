@@ -80,6 +80,11 @@ class WebhookTest(TransactionTestCase):
         self.webhook.body_template = '{"title & url": "$title - $url"}'
         self._check_render(self.document, {"title & url": "Example Title - https://example.com/"})
 
+    def test_045_render_tags(self):
+        self.document.tags.add(self.tag, self.tag_child)
+        self.webhook.body_template = '{"tags_str": "$tags_str"}'
+        self._check_render(self.document, {"tags_str": "Test, Test Child"})
+
     def test_050_render_recursive(self):
         self.webhook.body_template = '{"parent": {"title": "$title", "content": "$content"}}'
         self._check_render(self.document, {"parent": {"title": "Example Title", "content": "Example"}})

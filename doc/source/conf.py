@@ -55,3 +55,6 @@ html_static_path = ["_static"]
 html_logo = "../../se/static/se/logo.svg"
 html_favicon = "../../se/static/se/logo.svg"
 html_css_files = ["style.css"]
+html_context = {
+    "uma_script": '<script defer src="https://uma.sosse.io/script.js" data-website-id="7650cdb0-7390-41fd-a023-2f9d5c480b6e"></script>'
+}

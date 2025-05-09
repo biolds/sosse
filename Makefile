@@ -45,6 +45,8 @@ _build_doc:
 	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
 	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
 	. /opt/sosse-doc/bin/activate ; make -C doc linkcheck html SPHINXOPTS="-W"
+	. /opt/sosse-doc/bin/activate ; make -C doc html SPHINXOPTS="-W"
+	cd doc ; ./build_check.sh ; cd -
 	jq . < doc/code_blocks.json > /tmp/code_blocks.json
 	mv /tmp/code_blocks.json doc/code_blocks.json
 

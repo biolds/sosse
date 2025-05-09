@@ -1,0 +1,22 @@
+{% extends "!base.html" %}
+
+{%- block site_meta -%}
+  {{ super() }}
+  {{ uma_script }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    // Outbound link tracking
+    const baseName = 'Out';
+    document.querySelectorAll('a').forEach(a => {
+      if (a.host !== window.location.host && !a.getAttribute('data-umami-event')) {
+        let host = a.host;
+        let eventName = `${baseName} - ${host}`;
+        if (eventName.length > 50) {
+          eventName = eventName.substring(0, 50);
+        }
+        a.setAttribute('data-umami-event', eventName);
+        a.setAttribute('data-umami-event-url', a.href);
+      }
+    });
+  </script>
+{%- endblock -%}

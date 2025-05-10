@@ -43,7 +43,7 @@ from se.html import HTMLExcludedView, HTMLView
 from se.login import SELoginView
 from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
-from se.preferences import PreferencesView
+from se.profile import ProfileView
 from se.rest_api import router
 from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
@@ -58,7 +58,7 @@ urlpatterns = [
     path("", SearchView.as_view(), name="search"),
     path("about/", AboutView.as_view(), name="about"),
     path("s/", SearchRedirectView.as_view(), name="search_redirect"),
-    path("prefs/", PreferencesView.as_view()),
+    path("profile/", ProfileView.as_view()),
     path("atom/", AtomView.as_view(), name="atom"),
     path("online_check/", OnlineCheckView.as_view(), name="online_check"),
     path("history/", HistoryView.as_view(), name="history"),

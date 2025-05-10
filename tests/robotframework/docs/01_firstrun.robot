@@ -6,8 +6,8 @@
 | First run checks
 |  | SOSSE Go To | http://127.0.0.1/
 |  | SOSSE Capture Page Screenshot | clear_home.png
-|  | SOSSE Go To | http://127.0.0.1/prefs/
-|  | SOSSE Capture Page Screenshot | clear_prefs.png
+|  | SOSSE Go To | http://127.0.0.1/profile/
+|  | SOSSE Capture Page Screenshot | clear_profile.png
 |  | SOSSE Go To | http://127.0.0.1/history/
 |  | SOSSE Capture Page Screenshot | clear_history.png
 |  | SOSSE Go To | http://127.0.0.1/admin/password_change/

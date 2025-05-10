@@ -19,9 +19,9 @@ from .document import Document
 from .views import UserView
 
 
-class PreferencesView(UserView):
-    template_name = "se/preferences.html"
-    title = "Preferences"
+class ProfileView(UserView):
+    template_name = "se/profile.html"
+    title = "Profile"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

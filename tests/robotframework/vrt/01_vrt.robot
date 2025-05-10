@@ -59,8 +59,8 @@
 |  | Login
 
 | Simple pages
-|  | Go To | http://127.0.0.1/prefs/
-|  | VRT check | Preferences
+|  | Go To | http://127.0.0.1/profile/
+|  | VRT check | Profile
 |  | Go To | http://127.0.0.1/history/
 |  | VRT check | History
 |  | Go To | http://127.0.0.1/admin/password_change/

@@ -1,15 +1,15 @@
-Preferences
+Profile
 ===========
 
-To reach the Preferences user interface, click the |user_menu_button| button, then select ``Preferences``.
+To reach the Profile user interface, click the |user_menu_button| button, then select ``Profile``.
 
 .. |user_menu_button| image:: ../../../tests/robotframework/screenshots/user_menu_button.png
    :class: sosse-inline-screenshot
 
-.. image:: ../../../tests/robotframework/screenshots/preferences.png
+.. image:: ../../../tests/robotframework/screenshots/profile.png
    :class: sosse-screenshot
 
-Preferences are stored in the browser's
+Profile data is stored in the browser's
 `Local storage <https://en.wikipedia.org/wiki/Web_storage#Local_and_session_storage>`_, so they are not shared across
 users, devices, or browsers.
 

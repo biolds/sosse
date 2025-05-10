@@ -40,7 +40,7 @@ from .html import HTMLExcludedView, HTMLView
 from .models import CrawlerStats
 from .online import OnlineCheckView
 from .opensearch import OpensearchView
-from .preferences import PreferencesView
+from .profile import ProfileView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
@@ -89,7 +89,7 @@ class ViewsTest:
         for url, view_cls, params in (
             ("/?q=page", SearchView, {}),
             ("/about/", AboutView, {}),
-            ("/prefs/", PreferencesView, {}),
+            ("/profile/", ProfileView, {}),
             ("/history/", HistoryView, {}),
             ("/?q=page", SearchView, {}),
             ("/s/?q=page", SearchRedirectView, {}),

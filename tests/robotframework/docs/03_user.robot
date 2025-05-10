@@ -30,11 +30,11 @@
 |  | Input Text | id_q | !b cats
 |  | Capture Element Screenshot | id=search_form | shortcut.png
 
-| Preferences
+| Profile
 |  | Click Button | id=user_menu_button
-|  | Click Link | Preferences
+|  | Click Link | Profile
 |  | SOSSE Wait Until Page Contains | Search terms parsing language
-|  | SOSSE Capture Page Screenshot | preferences.png
+|  | SOSSE Capture Page Screenshot | profile.png
 
 | History
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../searchhistory.json | shell=True
@@ -84,7 +84,7 @@
 |  | [Tags] | online_mode
 |  | Run Command | sed | -e | s/^#online_search_redirect.*/online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
-|  | SOSSE Go To | http://127.0.0.1/prefs/
+|  | SOSSE Go To | http://127.0.0.1/profile/
 |  | Hilight | id=online_mode
 |  | SOSSE Capture Page Screenshot | online_mode.png
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
@@ -93,8 +93,7 @@
 
 | Swagger
 |  | [Tags] | swagger
-|  | SOSSE Go To | http://127.0.0.1/
-|  | Click Button | id=user_menu_button
+|  | SOSSE Go To | http://127.0.0.1/admin/
 |  | Click Link | Rest API
 |  | Wait Until Element Is Visible | id=swagger-ui
 |  | Wait Until Element Is Visible | id=operations-api-api_document_list

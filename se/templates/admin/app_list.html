@@ -62,6 +62,14 @@
                 <td></td>
               {% endif %}
             </tr>
+            {% if app.app_label == 'se' and model.name == 'Search Engines' %}
+              <tr>
+                <th scope="row">⚙️
+                  <a href="/swagger/">Rest API</a>
+                </th>
+              </tr>
+            {% endif %}
+
             {% if app.app_label == 'se' and model.name == 'Tags' %}
             {# hack to insert a title #}
             </table>

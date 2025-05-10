@@ -52,4 +52,4 @@ Online Detection
 
 When the :ref:`online_search_redirect option <conf_option_online_search_redirect>` is set, making a search will
 redirect the user to the ``online_search_redirect`` defined search engine when SOSSE is online, or initiate a SOSSE
-search if offline. Searching locally or online can be forced from the :ref:`User preferences <pref_online_mode>`.
+search if offline. Searching locally or online can be forced from the :ref:`User profile <pref_online_mode>`.

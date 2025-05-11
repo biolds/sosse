@@ -10,7 +10,7 @@ SOSSE's documentation!
    :maxdepth: 2
    :caption: 🐾 Contents:
 
-   introduction.md
+   introduction.rst
    install.rst
    administration.rst
    guides.rst

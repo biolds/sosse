@@ -5,6 +5,7 @@ Guides
    :maxdepth: 2
    :caption: Contents:
 
+   crawl_guidelines.rst
    guides/search.rst
    guides/archive.rst
    guides/download.rst

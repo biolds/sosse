@@ -62,10 +62,6 @@ doc_gen:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
 	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
 	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
-	cat README.md | grep -v '^=\+$$' | \
-		sed -e 's/^\(SOSSE 🦦\)$$/# \1/' \
-				-e 's_https://sosse.readthedocs.io/en/stable/\([^.]\+\)\(.html\)\?\(#[a-z]\+\)\?_\1\3_g' \
-		> doc/source/introduction.md
 
 docker_run:
 	docker volume inspect sosse_postgres &>/dev/null || docker volume create sosse_postgres

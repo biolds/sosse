@@ -22,6 +22,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+from html import unescape
+from urllib.parse import quote
 
 project = "SOSSE"
 copyright = "2022-2025, Laurent Defert"
@@ -60,6 +62,25 @@ html_static_path = ["_static"]
 html_logo = "../../se/static/se/logo.svg"
 html_favicon = "../../se/static/se/logo.svg"
 html_css_files = ["style.css"]
+
 html_context = {
-    "uma_script": '<script defer src="https://uma.sosse.io/script.js" data-website-id="7650cdb0-7390-41fd-a023-2f9d5c480b6e"></script>'
+    "uma_script": '<script defer src="https://uma.sosse.io/script.js" data-website-id="7650cdb0-7390-41fd-a023-2f9d5c480b6e"></script>',
+    # Edit the doc button
+    "theme_top_of_page_button": "edit",
+    "github_user": "biolds",
+    "github_repo": "sosse",
+    "github_version": "main",
+    "conf_py_path": "/doc/source/",
+    # Discussion link
+    "discussion_url": "https://github.com/biolds/sosse/discussions",
 }
+
+
+def add_title_quoted(app, pagename, templatename, context, doctree):
+    title = context.get("title", "")
+    title = unescape(title)
+    context["title_quoted"] = quote(title, safe="")
+
+
+def setup(app):
+    app.connect("html-page-context", add_title_quoted)

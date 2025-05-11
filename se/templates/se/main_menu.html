@@ -22,7 +22,8 @@
     </div>
     <button class="menu_button img_button" id="user_menu_button" title="User"></button>
     <div id="user_menu_panel" class="panel">
-        <a href="/profile/" class="links menu_links">Profile</a>
+        <a href="{% url "profile" %}" class="links menu_links">Profile</a>
+        <a href="{% url "resources" %}" class="links menu_links">Resources</a>
         {% if user.is_active %}
             <a href="{% url 'logout' %}" class="links menu_links">Log out</a>
         {% else %}

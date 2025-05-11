@@ -41,6 +41,7 @@ from .models import CrawlerStats
 from .online import OnlineCheckView
 from .opensearch import OpensearchView
 from .profile import ProfileView
+from .resources import ResourcesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
@@ -89,6 +90,7 @@ class ViewsTest:
         for url, view_cls, params in (
             ("/?q=page", SearchView, {}),
             ("/about/", AboutView, {}),
+            ("/resources/", ResourcesView, {}),
             ("/profile/", ProfileView, {}),
             ("/history/", HistoryView, {}),
             ("/?q=page", SearchView, {}),
@@ -169,7 +171,7 @@ class ViewsTest:
     def test_new_urls(self):
         from sosse.urls import urlpatterns
 
-        self.assertEqual(len(urlpatterns), 28)
+        self.assertEqual(len(urlpatterns), 29)
 
     def test_archive_redirect(self):
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)

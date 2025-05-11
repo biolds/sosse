@@ -16,6 +16,8 @@
 |  | SOSSE Capture Page Screenshot | clear_swagger.png
 |  | SOSSE Go To | http://127.0.0.1/about/
 |  | SOSSE Capture Page Screenshot | clear_about.png
+|  | SOSSE Go To | http://127.0.0.1/resources/
+|  | SOSSE Capture Page Screenshot | clear_resources.png
 |  | SOSSE Go To | http://127.0.0.1/admin/
 |  | SOSSE Capture Page Screenshot | clear_admin.png
 |  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/

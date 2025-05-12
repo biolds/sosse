@@ -1256,7 +1256,24 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
     list_filter = ("enabled",)
     search_fields = ("name", "url", "trigger_condition")
     ordering = ("name",)
-    exclude = tuple()
+    fields = (
+        "name",
+        "crawl_policies_link",
+        "enabled",
+        "tags",
+        "trigger_condition",
+        "url",
+        "updates_doc",
+        "body_template",
+        "method",
+        "headers",
+        "username",
+        "password",
+        "mimetype_re",
+        "title_re",
+        "content_re",
+        "webhook_test",
+    )
     readonly_fields = (
         "crawl_policies_link",
         "webhook_test",
@@ -1265,12 +1282,6 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
 
     class Media:
         js = ("se/admin-webhooks.js", "se/tags.js")
-
-    def get_fields(self, request, obj=None):
-        fields = list(super().get_fields(request, obj))
-        fields.remove("crawl_policies_link")
-        fields.insert(1, "crawl_policies_link")
-        return fields
 
     @staticmethod
     @admin.display(description="Crawl Policies")

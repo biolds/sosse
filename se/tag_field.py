@@ -39,7 +39,7 @@ class TagWidget(CheckboxSelectMultiple):
                     # If no tag is selected, the value is an empty string during crawl policy creation
                     continue
                 tag = Tag.objects.get(pk=tag_id)
-                tag.href = reverse(f"admin:se_{model_name}_changelist") + f"?tags={tag_id}"
+                tag.href = reverse("admin:se_tag_change", args=(tag_id,))
                 tags.append(tag)
 
         if self.instance and self.instance.pk:

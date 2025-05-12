@@ -164,8 +164,8 @@
 |  | Should Be Equal As Integers | ${tags_count} | 2
 |  | Click Element | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][1]
 |  | ${loc}= | Get Location
-|  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/document/\\?tags\=[0-9]+
-|  | Page Should Contain | 1 result
+|  | Should Match Regexp | ${loc} | http://127.0.0.1/admin/se/tag/[0-9]+/change/
+|  | Element Should Be Visible | xpath=//h4[contains(., 'General Usage')]
 
 | Admin - Add tag to document
 |  | SOSSE Go To | http://127.0.0.1/

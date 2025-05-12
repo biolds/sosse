@@ -68,7 +68,7 @@
             <h3>Crawl polic{{ crawl_policies|length|pluralize:"y,ies" }}</h3>
             {% if form.fields.crawl_policy_choice.choices %}
                 <p>
-                    {% include "admin/crawl_policy_desc.html" with add_to_queue=True label_tag="label_tag" %}
+                    {% include "admin/crawl_policy_desc.html" with add_to_queue=True label_tag="label_tag" urls=urls %}
                     <span class="label_tag">
                       📝 <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">Edit</a>
                     </span>
@@ -96,7 +96,7 @@
                     {{ urls|length|pluralize:"This URL,These URLs" }} will be crawled with policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a>:
                 </p>
                 <p>
-                    {% include "admin/crawl_policy_desc.html" with add_to_queue=True label_tag="label_tag" %}
+                    {% include "admin/crawl_policy_desc.html" with add_to_queue=True label_tag="label_tag" urls=urls %}
                 </p>
                 <p>
                     <a href="{% url 'admin:se_crawlpolicy_add' %}?url_regex={{ urls|first|urlencode }}">Create a new policy</a>

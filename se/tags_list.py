@@ -41,8 +41,7 @@ class TagsListView(AdminTagsView):
     def _tag_link(self, tag):
         link = self.request.GET.get("link")
         if link == "admin":
-            model = self._get_model()._meta.model_name
-            return reverse(f"admin:se_{model}_changelist") + f"?tag={tag.id}"
+            return reverse("admin:se_tag_change", args=(tag.id,))
         elif link == "search":
             return reverse("search_redirect") + f"?tag={tag.id}"
         else:

@@ -13,7 +13,7 @@
         {% elif crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH %}
             Crawl depending on depth
         {% else %}
-            Only this URL
+            {{ urls|length|pluralize:"Only this URL,Only these URLs" }}
         {% endif %}
     {% else %}
         {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}

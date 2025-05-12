@@ -436,7 +436,7 @@ div.app-auth>table td {
 }
 
 #tags_list {
-  display: grid;
+  flex: 1;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   grid-auto-rows: minmax(30px, auto);
 }
@@ -546,4 +546,5 @@ div.app-auth>table td {
   padding: 10px;
   overflow-y: auto;
   max-height: 90%;
+  height: 100%;
 }

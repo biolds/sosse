@@ -19,9 +19,12 @@
 
 # SOSSE 🦦
 
-SOSSE (Selenium Open Source Search Engine) is a web archiving software, crawler, and search engine. It’s hosted on both
-[GitLab](https://gitlab.com/biolds1/sosse) and [GitHub](https://github.com/biolds/sosse). Feel free to use either platform to
-submit feature requests, bug reports, merge requests, or [start a discussion](https://github.com/biolds/sosse/discussions).
+**Discover SOSSE** — the Selenium Open Source Search Engine built for powerful web archiving, crawling, and search.
+Explore all its features and capabilities on the [official website](https://sosse.io).
+
+Whether you're a developer, researcher, or data enthusiast, SOSSE is ready to support your projects.
+Join the community on [GitHub](https://github.com/biolds/sosse) or [GitLab](https://gitlab.com/biolds1/sosse) to submit feature requests, report bugs, contribute code, or [start a discussion](https://github.com/biolds/sosse/discussions).
+
 
 ## Key Features
 

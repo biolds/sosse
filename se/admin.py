@@ -659,13 +659,15 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
 
             domain_setting = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
             domain = format_html(
-                '🕸&nbsp<a href="{}">Domain</a>',
+                '🕸&nbsp<a href="{}">Domain {}</a>',
                 reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+                domain_setting.domain,
             )
 
             cookies = format_html(
-                '🍪&nbsp<a href="{}">Cookies</a>',
+                '🍪&nbsp<a href="{}">Cookies ({})</a>',
                 reverse("admin:se_cookie_changelist") + "?q=" + quote_plus(obj.url),
+                Cookie.objects.filter(domain=domain_setting.domain).count(),
             )
 
             source = obj.get_source_link()
@@ -1109,15 +1111,19 @@ class DomainSettingAdmin(admin.ModelAdmin):
         "robots_disallow",
     )
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs, labels={"ignore_robots": "🤖 Ignore robots.txt"})
+        return form
+
     def has_add_permission(self, request, obj=None):
         return False
 
     @staticmethod
     def documents(obj):
         params = urlencode({"q": f"^https?://{obj.domain}/"})
+        count = Document.objects.wo_content().filter(url__regex=f"^https?://{obj.domain}/").count()
         return format_html(
-            '<a href="{}">Matching 🔤 Documents</a>',
-            reverse("admin:se_document_changelist") + "?" + params,
+            '<a href="{}">Matching 🔤 Documents ({})</a>', reverse("admin:se_document_changelist") + "?" + params, count
         )
 
 
@@ -1183,9 +1189,9 @@ class TagForm(BaseTagForm):
 @admin.register(Tag)
 class TagAdmin(TreeAdmin):
     form = TagForm
-    list_display = ("_name", "docs", "policies")
-    fields = ("name", "_ref_node_id", "documents", "crawl_policies", "_position")
-    readonly_fields = ("documents", "crawl_policies")
+    list_display = ("_name", "docs", "policies", "webhooks_count")
+    fields = ("name", "_ref_node_id", "documents", "crawl_policies", "webhooks", "_position")
+    readonly_fields = ("documents", "crawl_policies", "webhooks")
     search_fields = ("name",)
 
     @staticmethod
@@ -1230,6 +1236,28 @@ class TagAdmin(TreeAdmin):
         count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
         return format_html(
             '⚡ <a href="{}">{}</a>',
+            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            count,
+        )
+
+    @staticmethod
+    @admin.display(description="Webhooks")
+    def webhooks(obj):
+        if not obj or not obj.id:
+            return ""
+        count = Webhook.objects.filter(tags__id=obj.id).count()
+        return format_html(
+            '<a href="{}">Used in 📡 Webhooks ({})</a>',
+            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            count,
+        )
+
+    @staticmethod
+    @admin.display(description="Webhooks")
+    def webhooks_count(obj):
+        count = Webhook.objects.filter(tags__id=obj.id).count()
+        return format_html(
+            '📡 <a href="{}">{}</a>',
             reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
             count,
         )

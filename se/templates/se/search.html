@@ -210,7 +210,7 @@
 
 {% block body %}
     {% include "se/components/modal.html" with id="tags" title="⭐ Filtering" %}
-    <div id="search_tags">
+    <div id="search_tags" style="display: flow-root">
         {% if tags %}
             Filters:
             {% for tag in tags %}

@@ -151,6 +151,19 @@
     }
 {% endblock %}
 
+{% block js %}
+  {{ block.super }}
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log('sosseArchiveLinks', localStorage.getItem('sosseArchiveLinks'));
+    if (localStorage.getItem('sosseArchiveLinks') === 'true') {
+      const links = document.querySelectorAll("#home-grid a");
+      links.forEach(link => {
+        link.href = `/archive/${link.href}`;
+      });
+    }
+  });
+{% endblock %}
+
 {% block top_bar %}
     <form method="get" id="search_form">
         <div id="search_field">

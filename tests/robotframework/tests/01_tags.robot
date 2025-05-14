@@ -5,6 +5,7 @@
 | Resource | crawl_policy.robot
 | Resource | documents.robot
 | Resource | tags.robot
+| Resource | profile.robot
 
 | *Test Cases* |
 | Create tags
@@ -43,6 +44,7 @@
 
 | Set document tags
 |  | SOSSE Go To | http://127.0.0.1/
+|  | Profile set search links to archive
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
 |  | Click Element | id=edit_tags
@@ -97,7 +99,7 @@
 |  | Click Element | id=tags_submit
 # Search results
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/?tag=${tag_pk}&l=en&ps=20
+|  | Should Be Equal | ${loc} | http://127.0.0.1/?tag=${tag_pk}&l=en&ps=20&c=1
 |  | Element Should Be Visible | xpath=//div[@id='search_tags']//span[@id='tag-search-${tag_pk}' and contains(., 'General Usage')]
 |  | Element Should Be Visible | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | ${results_count}= | Get Element Count | xpath=//div[@id='home-grid']/a
@@ -115,7 +117,7 @@
 |  | Element Should Not Be Visible | id=tag-edit-${tag_pk}
 |  | Click Element | id=tags_submit
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20
+|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20&c=1
 
 # Reopen modal - Clear all
 |  | Go To | http://127.0.0.1/?tag\=${tag_pk}&l\=en&ps=\20
@@ -127,7 +129,7 @@
 |  | Element Should Not Be Visible | id=tag-edit-${tag_pk}
 |  | Click Element | id=tags_submit
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20
+|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20&c=1
 
 # Reopen modal - Clear all
 |  | Go To | http://127.0.0.1/?tag\=${tag_pk}&l\=en&ps=\20
@@ -139,7 +141,7 @@
 |  | Element Should Not Be Visible | id=tag-edit-${tag_pk}
 |  | Click Element | id=tags_submit
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20
+|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20&c=1
 
 # Repopen modal - Unselect tag
 |  | Go To | http://127.0.0.1/?tag\=${tag_pk}&l\=en&ps=\20
@@ -151,7 +153,7 @@
 |  | Element Should Not Be Visible | id=tag-edit-${tag_pk}
 |  | Click Element | id=tags_submit
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20
+|  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20&c=1
 
 | Admin - Tag link
 |  | SOSSE Go To | http://127.0.0.1/

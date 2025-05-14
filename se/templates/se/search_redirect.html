@@ -32,6 +32,7 @@
           currentParams.append('ps', pageSize);
         }
 
+        currentParams.delete('c');
         if (getArchiveLinks()) {
           currentParams.append('c', '1');
         }

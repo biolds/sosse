@@ -94,7 +94,7 @@ def get_documents_from_request(request, form, stats_call=False):
 def get_documents(request, params, form, stats_call):
     REQUIRED_KEYS = ("ft", "ff", "fo", "fv")
 
-    results = Document.objects.w_content().all()
+    results = Document.objects.w_content().annotate(rank=models.Value(1.0))
     has_query = False
 
     q = form.cleaned_data.get("q", "")

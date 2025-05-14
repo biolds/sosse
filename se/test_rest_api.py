@@ -317,7 +317,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     {
                         "doc_id": self.doc2.id,
-                        "score": None,
+                        "score": 1.0,
                         "title": "Title2",
                         "url": "http://127.0.0.1/test2",
                     }
@@ -395,7 +395,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "doc_id": self.doc2.id,
                         "url": "http://127.0.0.1/test2",
                         "title": "Title2",
-                        "score": None,
+                        "score": 1.0,
                     },
                 ],
             },
@@ -419,7 +419,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "doc_id": self.doc2.id,
                         "url": "http://127.0.0.1/test2",
                         "title": "Title2",
-                        "score": None,
+                        "score": 1.0,
                     },
                 ],
             },

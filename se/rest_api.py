@@ -360,7 +360,7 @@ class SearchResult(serializers.Serializer):
 
     @extend_schema_field(OpenApiTypes.FLOAT)
     def get_score(self, obj):
-        return getattr(obj, "rank", None)
+        return getattr(obj, "rank", 1.0)
 
 
 class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):

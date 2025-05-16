@@ -77,7 +77,7 @@ Additional headers to be included in the request, formatted as:
 Each header must be specified on a new line.
 
 .. note::
-   In addition to the provided headers, SOSSE sends the following headers:
+   In addition to the provided headers, Sosse sends the following headers:
 
    .. code-block::
 

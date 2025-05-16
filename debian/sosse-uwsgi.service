@@ -1,5 +1,5 @@
 [Unit]
-Description=SOSSE uWSGI server
+Description=Sosse uWSGI server
 After=syslog.target network.target postgresql.service
 
 [Service]

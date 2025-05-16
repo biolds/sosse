@@ -4,14 +4,14 @@
 
 | *Test Cases* |
 | Search
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Wait Until Element Is Visible | id=id_q
 |  | Input Text | id_q | website
 |  | Click Button | search_button
-|  | SOSSE Wait Until Page Contains | 4 sites found
+|  | Sosse Wait Until Page Contains | 4 sites found
 |  | ${res_count}= | Get Element Count | xpath=//div[@class='res']
 |  | Should Be Equal As Numbers | ${res_count} | 4
-|  | SOSSE Capture Page Screenshot | search.png
+|  | Sosse Capture Page Screenshot | search.png
 |  | Click Element | id=more
 |  | Select From List By Value | id=doc_lang | en
 |  | Input Text | xpath=//input[@name='fv1'] | cats
@@ -33,42 +33,42 @@
 | Profile
 |  | Click Button | id=user_menu_button
 |  | Click Link | Profile
-|  | SOSSE Wait Until Page Contains | Search terms parsing language
-|  | SOSSE Capture Page Screenshot | profile.png
+|  | Sosse Wait Until Page Contains | Search terms parsing language
+|  | Sosse Capture Page Screenshot | profile.png
 
 | History
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../searchhistory.json | shell=True
-|  | SOSSE Go To | http://127.0.0.1/history/
-|  | SOSSE Wait Until Page Contains | 4 elements in the history
-|  | SOSSE Capture Page Screenshot | history.png
+|  | Sosse Go To | http://127.0.0.1/history/
+|  | Sosse Wait Until Page Contains | 4 elements in the history
+|  | Sosse Capture Page Screenshot | history.png
 |  | Capture Element Screenshot | xpath=//input[@class='del_button img_button' and @value=''] | history_delete.png
 |  | Capture Element Screenshot | id=del_all | history_delete_all.png
 
 | Archive
-|  | SOSSE Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
+|  | Sosse Go To | http://127.0.0.1/screenshot/http://127.0.0.1/screenshots/website/cats.html
 |  | Click Element | id=fold_button
-|  | SOSSE Capture Page Screenshot | archive_header.png
+|  | Sosse Capture Page Screenshot | archive_header.png
 |  | Reload Page
 |  | Select Frame | xpath=//iframe[1]
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]
-|  | SOSSE Capture Page Screenshot | archive_screenshot.png
+|  | Sosse Capture Page Screenshot | archive_screenshot.png
 |  | Unselect Frame
 
 | Binary archive
-|  | SOSSE Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
-|  | SOSSE Wait Until Page Contains | Download | 5min
-|  | SOSSE Capture Page Screenshot | archive_download.png
+|  | Sosse Go To | http://127.0.0.1/download/http://127.0.0.1/static/Cat%20photos.zip
+|  | Sosse Wait Until Page Contains | Download | 5min
+|  | Sosse Capture Page Screenshot | archive_download.png
 
 | Syndication feed
 |  | [Tags] | syndication_feed
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | id=more
 |  | Select From List By Label | id=id_s | First crawled descending
 |  | Select From List By Label | xpath=//select[@name='ff1'] | Linked by url
 |  | Select From List By Label | xpath=//select[@name='fo1'] | Equal to
 |  | Input Text | xpath=//input[@name='fv1'] | https://exemple.com/atom.xml
-|  | SOSSE Capture Page Screenshot |
+|  | Sosse Capture Page Screenshot |
 |  | Capture Element Screenshot | id=search_form | syndication_feed.png
 
 | Browsable home
@@ -77,27 +77,27 @@
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_docs.json | shell=True
 |  | Run Command | sed | -e | s/^#browsable_home.*/browsable_home\=true/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
-|  | SOSSE Go To | http://127.0.0.1/
-|  | SOSSE Capture Page Screenshot | browsable_home.png
+|  | Sosse Go To | http://127.0.0.1/
+|  | Sosse Capture Page Screenshot | browsable_home.png
 
 | Online mode
 |  | [Tags] | online_mode
 |  | Run Command | sed | -e | s/^#online_search_redirect.*/online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
-|  | SOSSE Go To | http://127.0.0.1/profile/
+|  | Sosse Go To | http://127.0.0.1/profile/
 |  | Hilight | id=online_mode
-|  | SOSSE Capture Page Screenshot | online_mode.png
+|  | Sosse Capture Page Screenshot | online_mode.png
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
 |  | Run Command | sed | -e | s/^online_search_redirect.*/#online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
 
 | Swagger
 |  | [Tags] | swagger
-|  | SOSSE Go To | http://127.0.0.1/admin/
+|  | Sosse Go To | http://127.0.0.1/admin/
 |  | Click Link | Rest API
 |  | Wait Until Element Is Visible | id=swagger-ui
 |  | Wait Until Element Is Visible | id=operations-api-api_document_list
-|  | SOSSE Capture Page Screenshot | swagger.png
+|  | Sosse Capture Page Screenshot | swagger.png
 |  | Click Element | id=operations-api-api_document_list
 |  | Click Button | class=try-out__btn
 |  | Click Button | class=execute
@@ -105,7 +105,7 @@
 |  | Element Should Contain | class=live-responses-table | Dummy static website
 
 | Document Webhook
-|  | SOSSE Go To | http://127.0.0.1/admin/se/document/327/change/
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/327/change/
 |  | Scroll To Elem | id=tabs
 |  | Click Link | 📡 Webhooks
-|  | SOSSE Capture Page Screenshot | webhooks_result.png
+|  | Sosse Capture Page Screenshot | webhooks_result.png

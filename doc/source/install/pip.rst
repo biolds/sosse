@@ -4,7 +4,7 @@ Pip install
 Dependencies
 ------------
 
-Before installing SOSSE, you'll need to manually install the following softwares:
+Before installing Sosse, you'll need to manually install the following softwares:
 
 - a web server supporting `WSGI <https://wsgi.readthedocs.io/en/latest/learn.html>`_ (the steps below explains how to
   setup `Nginx <https://nginx.org/>`_)

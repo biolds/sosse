@@ -1,7 +1,7 @@
 File Downloads
 ==============
 
-SOSSE allows for the automation of file downloads from websites. The example below demonstrates how to download new
+Sosse allows for the automation of file downloads from websites. The example below demonstrates how to download new
 eBooks daily from `Project Gutenberg <https://www.gutenberg.org>`_.
 
 `Project Gutenberg <https://www.gutenberg.org>`_ is a digital library offering over 75,000 free eBooks, including many
@@ -16,7 +16,7 @@ classic literary works.
 Creating Crawl Policies
 -----------------------
 
-Crawl policies are essential for controlling how SOSSE accesses and downloads content from websites. For more details,
+Crawl policies are essential for controlling how Sosse accesses and downloads content from websites. For more details,
 see the :doc:`Crawl Policies <../crawl/policies>` documentation.
 
 For Project Gutenberg, we will create two policies:

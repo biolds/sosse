@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import hashlib
@@ -23,7 +23,7 @@ from typing import Any, Type, TypeAlias
 from django.core.management.utils import get_random_secret_key
 
 CONF_FILE = "/etc/sosse/sosse.conf"
-DEFAULT_USER_AGENT = "SOSSE"
+DEFAULT_USER_AGENT = "Sosse"
 
 ConfOptionValue: TypeAlias = bool | int | float | str | None
 
@@ -84,7 +84,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default="!",
         ),
         "default_search_redirect": ConfOption(
-            comment='Default search engine to use.\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
+            comment='Default search engine to use.\nLeave empty to use Sosse by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
             default="",
         ),
         "online_search_redirect": ConfOption(
@@ -105,7 +105,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default="10",
         ),
         "sosse_shortcut": ConfOption(
-            comment="In case the default_shortcut is not empty this defines which shortcut searches SOSSE.",
+            comment="In case the default_shortcut is not empty this defines which shortcut searches Sosse.",
             default="",
         ),
         "allowed_host": ConfOption(

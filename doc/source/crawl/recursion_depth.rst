@@ -1,7 +1,7 @@
 Recursive crawling
 ==================
 
-SOSSE can crawl recursively all pages it finds, or the recursion level can be limited when crawling large websites or
+Sosse can crawl recursively all pages it finds, or the recursion level can be limited when crawling large websites or
 public sites.
 
 No limit recursion

@@ -21,20 +21,20 @@
 {% endblock %}
 {% block body %}
   <section>
-    <h1>SOSSE 🦦</h1>
+    <h1>Sosse 🦦</h1>
 
     <p>
-      <strong>SOSSE</strong> (<em>Selenium Open Source Search Engine</em>) is an open source web archiving tool, crawler, and search engine.
+      <strong>Sosse</strong> (<em>Selenium Open Source Search Engine</em>) is an open source web archiving tool, crawler, and search engine.
       It’s designed to handle dynamic web content, and is built for transparency, reproducibility, and long-term usability.
     </p>
 
     <p>
       It is ideal for monitoring, archiving, or indexing web pages — including those rendered with JavaScript.
-      SOSSE supports scheduled crawling, advanced querying, feed generation, and private search features.
+      Sosse supports scheduled crawling, advanced querying, feed generation, and private search features.
     </p>
 
     <p>
-      SOSSE is written in Python and supports browser-based crawling via Selenium, with <em>Firefox</em> or <em>Chromium</em>, and faster headless crawling using Requests.
+      Sosse is written in Python and supports browser-based crawling via Selenium, with <em>Firefox</em> or <em>Chromium</em>, and faster headless crawling using Requests.
       PostgreSQL is used as the primary database backend.
     </p>
 
@@ -52,7 +52,7 @@
       <img src="{% static 'se/agpl-logo.svg' %}" alt="AGPL License" class="info-icon">
       <div>
         <strong>License</strong><br>
-        SOSSE is released under the
+        Sosse is released under the
         <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" rel="noopener">GNU AGPL v3</a>,
         requiring all modifications and hosted uses to remain open.
       </div>
@@ -76,7 +76,7 @@
     </div>
 
     <p>
-      <strong>Current Version:</strong> SOSSE {{ settings.SOSSE_VERSION_TAG }}
+      <strong>Current Version:</strong> Sosse {{ settings.SOSSE_VERSION_TAG }}
       {% if settings.SOSSE_VERSION_TAG != 'dev' %}
         (commit <code>{{ settings.SOSSE_VERSION_COMMIT }}</code>)
       {% endif %}

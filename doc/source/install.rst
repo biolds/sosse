@@ -1,7 +1,7 @@
 Installation
 ============
 
-SOSSE can be installed in a few different ways 🦨:
+Sosse can be installed in a few different ways 🦨:
 
 .. toctree::
    :maxdepth: 2

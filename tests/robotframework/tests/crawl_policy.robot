@@ -1,7 +1,7 @@
 | *Keywords* |
 
 | Clear Crawl Policies
-|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | ${status} | ${has_docs}= | Run Keyword And Ignore Error | Element Text Should Not Be | id=changelist-form | 1 Crawl Policy
 |  | Run Keyword If | '${status}' == 'PASS' | Click Element | id=action-toggle
 |  | Run Keyword If | '${status}' == 'PASS' | Click Element | xpath=//td[@class='action-checkbox']/input

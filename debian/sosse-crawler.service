@@ -1,5 +1,5 @@
 [Unit]
-Description=SOSSE crawler
+Description=Sosse crawler
 After=syslog.target network.target postgresql.service
 
 [Service]

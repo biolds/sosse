@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
@@ -95,8 +95,8 @@ class AtomView(View):
 
             feed = Element("feed")
             feed.attrib["xmlns"] = "http://www.w3.org/2005/Atom"
-            feed.append(self._elem("title", f"SOSSE · {q}"))
-            feed.append(self._elem("description", f"SOSSE search results for {q}"))
+            feed.append(self._elem("title", f"Sosse · {q}"))
+            feed.append(self._elem("description", f"Sosse search results for {q}"))
             url = base_url + reverse("search") + "?" + request.META["QUERY_STRING"]
             feed.append(self._elem("link", None, href=url))
             if len(results):

@@ -1,13 +1,13 @@
 | *Keywords* |
 
 | Create Tag | [Arguments] | ${name} | ${parent}=None
-|  | SOSSE Go To | http://127.0.0.1/admin/se/tag/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/tag/add/
 |  | Input Text | id=id_name | ${name}
 |  | Run Keyword If | '${parent}' != 'None' | Select From List By Label | id=id__ref_node_id | ${parent}
 |  | Click Element | xpath=//input[@value="Save"]
 
 | Clear Tags
-|  | SOSSE Go To | http://127.0.0.1/admin/se/tag/
+|  | Sosse Go To | http://127.0.0.1/admin/se/tag/
 |  | ${status} | ${has_tags}= | Run Keyword And Ignore Error | Element Text Should Not Be | id=changelist-form | 0 tags
 |  | Run Keyword If | '${status}' == 'PASS' | Click Element | id=action-toggle
 |  | Run Keyword If | '${status}' == 'PASS' | Select From List By Label | xpath=//select[@name='action'] | Delete selected tags

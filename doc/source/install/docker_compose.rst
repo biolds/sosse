@@ -1,8 +1,8 @@
 Running in Docker-compose
 =========================
 
-To run the latest version of SOSSE with docker-compose, you need to download the latest version of the
-``docker-compose.yml`` file from the SOSSE repository in a dedicated directory:
+To run the latest version of Sosse with docker-compose, you need to download the latest version of the
+``docker-compose.yml`` file from the Sosse repository in a dedicated directory:
 
 .. code-block:: shell
 
@@ -10,13 +10,13 @@ To run the latest version of SOSSE with docker-compose, you need to download the
    cd sosse
    curl https://raw.githubusercontent.com/biolds/sosse/refs/heads/stable/docker-compose.yml > docker-compose.yml
 
-Review its content, then run the following command to start SOSSE:
+Review its content, then run the following command to start Sosse:
 
 .. code-block:: shell
 
    docker-compose up -d
 
-By default, this would start an instance of SOSSE on port 8005.
+By default, this would start an instance of Sosse on port 8005.
 
 Next steps
 ----------

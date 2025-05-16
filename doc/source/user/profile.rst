@@ -22,7 +22,7 @@ configuration.
 Search terms parsing language
 -----------------------------
 
-This defines the default language used to read the search terms typed in the search bar. SOSSE uses
+This defines the default language used to read the search terms typed in the search bar. Sosse uses
 `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ feature which uses
 this parameter to make searches more intelligent than simple word matches.
 

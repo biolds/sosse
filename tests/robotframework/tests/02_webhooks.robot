@@ -7,7 +7,7 @@
 | *Test Cases* |
 | Trigger non-saved webhook
 |  | Clear Webhooks
-|  | SOSSE Go To | http://127.0.0.1/admin/se/webhook/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/webhook/add/
 |  | Input Text | id=id_name | Test webhook
 |  | Element Should Not Be Visible | id=webhook_test_result
 |  | Click Element | id=webhook_test_button
@@ -19,7 +19,7 @@
 
 | Trigger saved webhook
 |  | Clear Webhooks
-|  | SOSSE Go To | http://127.0.0.1/admin/se/webhook/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/webhook/add/
 |  | Input Text | id=id_name | Test webhook
 |  | Input Text | id=id_url | http://127.0.0.1:8000/post
 |  | Click Element | xpath=//input[@value="Save"]

@@ -17,14 +17,13 @@
   </a>
 </p>
 
-# SOSSE 🦦
+# Sosse 🦦
 
-**Discover SOSSE** — the Selenium Open Source Search Engine built for powerful web archiving, crawling, and search.
+**Discover Sosse** — the Selenium Open Source Search Engine built for powerful web archiving, crawling, and search.
 Explore all its features and capabilities on the [official website](https://sosse.io).
 
-Whether you're a developer, researcher, or data enthusiast, SOSSE is ready to support your projects.
+Whether you're a developer, researcher, or data enthusiast, Sosse is ready to support your projects.
 Join the community on [GitHub](https://github.com/biolds/sosse) or [GitLab](https://gitlab.com/biolds1/sosse) to submit feature requests, report bugs, contribute code, or [start a discussion](https://github.com/biolds/sosse/discussions).
-
 
 ## Key Features
 
@@ -56,8 +55,8 @@ Join the community on [GitHub](https://github.com/biolds/sosse) or [GitLab](http
 Explore the 📚 [documentation](https://sosse.readthedocs.io/en/stable/index.html) and check out some
 📷 [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
 
-SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
-[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. SOSSE uses
+Sosse is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
+[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. Sosse uses
 [PostgreSQL](https://www.postgresql.org/) for data storage.
 
 ## Try It Out
@@ -74,4 +73,4 @@ For persistence of Docker data or alternative installation methods, please refer
 
 ## Stay Connected
 
-Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help, share ideas, or discuss SOSSE!
+Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help, share ideas, or discuss Sosse!

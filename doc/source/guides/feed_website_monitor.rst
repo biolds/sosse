@@ -1,7 +1,7 @@
 Monitor Websites for Specific Keywords
 ======================================
 
-SOSSE can be used to receive updates when a new page containing a specific keyword is published on a website. This
+Sosse can be used to receive updates when a new page containing a specific keyword is published on a website. This
 functionality can be applied to a variety of use cases, such as monitoring merchant websites for promotional offers, or
 watching for event announcements.
 
@@ -11,7 +11,7 @@ access, and database issues, and generate an Atom feed of faulty pages.
 Creating the Crawl Policies
 ---------------------------
 
-Crawl policies are essential for controlling how SOSSE accesses and logs content from websites. For more details, see
+Crawl policies are essential for controlling how Sosse accesses and logs content from websites. For more details, see
 the :doc:`Crawl Policies <../crawl/policies>` documentation.
 
 We add a policy for the website that we want to monitor, with the parameters:
@@ -31,7 +31,7 @@ Start Crawling
 To start crawling, go to the :doc:`Crawl a new URL <../crawl/new_url>` page and enter the URL of the homepage:
 ``https://my.broken-website.com/``.
 
-Check the parameters, then click ``Confirm``. Once confirmed, SOSSE will begin crawling and logging any pages that match
+Check the parameters, then click ``Confirm``. Once confirmed, Sosse will begin crawling and logging any pages that match
 the regular expression from the Crawl Policy every day.
 
 Generate Atom Feed

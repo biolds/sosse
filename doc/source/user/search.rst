@@ -7,7 +7,7 @@ Searches
 Making searches
 ---------------
 
-SOSSE uses `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ to perform
+Sosse uses `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ to perform
 keyword based searches. This makes the search bar behave like most search engine websites 🦡:
 
 - Typing multiple space-separated keywords returns pages containing all of them.

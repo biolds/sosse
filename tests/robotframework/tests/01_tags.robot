@@ -13,7 +13,7 @@
 
 | Create Crawl Policy
 |  | Clear Crawl Policies
-|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Input Text | id=id_url_regex | http://127.0.0.1/screenshots/website/.*
 |  | Click Element | xpath=//input[@value="Save"]
 |  | ${loc}= | Get Location
@@ -21,13 +21,13 @@
 
 | Crawl a new URL
 |  | Clear Documents
-|  | SOSSE Go To | http://127.0.0.1/admin/se/document/queue/
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
 |  | Click Element | xpath=//input[@value='Check and queue']
-|  | SOSSE Wait Until Page Contains | Create a new policy
+|  | Sosse Wait Until Page Contains | Create a new policy
 |  | Click Element | xpath=//input[@value='Confirm']
-|  | SOSSE Wait Until Page Contains | Crawl queue
+|  | Sosse Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Page Should Not Contain | No crawlers running.
@@ -36,14 +36,14 @@
 |  | Wait Until Element Is Visible | xpath=//div[@id="queue_pending_count" and contains(., '0')] | 2min
 
 | Modal test
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | id=edit_search_tags
 |  | Wait Until Element Is Visible | id=tags_list
 |  | Click Element | xpath=//button[contains(., 'Cancel')]
 |  | Element Should Not Be Visible | id=tags
 
 | Set document tags
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Profile set search links to archive
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
@@ -82,7 +82,7 @@
 |  | Element Should Contain | xpath=//div[@id='document_tags']//span[@class='tag tag-select'][2] | General Usage
 
 | Tag search modal
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Element Should Be Visible | id=search_tags
 |  | Click Element | id=edit_search_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -156,7 +156,7 @@
 |  | Should Be Equal | ${loc} | http://127.0.0.1/?l=en&ps=20&c=1
 
 | Admin - Tag link
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
@@ -170,7 +170,7 @@
 |  | Element Should Be Visible | xpath=//h4[contains(., 'General Usage')]
 
 | Admin - Add tag to document
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
@@ -203,7 +203,7 @@
 |  | Should Be Equal As Integers | ${tags_count} | 3
 
 | Admin - Remove tag from document
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
@@ -228,7 +228,7 @@
 |  | Should Be Equal As Integers | ${tags_count} | 2
 
 | Admin - Clear tags
-|  | SOSSE Go To | http://127.0.0.1/
+|  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | xpath=//div[contains(@class, 'res-home')][1]//h3
 |  | Click Element | id=fold_button
 |  | Click Element | xpath=//div[@id='top_bar_links']//a[contains(.,'Administration')]
@@ -254,7 +254,7 @@
 
 | Admin - Create crawl policy with tag
 |  | Clear Crawl Policies
-|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
 |  | Input Text | id=id_url_regex | http://example.com/.*
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -270,7 +270,7 @@
 |  | Element Should Contain | ${active_tags} | AI
 
 | Admin - Edit crawl policy with tag
-|  | SOSSE Go To | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
 |  | Click Link | http://example.com/.*
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list

@@ -1,7 +1,7 @@
 Debian install
 ==============
 
-SOSSE can be installed using the official Debian repository. To do so, first import its GPG key:
+Sosse can be installed using the official Debian repository. To do so, first import its GPG key:
 
 .. code-block:: shell
 
@@ -16,7 +16,7 @@ Then setup the repository:
 
    echo 'deb [signed-by=/etc/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bookworm main' > /etc/apt/sources.list.d/piggledy.list
 
-The SOSSE package can then be installed with its dependencies:
+The Sosse package can then be installed with its dependencies:
 
 .. code-block:: shell
 

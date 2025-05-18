@@ -10,6 +10,8 @@ body.light-mode {
   --input-border-tl: #bde6ff;
   --input-focus: #0010ff;
   --shadow: #e3e5f6;
+  --hilight-bg: #f9f9f9;
+  --text-light: #555;
 }
 
 body.dark-mode {
@@ -24,6 +26,8 @@ body.dark-mode {
   --input-border-tl: #253741;
   --input-focus: #545eff;
   --shadow: #1e152e;
+  --hilight-bg: #232323;
+  --text-light: #b6b6b6;
 }
 
 html {

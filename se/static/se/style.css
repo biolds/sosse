@@ -337,7 +337,7 @@ select:hover {
   height: 80px;
   vertical-align: top;
   padding-top: 10px;
-  color: var(--text);
+  color: var(--card-text);
   font-size: x-large;
   font-weight: 600;
   background-color: var(--input-bg);

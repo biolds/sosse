@@ -188,12 +188,12 @@ class BrowserRequest(Browser):
                         if dest.startswith("url="):
                             dest = dest[4:]
 
-                        url = absolutize_url(url, dest)
-                        url = url_remove_fragment(url)
-                        redirect_count += 1
-                        has_redirect = True
-                        crawl_logger.debug(f"{url}: html redirected")
-                        break
+                            url = absolutize_url(url, dest)
+                            url = url_remove_fragment(url)
+                            redirect_count += 1
+                            has_redirect = True
+                            crawl_logger.debug(f"{url}: html redirected {meta}")
+                            break
                 if has_redirect:
                     continue
             break

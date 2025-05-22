@@ -652,7 +652,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         return format_html('<span title="{}">{} {}</span>', title, fav, title)
 
     @staticmethod
-    @admin.display(description="Links")
+    @admin.display(description="Related")
     def _links(obj):
         try:
             crawl_policy = CrawlPolicy.get_from_url(obj.url)
@@ -662,8 +662,9 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                 crawl_policy,
             )
 
+            tags_count = obj.tags.count()
             tags_url = reverse("admin:se_tag_changelist") + f"?document__id={obj.id}"
-            tags = format_html('⭐&nbsp<a href="{}">Tags</a>', tags_url)
+            tags = format_html('⭐&nbsp<a href="{}">Tags ({})</a>', tags_url, tags_count)
 
             domain_setting = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
             domain = format_html(
@@ -688,12 +689,12 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             links_from_here = format_html('🔗&nbsp<a href="{}">Links from here</a>', links_from_here_url)
 
             return format_html(
-                '<span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>'
-                '<span class="label_tag">{}</span><span class="label_tag">{}</span>'
-                '<span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span>',
+                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>'
+                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>'
+                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
                 policy,
-                tags,
                 domain,
+                tags,
                 cookies,
                 archive,
                 links_to_here,
@@ -948,7 +949,7 @@ class CrawlPolicyAdmin(InlineActionModelAdmin, ActiveTagMixin):
     )
     list_filter = ("enabled", TagsFilter)
     search_fields = ("url_regex",)
-    readonly_fields = ("documents", "webhooks_link")
+    readonly_fields = ("related", "webhooks_link")
     fieldsets = (
         (
             "⚡ Crawl",
@@ -957,7 +958,7 @@ class CrawlPolicyAdmin(InlineActionModelAdmin, ActiveTagMixin):
                     "url_regex",
                     "enabled",
                     "tags",
-                    "documents",
+                    "related",
                     "recursion",
                     "recursion_depth",
                     "mimetype_regex",
@@ -1056,11 +1057,21 @@ class CrawlPolicyAdmin(InlineActionModelAdmin, ActiveTagMixin):
         return request.user.has_perm("se.document_change")
 
     @staticmethod
-    def documents(obj):
-        count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
+    def related(obj):
+        doc_count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
         params = urlencode({"q": obj.url_regex_pg})
+        docs = format_html(
+            '<a href="{}">🔤&nbspDocuments ({})</a>', reverse("admin:se_document_changelist") + "?" + params, doc_count
+        )
+
+        tag_count = obj.tags.count()
+        tags = format_html(
+            '<a href="{}">⭐&nbspTags ({})</a>',
+            reverse("admin:se_tag_changelist") + f"?crawlpolicy__id={obj.id}",
+            tag_count,
+        )
         return format_html(
-            '<a href="{}">Matching 🔤 Documents ({})</a>', reverse("admin:se_document_changelist") + "?" + params, count
+            '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>', docs, tags
         )
 
     @staticmethod

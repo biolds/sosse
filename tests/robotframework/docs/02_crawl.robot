@@ -17,6 +17,7 @@
 |  | Click Link | 🌍 Browser
 |  | Select From List By Label | id=id_default_browse_mode | Chromium
 |  | Select Checkbox | id=id_take_screenshots
+|  | Input Text | id=id_script | return {metadata: {"product_name": "Cat toy", "sku": "CATTOY-001", "price": 4.99, "currency": "EUR", "category": "Animals"}}
 |  | Click Element | xpath=//input[@value="Save"]
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
@@ -127,6 +128,9 @@
 |  | Should Be Equal As Numbers | ${doc_count} | 5
 |  | Click Link | http://127.0.0.1/screenshots/website/cats.html
 |  | Sosse Capture Page Screenshot | documents_details.png
+|  | Page Should Contain | CATTOY-001
+|  | Click Link | 📊 Metadata
+|  | Sosse Capture Page Screenshot | metadata.png
 
 | Domain
 |  | Sosse Go To | http://127.0.0.1/admin/se/domainsetting/

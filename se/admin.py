@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import json
 from copy import copy
 from datetime import timedelta
 from urllib.parse import quote_plus, urlencode
@@ -480,6 +481,12 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                 "fields": ("_webhooks_result",),
             },
         ),
+        (
+            "📊 Metadata",
+            {
+                "fields": ("_metadata",),
+            },
+        ),
     )
     readonly_fields = [
         "_title",
@@ -497,6 +504,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         "crawl_dt",
         "crawl_recurse",
         "_webhooks_result",
+        "_metadata",
     ]
 
     class Media:
@@ -778,6 +786,14 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                     )
                 )
         return mark_safe("\n".join(status))
+
+    def _metadata(self, obj):
+        metadata = obj.metadata
+        if not metadata:
+            return "No metadata"
+
+        formatted_json = json.dumps(metadata, indent=2, sort_keys=True)
+        return format_html('<pre style="white-space: pre-wrap;">{}</pre>', formatted_json)
 
     def delete_model(self, request, obj):
         obj.delete_all()

@@ -71,6 +71,16 @@ The Webhooks tab shows the result of :doc:`webhooks` that were run for this docu
 .. image:: ../../tests/robotframework/screenshots/webhooks_result.png
    :class: sosse-screenshot
 
+Metadata
+--------
+
+The Metadata tab shows associated metadata for the document. The metadata is stored in a JSON format and can be used to
+add custom fields to the document. The metadata can be set using :ref:`Javascript execution <script_params>` in the
+browser context, or using the return value of the :doc:`webhooks`.
+
+.. image:: ../../tests/robotframework/screenshots/metadata.png
+   :class: sosse-screenshot
+
 
 Document list view
 """"""""""""""""""

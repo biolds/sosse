@@ -36,6 +36,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from se.about import AboutView
 from se.archive import ArchiveRedirectView
 from se.atom import AtomView
+from se.csv import CsvView
 from se.download import DownloadView
 from se.favicon import FavIconView
 from se.history import HistoryView
@@ -62,6 +63,7 @@ urlpatterns = [
     path("profile/", ProfileView.as_view(), name="profile"),
     path("resources/", ResourcesView.as_view(), name="resources"),
     path("atom/", AtomView.as_view(), name="atom"),
+    path("csv/", CsvView.as_view(), name="csv"),
     path("online_check/", OnlineCheckView.as_view(), name="online_check"),
     path("history/", HistoryView.as_view(), name="history"),
     path("login/", SELoginView.as_view(), name="login"),

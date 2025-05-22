@@ -132,6 +132,7 @@ class ViewsTest:
                 {"model": "crawlpolicy", "pk": self.crawl_policy.id},
             ),
             ("/online_check/" + CRAWL_URL, OnlineCheckView, {}),
+            ("/csv/?q=cookie", SearchView, {}),
         ):
             self._view_request(url, view_cls, params, self.admin_user, 200)
             self._view_request(url, view_cls, params, self.simple_user, 200)
@@ -171,7 +172,7 @@ class ViewsTest:
     def test_new_urls(self):
         from sosse.urls import urlpatterns
 
-        self.assertEqual(len(urlpatterns), 29)
+        self.assertEqual(len(urlpatterns), 30)
 
     def test_archive_redirect(self):
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)

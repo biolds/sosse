@@ -252,6 +252,9 @@
             <div id="atom_menu_panel" class="panel">
                 <a href="/atom/?{{ request.META.QUERY_STRING }}" class="links menu_links">Atom results feed</a>
                 <a href="/atom/?{{ request.META.QUERY_STRING }}&archive=1" class="links menu_links">Atom archive feed</a>
+                {% if settings.SOSSE_CSV_EXPORT %}
+                    <a href="{% url "csv" %}?{{ request.META.QUERY_STRING }}" class="links menu_links">CSV export</a>
+                {% endif %}
             </div>
         </div>
         {% for r in paginated %}

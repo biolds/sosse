@@ -114,3 +114,10 @@ search terms ⚛:
 In case :ref:`anonymous searches <conf_option_anonymous_search>` are disabled, a
 :ref:`token <conf_option_atom_access_token>` can be defined to access the Atom feed without authenticating. This is done
 by appending a ``token=<Atom access token>`` parameter to the Atom feeds URL.
+
+CSV export
+----------
+
+The |atom_button| button, gives access to a ``CSV export`` for the current search terms.
+
+CSV export can be disabled using the :ref:`csv_export <conf_option_csv_export>` option.

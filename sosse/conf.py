@@ -188,6 +188,16 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=True,
             type=bool,
         ),
+        "csv_export": ConfOption(
+            comment="Enable CSV export.",
+            default=True,
+            type=bool,
+        ),
+        "csv_export_size": ConfOption(
+            comment="Number of results returned by CSV export.",
+            default=200,
+            type=int,
+        ),
         "exclude_not_indexed": ConfOption(
             comment="Exclude page queued for indexing but not yet indexed from search results.",
             default=True,

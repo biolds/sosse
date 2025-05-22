@@ -79,6 +79,8 @@ html_context = {
 def add_title_quoted(app, pagename, templatename, context, doctree):
     title = context.get("title", "")
     title = unescape(title)
+    title = title.encode("ascii", "ignore").decode("ascii")  # remove non-ascii characters
+    title = title.strip()
     context["title_quoted"] = quote(title, safe="")
 
 

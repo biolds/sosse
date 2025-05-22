@@ -348,10 +348,7 @@ class SearchQuery(serializers.Serializer):
         return data
 
 
-class SearchResult(serializers.Serializer):
-    doc_id = serializers.PrimaryKeyRelatedField(
-        source="id", queryset=Document.objects.w_content(), help_text="Document id"
-    )
+class SearchResult(DocumentSerializer):
     url = serializers.CharField(help_text="Document URL")
     title = serializers.CharField(help_text="Document Title")
     score = serializers.SerializerMethodField(

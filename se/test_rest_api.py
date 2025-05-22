@@ -65,6 +65,18 @@ SERIALIZED_DOC1 = {
     "webhooks_result": {},
     "worker_no": None,
 }
+SERIALIZED_DOC2 = SERIALIZED_DOC1 | {
+    "url": "http://127.0.0.1/test2",
+    "normalized_url": "http test2",
+    "title": "Title2",
+    "normalized_title": "title2",
+    "content": "Other Content2",
+    "normalized_content": "other content2",
+    "mimetype": "image/png",
+    "tags": ["Sub Tag"],
+    "tags_str": "Sub Tag",
+    "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
+}
 
 
 SERIALIZED_CRAWLER_STATS = [
@@ -283,11 +295,10 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc1.id,
+                    SERIALIZED_DOC1
+                    | {
+                        "id": self.doc1.id,
                         "score": 0.12158542,
-                        "title": "Title",
-                        "url": "http://127.0.0.1/test",
                     }
                 ],
             },
@@ -315,11 +326,10 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc2.id,
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
                         "score": 1.0,
-                        "title": "Title2",
-                        "url": "http://127.0.0.1/test2",
                     }
                 ],
             },
@@ -338,11 +348,10 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc1.id,
+                    SERIALIZED_DOC1
+                    | {
+                        "id": self.doc1.id,
                         "score": 0.6079271,
-                        "title": "Title",
-                        "url": "http://127.0.0.1/test",
                     }
                 ],
             },
@@ -361,17 +370,16 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc1.id,
-                        "url": "http://127.0.0.1/test",
-                        "title": "Title",
+                    SERIALIZED_DOC1
+                    | {
+                        "id": self.doc1.id,
                         "score": 0.6079271,
                     },
-                    {
-                        "doc_id": self.doc2.id,
-                        "url": "http://127.0.0.1/test2",
-                        "title": "Title2",
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
                         "score": 0.6079271,
+                        "hidden": True,
                     },
                 ],
             },
@@ -391,10 +399,9 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc2.id,
-                        "url": "http://127.0.0.1/test2",
-                        "title": "Title2",
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
                         "score": 1.0,
                     },
                 ],
@@ -415,10 +422,9 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc2.id,
-                        "url": "http://127.0.0.1/test2",
-                        "title": "Title2",
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
                         "score": 1.0,
                     },
                 ],

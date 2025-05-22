@@ -232,6 +232,10 @@ doc:
   artifacts:
     paths:
       - doc/build/*
+      - tests/robotframework/screenshots/*
+      - doc/source/*_generated.rst
+      - doc/source/*/*_generated.rst
+      - doc/source/CHANGELOG.md
   needs:
     # if any artifact is need to bild the doc, then its build step must also be added to the `jobs_name` in doc/get_artifacts.py
     - doc_gen

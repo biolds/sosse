@@ -354,7 +354,7 @@ class SearchView(UserView):
 
         home_entries = None
         if (not has_query or tags) and settings.SOSSE_BROWSABLE_HOME:
-            home_entries = Document.objects.wo_content().filter(show_on_homepage=True)
+            home_entries = Document.objects.wo_content().filter(show_on_homepage=True, hidden=False)
             if tags:
                 for tag in tags:
                     home_entries = home_entries.filter(tags__in=Tag.get_tree())

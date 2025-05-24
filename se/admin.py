@@ -443,7 +443,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                 "fields": (
                     "_title",
                     "tags",
-                    "_links",
+                    "related",
                     "show_on_homepage",
                     "hidden",
                     "_status",
@@ -490,7 +490,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     )
     readonly_fields = [
         "_title",
-        "_links",
+        "related",
         "_status",
         "_robotstxt_rejected",
         "too_many_redirects",
@@ -652,8 +652,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         return format_html('<span title="{}">{} {}</span>', title, fav, title)
 
     @staticmethod
-    @admin.display(description="Related")
-    def _links(obj):
+    def related(obj):
         try:
             crawl_policy = CrawlPolicy.get_from_url(obj.url)
             policy = format_html(
@@ -689,14 +688,15 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             links_from_here = format_html('🔗&nbsp<a href="{}">Links from here</a>', links_from_here_url)
 
             return format_html(
+                '<p style="margin: 0; height: 26px"><span>{}</span></p>'
                 '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>'
                 '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>'
-                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
+                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
+                archive,
                 policy,
                 domain,
                 tags,
                 cookies,
-                archive,
                 links_to_here,
                 links_from_here,
                 source,

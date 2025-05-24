@@ -56,7 +56,7 @@ class CacheRefresh(Exception):
 class HTMLCache:
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#expires_or_max-age
     @staticmethod
-    def _max_age_check(asset, max_file_size):
+    def _max_age_check(asset, referer, max_file_size):
         if (asset.max_age and asset.last_modified) or asset.etag:
             if (
                 asset.max_age
@@ -76,6 +76,7 @@ class HTMLCache:
                 headers = {
                     "Accept": "*/*",
                     "If-Modified-Since": http_date_format(asset.download_date),
+                    "Referer": referer,
                 }
 
                 if asset.etag:
@@ -113,7 +114,7 @@ class HTMLCache:
                 raise CacheMiss()
 
     @staticmethod
-    def _cache_check(url, max_file_size):
+    def _cache_check(url, referer, max_file_size):
         asset = HTMLAsset.objects.filter(url=url).order_by("download_date").last()
 
         if not asset:
@@ -124,15 +125,15 @@ class HTMLCache:
             logger.debug("cache miss, force refresh")
             raise CacheMiss()
 
-        HTMLCache._max_age_check(asset, max_file_size)
+        HTMLCache._max_age_check(asset, referer, max_file_size)
         HTMLCache._heuristic_check(asset)
         logger.debug("cache miss, cache outdated")
         raise CacheMiss()
 
     @staticmethod
-    def download(url, max_file_size):
+    def download(url, referer, max_file_size):
         try:
-            HTMLCache._cache_check(url, max_file_size)
+            HTMLCache._cache_check(url, referer, max_file_size)
         except CacheHit as e:
             e.asset.increment_ref()
             raise
@@ -145,7 +146,10 @@ class HTMLCache:
             url,
             check_status=True,
             max_file_size=max_file_size,
-            headers={"Accept": "*/*"},
+            headers={
+                "Accept": "*/*",
+                "Referer": referer,
+            },
         )
         return page
 

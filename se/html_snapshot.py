@@ -110,7 +110,7 @@ class InternalCSSParser:
                 if url.endswith(".css"):
                     # Force the mime since because libmagic sometimes fails to identify it correctly
                     force_mime = "text/css"
-                url = snapshot.download_asset(url, force_mime)
+                url = snapshot.download_asset(url, base_url, force_mime)
                 css += f'url("{url}")'
             else:
                 css += segment
@@ -157,7 +157,7 @@ class CSSUtilsParser:
             for is_url, segment in extract_css_url(prop.value):
                 if is_url:
                     url = absolutize_url(base_url, segment)
-                    url = snapshot.download_asset(url)
+                    url = snapshot.download_asset(url, base_url)
                     val += f'url("{url}")'
                 else:
                     val += segment
@@ -319,7 +319,7 @@ class HTMLSnapshot:
                             url = reverse("html_excluded", args=(self.crawl_policy.id, "element"))
                         else:
                             url = absolutize_url(self.base_url, url)
-                            url = self.download_asset(url)
+                            url = self.download_asset(url, self.base_url)
                             # Escape commas since they are used as a separator in srcset
                             url = url.replace(",", "%2C")
 
@@ -362,10 +362,10 @@ class HTMLSnapshot:
                             force_mime = "text/css"
 
                         logger.debug(f"downloading asset from {attr} attribute / {elem.name}")
-                        filename_url = self.download_asset(url, force_mime)
+                        filename_url = self.download_asset(url, self.base_url, force_mime)
                     elem.attrs[attr] = filename_url
 
-    def download_asset(self, url, force_mime=None):
+    def download_asset(self, url, referer, force_mime=None):
         if getattr(settings, "TEST_HTML_ERROR_HANDLING", False) and url == "http://127.0.0.1/test-exception":
             raise Exception("html_error_handling test")
 
@@ -385,7 +385,7 @@ class HTMLSnapshot:
         page = None
 
         try:
-            page = HTMLCache.download(url, settings.SOSSE_MAX_HTML_ASSET_SIZE)
+            page = HTMLCache.download(url, referer, settings.SOSSE_MAX_HTML_ASSET_SIZE)
             content = page.content
             mimetype = force_mime or page.mimetype
 

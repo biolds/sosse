@@ -13,10 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+
 import logging
 
 import requests
 from django.conf import settings
+from requests.adapters import HTTPAdapter
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
 from .cookie import Cookie
@@ -105,17 +107,32 @@ class BrowserRequest(Browser):
             }
         )
 
+    _session_cache = {}
+
+    @classmethod
+    def _get_session(cls, url):
+        """Get or create a cached session for the given hostname."""
+        hostname = requests.utils.urlparse(url).hostname
+        if hostname not in cls._session_cache:
+            session = requests.Session()
+            adapter = HTTPAdapter(max_retries=0)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
+            cls._session_cache[hostname] = session
+        return cls._session_cache[hostname]
+
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):
         jar = cls._get_cookies(url)
         crawl_logger.debug(f"from the jar: {jar}")
-        s = requests.Session()
-        s.cookies = jar
 
-        func = getattr(s, method)
+        session = cls._get_session(url)
+        session.cookies = jar
+
+        func = getattr(session, method)
         kwargs = dict_merge(cls._requests_params(), kwargs)
         r = func(url, **kwargs)
-        Cookie.set_from_jar(url, s.cookies)
+        Cookie.set_from_jar(url, session.cookies)
 
         content_length = int(r.headers.get("content-length", 0))
         if content_length / 1024 > max_file_size:
@@ -133,7 +150,7 @@ class BrowserRequest(Browser):
             raise PageTooBig(len(content), max_file_size)
 
         r._content = content
-        crawl_logger.debug(f"after request jar: {s.cookies}")
+        crawl_logger.debug(f"after request jar: {session.cookies}")
         return r
 
     @classmethod

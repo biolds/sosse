@@ -47,7 +47,7 @@
           {% endif %}
         {% endblock messages %}
         <!-- Content -->
-        <div id="content">
+        <main id="content">
           {% block content_subtitle %}{% if subtitle %}<h4>{{ subtitle }}</h4>{% endif %}{% endblock %}
           {% block content %}
             {% block object-tools %}{% endblock %}
@@ -55,9 +55,12 @@
           {% endblock %}
           {% block sidebar %}{% endblock %}
           <br class="clear">
-        </div>
+        </main>
         <!-- END Content -->
-        {% block footer %}<div id="footer"></div>{% endblock %}
       </div>
     </div>
+{% endblock %}
+
+{% block footer %}
+  {% include "se/components/footer.html" %}
 {% endblock %}

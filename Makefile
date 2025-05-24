@@ -182,8 +182,6 @@ _rf_functional_tests: _rf_functional_tests_deps
 
 _rf_functional_guides: _rf_functional_tests_deps
 	cd ./tests/robotframework && \
-		tar xvzf guide_download.tar.gz && \
-		tar xvzf guide_auth.tar.gz && \
 		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure guides/
 
 functional_tests:

@@ -29,7 +29,7 @@ from .views import AdminView
 class CookieForm(forms.Form):
     cookies = forms.CharField(
         label="Cookies",
-        widget=forms.Textarea(attrs={"placeholder": "Enter cookies here..."}),
+        widget=forms.Textarea(attrs={"placeholder": "Enter cookies here or load a file below...", "autofocus": True}),
         required=False,
     )
     cookies.widget.attrs.update({"style": "width: 50%; padding-right: 0"})

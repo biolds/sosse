@@ -1299,6 +1299,7 @@ class WebhookForm(forms.ModelForm):
         instance = kwargs.get("instance")
         model_field = self._meta.model._meta.get_field("tags")
         self.fields["tags"] = TagField(model=Webhook, instance=instance, help_text=model_field.help_text)
+        self.fields["url"].widget.attrs.update({"style": "width: 48em"})
 
     class Meta:
         model = Webhook

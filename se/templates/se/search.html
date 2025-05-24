@@ -28,6 +28,9 @@
         margin-bottom: 0px;
         display: inline;
     }
+    .res-title > a:visited {
+        color: #9e4efe;
+    }
     .res-url {
         color: #080;
         font-size: 13px;
@@ -39,6 +42,9 @@
     .res-rank {
         font-size: 10px;
         display: inline;
+    }
+    .res-rank > a:visited {
+        color: #9e4efe;
     }
     a.res-headline {
         color: var(--text);
@@ -273,10 +279,13 @@
                     {% if r.favicon and not r.favicon.missing %}
                         <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
                     {% endif %}
-                    <a href="{{ r.link }}" {{ r.link_flag }}>
-                        <h3 class="res-title">{{ r.title }}</h3>
-                    </a>
+                    <h3 class="res-title">
+                      <a href="{{ r.link }}" {{ r.link_flag }}>
+                        {{ r.title }}
+                      </a>
+                    </h3>
                 </div>
+
                 <a href="{{ r.link }}" class="res-url" {{ r.link_flag }}>
                     {{ r.url }}
                 </a>

@@ -243,14 +243,14 @@ class SearchEngineAdmin(admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
 
-class DocumentErrorFilter(admin.SimpleListFilter):
-    title = "error"
+class DocumentStateFilter(admin.SimpleListFilter):
+    title = "Status"
     parameter_name = "has_error"
 
     def lookups(self, request, model_admin):
         return (
-            ("yes", "Yes"),
-            ("no", "No"),
+            ("no", "Success"),
+            ("yes", "Failure"),
         )
 
     def queryset(self, request, queryset):
@@ -279,7 +279,7 @@ class ActiveTagMixin:
 
 
 class DocumentQueueFilter(admin.SimpleListFilter):
-    title = "queued"
+    title = "Queued"
     parameter_name = "queued"
 
     def lookups(self, request, model_admin):
@@ -297,6 +297,30 @@ class DocumentQueueFilter(admin.SimpleListFilter):
 
         if self.value() == "recurring":
             return queryset.filter(crawl_last__isnull=False, crawl_next__isnull=False)
+        return queryset
+
+
+class DocumentCrawlPolicyFilter(admin.SimpleListFilter):
+    title = "⚡ Crawl Policy"
+    parameter_name = "crawl_policy"
+
+    def lookups(self, request, model_admin):
+        # Récupère toutes les valeurs de CrawlPolicy et les retourne comme tuples
+        return [
+            (policy.id, policy.get_title_label())
+            for policy in CrawlPolicy.objects.order_by("url_regex")
+            if not policy.url_regex == "(default)"
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            try:
+                # Récupère la politique de crawl sélectionnée
+                policy = CrawlPolicy.objects.get(id=self.value())
+                # Filtre les documents dont l'URL correspond à l'expression régulière
+                return queryset.filter(url__regex=policy.url_regex_pg)
+            except CrawlPolicy.DoesNotExist:
+                return queryset.none()
         return queryset
 
 
@@ -332,7 +356,7 @@ class DocumentOrphanFilter(admin.SimpleListFilter):
 
 
 class TagsFilter(admin.SimpleListFilter):
-    title = "Tags"
+    title = "⭐ Tags"
     parameter_name = "tags"
 
     def lookups(self, request, model_admin):
@@ -423,11 +447,13 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     )
     list_filter = (
         DocumentQueueFilter,
-        DocumentErrorFilter,
+        DocumentStateFilter,
+        DocumentCrawlPolicyFilter,
         "show_on_homepage",
+        TagsFilter,
         "hidden",
         DocumentOrphanFilter,
-        TagsFilter,
+        "crawl_last",
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)

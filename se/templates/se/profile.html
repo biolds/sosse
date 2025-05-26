@@ -110,7 +110,7 @@ function onlineCheck () {
     {% if user.is_active %}
       <p>
         👤 <a href="{% url 'admin:password_change' %}" style="padding-right: 20px">Change Pass</a>
-        🔍 <a href="{% url 'history' %}">Search History</a>
+        🕑 <a href="{% url 'history' %}">Search History</a>
       </p>
     {% endif %}
 

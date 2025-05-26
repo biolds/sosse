@@ -478,8 +478,6 @@ class SearchHistory(models.Model):
         if q:
             if queryparams:
                 q = f"{q} ({queryparams})"
-        else:
-            q = queryparams
 
         qd = QueryDict(mutable=True)
         qd.update(params)
@@ -490,8 +488,11 @@ class SearchHistory(models.Model):
             if last and last.querystring == qs and last.tags == tags:
                 return
 
-            if not q and not qs and not tags:
+            if not q and not queryparams and not tags:
                 return
+
+            if not q:
+                q = queryparams
 
             SearchHistory.objects.create(querystring=qs, query=q, user=request.user, tags=tags)
 

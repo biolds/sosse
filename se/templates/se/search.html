@@ -160,6 +160,24 @@
     input[name="fv"] {
         min-width: 350px;
     }
+    #previous_search {
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px;
+      padding-left: 29%;
+      width: 30%;
+    }
+    .quick-history-link {
+      color: var(--text);
+      display: inline-block;
+      margin-right: 10px;
+      overflow: hidden;
+      text-align: left;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 143%;
+    }
 {% endblock %}
 
 {% block js %}
@@ -184,6 +202,23 @@
 
             {{ form.q }}<!--
             --><input id="search_button" class="img_button" type="submit" value=" " onclick="return on_submit()">
+            {% if search_history %}
+              <div id="previous_search">
+                <span title="Last searches" style="position: absolute; margin-left: -20px">
+                  <a href="{% url 'history' %}">
+                    🕑
+                  </a>
+                </span>
+                {% for e in search_history %}
+                  <a class="quick-history-link" href="{{ e.search_url }}">
+                    {% for tag in e.tags %}
+                      {% include "se/components/tag.html" with suffix="-history" %}
+                    {% endfor %}
+                    {{ e.query }}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
             <div id="more_div">
                 <a id="more" href="#" onclick="search_more()">⮟ params</a>
             </div>

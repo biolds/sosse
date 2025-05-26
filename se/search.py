@@ -362,6 +362,26 @@ class SearchView(UserView):
                     has_query = True
             home_entries = home_entries.order_by("title").distinct()
 
+        search_history = None
+        if (
+            (not has_query or tags)
+            and self.request.user.is_authenticated
+            and settings.SOSSE_HOME_SEARCH_HISTORY_SIZE > 0
+        ):
+            search_history = SearchHistory.objects.filter(user=self.request.user).order_by("-date")[
+                : settings.SOSSE_HOME_SEARCH_HISTORY_SIZE
+            ]
+
+            for entry in search_history:
+                if entry.tags:
+                    _tags = []
+                    for tag in entry.tags:
+                        tag = Tag.objects.filter(pk=tag).first()
+                        if tag:
+                            _tags.append(tag)
+                            tag.name = f"⭐ {tag.name}"
+                    entry.tags = _tags
+
         context.update(self._get_pagination(paginated))
         return context | {
             "hide_title": True,
@@ -371,6 +391,7 @@ class SearchView(UserView):
             "paginated": paginated,
             "has_query": has_query,
             "home_entries": home_entries,
+            "search_history": search_history,
             "q": q,
             "title": q,
             "sosse_langdetect_to_postgres": sosse_langdetect_to_postgres,

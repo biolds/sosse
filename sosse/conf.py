@@ -242,6 +242,11 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=False,
             type=bool,
         ),
+        "home_search_history_size": ConfOption(
+            comment="Number of recent searches displayed on the homepage.",
+            default=3,
+            type=int,
+        ),
     },
     "crawler": {
         "crawler_count": ConfOption(

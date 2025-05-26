@@ -46,6 +46,7 @@ class HistoryView(UserView):
                     tag = Tag.objects.filter(pk=tag).first()
                     if tag:
                         _tags.append(tag)
+                        tag.name = f"⭐ {tag.name}"
                 entry.tags = _tags
 
         context["paginated"] = paginated

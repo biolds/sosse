@@ -163,8 +163,13 @@ class Webhook(models.Model):
         for webhook in webhooks.filter(enabled=True).order_by("name"):
             if webhook.tags.exists():
                 has_all_tags = True
+                doc_tags = set()
+
+                for tag in doc.tags.all():
+                    doc_tags |= set(tag.get_tree())
+
                 for tag in webhook.tags.all():
-                    if not doc.tags.filter(id__in=tag.get_tree()).exists():
+                    if tag not in doc_tags:
                         has_all_tags = False
                         break
                 if not has_all_tags:

@@ -142,7 +142,7 @@ Format of the image JPG or PNG.
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
-.. _script_params:
+.. _crawl_policy_script:
 
 Script
 """"""
@@ -215,6 +215,8 @@ Assets exclude HTML regex
 
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
 regex of ``audio|video`` would make the crawler skip the download of medias.
+
+.. _crawl_policy_recurrence:
 
 🕑 Recurrence
 -------------

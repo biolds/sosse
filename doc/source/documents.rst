@@ -75,8 +75,8 @@ Metadata
 --------
 
 The Metadata tab shows associated metadata for the document. The metadata is stored in a JSON format and can be used to
-add custom fields to the document. The metadata can be set using :ref:`Javascript execution <script_params>` in the
-browser context, or using the return value of the :doc:`webhooks`.
+add custom fields to the document. The metadata can be set using :ref:`Javascript execution <crawl_policy_script>` in
+the browser context, or using the return value of the :doc:`webhooks`.
 
 .. image:: ../../tests/robotframework/screenshots/metadata.png
    :class: sosse-screenshot

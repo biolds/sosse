@@ -10,5 +10,5 @@ su - postgres -c "psql -d sosse --command=\"ALTER SEQUENCE auth_user_id_seq REST
 su - postgres -c "psql -d sosse --command=\"TRUNCATE se_webhook CASCADE;\""
 sosse-admin update_se
 sosse-admin default_admin
-exec /opt/venv-robotframework/bin/robot -V config.yaml --exitonerror --exitonfailure docs/
+exec /opt/venv-robotframework/bin/robot -V config.yaml --exitonerror --exitonfailure guides/
 #exec /robotframework-venv/bin/robot --exitonerror --exitonfailure 02_*.robot

@@ -1,0 +1,564 @@
+[
+  {
+    "model": "se.crawlpolicy",
+    "pk": 39,
+    "fields": {
+      "url_regex": "(default)",
+      "url_regex_pg": ".*",
+      "enabled": true,
+      "recursion": "depth",
+      "mimetype_regex": ".*",
+      "recursion_depth": 0,
+      "keep_params": true,
+      "hide_documents": false,
+      "default_browse_mode": "detect",
+      "snapshot_html": true,
+      "snapshot_exclude_url_re": "",
+      "snapshot_exclude_mime_re": "",
+      "snapshot_exclude_element_re": "",
+      "thumbnail_mode": "preview",
+      "take_screenshots": false,
+      "screenshot_format": "jpg",
+      "remove_nav_elements": "idx",
+      "script": "",
+      "store_extern_links": false,
+      "recrawl_freq": "adaptive",
+      "recrawl_dt_min": "1 00:00:00",
+      "recrawl_dt_max": "365 00:00:00",
+      "hash_mode": "no_numbers",
+      "recrawl_condition": "manual",
+      "auth_login_url_re": "",
+      "auth_form_selector": "",
+      "tags": [],
+      "webhooks": [
+        9
+      ]
+    }
+  },
+  {
+    "model": "se.crawlpolicy",
+    "pk": 40,
+    "fields": {
+      "url_regex": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",
+      "url_regex_pg": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",
+      "enabled": true,
+      "recursion": "always",
+      "mimetype_regex": ".*",
+      "recursion_depth": 0,
+      "keep_params": true,
+      "hide_documents": false,
+      "default_browse_mode": "selenium",
+      "snapshot_html": true,
+      "snapshot_exclude_url_re": "",
+      "snapshot_exclude_mime_re": "",
+      "snapshot_exclude_element_re": "",
+      "thumbnail_mode": "preview",
+      "take_screenshots": false,
+      "screenshot_format": "jpg",
+      "remove_nav_elements": "idx",
+      "script": "function extractNoticeMetadata() {\r\n  const getText = (selector, parent = document) => {\r\n    const el = parent.querySelector(selector);\r\n    return el ? el.textContent.trim() : null;\r\n  };\r\n\r\n  const getMultipleDataFields = (prefix, parent) => {\r\n    const fields = {};\r\n    parent.querySelectorAll('div').forEach(div => {\r\n      const label = div.querySelector('.label');\r\n      const data = div.querySelector('.data, .line');\r\n      if (label && data) {\r\n        const key = label.textContent.trim().replace(/:$/, '');\r\n        const value = data.textContent.trim();\r\n        fields[`${prefix}: ${key}`] = value;\r\n      }\r\n    });\r\n    return fields;\r\n  };\r\n\r\n  const metadata = {};\r\n\r\n  // ID du document et Titre\r\n  const titleEl = document.querySelector('#notInPdf');\r\n  if (titleEl) {\r\n    const parts = titleEl.textContent.trim().split(' - ');\r\n    if (parts.length > 1) {\r\n      metadata['document_id'] = parts[0];\r\n      metadata['title'] = parts.slice(1).join(' - ');\r\n    }\r\n  }\r\n\r\n  // Buyer + email\r\n  const buyerSection = document.querySelector('#section1_1')?.nextElementSibling;\r\n  if (buyerSection) {\r\n    metadata['buyer'] = getText('div span.data', buyerSection);\r\n    metadata['email'] = getText('a[href^=\"mailto:\"]', buyerSection);\r\n  }\r\n\r\n  // Section \"2. Procedure\"\r\n  const procedureSection = document.querySelector('#section2_3')?.nextElementSibling;\r\n  if (procedureSection) {\r\n    Object.assign(metadata, getMultipleDataFields('procedure', procedureSection));\r\n  }\r\n\r\n  // Section \"notice information\"\r\n  const noticeSection = document.querySelector('#section_23')?.nextElementSibling;\r\n  if (noticeSection) {\r\n    Object.assign(metadata, getMultipleDataFields('notice_informations', noticeSection));\r\n  }\r\n\r\n  return { metadata };\r\n}\r\nreturn extractNoticeMetadata();",
+      "store_extern_links": false,
+      "recrawl_freq": "adaptive",
+      "recrawl_dt_min": "1 00:00:00",
+      "recrawl_dt_max": "365 00:00:00",
+      "hash_mode": "no_numbers",
+      "recrawl_condition": "manual",
+      "auth_login_url_re": "",
+      "auth_form_selector": "",
+      "tags": [],
+      "webhooks": []
+    }
+  },
+  {
+    "model": "se.favicon",
+    "pk": 234,
+    "fields": {
+      "url": "https://ted.europa.eu/documents/43503/1082650/favicon.ico/d3767476-8b80-a2c9-d9e8-245b087fde48",
+      "content": "AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8AQLJmvwCZM/9Asma/////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AECyZr8AmTP/QLJmv////wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AQLJmv0CyZr9QuHKugMuZfqDYsl7///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AACZM/8AmTP/gMuZfv///wD///8A////AP///wD///8A////AP///wD///8A////AP///wBAsma/AJkz/wCZM/8AmTP/AJkz/wCZM/8AmTP/AJkz/wCZM/8AmTP/AJkz/0CyZr////8A////AOXLsn7ly7J+OaVS3gCZM/8AmTP/AJkz/wCZM/8AmTP/AJkz/wCZM/8AmTP/AJkz/wCZM/8gpUzegMuZfoDLmX7MmWb/zJlm/zOZP/8AmTP/AJkz/wCZM/8AmTP/AJkz/wCZM/8AmTP/AJkz/wCZM/8AmTP/AJkz/wCZM/8AmTP/zJlm/8yZZv+lmVz/fF8f/3JMDP9yTAz/ckwM/3JMDP9yTAz/ckwM/3JMDP9yTAz/Vl8W/wCZM/8AmTP/AJkz/8yZZv/MmWb/zJlm/6VMGf+ZMwD/mTMA/5kzAP+ZMwD/mTMA/5kzAP+ZMwD/mTMA/3JMDP8AmTP/AJkz/wCZM//MmWb/zJlm/8yZZv+lTBn/mTMA/5kzAP+ZMwD/mTMA/5kzAP+ZMwD/mTMA/5kzAP9yTAz/AJkz/wCZM/8AmTP/zJlm/8yZZv/MmWb/pUwZ/5kzAP+ZMwD/mTMA/5kzAP+ZMwD/mTMA/5kzAP+ZMwD/ckwM/wCZM/8AmTP/AJkz/8yZZv/MmWb/zJlm/6VMGf+ZMwD/mTMA/5kzAP+ZMwD/mTMA/5kzAP+ZMwD/mTMA/3JMDP8AmTP/AJkz/wCZM//MmWb/zJlm/8yZZv+vXyz/pUwZ/6VMGf+lTBn/pUwZ/6VMGf+lTBn/pUwZ/6VMGf98Xx//AJkz/wCZM/8AmTP/zJlm/8yZZv/MmWb/zJlm/8yZZv/MmWb/zJlm/8yZZv/MmWb/zJlm/8yZZv/MmWb/mZlZ/wCZM/8AmTP/AJkz//Hl2D7x5dg+1ayCz8yZZv/MmWb/zJlm/8yZZv/MmWb/zJlm/8yZZv/MmWb/zJlm/7+ZYv+irHXPwOXMPsDlzD7///8A////ANiyjL/MmWb/zJlm/8yZZv/MmWb/zJlm/8yZZv/MmWb/zJlm/8yZZv/MmWb/2LKMv////wD///8A/j8AAP4/AAD4/wAA+f8AAMADAADAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAwAAwAMAAA==",
+      "mimetype": "image/vnd.microsoft.icon",
+      "missing": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 337,
+    "fields": {
+      "doc_from": 16966,
+      "doc_to": 16967,
+      "text": "334331-2025",
+      "pos": 1461,
+      "link_no": 0,
+      "extern_url": null,
+      "screen_pos": null,
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 338,
+    "fields": {
+      "doc_from": 16966,
+      "doc_to": 16968,
+      "text": "125484-2025",
+      "pos": 1683,
+      "link_no": 1,
+      "extern_url": null,
+      "screen_pos": null,
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 339,
+    "fields": {
+      "doc_from": 16966,
+      "doc_to": 16969,
+      "text": "124149-2025",
+      "pos": 2006,
+      "link_no": 2,
+      "extern_url": null,
+      "screen_pos": null,
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 418,
+    "fields": {
+      "path": "0002",
+      "depth": 1,
+      "numchild": 6,
+      "name": "Hardware"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 419,
+    "fields": {
+      "path": "00020002",
+      "depth": 2,
+      "numchild": 0,
+      "name": "CPU"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 420,
+    "fields": {
+      "path": "00020004",
+      "depth": 2,
+      "numchild": 0,
+      "name": "GPU"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 421,
+    "fields": {
+      "path": "0002000A",
+      "depth": 2,
+      "numchild": 0,
+      "name": "RAM"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 422,
+    "fields": {
+      "path": "0002000B",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Storage"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 423,
+    "fields": {
+      "path": "00020007",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Motherboard"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 424,
+    "fields": {
+      "path": "00020009",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Power Supply"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 425,
+    "fields": {
+      "path": "0005",
+      "depth": 1,
+      "numchild": 4,
+      "name": "Software"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 426,
+    "fields": {
+      "path": "00050004",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Operating System"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 427,
+    "fields": {
+      "path": "00050005",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Programming Languages"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 428,
+    "fields": {
+      "path": "00050003",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Development Tools"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 429,
+    "fields": {
+      "path": "00050007",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Security Software"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 430,
+    "fields": {
+      "path": "0003",
+      "depth": 1,
+      "numchild": 3,
+      "name": "Network & Connectivity"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 431,
+    "fields": {
+      "path": "00030004",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Network Protocols"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 432,
+    "fields": {
+      "path": "00030003",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Internet Speed"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 433,
+    "fields": {
+      "path": "00030006",
+      "depth": 2,
+      "numchild": 0,
+      "name": "WiFi Standards"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 434,
+    "fields": {
+      "path": "0004",
+      "depth": 1,
+      "numchild": 3,
+      "name": "Peripheral"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 435,
+    "fields": {
+      "path": "00040002",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Keyboard"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 436,
+    "fields": {
+      "path": "00040006",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Mouse"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 437,
+    "fields": {
+      "path": "00040005",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Monitor"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 438,
+    "fields": {
+      "path": "0001",
+      "depth": 1,
+      "numchild": 5,
+      "name": "General Usage"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 439,
+    "fields": {
+      "path": "00010008",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Gaming PC"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 440,
+    "fields": {
+      "path": "00010009",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Workstation Build"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 441,
+    "fields": {
+      "path": "00010003",
+      "depth": 2,
+      "numchild": 0,
+      "name": "AI"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 442,
+    "fields": {
+      "path": "00010005",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Budget Laptop"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 443,
+    "fields": {
+      "path": "00010007",
+      "depth": 2,
+      "numchild": 0,
+      "name": "Custom PC Build"
+    }
+  },
+  {
+    "model": "se.webhook",
+    "pk": 9,
+    "fields": {
+      "name": "Discord notification",
+      "enabled": false,
+      "trigger_condition": "discovery",
+      "updates_doc": false,
+      "url": "https://discord.com/api/webhooks/1239873455671234522/V-gFSWDCS342jin98DWEsdrfs-23lmsWEalokj345kjn213oiu4",
+      "method": "post",
+      "username": "",
+      "password": "",
+      "headers": "",
+      "body_template": "{\"content\":\"New page discovered $title:\\n$url\"}",
+      "mimetype_re": ".*",
+      "title_re": ".*",
+      "content_re": ".*",
+      "tags": [
+        438
+      ]
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16966,
+    "fields": {
+      "url": "https://ted.europa.eu/en/search/result?FT=Germany&search-scope=ACTIVE&scope=ACTIVE&onlyLatestVersions=false&facet.business-opportunity=planning&facet.cpv=core&facet.contract-nature=services&facet.place-of-performance=SPCY%2CDEU%2CDE3&facet.procedure-type=open&facet.publication-date=2025&sortColumn=publication-number&sortOrder=DESC&page=1&simpleSearchRef=true+...2025-05-24+11%3A34%3A31%2C073+49477+DEBUG+Crawling+https%3A%2F%2Fted.europa.eu%2Fen%2Fsearch%2Fresult%3FFT=Germany&search-scope=ACTIVE&scope=ACTIVE&onlyLatestVersions=false&facet.business-opportunity=planning&facet.cpv=core&facet.contract-nature=services&facet.place-of-performance=SPCY%2CDEU%2CDE3&facet.procedure-type=open&facet.publication-date=2025&sortColumn=publication-number&sortOrder=DESC&page=1",
+      "title": "Search results - TED",
+      "content": "This site uses cookies. Visit our cookies policy page or click the link in any footer for more information and to change your preferences.\nAccept all cookies Accept only essential cookies\nSuccessfully signed out ×\nYou are signed out of the TED application, but you 're still logged in to EU Login. If you wish to logout of EU Login, please click here\nMenu\nSearch\nMore search options: Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nSearch options Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nHelp Print Share\nShare ×\nFacebook X/Twitter LinkedIn Email\nCancel\nSearch results\nRefine search\nYou have selected:\nPlanning\nConstruction and Real Estate\nServices\nIn a specific country\nGermany\nBerlin\nOpen\n2025\nBy business opportunity\nPrior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders (3)\nBy CPV\nSewage, refuse, cleaning and environmental services (3)\nBy place of performance\nBerlin (3)\nBy publication date\nFebruary (2)\nMay (1)\nBy country of buyer\nEuropean Union (3)\nSearch criteria\nSearch scope:\n Active notices\nFull text:\n Germany;\nSorted by Notice publication number:\n Descending\nEdit search Save search Create Search Alert\nFrom 1 - 3 to 3\nClear Selection Create notice alert Download Export list\nNotice Number\nDescription\nCountry\nPublication date\nDeadline for receipt of tenders\n334331-2025 Germany – Snow-clearing services – Winterdienst\nPlace of performance:  Germany ,Berlin\nMain nature of the contract:  Services\nType of procedure:  Open\nOfficial name:  Berliner Wasserbetriebe\nGermany 23/05/2025\n125484-2025 Germany – Sewage, refuse, cleaning and environmental services – Transport und Verwertung von Sandfangrückstände (ASN 190802)\nPlace of performance:  Germany ,Berlin\nMain nature of the contract:  Services\nType of procedure:  Open\nOfficial name:  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nGermany 25/02/2025\n124149-2025 Germany – Sewage, refuse, cleaning and environmental services – Transport/Verwertung von Rechengut (ASN 190801)\nPlace of performance:  Germany ,Berlin\nMain nature of the contract:  Services\nType of procedure:  Open\nOfficial name:  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nGermany 25/02/2025\nFrom 1 - 3 to 3\nThis site is managed by: Publications Office of the European Union\nNeed help? Help\nContact the TED helpdesk\nFollow us X/Twitter\nYouTube\nLegal Legal notice\nCookies\nAccessibility\nAbout us About TED\nSite map\nOther services EU law\nEuropean Data\nEU research results\nEU Whoiswho\nEU Publications\nDiscover more on europa.eu\nContact the EU Call us 00 800 6 7 8 9 10 11\nUse other telephone options\nWrite to us via our contact form\nMeet us at one of the EU centres\nSocial media Search for EU social media channels\nLegal Languages on our websites\nPrivacy policy\nLegal notice\nCookies\nSocial media Search for EU social media channels\nSocial media Search for EU institutions\nEU institutions and bodies Search all EU institutions and bodies\nEU institutions and bodies Search for EU institutions\nHidden\nDownload entire list\nDownload list of selected notices\nExport entire list\nExport list of selected notices\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-27T08:23:34.279027+00:00",
+      "crawl_first": "2025-05-24T20:30:08.745919+00:00",
+      "crawl_last": "2025-05-27T08:23:34.279027+00:00",
+      "crawl_next": null,
+      "crawl_dt": null,
+      "favicon": 234,
+      "metadata": {},
+      "show_on_homepage": true,
+      "has_html_snapshot": true,
+      "screenshot_count": 0,
+      "screenshot_format": "",
+      "screenshot_size": "",
+      "has_thumbnail": true,
+      "webhooks_result": {}
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16967,
+    "fields": {
+      "url": "https://ted.europa.eu/en/notice/-/detail/334331-2025",
+      "title": "334331-2025 - Planning - TED",
+      "content": "This site uses cookies. Visit our cookies policy page or click the link in any footer for more information and to change your preferences.\nAccept all cookies Accept only essential cookies\nSuccessfully signed out ×\nYou are signed out of the TED application, but you 're still logged in to EU Login. If you wish to logout of EU Login, please click here\nMenu\nSearch\nMore search options: Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nSearch options Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nHelp Print Share\nShare ×\nFacebook X/Twitter LinkedIn Email\nCancel\n334331-2025 - Planning\nNotice View\nDownload XML\nShow the direct links\nCreate an alert\nSend by email\nRequest a translation\n1. Buyer\n2. Procedure\n5. Lot\n8. Organisations (5)\nNotice information\nNotice View\nSummary\nPlanning\nGermany :  Snow-clearing services\nWinterdienst\nGermany ,  Berlin  ( DE300 )   diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nType of procedure :  Open\nBuyer\nBuyer :  Berliner Wasserbetriebe\nEmail :  vergabe-l@bwb.de\nGermany ,  Berlin  ( DE300 ) ,  Berlin\nLOT-0000 :  Winterdienst\nSnow-clearing services\nGermany ,  Berlin  ( DE300 )   diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nDuration :  48   Months\nLanguages and formats\nOfficial language  (Signed PDF)\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nPDF\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nMachine translation HTML\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nNotice\nCurrent language\n334331-2025 - Planning See the notice on TED website\n334331-2025\n334331-2025 - Planning Germany – Snow-clearing services – Winterdienst\nOJ S 99/2025 23/05/2025\nPrior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders\nServices\n1. Buyer\n1.1.\nBuyer\nOfficial name :  Berliner Wasserbetriebe\nEmail :  vergabe-l@bwb.de\nLegal type of the buyer :  Body governed by public law, controlled by a regional authority\nActivity of the contracting authority :  Economic affairs\n2. Procedure\n2.1.\nProcedure\nTitle :  Winterdienst\nDescription :  Winterdienst (Schnee- und Eisbekämpfung einschl. Streugutbeseitigung) in diversen Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nInternal identifier :  VI-2025-0004\nType of procedure :  Open\n2.1.1.\nPurpose\nMain nature of the contract :  Services\nMain classification   ( cpv ):  90620000   Snow-clearing services\n2.1.2.\nPlace of performance\nTown :  diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nPostcode :  diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\n2.1.4.\nGeneral information\nLegal basis : \nDirective 2014/24/EU\nvgv   -\n5. Lot\n5.1.\nLot :  LOT-0000\nTitle :  Winterdienst\nDescription :  Winterdienst (Schnee- und Eisbekämpfung einschl. Streugutbeseitigung) in diversen Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nInternal identifier :  LOT-0000\n5.1.1.\nPurpose\nMain nature of the contract :  Services\nMain classification   ( cpv ):  90620000   Snow-clearing services\n5.1.2.\nPlace of performance\nTown :  diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nPostcode :  diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\n5.1.3.\nEstimated duration\nDuration :  48   Months\n5.1.6.\nGeneral information\nReserved participation :  Participation is not reserved.\nThe names and professional qualifications of the staff assigned to perform the contract must be given :  Not required\nProcurement Project not financed with EU Funds.\nThe procurement is covered by the Government Procurement Agreement (GPA) :  yes\nThis procurement is also suitable for small and medium-sized enterprises (SMEs) :  no\n5.1.7.\nStrategic procurement\nAim of strategic procurement :  Fulfilment of social objectives Description :  Anforderungen nach dem Berliner Ausschreibungs- und Vergabegesetz (BerlAVG) und der Frauenförderverordnung des Landes Berlin (FFV)\nSocial objective promoted :  Other\n5.1.9.\nSelection criteria\nCriterion :  Type :  Suitability to pursue the professional activity\nDescription :  siehe Direktlink zu den Eignungskriterien des Vergabeverfahrens\nCriterion :  Type :  Economic and financial standing\nDescription :  siehe Direktlink zu den Eignungskriterien des Vergabeverfahrens\nCriterion :  Type :  Technical and professional ability\nDescription :  siehe Direktlink zu den Eignungskriterien des Vergabeverfahrens\n5.1.12.\nTerms of procurement\nTerms of submission :  Electronic submission :  Allowed\nAddress for submission :  https://vergabekooperation.berlin/NetServer/\nLanguages in which tenders or requests to participate may be submitted :  German\nVariants :  Not allowed\nTenderers may submit more than one tender :  Not allowed\nInformation that can be supplemented after the submission deadline :  At the discretion of the buyer, all missing tenderer-related documents may be submitted later.\nAdditional information :  Fehlende Unterlagen, deren Vorlage mit dem Angebot gefordert waren, werden entsprechend der gesetzlichen Regelungen nachgefordert. Die Nachreichung hat ausschließlich über das Bietercockpit /Nachrichten zu erfolgen\nTerms of contract :  The execution of the contract must be performed within the framework of sheltered employment programmes :  No\nConditions relating to the performance of the contract :  Hinweis: Es bestehen gesonderte Anforderungen nach dem Berliner Ausschreibungs- und Vergabegesetz (BerlAVG), siehe Vergabeunterlagen.\nElectronic invoicing :  Allowed\nElectronic ordering will be used :  yes\nElectronic payment will be used :  yes\n5.1.15.\nTechniques\nFramework agreement :  No framework agreement\nInformation about the dynamic purchasing system :  No dynamic purchase system\nElectronic auction :  no\n5.1.16.\nFurther information, mediation and review\nMediation organisation :  Vergabekammer des Landes Berlin\nReview organisation :  Vergabekammer des Landes Berlin\nInformation about review deadlines : Genaue Angaben zu den Fristen für die Einlegung von Rechtsbehelfen: Verstöße gegen Vergabevorschriften, die aufgrund der Bekanntmachung oder in den Vergabeunterlagen erkennbar sind, sind spätestens bis zum Ablauf der Frist zur Bewerbung oder zur Angebotsabgabe gegenüber dem Auftraggeber zu rügen. Im Übrigen sind Verstöße gegen Vergabevorschriften innerhalb einer Frist von zehn Kalendertagen nach Kenntnis gegenüber dem Auftraggeber zu rügen. Ein Nachprüfungsantrag ist innerhalb von 15 Kalendertagen nach Eingang der Mitteilung des Auftraggebers, einer Rüge nicht abhelfen zu wollen, bei der zuständigen Vergabekammer zu stellen (§ 160 Gesetz gegen Wettbewerbsbeschränkungen (GWB)). Die o.a. Fristen gelten nicht, wenn der Auftraggeber gemäß § 135 Absatz 1 Nr. 2 GWB den Auftrag ohne vorherige Veröffentlichung einer Bekanntmachung im Amtsblatt der Europäischen Union vergeben hat, ohne dass dies aufgrund Gesetzes gestattet ist. Setzt sich ein Auftraggeber über die Unwirksamkeit eines geschlossenen Vertrages hinweg, indem er die Informations- und Wartepflicht missachtet (§ 134 GWB) oder ohne vorherige Veröffentlichung einer Bekanntmachung im Amtsblatt der Europäischen Union vergeben hat, ohne dass dies aufgrund Gesetzes gestattet ist, kann die Unwirksamkeit nur festgestellt werden, wenn sie im Nachprüfungsverfahren innerhalb von 30 Kalendertagen nach der Information der betroffenen Bieter und Bewerber durch den öffentlichen Auftraggeber über den Abschluss des Vertrags, jedoch nicht später als sechs Monate nach Vertragsschluss geltend gemacht worden ist. Hat der Auftraggeber die Auftragsvergabe im Amtsblatt der Europäischen Union bekannt gemacht, endet die Frist 30 Kalendertage nach Veröffentlichung der Bekanntmachung der Auftragsvergabe im Amtsblatt der Europäischen Union (§ 135 GWB).\nOrganisation providing additional information about the procurement procedure :  Berliner Wasserbetriebe\nOrganisation providing more information on the review procedures :  Vergabekammer des Landes Berlin\nOrganisation receiving requests to participate :  Berliner Wasserbetriebe\nTED eSender :  Datenservice Öffentlicher Einkauf (in Verantwortung des Beschaffungsamts des BMI)\n8. Organisations\n8.1.\nORG-7001\nOfficial name :  Berliner Wasserbetriebe\nRegistration number :  DE136630247\nPostal address :  Neue Jüdenstr. 2\nTown :  Berlin\nPostcode :  10179\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nEmail :  vergabe-l@bwb.de\nTelephone :  0 0 0\nInternet address :  http://www.bwb.de\nBuyer profile :  http://www.bwb.de\nRoles of this organisation :  Buyer\nOrganisation providing additional information about the procurement procedure\nOrganisation receiving requests to participate\n8.1.\nORG-7004\nOfficial name :  Vergabekammer des Landes Berlin\nRegistration number :  UST-ID DE296830277\nPostal address :  Martin-Luther-Straße 105\nTown :  Berlin\nPostcode :  10825\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nEmail :  vergabekammer@senwtf.berlin.de\nTelephone :  +49 30-90138316\nFax :  +49 30-90137613\nInternet address :  https://www.berlin.de/sen/wirtschaft/wirtschaft-und-technologie/wirtschaftsrecht/vergabekammer/\nRoles of this organisation :  Review organisation\n8.1.\nORG-7005\nOfficial name :  Vergabekammer des Landes Berlin\nRegistration number :  UST-ID DE296830277\nPostal address :  Martin-Luther-Straße 105\nTown :  Berlin\nPostcode :  10825\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nEmail :  vergabekammer@senwtf.berlin.de\nTelephone :  +49 30-90138316\nFax :  +49 30-90137613\nRoles of this organisation :  Organisation providing more information on the review procedures\n8.1.\nORG-7006\nOfficial name :  Vergabekammer des Landes Berlin\nRegistration number :  UST-ID DE296830277\nPostal address :  Martin-Luther-Straße 105\nTown :  Berlin\nPostcode :  10825\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nEmail :  vergabekammer@senwtf.berlin.de\nTelephone :  +49 30-90138316\nFax :  +49 30-90137613\nRoles of this organisation :  Mediation organisation\n8.1.\nORG-7007\nOfficial name :  Datenservice Öffentlicher Einkauf (in Verantwortung des Beschaffungsamts des BMI)\nRegistration number :  0204:994-DOEVD-83\nTown :  Bonn\nPostcode :  53119\nCountry subdivision (NUTS) :  Bonn, Kreisfreie Stadt   ( DEA22 )\nCountry :  Germany\nEmail :  noreply.esender_hub@bescha.bund.de\nTelephone :  +49228996100\nRoles of this organisation :  TED eSender\nNotice information\nNotice identifier/version :  03fb6220-fb8f-4579-9d20-a7e9d69262cd   -   01\nForm type :  Planning\nNotice type :  Prior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders\nNotice subtype :  7\nNotice dispatch date :  21/05/2025   16:40:05 (UTC+2) Eastern European Time, Central European Summer Time\nLanguages in which this notice is officially available :  German\nNotice publication number :  334331-2025\nOJ S issue number :  99/2025\nPublication date :  23/05/2025\nThis site is managed by: Publications Office of the European Union\nNeed help? Help\nContact the TED helpdesk\nFollow us X/Twitter\nYouTube\nLegal Legal notice\nCookies\nAccessibility\nAbout us About TED\nSite map\nOther services EU law\nEuropean Data\nEU research results\nEU Whoiswho\nEU Publications\nDiscover more on europa.eu\nContact the EU Call us 00 800 6 7 8 9 10 11\nUse other telephone options\nWrite to us via our contact form\nMeet us at one of the EU centres\nSocial media Search for EU social media channels\nLegal Languages on our websites\nPrivacy policy\nLegal notice\nCookies\nSocial media Search for EU social media channels\nSocial media Search for EU institutions\nEU institutions and bodies Search all EU institutions and bodies\nEU institutions and bodies Search for EU institutions\nHidden\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-28T08:24:45.141527+00:00",
+      "crawl_first": "2025-05-27T08:24:08.450236+00:00",
+      "crawl_last": "2025-05-28T08:24:45.141527+00:00",
+      "crawl_next": "2025-05-29T08:24:45.141527+00:00",
+      "crawl_dt": "86400.0",
+      "favicon": 234,
+      "metadata": {
+        "buyer": "Berliner Wasserbetriebe",
+        "email": "*********@***.de",
+        "title": "Planning",
+        "document_id": "334331-2025",
+        "procedure: Town": "diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland",
+        "procedure: Title": "Winterdienst",
+        "procedure: Country": "Germany",
+        "procedure: Postcode": "diverse Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland",
+        "procedure: Description": "Winterdienst (Schnee- und Eisbekämpfung einschl. Streugutbeseitigung) in diversen Liegenschaften der Berliner Wasserbetriebe im Land Berlin und Umland",
+        "procedure: Legal basis": "Directive 2014/24/EU",
+        "procedure: Type of procedure": "Open",
+        "procedure: Internal identifier": "VI-2025-0004",
+        "procedure: Main classification": "cpv",
+        "procedure: Country subdivision (NUTS)": "Berlin",
+        "procedure: Main nature of the contract": "Services"
+      },
+      "show_on_homepage": false,
+      "has_html_snapshot": true,
+      "screenshot_count": 0,
+      "screenshot_format": "",
+      "screenshot_size": "",
+      "has_thumbnail": false,
+      "webhooks_result": {}
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16969,
+    "fields": {
+      "url": "https://ted.europa.eu/en/notice/-/detail/124149-2025",
+      "title": "124149-2025 - Planning - TED",
+      "content": "This site uses cookies. Visit our cookies policy page or click the link in any footer for more information and to change your preferences.\nAccept all cookies Accept only essential cookies\nSuccessfully signed out ×\nYou are signed out of the TED application, but you 're still logged in to EU Login. If you wish to logout of EU Login, please click here\nMenu\nSearch\nMore search options: Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nSearch options Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nHelp Print Share\nShare ×\nFacebook X/Twitter LinkedIn Email\nCancel\n124149-2025 - Planning\nNotice View\nDownload XML\nShow the direct links\nCreate an alert\nSend by email\nRequest a translation\n1. Buyer\n2. Procedure\n5. Lot\n8. Organisations (3)\nNotice information\nNotice View\nSummary\nPlanning\nGermany :  Sewage, refuse, cleaning and environmental services\nTransport/Verwertung von Rechengut (ASN 190801)\nGermany ,  Berlin  ( DE300 )\nType of procedure :  Open\nBuyer\nBuyer :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nEmail :  vergabe-l@bwb.de\nGermany ,  Berlin  ( DE300 ) ,  Berlin\nLOT-0000 :  Transport/Verwertung von Rechengut (ASN 190801)\nSewage, refuse, cleaning and environmental services\nGermany ,  Berlin  ( DE300 )\nLanguages and formats\nOfficial language  (Signed PDF)\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nPDF\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nMachine translation HTML\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nNotice\nCurrent language\n124149-2025 - Planning See the notice on TED website\n124149-2025\n124149-2025 - Planning Germany – Sewage, refuse, cleaning and environmental services – Transport/Verwertung von Rechengut (ASN 190801)\nOJ S 39/2025 25/02/2025\nPrior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders\nServices\n1. Buyer\n1.1.\nBuyer\nOfficial name :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nEmail :  vergabe-l@bwb.de\nLegal type of the buyer :  Body governed by public law, controlled by a regional authority\nActivity of the contracting authority :  Economic affairs\n2. Procedure\n2.1.\nProcedure\nTitle :  Transport/Verwertung von Rechengut (ASN 190801)\nDescription :  Beladung, Transport und Verwertung von Rechengut (Abfallschlüsselnummer 190801 Sieb- und Rechenrückstände) inkl. teilweise Containergestellung und -vorhaltung von diversen Objekten der Berliner Wasserbetriebe im Bedarfsfall auf Abruf\nInternal identifier :  VI-2025-0002\nType of procedure :  Open\n2.1.1.\nPurpose\nMain nature of the contract :  Services\nMain classification   ( cpv ):  90000000   Sewage, refuse, cleaning and environmental services\n2.1.2.\nPlace of performance\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\n2.1.4.\nGeneral information\nLegal basis : \nDirective 2014/24/EU\nvgv   -\n5. Lot\n5.1.\nLot :  LOT-0000\nTitle :  Transport/Verwertung von Rechengut (ASN 190801)\nDescription :  Beladung, Transport und Verwertung von Rechengut (Abfallschlüsselnummer 190801 Sieb- und Rechenrückstände) inkl. teilweise Containergestellung und -vorhaltung von diversen Objekten der Berliner Wasserbetriebe im Bedarfsfall auf Abruf\nInternal identifier :  LOT-0000\n5.1.1.\nPurpose\nMain nature of the contract :  Services\nMain classification   ( cpv ):  90000000   Sewage, refuse, cleaning and environmental services\n5.1.2.\nPlace of performance\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\n5.1.6.\nGeneral information\nReserved participation :  Participation is not reserved.\nThe names and professional qualifications of the staff assigned to perform the contract must be given :  Not required\nProcurement Project not financed with EU Funds.\nThe procurement is covered by the Government Procurement Agreement (GPA) :  yes\nThis procurement is also suitable for small and medium-sized enterprises (SMEs) :  no\n5.1.7.\nStrategic procurement\nAim of strategic procurement :  No strategic procurement\n5.1.9.\nSelection criteria\nCriterion :  Type :  Suitability to pursue the professional activity\nCriterion :  Type :  Economic and financial standing\nCriterion :  Type :  Technical and professional ability\n5.1.12.\nTerms of procurement\nTerms of submission :  Electronic submission :  Allowed\nAddress for submission :  https://vergabekooperation.berlin/NetServer/\nLanguages in which tenders or requests to participate may be submitted :  German\nVariants :  Not allowed\nTenderers may submit more than one tender :  Not allowed\nInformation that can be supplemented after the submission deadline :  At the discretion of the buyer, all missing tenderer-related documents may be submitted later.\nAdditional information :  Fehlende Unterlagen, deren Vorlage mit dem Angebot gefordert waren, werden entsprechend der gesetzlichen Regelungen nachgefordert. Die Nachreichung hat ausschließlich über das Bietercockpit /Nachrichten zu erfolgen.\nTerms of contract :  The execution of the contract must be performed within the framework of sheltered employment programmes :  No\nElectronic invoicing :  Required\nElectronic ordering will be used :  yes\nElectronic payment will be used :  yes\n5.1.15.\nTechniques\nFramework agreement :  Framework agreement, without reopening of competition\nInformation about the dynamic purchasing system :  No dynamic purchase system\nElectronic auction :  no\n5.1.16.\nFurther information, mediation and review\nReview organisation :  Vergabekammer des Landes Berlin\nInformation about review deadlines : Innerhalb von 15 Kalendertagen nach Eingang der Mitteilung des Auftraggebers, einer Rüge nicht abhelfen zu wollen, kann ein Nachprüfverfahren bei der Vergabekammer beantragt werden (§ 160 Abs. 3 Nr. 4 GWB).\nOrganisation providing additional information about the procurement procedure :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nOrganisation receiving requests to participate :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nTED eSender :  Datenservice Öffentlicher Einkauf (in Verantwortung des Beschaffungsamts des BMI)\n8. Organisations\n8.1.\nORG-7001\nOfficial name :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nRegistration number :  DE136630247\nPostal address :  Neue Jüdenstraße 2\nTown :  Berlin\nPostcode :  10179\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nContact point :  Einkauf Lieferungen und Leistungen\nEmail :  vergabe-l@bwb.de\nTelephone :  0 0 0\nFax :  +49 30-86442790\nRoles of this organisation :  Buyer Group leader\nOrganisation providing additional information about the procurement procedure\nOrganisation receiving requests to participate\n8.1.\nORG-7004\nOfficial name :  Vergabekammer des Landes Berlin\nRegistration number :  UST-ID DE296830277\nPostal address :  Martin-Luther-Straße 105\nTown :  Berlin\nPostcode :  10825\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nEmail :  vergabekammer@senwtf.berlin.de\nTelephone :  +49 30-90138316\nFax :  +49 30-90137613\nInternet address :  https://www.berlin.de/sen/wirtschaft/wirtschaft-und-technologie/wirtschaftsrecht/vergabekammer/\nRoles of this organisation :  Review organisation\n8.1.\nORG-7005\nOfficial name :  Datenservice Öffentlicher Einkauf (in Verantwortung des Beschaffungsamts des BMI)\nRegistration number :  0204:994-DOEVD-83\nTown :  Bonn\nPostcode :  53119\nCountry subdivision (NUTS) :  Bonn, Kreisfreie Stadt   ( DEA22 )\nCountry :  Germany\nEmail :  noreply.esender_hub@bescha.bund.de\nTelephone :  +49228996100\nRoles of this organisation :  TED eSender\nNotice information\nNotice identifier/version :  3995b422-7d49-4012-9d86-83621d6113ce   -   01\nForm type :  Planning\nNotice type :  Prior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders\nNotice subtype :  7\nNotice dispatch date :  24/02/2025   10:05:51 (UTC+1) Central European Time, Western European Summer Time\nLanguages in which this notice is officially available :  German\nNotice publication number :  124149-2025\nOJ S issue number :  39/2025\nPublication date :  25/02/2025\nThis site is managed by: Publications Office of the European Union\nNeed help? Help\nContact the TED helpdesk\nFollow us X/Twitter\nYouTube\nLegal Legal notice\nCookies\nAccessibility\nAbout us About TED\nSite map\nOther services EU law\nEuropean Data\nEU research results\nEU Whoiswho\nEU Publications\nDiscover more on europa.eu\nContact the EU Call us 00 800 6 7 8 9 10 11\nUse other telephone options\nWrite to us via our contact form\nMeet us at one of the EU centres\nSocial media Search for EU social media channels\nLegal Languages on our websites\nPrivacy policy\nLegal notice\nCookies\nSocial media Search for EU social media channels\nSocial media Search for EU institutions\nEU institutions and bodies Search all EU institutions and bodies\nEU institutions and bodies Search for EU institutions\nHidden\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-28T08:25:08.882438+00:00",
+      "crawl_first": "2025-05-27T08:24:28.238487+00:00",
+      "crawl_last": "2025-05-28T08:25:08.882438+00:00",
+      "crawl_next": "2025-05-29T08:25:08.882438+00:00",
+      "crawl_dt": "86400.0",
+      "favicon": 234,
+      "metadata": {
+        "buyer": "EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF",
+        "email": "*********@***.de",
+        "title": "Planning",
+        "document_id": "124149-2025",
+        "procedure: Title": "Transport/Verwertung von Rechengut (ASN 190801)",
+        "procedure: Country": "Germany",
+        "procedure: Description": "Beladung, Transport und Verwertung von Rechengut (Abfallschlüsselnummer 190801 Sieb- und Rechenrückstände) inkl. teilweise Containergestellung und -vorhaltung von diversen Objekten der Berliner Wasserbetriebe im Bedarfsfall auf Abruf",
+        "procedure: Legal basis": "Directive 2014/24/EU",
+        "procedure: Type of procedure": "Open",
+        "notice_informations: Form type": "Planning",
+        "procedure: Internal identifier": "VI-2025-0002",
+        "procedure: Main classification": "cpv",
+        "notice_informations: Notice type": "Prior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders",
+        "notice_informations: Notice subtype": "7",
+        "notice_informations: Publication date": "25/02/2025",
+        "procedure: Country subdivision (NUTS)": "Berlin",
+        "notice_informations: OJ S issue number": "39/2025",
+        "procedure: Main nature of the contract": "Services",
+        "notice_informations: Notice dispatch date": "24/02/2025",
+        "notice_informations: Notice identifier/version": "3995b422-7d49-4012-9d86-83621d6113ce",
+        "notice_informations: Notice publication number": "124149-2025",
+        "notice_informations: Languages in which this notice is officially available": "German"
+      },
+      "show_on_homepage": false,
+      "has_html_snapshot": true,
+      "screenshot_count": 0,
+      "screenshot_format": "",
+      "screenshot_size": "",
+      "has_thumbnail": false,
+      "webhooks_result": {}
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16968,
+    "fields": {
+      "url": "https://ted.europa.eu/en/notice/-/detail/125484-2025",
+      "title": "125484-2025 - Planning - TED",
+      "content": "This site uses cookies. Visit our cookies policy page or click the link in any footer for more information and to change your preferences.\nAccept all cookies Accept only essential cookies\nSuccessfully signed out ×\nYou are signed out of the TED application, but you 're still logged in to EU Login. If you wish to logout of EU Login, please click here\nMenu\nSearch\nMore search options: Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nSearch options Advanced search Expert search Browse by subject Business opportunity Business sector (CPV) Place of performance\nHelp Print Share\nShare ×\nFacebook X/Twitter LinkedIn Email\nCancel\n125484-2025 - Planning\nNotice View\nDownload XML\nShow the direct links\nCreate an alert\nSend by email\nRequest a translation\n1. Buyer\n2. Procedure\n5. Lot\n8. Organisations (3)\nNotice information\nNotice View\nSummary\nPlanning\nGermany :  Sewage, refuse, cleaning and environmental services\nTransport und Verwertung von Sandfangrückstände (ASN 190802)\nGermany ,  Berlin  ( DE300 )\nType of procedure :  Open\nBuyer\nBuyer :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nEmail :  vergabe-l@bwb.de\nGermany ,  Berlin  ( DE300 ) ,  Berlin\nLOT-0000 :  Transport und Verwertung von Sandfangrückstände (ASN 190802)\nSewage, refuse, cleaning and environmental services\nGermany ,  Berlin  ( DE300 )\nLanguages and formats\nOfficial language  (Signed PDF)\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nPDF\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nMachine translation HTML\nBG\nCS\nDA\nDE\nEL\nES\nEN\nET\nFI\nFR\nGA\nHR\nHU\nIT\nLT\nLV\nMT\nNL\nPL\nPT\nRO\nSK\nSL\nSV\nNotice\nCurrent language\n125484-2025 - Planning See the notice on TED website\n125484-2025\n125484-2025 - Planning Germany – Sewage, refuse, cleaning and environmental services – Transport und Verwertung von Sandfangrückstände (ASN 190802)\nOJ S 39/2025 25/02/2025\nPrior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders\nServices\n1. Buyer\n1.1.\nBuyer\nOfficial name :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nEmail :  vergabe-l@bwb.de\nLegal type of the buyer :  Body governed by public law, controlled by a regional authority\nActivity of the contracting authority :  Economic affairs\n2. Procedure\n2.1.\nProcedure\nTitle :  Transport und Verwertung von Sandfangrückstände (ASN 190802)\nDescription :  Beladung, Transport und Verwertung von Sandfangrückständen (Abfallschlüsselnummer 190802) inkl. teilweise Containergestellung und -vorhaltung von diversen Objekten der Berliner Wasserbetriebe im Bedarfsfall auf Abruf\nInternal identifier :  VI-2025-0003\nType of procedure :  Open\n2.1.1.\nPurpose\nMain nature of the contract :  Services\nMain classification   ( cpv ):  90000000   Sewage, refuse, cleaning and environmental services\n2.1.2.\nPlace of performance\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\n2.1.4.\nGeneral information\nLegal basis : \nDirective 2014/24/EU\nvgv   -\n5. Lot\n5.1.\nLot :  LOT-0000\nTitle :  Transport und Verwertung von Sandfangrückstände (ASN 190802)\nDescription :  Beladung, Transport und Verwertung von Sandfangrückständen (Abfallschlüsselnummer 190802) inkl. teilweise Containergestellung und -vorhaltung von diversen Objekten der Berliner Wasserbetriebe im Bedarfsfall auf Abruf\nInternal identifier :  LOT-0000\n5.1.1.\nPurpose\nMain nature of the contract :  Services\nMain classification   ( cpv ):  90000000   Sewage, refuse, cleaning and environmental services\n5.1.2.\nPlace of performance\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\n5.1.6.\nGeneral information\nReserved participation :  Participation is not reserved.\nThe names and professional qualifications of the staff assigned to perform the contract must be given :  Not required\nProcurement Project not financed with EU Funds.\nThe procurement is covered by the Government Procurement Agreement (GPA) :  yes\nThis procurement is also suitable for small and medium-sized enterprises (SMEs) :  no\n5.1.7.\nStrategic procurement\nAim of strategic procurement :  No strategic procurement\n5.1.9.\nSelection criteria\nCriterion :  Type :  Suitability to pursue the professional activity\nCriterion :  Type :  Economic and financial standing\nCriterion :  Type :  Technical and professional ability\n5.1.12.\nTerms of procurement\nTerms of submission :  Electronic submission :  Allowed\nAddress for submission :  https://vergabekooperation.berlin/NetServer/\nLanguages in which tenders or requests to participate may be submitted :  German\nVariants :  Not allowed\nTenderers may submit more than one tender :  Not allowed\nInformation that can be supplemented after the submission deadline :  At the discretion of the buyer, all missing tenderer-related documents may be submitted later.\nAdditional information :  Fehlende Unterlagen, deren Vorlage mit dem Angebot gefordert waren, werden entsprechend der gesetzlichen Regelungen nachgefordert. Die Nachreichung hat ausschließlich über das Bietercockpit /Nachrichten zu erfolgen.\nTerms of contract :  The execution of the contract must be performed within the framework of sheltered employment programmes :  No\nElectronic invoicing :  Required\nElectronic ordering will be used :  yes\nElectronic payment will be used :  yes\n5.1.15.\nTechniques\nFramework agreement :  Framework agreement, without reopening of competition\nInformation about the dynamic purchasing system :  No dynamic purchase system\nElectronic auction :  no\n5.1.16.\nFurther information, mediation and review\nReview organisation :  Vergabekammer des Landes Berlin\nInformation about review deadlines : Innerhalb von 15 Kalendertagen nach Eingang der Mitteilung des Auftraggebers, einer Rüge nicht abhelfen zu wollen, kann ein Nachprüfverfahren bei der Vergabekammer beantragt werden (§ 160 Abs. 3 Nr. 4 GWB).\nOrganisation providing additional information about the procurement procedure :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nOrganisation receiving requests to participate :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nTED eSender :  Datenservice Öffentlicher Einkauf (in Verantwortung des Beschaffungsamts des BMI)\n8. Organisations\n8.1.\nORG-7001\nOfficial name :  EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF\nRegistration number :  DE136630247\nPostal address :  Neue Jüdenstraße 2\nTown :  Berlin\nPostcode :  10179\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nContact point :  Einkauf Lieferungen und Leistungen\nEmail :  vergabe-l@bwb.de\nTelephone :  0 0 0\nFax :  +49 30-86442790\nRoles of this organisation :  Buyer Group leader\nOrganisation providing additional information about the procurement procedure\nOrganisation receiving requests to participate\n8.1.\nORG-7004\nOfficial name :  Vergabekammer des Landes Berlin\nRegistration number :  UST-ID DE296830277\nPostal address :  Martin-Luther-Straße 105\nTown :  Berlin\nPostcode :  10825\nCountry subdivision (NUTS) :  Berlin   ( DE300 )\nCountry :  Germany\nEmail :  vergabekammer@senwtf.berlin.de\nTelephone :  +49 30-90138316\nFax :  +49 30-90137613\nInternet address :  https://www.berlin.de/sen/wirtschaft/wirtschaft-und-technologie/wirtschaftsrecht/vergabekammer/\nRoles of this organisation :  Review organisation\n8.1.\nORG-7005\nOfficial name :  Datenservice Öffentlicher Einkauf (in Verantwortung des Beschaffungsamts des BMI)\nRegistration number :  0204:994-DOEVD-83\nTown :  Bonn\nPostcode :  53119\nCountry subdivision (NUTS) :  Bonn, Kreisfreie Stadt   ( DEA22 )\nCountry :  Germany\nEmail :  noreply.esender_hub@bescha.bund.de\nTelephone :  +49228996100\nRoles of this organisation :  TED eSender\nNotice information\nNotice identifier/version :  5407aa9f-c3c6-4aaf-be8d-108db7de2478   -   01\nForm type :  Planning\nNotice type :  Prior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders\nNotice subtype :  7\nNotice dispatch date :  24/02/2025   10:09:45 (UTC+1) Central European Time, Western European Summer Time\nLanguages in which this notice is officially available :  German\nNotice publication number :  125484-2025\nOJ S issue number :  39/2025\nPublication date :  25/02/2025\nThis site is managed by: Publications Office of the European Union\nNeed help? Help\nContact the TED helpdesk\nFollow us X/Twitter\nYouTube\nLegal Legal notice\nCookies\nAccessibility\nAbout us About TED\nSite map\nOther services EU law\nEuropean Data\nEU research results\nEU Whoiswho\nEU Publications\nDiscover more on europa.eu\nContact the EU Call us 00 800 6 7 8 9 10 11\nUse other telephone options\nWrite to us via our contact form\nMeet us at one of the EU centres\nSocial media Search for EU social media channels\nLegal Languages on our websites\nPrivacy policy\nLegal notice\nCookies\nSocial media Search for EU social media channels\nSocial media Search for EU institutions\nEU institutions and bodies Search all EU institutions and bodies\nEU institutions and bodies Search for EU institutions\nHidden\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-28T08:24:47.209835+00:00",
+      "crawl_first": "2025-05-27T08:24:15.256050+00:00",
+      "crawl_last": "2025-05-28T08:24:47.209835+00:00",
+      "crawl_next": "2025-05-29T08:24:47.209835+00:00",
+      "crawl_dt": "86400.0",
+      "favicon": 234,
+      "metadata": {
+        "buyer": "EK-L/A IT/ENTSRG./OBJ.SCHUTZ/REINIG/ALLG.BEDARF",
+        "email": "*********@***.de",
+        "title": "Planning",
+        "document_id": "125484-2025",
+        "procedure: Title": "Transport und Verwertung von Sandfangrückstände (ASN 190802)",
+        "procedure: Country": "Germany",
+        "procedure: Description": "Beladung, Transport und Verwertung von Sandfangrückständen (Abfallschlüsselnummer 190802) inkl. teilweise Containergestellung und -vorhaltung von diversen Objekten der Berliner Wasserbetriebe im Bedarfsfall auf Abruf",
+        "procedure: Legal basis": "Directive 2014/24/EU",
+        "procedure: Type of procedure": "Open",
+        "notice_informations: Form type": "Planning",
+        "procedure: Internal identifier": "VI-2025-0003",
+        "procedure: Main classification": "cpv",
+        "notice_informations: Notice type": "Prior information notice or a periodic indicative notice used to shorten time limits for receipt of tenders",
+        "notice_informations: Notice subtype": "7",
+        "notice_informations: Publication date": "25/02/2025",
+        "procedure: Country subdivision (NUTS)": "Berlin",
+        "notice_informations: OJ S issue number": "39/2025",
+        "procedure: Main nature of the contract": "Services",
+        "notice_informations: Notice dispatch date": "24/02/2025",
+        "notice_informations: Notice identifier/version": "5407aa9f-c3c6-4aaf-be8d-108db7de2478",
+        "notice_informations: Notice publication number": "125484-2025",
+        "notice_informations: Languages in which this notice is officially available": "German"
+      },
+      "show_on_homepage": false,
+      "has_html_snapshot": true,
+      "screenshot_count": 0,
+      "screenshot_format": "",
+      "screenshot_size": "",
+      "has_thumbnail": false,
+      "webhooks_result": {}
+    }
+  }
+]

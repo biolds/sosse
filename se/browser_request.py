@@ -131,6 +131,14 @@ class BrowserRequest(Browser):
 
         func = getattr(session, method)
         kwargs = dict_merge(cls._requests_params(), kwargs)
+
+        # Drop the referer if the request is cross-origin
+        if kwargs.get("headers", {}).get("Referer"):
+            parsed_url = requests.utils.urlparse(url)
+            referer_parsed = requests.utils.urlparse(kwargs["headers"]["Referer"])
+            if parsed_url.hostname != referer_parsed.hostname:
+                kwargs["headers"].pop("Referer")
+
         r = func(url, **kwargs)
         Cookie.set_from_jar(url, session.cookies)
 

@@ -39,3 +39,5 @@ Ethical scraping is all about respect:
 - Be transparent and let site owners know if you're crawling their content.
 - Avoid scraping personal or sensitive information unless explicitly allowed.
 - Follow copyright laws and properly attribute sources.
+
+For more information, see `Is Web Scraping Legal? <https://webscraping.fyi/legal/>`_.

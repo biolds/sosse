@@ -357,7 +357,7 @@ class SearchView(UserView):
             home_entries = Document.objects.wo_content().filter(show_on_homepage=True, hidden=False)
             if tags:
                 for tag in tags:
-                    home_entries = home_entries.filter(tags__in=Tag.get_tree())
+                    home_entries = home_entries.filter(tags__in=Tag.get_tree(tag))
                 if not home_entries:
                     has_query = True
             home_entries = home_entries.order_by("title").distinct()

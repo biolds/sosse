@@ -42,9 +42,10 @@ class WebhookTest(TransactionTestCase):
             url=f"{TEST_SERVER_URL}post",
             method="post",
             headers="",
-            body_template='{"content": "$content", "title": "$title"}',
+            body_template='{"content": "${content}", "title": "${title}"}',
         )
         self.document = example_doc()
+        self.document.metadata = {"key": "value"}
         self.document.save()
         self.crawl_policy = CrawlPolicy.objects.create(
             url_regex="(default)",
@@ -69,29 +70,33 @@ class WebhookTest(TransactionTestCase):
         self._check_render(self.document, {"content": "Example", "title": "Example Title"})
 
     def test_020_render_bool(self):
-        self.webhook.body_template = '{"too_many_redirects": "$too_many_redirects"}'
+        self.webhook.body_template = '{"too_many_redirects": "${too_many_redirects}"}'
         self._check_render(self.document, {"too_many_redirects": "False"})
 
     def test_030_render_int(self):
-        self.webhook.body_template = '{"screenshot_count": "$screenshot_count"}'
+        self.webhook.body_template = '{"screenshot_count": "${screenshot_count}"}'
         self._check_render(self.document, {"screenshot_count": "0"})
 
     def test_040_render_multi(self):
-        self.webhook.body_template = '{"title & url": "$title - $url"}'
+        self.webhook.body_template = '{"title & url": "${title} - ${url}"}'
         self._check_render(self.document, {"title & url": "Example Title - https://example.com/"})
 
     def test_045_render_tags(self):
         self.document.tags.add(self.tag, self.tag_child)
-        self.webhook.body_template = '{"tags_str": "$tags_str"}'
+        self.webhook.body_template = '{"tags_str": "${tags_str}"}'
         self._check_render(self.document, {"tags_str": "Test, Test Child"})
 
     def test_050_render_recursive(self):
-        self.webhook.body_template = '{"parent": {"title": "$title", "content": "$content"}}'
+        self.webhook.body_template = '{"parent": {"title": "${title}", "content": "${content}"}}'
         self._check_render(self.document, {"parent": {"title": "Example Title", "content": "Example"}})
 
     def test_055_render_recursive_list(self):
-        self.webhook.body_template = '{"parent": [{"sub": {"title": "$title", "content": "$content"}}]}'
+        self.webhook.body_template = '{"parent": [{"sub": {"title": "${title}", "content": "${content}"}}]}'
         self._check_render(self.document, {"parent": [{"sub": {"title": "Example Title", "content": "Example"}}]})
+
+    def test_057_render_dotted_var(self):
+        self.webhook.body_template = '{"key": "${metadata.key}"}'
+        self._check_render(self.document, {"key": "value"})
 
     def _assert_post(self, post, _headers={}, _params={}):
         post.assert_called_once_with(
@@ -277,3 +282,49 @@ Input data was:
 {'tags': None}
 ---""",
         )
+
+    def test_210_update_document_with_path(self):
+        self.webhook.updates_doc = True
+        self.webhook.update_json_path = "path.to"
+        self.webhook.body_template = '{"path": {"to": {"metadata": {"key": "val"}}}}'
+        self.webhook.url = f"{TEST_SERVER_URL}echo/"
+        self.webhook.save()
+
+        doc = self._crawl()
+
+        self.assertEqual(doc.error, "")
+        result = doc.webhooks_result[str(self.webhook.id)]
+        self.assertEqual(result["status_code"], 200, result)
+        self.assertEqual(result["response"], self.webhook.body_template)
+        self.assertEqual(doc.metadata, {"key": "val"})
+
+    def test_220_update_document_with_path_with_list(self):
+        self.webhook.updates_doc = True
+        self.webhook.update_json_path = "path.to.1"
+        self.webhook.body_template = '{"path": {"to": ["nop", {"metadata": {"key": "val"}}]}}'
+        self.webhook.url = f"{TEST_SERVER_URL}echo/"
+        self.webhook.save()
+
+        doc = self._crawl()
+
+        self.assertEqual(doc.error, "")
+        result = doc.webhooks_result[str(self.webhook.id)]
+        self.assertEqual(result["status_code"], 200, result)
+        self.assertEqual(result["response"], self.webhook.body_template)
+        self.assertEqual(doc.metadata, {"key": "val"})
+
+    def test_230_update_document_deserialize(self):
+        self.webhook.updates_doc = True
+        self.webhook.update_json_deserialize = True
+        self.webhook.update_json_path = "sub"
+        self.webhook.body_template = r'{"sub": "{\"metadata\":{\"key\": \"val\"}}"}'
+        self.webhook.url = f"{TEST_SERVER_URL}echo/"
+        self.webhook.save()
+
+        doc = self._crawl()
+
+        self.assertEqual(doc.error, "")
+        result = doc.webhooks_result[str(self.webhook.id)]
+        self.assertEqual(result["status_code"], 200, result)
+        self.assertEqual(result["response"], self.webhook.body_template)
+        self.assertEqual(doc.metadata, {"key": "val"})

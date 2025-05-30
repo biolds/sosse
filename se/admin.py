@@ -1346,6 +1346,8 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
         "trigger_condition",
         "url",
         "updates_doc",
+        "update_json_path",
+        "update_json_deserialize",
         "body_template",
         "method",
         "headers",

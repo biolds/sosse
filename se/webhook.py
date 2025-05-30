@@ -50,7 +50,7 @@ def validate_template(value):
 
     doc = Document(title="Test title", content="Test content")
     try:
-        Webhook._render_template(doc, value)
+        Webhook._render_template(doc, value, validator=True)
     except ValueError as e:
         raise ValidationError(str(e))
 
@@ -71,6 +71,29 @@ def webhook_html_status(result):
         status,
         message,
     )
+
+
+def dotted_json_path_validator(value):
+    if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_.]*$", value):
+        raise ValidationError(
+            "Invalid dotted JSON path. It should start with a letter or underscore and contain only letters, "
+            "digits, and underscores."
+        )
+    return value
+
+
+def get_subobject(obj, path):
+    if not path:
+        return obj
+    keys = path.split(".")
+    for key in keys:
+        if isinstance(obj, dict) and key in obj:
+            obj = obj[key]
+        elif isinstance(obj, list) and key.isdigit() and int(key) < len(obj):
+            obj = obj[int(key)]
+        else:
+            raise ValueError(f"Invalid path: {path}")
+    return obj
 
 
 class Webhook(models.Model):
@@ -101,6 +124,19 @@ class Webhook(models.Model):
         choices=TIGGER_CONDITION,
     )
     updates_doc = models.BooleanField(default=False, verbose_name="Overwrite document's fields with webhook response")
+    update_json_path = models.CharField(
+        max_length=512,
+        blank=True,
+        verbose_name="Path in JSON response",
+        help_text="The dotted path in the JSON response to the value used for updating the document. If left empty, "
+        "the entire response will be used to update the document.",
+        validators=[dotted_json_path_validator],
+    )
+    update_json_deserialize = models.BooleanField(
+        default=False,
+        verbose_name="Deserialize the response before updating the document",
+        help_text="If checked, the response will be deserialized as JSON before updating the document.",
+    )
     url = models.URLField()
     method = models.CharField(max_length=10, choices=HTTP_METHODS, default="post")
     username = models.CharField(
@@ -202,32 +238,50 @@ class Webhook(models.Model):
                         f"Webhook {webhook.name} failed to decode response:\n{e}\nInput data was:\n{response}\n---"
                     )
 
+                body = get_subobject(body, webhook.update_json_path) if webhook.update_json_path else body
+
+                if webhook.update_json_deserialize:
+                    try:
+                        body = json.loads(body)
+                    except json.JSONDecodeError as e:
+                        raise SkipIndexing(
+                            f"Webhook {webhook.name} failed to deserialize response:\n{e}\nInput data was:\n{body}\n---"
+                        )
                 serializer = DocumentSerializer(doc, data=body, partial=True)
                 serializer.user_doc_update("Webhook")
 
     @classmethod
-    def _render_fields(cls, doc_data, body_data):
-        # Iterate over the fields of the serializer and replace the placeholders in the template
+    def _replace_placeholders(cls, doc_data, value, validator):
         def replace_var(match):
             var_name = match.group(1)
-            if var_name not in doc_data:
-                raise ValueError(f"Field {var_name} does not exist in document")
-            return str(doc_data[var_name])
+            _doc_data = get_subobject(doc_data, var_name)
+            return str(_doc_data)
 
+        try:
+            return re.sub(r"\$\{([\w.]+)\}", replace_var, value)
+        except ValueError:
+            if validator:
+                return {}
+            raise
+
+    @classmethod
+    def _render_fields(cls, doc_data, body_data, validator):
         for key, val in body_data.items():
             if isinstance(val, dict):
-                body_data[key] = cls._render_fields(doc_data, val)
+                body_data[key] = cls._render_fields(doc_data, val, validator)
             elif isinstance(val, list):
-                _val = []
-                for item in val:
-                    _val.append(cls._render_fields(doc_data, item))
-                body_data[key] = _val
+                body_data[key] = [
+                    cls._replace_placeholders(doc_data, item, validator)
+                    if isinstance(item, str)
+                    else cls._render_fields(doc_data, item, validator)
+                    for item in val
+                ]
             elif isinstance(val, str):
-                body_data[key] = re.sub(r"\$(\w+)", replace_var, val)
+                body_data[key] = cls._replace_placeholders(doc_data, val, validator)
         return body_data
 
     @classmethod
-    def _render_template(cls, doc, body_template):
+    def _render_template(cls, doc, body_template, validator=False):
         from .rest_api import DocumentSerializer
 
         try:
@@ -238,7 +292,7 @@ class Webhook(models.Model):
         serializer = DocumentSerializer(instance=doc)
         doc_data = dict(serializer.data)
 
-        return json.dumps(cls._render_fields(doc_data, body_template))
+        return json.dumps(cls._render_fields(doc_data, body_template, validator=validator))
 
     def send(self, doc):
         body = self._render_template(doc, self.body_template)

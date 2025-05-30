@@ -217,6 +217,11 @@ class Webhook(models.Model):
         for key, val in body_data.items():
             if isinstance(val, dict):
                 body_data[key] = cls._render_fields(doc_data, val)
+            elif isinstance(val, list):
+                _val = []
+                for item in val:
+                    _val.append(cls._render_fields(doc_data, item))
+                body_data[key] = _val
             elif isinstance(val, str):
                 body_data[key] = re.sub(r"\$(\w+)", replace_var, val)
         return body_data

@@ -89,6 +89,10 @@ class WebhookTest(TransactionTestCase):
         self.webhook.body_template = '{"parent": {"title": "$title", "content": "$content"}}'
         self._check_render(self.document, {"parent": {"title": "Example Title", "content": "Example"}})
 
+    def test_055_render_recursive_list(self):
+        self.webhook.body_template = '{"parent": [{"sub": {"title": "$title", "content": "$content"}}]}'
+        self._check_render(self.document, {"parent": [{"sub": {"title": "Example Title", "content": "Example"}}]})
+
     def _assert_post(self, post, _headers={}, _params={}):
         post.assert_called_once_with(
             self.webhook.url,

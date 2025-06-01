@@ -1,5 +1,5 @@
 #!/bin/bash -x
-until pg_isready --host "$SOSSE_DB_HOST" ; do
+until pg_isready --host "$SOSSE_DB_HOST"; do
   sleep 1
 done
 
@@ -16,4 +16,5 @@ chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse
 /venv/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log &
 /etc/init.d/nginx start
 sudo --preserve-env -u www-data /venv/bin/sosse-admin crawl &
+echo -e "\033[1;34m🌐 Starting web server...\033[0m \033[1;33mDefault credentials:\033[0m \033[1;36madmin\033[0m / \033[1;36madmin\033[0m"
 tail -F /var/log/sosse/crawler.log

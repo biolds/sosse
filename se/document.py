@@ -836,7 +836,9 @@ class Document(models.Model):
 
     def webhook_in_error(self):
         for webhook_id, webhook in self.webhooks_result.items():
-            if webhook.get("status_code") < 200 or webhook.get("status_code") >= 300 or webhook.get("error"):
+            if (
+                webhook.get("status_code") and (webhook.get("status_code") < 200 or webhook.get("status_code") >= 300)
+            ) or webhook.get("error"):
                 webhook = Webhook.objects.filter(pk=webhook_id).first()
                 name = webhook.name if webhook else f"Deleted Webhook {webhook_id}"
                 return name

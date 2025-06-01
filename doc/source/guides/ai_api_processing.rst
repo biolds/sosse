@@ -126,6 +126,9 @@ The format matches the :doc:`../user/rest_api` response, enabling us to overwrit
    the Crawl Policy's script, which will result in the error: "Invalid path: metadata.productDetails". To avoid this,
    you can pass the page's text content using the document's ``${content}`` field instead.
 
+You can now go back to the ``⚡ Crawl Policies`` page and select the newly created webhook under the
+``📡 Webhooks`` tab.
+
 Page Crawling and Webhook Results
 ---------------------------------
 

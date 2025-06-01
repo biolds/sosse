@@ -7,7 +7,7 @@ Guides
 
    crawl_guidelines.rst
    guides/data_extraction.rst
-   guides/ai_processing.rst
+   guides/ai_api_processing.rst
    guides/search.rst
    guides/archive.rst
    guides/download.rst

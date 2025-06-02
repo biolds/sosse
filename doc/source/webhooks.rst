@@ -20,6 +20,12 @@ Webhook Name
 
 A unique name for the webhook, helping in its identification within the admin interface.
 
+Tags filtering
+--------------
+
+When tags are specified, the webhook will trigger only for documents that have all the defined tags or are descendants
+of those tags. If no tags are specified, the webhook will apply to all documents universally.
+
 Trigger Condition
 -----------------
 
@@ -34,35 +40,72 @@ Defines when the webhook should be triggered. Available options:
    Webhooks for a document can also be manually triggered from the :doc:`document's settings <documents>`, regardless of
    the *Trigger Condition* parameter.
 
-Update document with webhook response
--------------------------------------
+Webhook URL
+-----------
 
-When enabled, the 'Overwrite Document's Fields with Webhook Response' option allows the webhook response to update
-specific fields in the indexed document. If the webhook returns data, those corresponding fields will be overwritten
-with the new values.
+The endpoint URL where the webhook request will be sent.
+
+Overwrite document's fields with webhook response
+-------------------------------------------------
+
+When enabled, this option allows the webhook response to update specific fields in the indexed document. If the webhook
+returns data, those corresponding fields will be overwritten with the new values.
 
 .. note::
    Webhooks are executed in alphabetical order. This means simple workflows can be created by prefixing the webhook names
    with numbers (e.g., 1-Webhook, 2-Webhook, etc.) to ensure the desired execution order. Then, the webhook response can be
    used to update the document with tags or other metadata to control the execution of the next webhook.
 
-Webhook URL
------------
 
-The endpoint URL where the webhook request will be sent.
+Path in JSON response
+----------------------
+
+This specifies the dotted path within the JSON response that points to the value used for updating the document. For
+example, if the JSON response from the webhook is:
+
+.. code-block:: json
+
+   {
+     "data": {
+       "attributes": {
+         "title": "Updated Document Title",
+         "content": "This is the updated content."
+       }
+     }
+   }
+
+And the "Path in JSON response" is set to ``data.attributes``, only the children of `attributes` will be used to update
+the document's title field. This feature is applicable only when the "Overwrite document's fields with webhook response"
+option is enabled. If the path is left empty, the entire JSON response will be used to overwrite the document's fields.
+
+Deserialize the response before updating the document
+------------------------------------------------------
+
+If enabled, the webhook response will be deserialized as JSON before updating the document. This ensures that the
+response is properly parsed into a structured format, allowing fields in the document to be updated accurately based on
+the JSON data.
 
 HTTP Method
 -----------
 
 The HTTP method used for the request (e.g., GET, POST, PUT, DELETE).
 
-Authentication
---------------
+JSON Body Template
+------------------
 
-Basic authentication credentials for accessing the webhook URL:
+A JSON template for the request body, which may include placeholders referencing document fields:
 
-- **Username** - The username for authentication (optional).
-- **Password** - The password for authentication (optional).
+.. code-block:: json
+
+   {
+     "title": "New page crawled: ${title}",
+     "content": "${content}",
+     "url": "${url}"
+   }
+
+These placeholders will be replaced with actual document values when the webhook is triggered. The available fields,
+which support dotted notation for accessing nested properties (e.g., `metadata.author` to retrieve the `author`
+field within the `metadata` object), align with those returned by the :doc:`user/rest_api`.
 
 Headers
 -------
@@ -85,29 +128,19 @@ Each header must be specified on a new line.
       Content-Type: application/json
       User-Agent: <User agent>
 
-Body Template
--------------
+Authentication
+--------------
 
-A JSON template for the request body, which may include placeholders referencing document fields:
+Basic authentication credentials for accessing the webhook URL:
 
-.. code-block:: json
-
-   {
-     "title": "New page crawled: $title",
-     "content": "$content",
-     "url": "$url"
-   }
-
-These placeholders will be replaced with actual document values when the webhook is triggered. The available fields
-align with those returned by the :doc:`user/rest_api`.
+- **Username** - The username for authentication (optional).
+- **Password** - The password for authentication (optional).
 
 Filtering Webhooks
 ------------------
 
 Webhooks can be restricted to specific documents using the following filters:
 
-- **Tags** - Triggers only for documents that have all specified tags, their children, or all documents if no tags are
-  specified.
 - **Mimetype regex** - Triggers only for documents whose mimetype matches this regex.
 - **Title regex** - Triggers only for documents with a title matching this regex (one per line).
 - **Content regex** - Triggers only for documents with content matching this regex (one per line).
@@ -124,7 +157,7 @@ Discord Webhook Setup
 
 - Create a new webhook in your Discord server by navigating to **Server Settings > Integrations > Webhooks**.
 - Copy the webhook URL provided by Discord.
-- Set **Webhook URL**: `<Your Discord Webhook URL>`
+- Set **URL**: `<Your Discord Webhook URL>`
 
 .. image:: ../../tests/robotframework/screenshots/webhook_add.png
    :class: sosse-screenshot
@@ -137,7 +170,7 @@ Discord Webhook Setup
    {
      "username": "Crawler Bot",
      "avatar_url": "[https://example.com/bot-avatar.png](https://example.com/bot-avatar.png)",
-     "content": "A new page has been discovered: **$title**\nURL: $url"
+     "content": "A new page has been discovered: **${title}**\nURL: ${url}"
    }
 
 When a new document is discovered, this webhook will send a formatted message to the specified Discord channel,

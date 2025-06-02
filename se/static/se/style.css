@@ -440,7 +440,6 @@ div.app-auth>table td {
 }
 
 #tags_list {
-  flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   grid-auto-rows: minmax(30px, auto);

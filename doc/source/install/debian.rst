@@ -65,6 +65,18 @@ the command:
    A more recent Geckodriver may improve compatibily with the installed Firefox, though different versions have not been tested to work
    correctly with Sosse.
 
+Configuration Updates
+---------------------
+
+The Sosse configuration can be updated in the file located at `/etc/sosse/sosse.conf`. For detailed explanations of the
+configuration options, refer to the :doc:`../config_file`. After modifying the configuration file, it is necessary to
+restart the Sosse daemons to apply the changes. Use the following commands to restart the daemons:
+
+.. code-block:: shell
+
+   systemctl restart sosse-crawler
+   systemctl restart sosse-uwsgi
+
 Next steps
 ----------
 

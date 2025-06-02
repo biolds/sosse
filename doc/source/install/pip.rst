@@ -126,6 +126,13 @@ Crawlers can now be started in the background with the command:
 
    sudo -u www-data /opt/sosse-venv/bin/sosse-admin crawl &
 
+Configuration Updates
+---------------------
+
+The Sosse configuration can be updated in the file located at `/etc/sosse/sosse.conf`. For detailed explanations of the
+configuration options, refer to the :doc:`../config_file`. After modifying the configuration file, it is necessary to
+restart the Sosse daemons to apply the changes.
+
 Next steps
 ----------
 

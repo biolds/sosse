@@ -18,6 +18,18 @@ Review its content, then run the following command to start Sosse:
 
 By default, this would start an instance of Sosse on port 8005.
 
+Environment Variable Configuration
+----------------------------------
+
+Sosse configurations can also be updated using environment variables. For detailed explanations of the available
+configuration options, refer to the :doc:`../config_file`. After modifying the environment variables, it is necessary to
+restart the Docker containers to apply the changes. Use the following commands to restart the containers:
+
+.. code-block:: shell
+
+   docker-compose down
+   docker-compose up -d
+
 Next steps
 ----------
 

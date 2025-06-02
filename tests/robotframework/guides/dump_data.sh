@@ -24,21 +24,22 @@ mkdir -p "${DUMP_DIR}"
 
 # Generate the Django data dump
 echo "Generating Django data dump..."
-sosse-admin dumpdata --indent 2 \
+sosse-admin dumpdata_sosse --indent 2 \
   se.crawlpolicy \
   se.favicon \
   se.link \
   se.tag \
+  se.document \
   se.webhook >"${DUMP_MODEL}"
 #se.htmlasset \
 
-sosse-admin shell -c "$(cat dump_documents.py)" >"$DUMP_DOC"
-cat "$DUMP_MODEL" "$DUMP_DOC" | jq -s 'reduce .[] as $x ([]; . + $x)' >"$DUMP_FILE"
+#sosse-admin shell -c "$(cat dump_documents.py)" >"$DUMP_DOC"
+#cat "$DUMP_MODEL" "$DUMP_DOC" | jq -s 'reduce .[] as $x ([]; . + $x)' >"$DUMP_FILE"
 
 # Copy the screenshots and html files
 #echo "Copying screenshots and html files..."
-#mkdir -p "${DUMP_DIR}/html" "${DUMP_DIR}/screenshots"
+mkdir -p "${DUMP_DIR}/html" "${DUMP_DIR}/screenshots"
 #cp -r "${VAR_LIB_DIR}/html" "${DUMP_DIR}/html"
-#cp -r "${VAR_LIB_DIR}/screenshots" "${DUMP_DIR}/screenshots"
+cp -r "${VAR_LIB_DIR}/screenshots" "${DUMP_DIR}/screenshots"
 #
 echo "Data dump and file copy completed."

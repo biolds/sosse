@@ -1,5 +1,5 @@
-Archiving
-=========
+Types of Archives
+=================
 
 Sosse can create different types of snapshots of the pages it crawls. These snapshots can be browsed offline, as
 described below.

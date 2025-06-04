@@ -1,5 +1,5 @@
-Website Search
-==============
+Website indexing & Search
+=========================
 
 Sosse allows you to crawl a website and search its pages for specific keywords. This process involves configuring
 a :doc:`Crawl Policy <../crawl/policies>` to define how the site is crawled, followed by searching for the desired

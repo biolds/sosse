@@ -19,6 +19,7 @@ import signal
 import threading
 from datetime import timedelta
 from multiprocessing import Process, cpu_count
+from time import sleep
 from traceback import format_exc
 
 from django.conf import settings
@@ -103,36 +104,36 @@ class Command(BaseCommand):
 
     @staticmethod
     def process(worker_no, options):
-        try:
-            crawl_logger.info(f"Crawler {worker_no} initializing")
-            connection.close()
-            connection.connect()
+        crawl_logger.info(f"Crawler {worker_no} initializing")
+        connection.close()
+        connection.connect()
 
-            global wake_event
-            wake_event = threading.Event()
-            signal.signal(signal.SIGUSR1, Command.wake_up_handler)
+        global wake_event
+        wake_event = threading.Event()
+        signal.signal(signal.SIGUSR1, Command.wake_up_handler)
 
-            BrowserFirefox._worker_no = worker_no
-            BrowserChromium._worker_no = worker_no
-            base_dir = settings.SOSSE_TMP_DL_DIR + "/chromium/" + str(worker_no)
-            if not os.path.isdir(base_dir):
-                os.makedirs(base_dir)
-            # change cwd to Chromium's because it downloads directory (while Firefox has an option for target dir)
-            os.chdir(base_dir)
+        BrowserFirefox._worker_no = worker_no
+        BrowserChromium._worker_no = worker_no
+        base_dir = settings.SOSSE_TMP_DL_DIR + "/chromium/" + str(worker_no)
+        if not os.path.isdir(base_dir):
+            os.makedirs(base_dir)
+        # change cwd to Chromium's because it downloads directory (while Firefox has an option for target dir)
+        os.chdir(base_dir)
 
-            crawl_logger.info(f"Crawler {worker_no} starting")
+        crawl_logger.info(f"Crawler {worker_no} starting")
 
-            worker_stats = WorkerStats.get_worker(worker_no)
-            next_stat = Command.next_stat()
+        worker_stats = WorkerStats.get_worker(worker_no)
+        next_stat = Command.next_stat()
 
-            while True:
-                if worker_no == 0:
-                    t = now()
-                    if next_stat <= t:
-                        CrawlerStats.create(t)
-                        next_stat = Command.next_stat()
+        while True:
+            if worker_no == 0:
+                t = now()
+                if next_stat <= t:
+                    CrawlerStats.create(t)
+                    next_stat = Command.next_stat()
 
-                worker_stats.refresh_from_db()
+            worker_stats.refresh_from_db()
+            try:
                 if worker_stats.state == "paused" or not Document.crawl(worker_no):
                     if worker_stats.state != "paused" and options["one_shot"]:
                         return
@@ -161,9 +162,9 @@ class Command(BaseCommand):
                     if woke_up:
                         crawl_logger.debug(f"Worker {worker_no} woke up")
 
-        except Exception:
-            crawl_logger.error(format_exc())
-            raise
+            except Exception:
+                crawl_logger.error(format_exc())
+                sleep(5)
 
     def handle(self, *args, **options):
         Document.objects.wo_content().exclude(worker_no=None).update(worker_no=None)

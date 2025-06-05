@@ -62,10 +62,6 @@ doc_gen:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
 	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
 	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
-	cat README.md | grep -v '^=\+$$' | \
-		sed -e 's/^\(SOSSE 🦦\)$$/# \1/' \
-				-e 's_https://sosse.readthedocs.io/en/stable/\([^.]\+\)\(.html\)\?\(#[a-z]\+\)\?_\1\3_g' \
-		> doc/source/introduction.md
 
 docker_run:
 	docker volume inspect sosse_postgres &>/dev/null || docker volume create sosse_postgres
@@ -79,16 +75,18 @@ docker_release_push:
 docker_release_build:
 	docker pull debian:bookworm
 	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
 
 # The test release build builds the git repo based package
 docker_release_build_test:
 	make _pip_pkg
-	cp dist/sosse-*.whl docker/pip-release/
-	sed -e 's#^RUN /venv/bin/pip install sosse#ADD sosse-*.whl /tmp/\nRUN /venv/bin/pip install /tmp/sosse-*.whl#' -i docker/pip-release/Dockerfile
+	cp dist/sosse-*.whl docker/pip-compose/
+	sed -e 's#^RUN /venv/bin/pip install sosse#ADD sosse-*.whl /tmp/\nRUN /venv/bin/pip install /tmp/sosse-*.whl#' -i docker/pip-compose/Dockerfile
 	docker pull debian:bookworm
 	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
 
@@ -134,7 +132,7 @@ _pip_functional_tests: install_js_deps
 	/etc/init.d/postgresql start &
 	bash ./tests/wait_for_pg.sh
 	grep -q 'pip install sosse' /tmp/code_blocks.json
-	sed -e 's#pip install sosse#pip install ./#' -i /tmp/code_blocks.json
+	sed -e 's#pip install sosse#pip install coverage ./#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/pip
 
 _pip_pkg_functional_tests:
@@ -169,22 +167,28 @@ _deb_pkg_functional_tests:
 	bash ./tests/docker_run.sh docker/pip-test/Dockerfile
 
 _rf_functional_tests_deps:
+	./tests/test_app.sh
 	virtualenv /rf-venv
 	/rf-venv/bin/pip install -r tests/robotframework/requirements.txt
 
-_rf_functional_tests: _rf_functional_tests_deps
+_rf_functional_docs: _rf_functional_tests_deps
 	cp tests/pages/test.zip /var/lib/sosse/static/Cat\ photos.zip
+	cd ./tests/robotframework && \
+		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure docs/
+
+_rf_functional_tests: _rf_functional_tests_deps
 	cd ./tests/robotframework && \
 		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure tests/
 
 _rf_functional_guides: _rf_functional_tests_deps
 	cd ./tests/robotframework && \
-		tar xvzf guide_download.tar.gz && \
-		tar xvzf guide_auth.tar.gz && \
 		/rf-venv/bin/robot -V config.yaml --exitonerror --exitonfailure guides/
 
 functional_tests:
 	docker run --rm -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests'
+
+functional_tests_local:
+	docker run --rm -ti -p 8001:80 -v $(current_dir):/sosse biolds/sosse:pip-test bash -c 'cd /sosse && make _pip_functional_tests _rf_functional_tests_deps ; bash'
 
 static_checks:
 	bash -c 'for f in $$(git ls-files | grep \.py$$ | grep -v /__init__\.py$$) ; do grep -q "^# Copyright" "$$f" || echo "File $$f does not have a copyright header" ; done'
@@ -207,19 +211,26 @@ vrt:
 	docker run -v $(current_dir):/sosse -p 8001:80 -ti biolds/sosse:pip-test bash -c 'cd /sosse && echo "SOSSE_ADMIN: /opt/sosse-venv/bin/sosse-admin" > tests/robotframework/config.yaml && make _pip_functional_tests _rf_functional_tests_deps && /rf-venv/bin/pip install git+https://github.com/biolds/robotframework-VRTLibrary/ && git config --global --add safe.directory /sosse && bash -i'
 
 _docker_unit_test_prepare:
-	echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data python3-coverage run -a --source se,sosse ./sosse/sosse_admin.py "$$@"' > /tmp/sudo_sosse
+	echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data /opt/sosse-venv/bin/coverage run -a --source se,sosse $$PWD/sosse/sosse_admin.py "$$@"' > /tmp/sudo_sosse
 	chmod 755 /tmp/sudo_sosse
-	apt update
-	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
 	/etc/init.d/postgresql start
-	mkdir -p /var/lib/sosse/screenshots /var/lib/sosse/html /var/lib/sosse/log /var/lib/sosse/browser_config /root/httpbin/httpbin/bin/static/
-	chown -R www-data:www-data /var/lib/sosse/ /var/log/sosse /var/lib/sosse/browser_config
+	bash ./tests/wait_for_pg.sh
+	sudo -u postgres psql --command "CREATE USER sosse WITH PASSWORD 'sosse';"
+	sudo -u postgres psql --command "ALTER USER sosse WITH SUPERUSER;"
+	sudo -u postgres createdb -O sosse sosse
+	mkdir /root/httpbin/httpbin/bin/static/
 	cp -r tests/pages/ /root/httpbin/httpbin/bin/static/
 	/usr/bin/python3 /root/httpbin/httpbin/manage.py runserver 0.0.0.0:8000 &
-	/tmp/sudo_sosse default_conf | sed -e "s/^#db_pass.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
+	virtualenv /opt/sosse-venv/
+	/opt/sosse-venv/bin/pip install coverage ./
+	mkdir -p /run/sosse /var/log/sosse /var/www/.cache /var/www/.mozilla /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html /etc/sosse
+	touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log /var/log/sosse/webhooks.log
+	chown -R www-data:www-data /run/sosse /var/lib/sosse /var/www/.cache /var/www/.mozilla /var/log/sosse
+	/opt/sosse-venv/bin/sosse-admin default_conf > /etc/sosse/sosse.conf
+	export COVERAGE_FILE=/tmp/coverage ; /tmp/sudo_sosse default_conf | sed -e "s/^#db_pass.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
 
 docker_unit_test_prepare:
-	docker run -v $(current_dir):/sosse -ti biolds/sosse:debian-test bash -c 'cp -r /sosse /sosse-rw ; export PYTHONPATH=/sosse-rw ; cd /sosse-rw ; make _docker_unit_test_prepare ; bash -i'
+	docker run -v $(current_dir):/sosse -ti biolds/sosse:pip-test bash -c 'cp -r /sosse /sosse-rw ; export PYTHONPATH=/sosse-rw ; cd /sosse-rw ; make _docker_unit_test_prepare ; bash -i'
 
 git_submodules:
 	git submodule init

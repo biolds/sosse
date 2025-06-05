@@ -1,8 +1,8 @@
 Crawling an Authenticated Website
 =================================
 
-SOSSE enables crawling web pages that require authentication. While authentication can be managed via cookies or
-JavaScript, cookies expire, and JavaScript can be complex to configure. Instead, SOSSE allows authentication directly
+Sosse enables crawling web pages that require authentication. While authentication can be managed via cookies or
+JavaScript, cookies expire, and JavaScript can be complex to configure. Instead, Sosse allows authentication directly
 within the Crawl Policy by submitting the login form. As an example, we will demonstrate how to authenticate to
 Calibre-Web, an open source book library, see https://github.com/janeczku/calibre-web.
 
@@ -39,7 +39,7 @@ With this information, configure the :doc:`Crawl Policy <../crawl/policies>`:
 .. image:: ../../../tests/robotframework/screenshots/guide_authentication_auth.png
    :class: sosse-screenshot
 
-Once configured, SOSSE will authenticate whenever it encounters the login page.
+Once configured, Sosse will authenticate whenever it encounters the login page.
 
 Starting the Crawl
 ------------------
@@ -47,7 +47,7 @@ Starting the Crawl
 After configuring authentication in the Crawl Policy, navigate to the :doc:`Crawl a new URL <../crawl/new_url>` page and
 enter the Calibre-Web instance URL.
 
-Review the parameters and click ``Confirm``. SOSSE will log in using the provided credentials and begin crawling pages
+Review the parameters and click ``Confirm``. Sosse will log in using the provided credentials and begin crawling pages
 accessible to the authenticated user.
 
 Searching the Library

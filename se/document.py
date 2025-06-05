@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
@@ -39,12 +39,24 @@ from .document_meta import DocumentMeta
 from .domain_setting import DomainSetting
 from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
+from .tag import Tag
 from .url import url_beautify, validate_url
 from .utils import reverse_no_escape
+from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
 
 DetectorFactory.seed = 0
+
+
+def example_doc():
+    return Document(
+        url="https://example.com/",
+        title="Example Title",
+        mimetype="text/html",
+        lang_iso_639_1="en",
+        content="Example",
+    )
 
 
 def remove_accent(s):
@@ -65,6 +77,29 @@ def extern_link_flags():
     if settings.SOSSE_LINKS_NEW_TAB:
         opt += ' target="_blank"'
     return format_html(opt)
+
+
+class DocumentManager(models.Manager):
+    def count(self):
+        return super().get_queryset().count()
+
+    def none(self):
+        return super().get_queryset().none()
+
+    def create(self, *args, **kwargs):
+        return super().get_queryset().create(*args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        return super().get_queryset().update(*args, **kwargs)
+
+    def w_content(self):
+        return super().get_queryset()
+
+    def wo_content(self):
+        return super().get_queryset().defer("content", "normalized_content", "vector", "error")
+
+    def get_queryset(self):
+        raise Exception("Use w_content() or wo_content()")
 
 
 class Document(models.Model):
@@ -111,20 +146,32 @@ class Document(models.Model):
     crawl_dt = models.DurationField(blank=True, null=True, verbose_name="Crawl DT")
     crawl_recurse = models.PositiveIntegerField(default=0, verbose_name="Recursion remaining")
     modified_date = models.DateTimeField(blank=True, null=True, verbose_name="Last modification date")
+    manual_crawl = models.BooleanField(default=False)
 
     error = models.TextField(blank=True, default="")
     error_hash = models.TextField(blank=True, default="")
     show_on_homepage = models.BooleanField(default=False, help_text="Display this document on the homepage")
 
     worker_no = models.PositiveIntegerField(blank=True, null=True)
+    webhooks_result = models.JSONField(default=dict)
+    metadata = models.JSONField(default=dict)
+
+    tags = models.ManyToManyField(Tag, blank=True)
 
     supported_langs = None
+
+    objects = DocumentManager()
 
     class Meta:
         indexes = [
             GinIndex(fields=(("vector",))),
             # models.Index(models.F('show_on_homepage') == models.Value(True),
             #             models.F('title').asc(), name='home_idx')
+            # Indexes for crawl scheduling
+            models.Index(fields=["worker_no"]),
+            models.Index(fields=["crawl_last"]),
+            models.Index(fields=["crawl_next"]),
+            models.Index(fields=["worker_no", "crawl_last", "crawl_next", "id"]),
         ]
 
     def __init__(self, *args, **kwargs):
@@ -159,7 +206,7 @@ class Document(models.Model):
     def get_title_label(self):
         if self.redirect_url:
             return f"<Redirect to {self.redirect_url}>"
-        return self.title
+        return self.title or self.url
 
     def image_name(self):
         if not self._image_name:
@@ -239,8 +286,6 @@ class Document(models.Model):
         stats["prev"] = n
 
     def _clear_base_content(self):
-        from .models import Link
-
         self.redirect_url = None
         self.too_many_redirects = False
         self.content = ""
@@ -248,11 +293,13 @@ class Document(models.Model):
         self.normalized_content = ""
         self.title = ""
         self.normalized_title = ""
-        self.robotstxt_rejected = False
         self.mimetype = ""
-        Link.objects.filter(doc_from=self).delete()
+        self.manual_crawl = False
 
     def _clear_dump_content(self):
+        from .models import Link
+
+        Link.objects.filter(doc_from=self).delete()
         self.delete_html()
         self.delete_screenshot()
         self.delete_thumbnail()
@@ -277,6 +324,14 @@ class Document(models.Model):
 
         crawl_logger.debug(f"{self.url} is a rss/atom feed with {len(parsed['entries'])} items")
 
+    @staticmethod
+    def _normalized_title(title):
+        return remove_accent(title)
+
+    @staticmethod
+    def _normalized_content(content):
+        return remove_accent(content)
+
     def _parse_text(self, page, crawl_policy, stats, verbose):
         crawl_logger.debug(f"parsing {self.url}")
         links = page.dom_walk(crawl_policy, True, self)
@@ -285,17 +340,22 @@ class Document(models.Model):
         self._index_log(f"text / {len(links['links'])} links extraction", stats, verbose)
 
         self.content = text
-        self.normalized_content = remove_accent(text)
+        self.normalized_content = self._normalized_content(self.content)
         self.lang_iso_639_1, self.vector_lang = self._get_lang((page.title or "") + "\n" + text)
         self._index_log("remove accent", stats, verbose)
 
         # The bulk request triggers a deadlock: Link.objects.bulk_create(links['links'])
         for link in links["links"]:
             link.save()
+        if len(links["links"]) > 0:
+            from .models import WorkerStats
+
+            WorkerStats.wake_up()
         self._index_log("bulk", stats, verbose)
         return links
 
-    def index(self, page, crawl_policy, verbose=False, force=False):
+    def index(self, page, crawl_policy, verbose=False):
+        crawl_logger.debug(f"indexing {self.url}")
         from .crawl_policy import CrawlPolicy
 
         n = now()
@@ -303,6 +363,9 @@ class Document(models.Model):
         self._index_log("start", stats, verbose)
 
         current_hash = self.content_hash
+        manual_crawl = self.manual_crawl
+        first_crawl = self.crawl_first is None
+
         self._clear_base_content()
         self._index_log("queuing links", stats, verbose)
 
@@ -314,7 +377,7 @@ class Document(models.Model):
         else:
             self.title = beautified_url
 
-        self.normalized_title = remove_accent(self.title)
+        self.normalized_title = self._normalized_title(self.title)
         self.mimetype = page.mimetype
         self.hidden = crawl_policy.hide_documents
 
@@ -328,20 +391,42 @@ class Document(models.Model):
             crawl_logger.debug(f"skipping {self.url} due to mimetype {self.mimetype}")
             return
 
-        if self.mimetype.startswith("text/"):
-            self._parse_xml(page, crawl_policy, stats, verbose)
-
-            links = self._parse_text(page, crawl_policy, stats, verbose)
+        links = page.dom_walk(crawl_policy, False, None)
+        self.content = links["text"]
+        crawl_logger.debug(f"queued links {len(links['links'])}")
 
         self.content_hash = self._hash_content(self.content, crawl_policy)
         self._schedule_next(current_hash != self.content_hash, crawl_policy)
 
-        if current_hash == self.content_hash and not force:
-            return
+        webhook_trigger_cond = {Webhook.TRIGGER_COND_ALWAYS}
+
+        if first_crawl:
+            webhook_trigger_cond |= {
+                Webhook.TRIGGER_COND_DISCOVERY,
+                Webhook.TRIGGER_COND_ON_CHANGE,
+                Webhook.TRIGGER_COND_MANUAL,
+            }
+        if current_hash != self.content_hash:
+            webhook_trigger_cond |= {Webhook.TRIGGER_COND_ON_CHANGE, Webhook.TRIGGER_COND_MANUAL}
+        if manual_crawl:
+            webhook_trigger_cond |= {Webhook.TRIGGER_COND_MANUAL}
+
+        if current_hash == self.content_hash:
+            if crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_ON_CHANGE or (
+                crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_MANUAL and not manual_crawl
+            ):
+                Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
+                return
         if current_hash != self.content_hash:
             self.modified_date = n
 
         self._clear_dump_content()
+        self.tags.add(*crawl_policy.tags.values_list("pk", flat=True))
+
+        if self.mimetype.startswith("text/"):
+            self._parse_xml(page, crawl_policy, stats, verbose)
+
+            links = self._parse_text(page, crawl_policy, stats, verbose)
 
         if self.mimetype.startswith("text/"):
             if crawl_policy.thumbnail_mode in (
@@ -388,6 +473,14 @@ class Document(models.Model):
                 self.screenshot_index(links["links"], crawl_policy)
 
         self._index_log("done", stats, verbose)
+
+        if page.script_result:
+            from .rest_api import DocumentSerializer
+
+            serializer = DocumentSerializer(self, data=page.script_result, partial=True)
+            serializer.user_doc_update("Javascript")
+
+        Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
 
     def convert_to_jpg(self):
         d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.image_name())
@@ -450,6 +543,25 @@ class Document(models.Model):
             self.error_hash = md5(err.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     @staticmethod
+    def manual_queue(url, show_on_homepage, crawl_depth):
+        from .crawl_policy import CrawlPolicy
+
+        if crawl_depth is None:
+            crawl_policy = CrawlPolicy.get_from_url(url)
+            crawl_depth = crawl_policy.recursion_depth
+
+        doc, created = Document.objects.wo_content().get_or_create(url=url, defaults={"crawl_recurse": crawl_depth})
+        if not created:
+            doc.crawl_next = now()
+            if crawl_depth:
+                doc.recursion_depth = crawl_depth
+
+        doc.manual_crawl = True
+        doc.show_on_homepage = show_on_homepage
+        doc.save()
+        return doc
+
+    @staticmethod
     def queue(url, parent_policy, parent):
         from .crawl_policy import CrawlPolicy
         from .models import ExcludedUrl
@@ -467,21 +579,21 @@ class Document(models.Model):
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL or parent is None:
             crawl_logger.debug(f"{url} -> always crawl")
-            return Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            return Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
 
         if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER:
             crawl_logger.debug(f"{url} -> never crawl")
-            return Document.objects.filter(url=url).first()
+            return Document.objects.wo_content().filter(url=url).first()
 
         doc = None
         url_depth = None
 
         if parent_policy.recursion == CrawlPolicy.CRAWL_ALL and parent_policy.recursion_depth > 0:
-            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            doc = Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent_policy.recursion_depth, doc.crawl_recurse)
             crawl_logger.debug(f"{url} -> recurse for {url_depth}")
         elif parent_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
-            doc = Document.objects.get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            doc = Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
             url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug(f"{url} -> recurse at {url_depth}")
         else:
@@ -491,7 +603,7 @@ class Document(models.Model):
             doc.crawl_recurse = url_depth
             doc.save()
 
-        doc = doc or Document.objects.filter(url=url).first()
+        doc = doc or Document.objects.wo_content().filter(url=url).first()
         return doc
 
     def _schedule_next(self, changed, crawl_policy):
@@ -503,13 +615,13 @@ class Document(models.Model):
         ):
             stop = True
 
-        if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE or stop:
+        if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_NONE or stop:
             self.crawl_next = None
             self.crawl_dt = None
-        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT:
+        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT:
             self.crawl_next = self.crawl_last + crawl_policy.recrawl_dt_min
             self.crawl_dt = None
-        elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_ADAPTIVE:
+        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_ADAPTIVE:
             if self.crawl_dt is None:
                 self.crawl_dt = crawl_policy.recrawl_dt_min
             elif not changed:
@@ -527,16 +639,20 @@ class Document(models.Model):
         if doc is None:
             return False
 
-        worker_stats = WorkerStats.get_worker(worker_no)
+        if getattr(settings, "TEST_MODE", False):
+            worker_stats = WorkerStats.get_worker(worker_no)
+        else:
+            worker_stats = WorkerStats.objects.get(worker_no=worker_no)
         if worker_stats.state != "running":
             worker_stats.update_state("running")
 
-        queued_count = Document.objects.filter(crawl_last__isnull=True).count()
-        indexed_count = Document.objects.filter(crawl_last__isnull=False).count()
+        if settings.DEBUG:
+            queued_count = Document.objects.wo_content().filter(crawl_last__isnull=True).count()
+            indexed_count = Document.objects.wo_content().filter(crawl_last__isnull=False).count()
 
-        crawl_logger.debug(
-            f"Worker:{worker_no} Queued:{queued_count} Indexed:{indexed_count} Id:{doc.id} {doc.url} ..."
-        )
+            crawl_logger.debug(
+                f"Worker:{worker_no} Queued:{queued_count} Indexed:{indexed_count} Id:{doc.id} {doc.url} ..."
+            )
 
         while True:
             # Loop until we stop redirecting
@@ -559,6 +675,8 @@ class Document(models.Model):
                             doc.crawl_first = n
                         doc.crawl_next = None
                         doc.crawl_dt = None
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.save()
                         break
                     else:
@@ -570,12 +688,16 @@ class Document(models.Model):
                         doc.content = e.page.content.decode("utf-8")
                         doc._schedule_next(True, crawl_policy)
                         doc.set_error(f"Locating authentication element failed at {e.page.url}:\n{e.args[0]}")
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.save()
                         crawl_logger.error(f"Locating authentication element failed at {e.page.url}:\n{e.args[0]}")
                         break
                     except SkipIndexing as e:
                         doc._schedule_next(False, crawl_policy)
                         doc.set_error(e.args[0])
+                        doc._clear_base_content()
+                        doc._clear_dump_content()
                         doc.save()
                         crawl_logger.debug(f"{doc.url}: {e.args[0]}")
                         break
@@ -600,7 +722,7 @@ class Document(models.Model):
                         doc.save()
 
                         # Process the page if it's new, otherwise skip it since it'll be processed depending on `crawl_next`
-                        if Document.objects.filter(url=page.url).count():
+                        if Document.objects.wo_content().filter(url=page.url).count():
                             break
 
                         doc = Document.pick_or_create(page.url, worker_no)
@@ -628,21 +750,25 @@ class Document(models.Model):
     @staticmethod
     def pick_queued(worker_no):
         while True:
-            doc = Document.objects.filter(worker_no__isnull=True, crawl_last__isnull=True).order_by("id").first()
-            if doc is None:
-                doc = (
-                    Document.objects.filter(
-                        worker_no__isnull=True,
-                        crawl_last__isnull=False,
-                        crawl_next__lte=now(),
-                    )
-                    .order_by("crawl_next", "id")
-                    .first()
+            doc = (
+                Document.objects.wo_content()
+                .filter(
+                    models.Q(crawl_last__isnull=True) | models.Q(crawl_last__isnull=False, crawl_next__lte=now()),
+                    worker_no__isnull=True,
                 )
-                if doc is None:
-                    return None
+                .order_by(
+                    "-crawl_last",  # to prioritize documents with no crawl_last
+                    "crawl_next",
+                    "id",
+                )
+                .first()
+            )
+            if doc is None:
+                return None
 
-            updated = Document.objects.filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
+            updated = (
+                Document.objects.wo_content().filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
+            )
 
             if updated == 0:
                 sleep(0.1)
@@ -658,11 +784,11 @@ class Document(models.Model):
 
     @staticmethod
     def pick_or_create(url, worker_no):
-        doc, created = Document.objects.get_or_create(url=url, defaults={"worker_no": worker_no})
+        doc, created = Document.objects.wo_content().get_or_create(url=url, defaults={"worker_no": worker_no})
         if created:
             return doc
 
-        updated = Document.objects.filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
+        updated = Document.objects.wo_content().filter(id=doc.id, worker_no__isnull=True).update(worker_no=worker_no)
 
         if updated == 0:
             return None
@@ -707,3 +833,13 @@ class Document(models.Model):
 
     def default_domain_setting(self):
         return DomainSetting.get_from_url(self.url)
+
+    def webhook_in_error(self):
+        for webhook_id, webhook in self.webhooks_result.items():
+            if (
+                webhook.get("status_code") and (webhook.get("status_code") < 200 or webhook.get("status_code") >= 300)
+            ) or webhook.get("error"):
+                webhook = Webhook.objects.filter(pk=webhook_id).first()
+                name = webhook.name if webhook else f"Deleted Webhook {webhook_id}"
+                return name
+        return None

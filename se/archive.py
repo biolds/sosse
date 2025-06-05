@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 from urllib.parse import unquote, urlparse
@@ -23,7 +23,7 @@ from django.views.generic import View
 
 from .crawl_policy import CrawlPolicy
 from .document import Document, extern_link_flags
-from .login import LoginRequiredMixin
+from .login import SosseLoginRequiredMixin
 from .online import online_status
 from .search_form import SearchForm
 from .url import sanitize_url, url_beautify
@@ -31,7 +31,7 @@ from .utils import reverse_no_escape
 from .views import RedirectException, RedirectMixin
 
 
-class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
+class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
     view_name = None
 
     def _url_from_request(self):
@@ -54,7 +54,7 @@ class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
         if doc is None:
             return self._unknown_url_view()
         if settings.SOSSE_ARCHIVE_FOLLOWS_REDIRECT and doc.redirect_url:
-            new_doc = Document.objects.filter(url=doc.redirect_url).first()
+            new_doc = Document.objects.w_content().filter(url=doc.redirect_url).first()
             if new_doc:
                 raise RedirectException(new_doc.get_absolute_url())
             raise RedirectException(reverse_no_escape(self.view_name, args=[doc.redirect_url]))
@@ -62,7 +62,7 @@ class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
 
     def _get_document(self):
         url = self._url_from_request()
-        return Document.objects.filter(url=url).first()
+        return Document.objects.w_content().filter(url=url).first()
 
     def get_context_data(self):
         context = super().get_context_data()
@@ -129,6 +129,11 @@ class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
             }
         )
 
+        model_tags = []
+        for tag in self.doc.tags.all().order_by("name"):
+            tag.href = reverse("search_redirect") + f"?tag={tag.id}"
+            model_tags.append(tag)
+
         return context | {
             "crawl_policy": crawl_policy,
             "doc": self.doc,
@@ -143,6 +148,9 @@ class ArchiveMixin(RedirectMixin, LoginRequiredMixin):
             "view_name": self.view_name,
             "settings": settings,
             "online_status": online_status(self.request),
+            "tags_edit_title": f"⭐ Tags of {self.doc.get_title_label()}",
+            "tags_edit_onclick": f"show_tags('/archive_tags/{self.doc.id}/')",
+            "model_tags": model_tags,
         }
 
     def _unknown_url_view(self):

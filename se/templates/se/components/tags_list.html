@@ -1,0 +1,9 @@
+<div {% if id %}id="{{ id }}" {% endif %}>
+  {% for tag in model_tags %}
+      {% include "se/components/tag.html" with suffix="-select" classes="tag-select" %}
+  {% endfor %}
+  {% if 'se.change_document' in perms or django_admin %}
+      {% include "se/components/tag_action.html" with id="edit_tags" text="⭐ Edit" onclick=tags_edit_onclick %}
+      <input name="tags" type="hidden" value="{{ model_tags_pks }}" />
+  {% endif %}
+</div>

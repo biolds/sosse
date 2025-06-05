@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
@@ -18,12 +18,12 @@ from collections import namedtuple
 from unittest import mock
 
 from django.contrib.auth.models import User
-from django.test import TransactionTestCase
-from django.test.client import Client
+from django.test import Client, TransactionTestCase
 from django.utils import timezone
 
 from .document import Document
 from .models import CrawlerStats
+from .tag import Tag
 
 now = timezone.now()
 now_str = now.isoformat().replace("+00:00", "Z")
@@ -42,6 +42,8 @@ SERIALIZED_DOC1 = {
     "has_thumbnail": False,
     "hidden": False,
     "lang_iso_639_1": "en",
+    "manual_crawl": False,
+    "metadata": {},
     "mimetype": "text/html",
     "modified_date": None,
     "normalized_content": "content",
@@ -53,12 +55,27 @@ SERIALIZED_DOC1 = {
     "screenshot_format": "",
     "screenshot_size": "",
     "show_on_homepage": False,
+    "tags": [],
+    "tags_str": "",
     "title": "Title",
     "too_many_redirects": False,
     "url": "http://127.0.0.1/test",
     "vector": "'content':4C 'http':2A 'test':3A 'title':1A",
     "vector_lang": "simple",
+    "webhooks_result": {},
     "worker_no": None,
+}
+SERIALIZED_DOC2 = SERIALIZED_DOC1 | {
+    "url": "http://127.0.0.1/test2",
+    "normalized_url": "http test2",
+    "title": "Title2",
+    "normalized_title": "title2",
+    "content": "Other Content2",
+    "normalized_content": "other content2",
+    "mimetype": "image/png",
+    "tags": ["Sub Tag"],
+    "tags_str": "Sub Tag",
+    "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
 }
 
 
@@ -73,12 +90,12 @@ class RestAPITest:
 
     def setUp(self):
         self.client = Client(HTTP_USER_AGENT="Mozilla/5.0")
-        self.user = User.objects.create(username="admin", password="admin", is_superuser=True)
-        self.user.set_password("admin")
+        self.user = User.objects.create_user(username="admin", password="admin", is_superuser=True)
         self.user.save()
+
         self.client.login(username="admin", password="admin")
 
-        self.doc1 = Document.objects.create(
+        self.doc1 = Document.objects.wo_content().create(
             url="http://127.0.0.1/test",
             normalized_url="http test",
             title="Title",
@@ -90,7 +107,7 @@ class RestAPITest:
             lang_iso_639_1="en",
             mimetype="text/html",
         )
-        self.doc2 = Document.objects.create(
+        self.doc2 = Document.objects.wo_content().create(
             url="http://127.0.0.1/test2",
             normalized_url="http test2",
             title="Title2",
@@ -105,6 +122,10 @@ class RestAPITest:
 
         self.crawler_stat1 = CrawlerStats.objects.create(t=now, doc_count=23, queued_url=24, indexing_speed=2, freq="M")
         self.crawler_stat2 = CrawlerStats.objects.create(t=now, doc_count=33, queued_url=34, indexing_speed=4, freq="D")
+
+        self.tag = Tag.objects.create(name="Group")
+        self.subtag = Tag.objects.create(name="Sub Tag", parent=self.tag)
+        self.doc2.tags.set([self.subtag])
 
 
 class APIQueryTest(RestAPITest, TransactionTestCase):
@@ -135,6 +156,8 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "hidden": False,
                         "id": self.doc2.id,
                         "lang_iso_639_1": "en",
+                        "manual_crawl": False,
+                        "metadata": {},
                         "mimetype": "image/png",
                         "modified_date": None,
                         "normalized_content": "other content2",
@@ -146,11 +169,14 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "screenshot_format": "",
                         "screenshot_size": "",
                         "show_on_homepage": False,
+                        "tags": ["Sub Tag"],
+                        "tags_str": "Sub Tag",
                         "title": "Title2",
                         "too_many_redirects": False,
                         "url": "http://127.0.0.1/test2",
                         "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
                         "vector_lang": "simple",
+                        "webhooks_result": {},
                         "worker_no": None,
                     },
                 ],
@@ -269,11 +295,10 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc1.id,
+                    SERIALIZED_DOC1
+                    | {
+                        "id": self.doc1.id,
                         "score": 0.12158542,
-                        "title": "Title",
-                        "url": "http://127.0.0.1/test",
                     }
                 ],
             },
@@ -301,11 +326,10 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc2.id,
-                        "score": None,
-                        "title": "Title2",
-                        "url": "http://127.0.0.1/test2",
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
+                        "score": 1.0,
                     }
                 ],
             },
@@ -324,11 +348,10 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc1.id,
+                    SERIALIZED_DOC1
+                    | {
+                        "id": self.doc1.id,
                         "score": 0.6079271,
-                        "title": "Title",
-                        "url": "http://127.0.0.1/test",
                     }
                 ],
             },
@@ -347,18 +370,95 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    {
-                        "doc_id": self.doc1.id,
-                        "url": "http://127.0.0.1/test",
-                        "title": "Title",
+                    SERIALIZED_DOC1
+                    | {
+                        "id": self.doc1.id,
                         "score": 0.6079271,
                     },
-                    {
-                        "doc_id": self.doc2.id,
-                        "url": "http://127.0.0.1/test2",
-                        "title": "Title2",
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
                         "score": 0.6079271,
+                        "hidden": True,
                     },
                 ],
             },
         )
+
+    def test_search_tags(self):
+        response = self.client.post(
+            "/api/search/",
+            {"adv_params": [{"field": "tag", "term": "Sub Tag", "operator": "equal"}]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
+                        "score": 1.0,
+                    },
+                ],
+            },
+        )
+
+    def test_search_subtags(self):
+        response = self.client.post(
+            "/api/search/",
+            {"adv_params": [{"field": "tag", "term": "Group", "operator": "equal"}]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
+                    SERIALIZED_DOC2
+                    | {
+                        "id": self.doc2.id,
+                        "score": 1.0,
+                    },
+                ],
+            },
+        )
+
+    def test_document_tags_str_update(self):
+        response = self.client.patch(
+            f"/api/document/{self.doc1.id}/", {"tags": ["tag1", "tag2"]}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.doc1.refresh_from_db()
+        tags = list(self.doc1.tags.values_list("name", flat=True))
+        self.assertEqual(tags, ["tag1", "tag2"])
+
+    def test_document_tags_pk_update(self):
+        tag = Tag.objects.create(name="test tag")
+        response = self.client.patch(
+            f"/api/document/{self.doc1.id}/", {"tags": [tag.pk]}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.doc1.refresh_from_db()
+        tags = list(self.doc1.tags.values_list("name", flat=True))
+        self.assertEqual(tags, ["test tag"])
+
+    def test_document_normalize(self):
+        response = self.client.patch(
+            f"/api/document/{self.doc1.id}/", {"title": "tïtle", "content": "contènt"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.doc1.refresh_from_db()
+        self.assertEqual(self.doc1.normalized_title, "title")
+        self.assertEqual(self.doc1.normalized_content, "content")
+
+    def test_document_create_prohibited(self):
+        response = self.client.post("/api/document/", {"url": "http://127.0.0.1/"}, content_type="application/json")
+        self.assertEqual(response.status_code, 405, response.content)

@@ -30,6 +30,7 @@ do
 
         block_no=$(($block_no + 1))
         code_no "$block_no" > "$filename"
+        echo "----- Writing $filename"
     else
         _code="$(echo "$code"|grep -v ^systemctl ||:)"
         if [ "$_code" != "" ]

@@ -1,16 +1,16 @@
 # Copyright 2024-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
@@ -80,7 +80,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_OGP_URL)
         self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
@@ -91,7 +91,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
@@ -105,7 +105,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
@@ -116,7 +116,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, TEST_SERVER_URL)
         self.assertEqual(doc.error, "")
         self.assertFalse(doc.has_thumbnail)
@@ -128,7 +128,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
@@ -140,7 +140,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_OGP_URL)
         self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)
@@ -151,7 +151,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
@@ -165,7 +165,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
@@ -176,7 +176,7 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
         self.assertEqual(doc.error, "")
         self.assertTrue(doc.has_thumbnail)

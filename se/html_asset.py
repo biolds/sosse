@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
@@ -152,32 +152,9 @@ class HTMLAsset(models.Model):
 
                     if url.endswith(".css"):
                         filename = settings.SOSSE_HTML_SNAPSHOT_DIR + filename
-                        assets |= css_parser().css_extract_assets(open(filename).read(), False)
+                        assets |= css_parser().css_extract_assets(open(filename, encoding="utf-8").read(), False)
 
         return assets
-
-    def add_refs_from_cache(self):
-        from .html_snapshot import css_parser
-
-        self.add_file_ref(self.filename)
-
-        if "." not in self.filename:
-            return
-        _, extension = self.filename.rsplit(".", 1)
-
-        if extension not in ("css", "htm", "html"):
-            return
-
-        filename = settings.SOSSE_HTML_SNAPSHOT_DIR + self.filename
-        with open(filename, "rb") as f:
-            content = f.read()
-
-        if extension == "css":
-            assets = css_parser().css_extract_assets(content, False)
-        else:
-            assets = HTMLAsset.html_extract_assets(content)
-        for asset in assets:
-            HTMLAsset.remove_file_ref(asset)
 
     def update_from_page(self, page):
         download_date = http_date_parser(page.headers.get("Date")) or timezone.now()
@@ -222,7 +199,8 @@ class HTMLAsset(models.Model):
 
         if page.headers.get("Expires") and max_age is None:
             expires = http_date_parser(page.headers.get("Expires"))
-            max_age = (expires - last_modified).total_seconds()
+            if expires is not None and last_modified is not None:
+                max_age = (expires - last_modified).total_seconds()
 
         if max_age and max_age < 0:
             max_age = 0

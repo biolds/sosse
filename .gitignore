@@ -2,7 +2,6 @@ doc/code_blocks.json
 doc/source/CHANGELOG.md
 doc/source/cli_generated.rst
 doc/source/config_file_generated.rst
-doc/source/introduction.md
 doc/source/install/database_debian_generated.rst
 doc/source/install/database_pip_generated.rst
 doc/source/user/shortcut_list_generated.rst
@@ -10,8 +9,13 @@ docker/doc/requirements.txt
 docker/debian-base/control
 docker/debian-test/requirements.txt
 docker/debian-test/pre-commit-config.yaml
-docker/pip-release/uwsgi.*
+docker/pip-release/pg_run.sh
+docker/pip-release/run.sh
 docker/pip-release/sosse.conf
+docker/pip-release/uwsgi.*
+docker/pip-compose/run.sh
+docker/pip-compose/sosse.conf
+docker/pip-compose/uwsgi.*
 se/static/swagger/
 se/static/se/node_modules/
 

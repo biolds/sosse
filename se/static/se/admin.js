@@ -19,6 +19,31 @@ function selectTab(fieldset, tabButton) {
   tabButton.removeAttribute("href");
   tabButton.id = "tab_selected";
   fieldset.style = "display: block";
+
+  // Update the height of ManyToMany fields
+  // This is based on django/contrib/admin/static/admin/js/SelectFilter2.js
+  document.querySelectorAll("select.filtered").forEach(function (el) {
+    const field_id = el.id.substr(0, el.id.length - 5); // drop the suffix from "<element_id>_from"
+    const j_from_box = document.getElementById(field_id + "_from");
+    const j_to_box = document.getElementById(field_id + "_to");
+    const filter_p = document.getElementById(field_id + "_filter");
+    if (filter_p === null) {
+      return;
+    }
+    let height = filter_p.offsetHeight + j_from_box.offsetHeight;
+
+    const j_to_box_style = window.getComputedStyle(j_to_box);
+    if (j_to_box_style.getPropertyValue("box-sizing") === "border-box") {
+      // Add the padding and border to the final height.
+      height +=
+        parseInt(j_to_box_style.getPropertyValue("padding-top"), 10) +
+        parseInt(j_to_box_style.getPropertyValue("padding-bottom"), 10) +
+        parseInt(j_to_box_style.getPropertyValue("border-top-width"), 10) +
+        parseInt(j_to_box_style.getPropertyValue("border-bottom-width"), 10);
+    }
+
+    j_to_box.style.height = height + "px";
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {
@@ -33,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
       // Move the "Authentication fields" under the Authentication fieldset
       const authfields = document.getElementById("authfield_set-group");
       if (authfields) {
-        authfields.remove(); // removed here, it is re-added at the end of the loop beolw
+        authfields.remove(); // removed here, it is re-added at the end of the loop below
       }
 
       // Create tabs
@@ -69,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
           tabToSelect = tabButton;
         }
 
-        if (fieldNo === fieldsets.length - 1 && authfields) {
+        if (tabButton.innerText === "🔒 Authentication" && authfields) {
           fieldset.append(authfields);
         }
       });

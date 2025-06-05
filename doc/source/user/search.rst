@@ -7,7 +7,7 @@ Searches
 Making searches
 ---------------
 
-SOSSE uses `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ to perform
+Sosse uses `PostgreSQL's Full Text Search <https://www.postgresql.org/docs/current/textsearch-intro.html>`_ to perform
 keyword based searches. This makes the search bar behave like most search engine websites 🦡:
 
 - Typing multiple space-separated keywords returns pages containing all of them.
@@ -15,6 +15,18 @@ keyword based searches. This makes the search bar behave like most search engine
 - Keywords enclosed in double-quotes match consecutive words.
 - Using ``-`` in front of a search term removes matching pages from the result list.
 - Parenthesis can be used to make complex queries and prioritize operators.
+
+Tags filtering
+--------------
+
+.. image:: ../../../tests/robotframework/screenshots/tags_filter.png
+   :class: sosse-screenshot
+
+Clicking the ``Tags`` button, shows a list of tags that can be used to filter the search results. Tags are organized
+in a tree structure, and filtering on a tag also include all its children.
+
+Avanced filtering
+-----------------
 
 More search options are available when clicking on ``Params``:
 
@@ -53,6 +65,7 @@ This defines against which field the keyword is matched:
   document) matching the keyword
 - ``Linked by url``: returns documents which are the target of the links of URLs matching the keyword
 - ``Linked by text``: returns documents which are pointed by links whose text match the keyword
+- ``Tag``: this finds matching tags and returns documents containing them or any of their descendants
 
 Operator
 """"""""
@@ -78,21 +91,11 @@ From top to bottom, left to right, the elements displayed are:
 - the favicon of the page
 - the title of the page, or its URL if it has no title
 - the URL
+- the tags of the page
 - the score of the page for the provided search keywords from 0.0 to 1.0
 - the language of the page
 - the ``archive`` link to the archived version, or ``source`` link to the original page (depending on the
   :ref:`related option <pref_principal_link>`)
-
-Word stats
-----------
-
-Clicking on the |stats_button| button, shows the top 100 most frequent words (after stemming) in the result webpages:
-
-.. |stats_button| image:: ../../../tests/robotframework/screenshots/stats_button.png
-   :class: sosse-inline-screenshot
-
-.. image:: ../../../tests/robotframework/screenshots/word_stats.png
-   :class: sosse-screenshot
 
 .. _ui_atom_feeds:
 
@@ -111,3 +114,10 @@ search terms ⚛:
 In case :ref:`anonymous searches <conf_option_anonymous_search>` are disabled, a
 :ref:`token <conf_option_atom_access_token>` can be defined to access the Atom feed without authenticating. This is done
 by appending a ``token=<Atom access token>`` parameter to the Atom feeds URL.
+
+CSV export
+----------
+
+The |atom_button| button, gives access to a ``CSV export`` for the current search terms.
+
+CSV export can be disabled using the :ref:`csv_export <conf_option_csv_export>` option.

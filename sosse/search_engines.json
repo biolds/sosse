@@ -7,7 +7,8 @@
       "long_name": "DuckDuckGo Search",
       "description": "Search DuckDuckGo",
       "html_template": "https://duckduckgo.com/?q={searchTerms}",
-      "shortcut": ""
+      "shortcut": "",
+      "builtin": true
     }
   },
   {
@@ -18,7 +19,8 @@
       "long_name": "Bing",
       "description": "Bing",
       "html_template": "http://www.bing.com/search?q={searchTerms}",
-      "shortcut": "bi"
+      "shortcut": "bi",
+      "builtin": true
     }
   },
   {
@@ -29,7 +31,8 @@
       "long_name": "Google",
       "description": "Google",
       "html_template": "https://www.google.com/search?q={searchTerms}",
-      "shortcut": "g"
+      "shortcut": "g",
+      "builtin": true
     }
   },
   {
@@ -40,7 +43,8 @@
       "long_name": "Search GitHub",
       "description": "GitHub",
       "html_template": "https://github.com/search/?q={searchTerms}",
-      "shortcut": "gh"
+      "shortcut": "gh",
+      "builtin": true
     }
   },
   {
@@ -51,7 +55,8 @@
       "long_name": "Google Image",
       "description": "Google Image",
       "html_template": "https://www.google.com/search?tbm=isch&tbs=imgo:1&q={searchTerms}",
-      "shortcut": "gi"
+      "shortcut": "gi",
+      "builtin": true
     }
   },
   {
@@ -62,7 +67,8 @@
       "long_name": "YouTube",
       "description": "YouTube",
       "html_template": "https://www.youtube.com/results?search_query={searchTerms}",
-      "shortcut": "yt"
+      "shortcut": "yt",
+      "builtin": true
     }
   },
   {
@@ -73,7 +79,8 @@
       "long_name": "Jisho",
       "description": "Jisho - Japanese Dictionary",
       "html_template": "https://jisho.org/search/{searchTerms}",
-      "shortcut": "j"
+      "shortcut": "j",
+      "builtin": true
     }
   },
   {
@@ -84,7 +91,8 @@
       "long_name": "Wiktionary (en)",
       "description": "Wiktionary (en)",
       "html_template": "https://en.wiktionary.org/w/index.php?title=Special:Search&search={searchTerms}",
-      "shortcut": "wt"
+      "shortcut": "wt",
+      "builtin": true
     }
   },
   {
@@ -95,7 +103,8 @@
       "long_name": "Wiktionnaire (fr)",
       "description": "Wiktionnaire (fr)",
       "html_template": "https://fr.wiktionary.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
-      "shortcut": "wtfr"
+      "shortcut": "wtfr",
+      "builtin": true
     }
   },
   {
@@ -106,7 +115,8 @@
       "long_name": "Wikipedia (en)",
       "description": "Wikipedia (en)",
       "html_template": "https://en.wikipedia.org/w/index.php?title=Special:Search&search={searchTerms}",
-      "shortcut": "w"
+      "shortcut": "w",
+      "builtin": true
     }
   },
   {
@@ -117,7 +127,8 @@
       "long_name": "Wikipédia (fr)",
       "description": "Wikipédia (fr)",
       "html_template": "https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
-      "shortcut": "wfr"
+      "shortcut": "wfr",
+      "builtin": true
     }
   },
   {
@@ -128,7 +139,8 @@
       "long_name": "Google FR",
       "description": "Google FR",
       "html_template": "https://www.google.fr/search?q={searchTerms}",
-      "shortcut": "gfr"
+      "shortcut": "gfr",
+      "builtin": true
     }
   },
   {
@@ -139,7 +151,8 @@
       "long_name": "Google Maps",
       "description": "Google Maps",
       "html_template": "https://www.google.fr/maps?q={searchTerms}",
-      "shortcut": "gm"
+      "shortcut": "gm",
+      "builtin": true
     }
   },
   {
@@ -150,7 +163,8 @@
       "long_name": "",
       "description": "",
       "html_template": "https://www.qwant.com/?q={searchTerms}",
-      "shortcut": "q"
+      "shortcut": "q",
+      "builtin": true
     }
   },
   {
@@ -161,7 +175,8 @@
       "long_name": "Brave",
       "description": "Brave Search: private, independent, open",
       "html_template": "https://search.brave.com/search?q={searchTerms}",
-      "shortcut": "b"
+      "shortcut": "b",
+      "builtin": true
     }
   },
   {
@@ -172,7 +187,8 @@
       "long_name": "OpenStreetMap Search",
       "description": "Search for a place in OpenStreetMap",
       "html_template": "https://www.openstreetmap.org/search?query={searchTerms}",
-      "shortcut": "map"
+      "shortcut": "map",
+      "builtin": true
     }
   },
   {
@@ -183,7 +199,8 @@
       "long_name": "",
       "description": "",
       "html_template": "https://search.yahoo.com/search?p={searchTerms}",
-      "shortcut": "y"
+      "shortcut": "y",
+      "builtin": true
     }
   },
   {
@@ -194,7 +211,8 @@
       "long_name": "",
       "description": "",
       "html_template": "https://www.amazon.com/s?k={searchTerms}",
-      "shortcut": "amazon"
+      "shortcut": "amazon",
+      "builtin": true
     }
   },
   {
@@ -205,7 +223,8 @@
       "long_name": "MDN Web Docs",
       "description": "Search the MDN Web Docs",
       "html_template": "https://developer.mozilla.org/search?q={searchTerms}",
-      "shortcut": "mdn"
+      "shortcut": "mdn",
+      "builtin": true
     }
   },
   {
@@ -216,7 +235,8 @@
       "long_name": "عربي - إنجليزي",
       "description": "قاموس WordReference.com  عربي - إنجليزي",
       "html_template": "https://www.wordreference.com/aren/{searchTerms}",
-      "shortcut": "عربي"
+      "shortcut": "عربي",
+      "builtin": true
     }
   },
   {
@@ -227,7 +247,8 @@
       "long_name": "WR Czech-English",
       "description": "WordReference.com Anglicko-český slovník",
       "html_template": "https://www.wordreference.com/czen/{searchTerms}",
-      "shortcut": "wrczen"
+      "shortcut": "wrczen",
+      "builtin": true
     }
   },
   {
@@ -238,7 +259,8 @@
       "long_name": "WR German-English",
       "description": "Wörterbuch Deutsch-Englisch - WordReference.com",
       "html_template": "https://www.wordreference.com/deen/{searchTerms}",
-      "shortcut": "wrdeen"
+      "shortcut": "wrdeen",
+      "builtin": true
     }
   },
   {
@@ -249,7 +271,8 @@
       "long_name": "إنجليزي - عربي",
       "description": "قاموس WordReference.com إنجليزي - عربي",
       "html_template": "https://www.wordreference.com/enar/{searchTerms}",
-      "shortcut": "إنجليزي"
+      "shortcut": "إنجليزي",
+      "builtin": true
     }
   },
   {
@@ -260,7 +283,8 @@
       "long_name": "WR Anglicko-český",
       "description": "WordReference.com Anglicko-český slovník",
       "html_template": "https://www.wordreference.com/encz/{searchTerms}",
-      "shortcut": "wrencz"
+      "shortcut": "wrencz",
+      "builtin": true
     }
   },
   {
@@ -271,7 +295,8 @@
       "long_name": "WR English-German",
       "description": "Wörterbuch Englisch-Deutsch - WordReference.com",
       "html_template": "https://www.wordreference.com/ende/{searchTerms}",
-      "shortcut": "wrende"
+      "shortcut": "wrende",
+      "builtin": true
     }
   },
   {
@@ -282,7 +307,8 @@
       "long_name": "WR English-Spanish",
       "description": "English-Spanish Dictionary - WordReference.com",
       "html_template": "https://www.wordreference.com/enes/{searchTerms}",
-      "shortcut": "wrenes"
+      "shortcut": "wrenes",
+      "builtin": true
     }
   },
   {
@@ -293,7 +319,8 @@
       "long_name": "WR English-French",
       "description": "English-French Dictionary WordReference.com",
       "html_template": "https://www.wordreference.com/enfr/{searchTerms}",
-      "shortcut": "wref"
+      "shortcut": "wref",
+      "builtin": true
     }
   },
   {
@@ -304,7 +331,8 @@
       "long_name": "WR English-Greek",
       "description": "Αγγλοελληνικό Λεξικό WordReference.com",
       "html_template": "https://www.wordreference.com/engr/{searchTerms}",
-      "shortcut": "wrengr"
+      "shortcut": "wrengr",
+      "builtin": true
     }
   },
   {
@@ -315,7 +343,8 @@
       "long_name": "WR English-Italian",
       "description": "Dizionario inglese-italiano WordReference",
       "html_template": "https://www.wordreference.com/enit/{searchTerms}",
-      "shortcut": "wrenit"
+      "shortcut": "wrenit",
+      "builtin": true
     }
   },
   {
@@ -326,7 +355,8 @@
       "long_name": "WR English-Japanese",
       "description": "WordReference 英和辞書",
       "html_template": "https://www.wordreference.com/enja/{searchTerms}",
-      "shortcut": "wrenja"
+      "shortcut": "wrenja",
+      "builtin": true
     }
   },
   {
@@ -337,7 +367,8 @@
       "long_name": "WR English-Korean",
       "description": "WordReference 영-한 사전",
       "html_template": "https://www.wordreference.com/enko/{searchTerms}",
-      "shortcut": "wrenko"
+      "shortcut": "wrenko",
+      "builtin": true
     }
   },
   {
@@ -348,7 +379,8 @@
       "long_name": "WR English-Polish",
       "description": "WordReference Słownik angielsko-polski",
       "html_template": "https://www.wordreference.com/enpl/{searchTerms}",
-      "shortcut": "wrenpl"
+      "shortcut": "wrenpl",
+      "builtin": true
     }
   },
   {
@@ -359,7 +391,8 @@
       "long_name": "WR inglês-português",
       "description": "Dicionário Inglês-Português (Brasil) WordReference.com",
       "html_template": "https://www.wordreference.com/enpt/{searchTerms}",
-      "shortcut": "wrenpt"
+      "shortcut": "wrenpt",
+      "builtin": true
     }
   },
   {
@@ -370,7 +403,8 @@
       "long_name": "WR English-Romanian",
       "description": "WordReference Dicţionar englez-român",
       "html_template": "https://www.wordreference.com/enro/{searchTerms}",
-      "shortcut": "wrenro"
+      "shortcut": "wrenro",
+      "builtin": true
     }
   },
   {
@@ -381,7 +415,8 @@
       "long_name": "WR English-Russian",
       "description": "Англо-русский словарь на WordReference.com",
       "html_template": "https://www.wordreference.com/enru/{searchTerms}",
-      "shortcut": "wrenru"
+      "shortcut": "wrenru",
+      "builtin": true
     }
   },
   {
@@ -392,7 +427,8 @@
       "long_name": "WR İngilizce-Türkçe",
       "description": "WordReference.com İngilizce-Türkçe Sözlük",
       "html_template": "https://www.wordreference.com/entr/{searchTerms}",
-      "shortcut": "wrentr"
+      "shortcut": "wrentr",
+      "builtin": true
     }
   },
   {
@@ -403,7 +439,8 @@
       "long_name": "WordReference 英-汉词典",
       "description": "WordReference.com 英汉词典",
       "html_template": "https://www.wordreference.com/enzh/{searchTerms}",
-      "shortcut": "wrenzh"
+      "shortcut": "wrenzh",
+      "builtin": true
     }
   },
   {
@@ -414,7 +451,8 @@
       "long_name": "WR Spanish-English",
       "description": "Diccionario Inglés-Español WordReference.com",
       "html_template": "https://www.wordreference.com/esen/{searchTerms}",
-      "shortcut": "wresen"
+      "shortcut": "wresen",
+      "builtin": true
     }
   },
   {
@@ -425,7 +463,8 @@
       "long_name": "WR español-francés",
       "description": "Diccionario Español-Francés WordReference.com",
       "html_template": "https://www.wordreference.com/esfr/{searchTerms}",
-      "shortcut": "wresfr"
+      "shortcut": "wresfr",
+      "builtin": true
     }
   },
   {
@@ -436,7 +475,8 @@
       "long_name": "WR español-portugûes",
       "description": "Diccionario Español-Portugués WordReference.com",
       "html_template": "https://www.wordreference.com/espt/{searchTerms}",
-      "shortcut": "wrespt"
+      "shortcut": "wrespt",
+      "builtin": true
     }
   },
   {
@@ -447,7 +487,8 @@
       "long_name": "WR French-English",
       "description": "traduction - Dictionnaire Français-Anglais WordReference.com",
       "html_template": "https://www.wordreference.com/fren/{searchTerms}",
-      "shortcut": "wrfe"
+      "shortcut": "wrfe",
+      "builtin": true
     }
   },
   {
@@ -458,7 +499,8 @@
       "long_name": "WR francés-español",
       "description": "Dictionnaire Français-Espagnol WordReference.com",
       "html_template": "https://www.wordreference.com/fres/{searchTerms}",
-      "shortcut": "wrfres"
+      "shortcut": "wrfres",
+      "builtin": true
     }
   },
   {
@@ -469,7 +511,8 @@
       "long_name": "WR Greek-English",
       "description": "Ελληνοαγγλικό Λεξικό WordReference.com",
       "html_template": "https://www.wordreference.com/gren/{searchTerms}",
-      "shortcut": "wrgren"
+      "shortcut": "wrgren",
+      "builtin": true
     }
   },
   {
@@ -480,7 +523,8 @@
       "long_name": "WR Italian-English",
       "description": "Dizionario italiano-inglese WordReference",
       "html_template": "https://www.wordreference.com/iten/{searchTerms}",
-      "shortcut": "writen"
+      "shortcut": "writen",
+      "builtin": true
     }
   },
   {
@@ -491,7 +535,8 @@
       "long_name": "WR Japanese-English",
       "description": "WordReference 和英辞書",
       "html_template": "https://www.wordreference.com/jaen/{searchTerms}",
-      "shortcut": "wrjaen"
+      "shortcut": "wrjaen",
+      "builtin": true
     }
   },
   {
@@ -502,7 +547,8 @@
       "long_name": "WR Korean-English",
       "description": "WordReference 한-영 사전",
       "html_template": "https://www.wordreference.com/koen/{searchTerms}",
-      "shortcut": "wrkoen"
+      "shortcut": "wrkoen",
+      "builtin": true
     }
   },
   {
@@ -513,7 +559,8 @@
       "long_name": "WR Polish-English",
       "description": "WordReference Słownik polsko-angielski",
       "html_template": "https://www.wordreference.com/plen/{searchTerms}",
-      "shortcut": "wrplen"
+      "shortcut": "wrplen",
+      "builtin": true
     }
   },
   {
@@ -524,7 +571,8 @@
       "long_name": "WR português-inglês",
       "description": "Dicionário Português-Inglês WordReference.com",
       "html_template": "https://www.wordreference.com/pten/{searchTerms}",
-      "shortcut": "wrpten"
+      "shortcut": "wrpten",
+      "builtin": true
     }
   },
   {
@@ -535,7 +583,8 @@
       "long_name": "WR portugûes-español",
       "description": "Dicionário Português-Espanhol WordReference.com",
       "html_template": "https://www.wordreference.com/ptes/{searchTerms}",
-      "shortcut": "wrptes"
+      "shortcut": "wrptes",
+      "builtin": true
     }
   },
   {
@@ -546,7 +595,8 @@
       "long_name": "WR Romanian-English",
       "description": "WordReference Dicţionar român-englez",
       "html_template": "https://www.wordreference.com/roen/{searchTerms}",
-      "shortcut": "wrroen"
+      "shortcut": "wrroen",
+      "builtin": true
     }
   },
   {
@@ -557,7 +607,8 @@
       "long_name": "WR Russian-English",
       "description": "Русско-английский словарь на WordReference.com",
       "html_template": "https://www.wordreference.com/ruen/{searchTerms}",
-      "shortcut": "wrruen"
+      "shortcut": "wrruen",
+      "builtin": true
     }
   },
   {
@@ -568,7 +619,8 @@
       "long_name": "WR Türkçe-İngilizce",
       "description": "WordReference.com Türkçe-İngilizce Sözlük",
       "html_template": "https://www.wordreference.com/tren/{searchTerms}",
-      "shortcut": "wrtren"
+      "shortcut": "wrtren",
+      "builtin": true
     }
   },
   {
@@ -579,7 +631,8 @@
       "long_name": "WR Chinese-English",
       "description": "WordReference 汉-英词典",
       "html_template": "https://www.wordreference.com/zhen/{searchTerms}",
-      "shortcut": "wrzhen"
+      "shortcut": "wrzhen",
+      "builtin": true
     }
   },
   {
@@ -590,7 +643,8 @@
       "long_name": "Wiktionnaire (fr)",
       "description": "Wiktionnaire (fr)",
       "html_template": "https://fr.wiktionary.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
-      "shortcut": "wtfr"
+      "shortcut": "wtfr",
+      "builtin": true
     }
   },
   {
@@ -601,18 +655,8 @@
       "long_name": "",
       "description": "",
       "html_template": "https://www.twitch.tv/search?term={searchTerms}",
-      "shortcut": "tw"
-    }
-  },
-  {
-    "model": "se.searchengine",
-    "pk": 63,
-    "fields": {
-      "short_name": "Twitter",
-      "long_name": "Twitter",
-      "description": "Twitter Search",
-      "html_template": "https://twitter.com/search?q={searchTerms}",
-      "shortcut": "t"
+      "shortcut": "tw",
+      "builtin": true
     }
   },
   {
@@ -623,7 +667,8 @@
       "long_name": "",
       "description": "",
       "html_template": "https://www.wolframalpha.com/input/?i={searchTerms}",
-      "shortcut": "wa"
+      "shortcut": "wa",
+      "builtin": true
     }
   },
   {
@@ -634,7 +679,8 @@
       "long_name": "Jotoba",
       "description": "Japanese dictionary search",
       "html_template": "https://jotoba.de/search/0/{searchTerms}",
-      "shortcut": "jotoba"
+      "shortcut": "jotoba",
+      "builtin": true
     }
   }
 ]

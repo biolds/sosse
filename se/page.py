@@ -1,17 +1,19 @@
 # Copyright 2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
+
+import logging
 
 from bs4 import BeautifulSoup, Comment, Doctype, Tag
 from magic import from_buffer as magic_from_buffer
@@ -26,9 +28,11 @@ from .url import (
 
 NAV_ELEMENTS = ["nav", "header", "footer"]
 
+crawl_logger = logging.getLogger("crawler")
+
 
 class Page:
-    def __init__(self, url, content, browser, headers=None, status_code=None):
+    def __init__(self, url, content, browser, headers=None, status_code=None, script_result=None):
         if not isinstance(content, bytes):
             raise ValueError("content must be bytes")
         self.url = sanitize_url(url)
@@ -39,6 +43,7 @@ class Page:
         self.browser = browser
         self.headers = headers or {}
         self.status_code = status_code
+        self.script_result = script_result
 
         # dirty hack to avoid some errors (as triggered since bookworm during tests)
         magic_head = self.content[: 1024 * 1024].strip().lower()
@@ -143,6 +148,7 @@ class Page:
 
         # Keep the link if it has text, or if we take screenshots
         if elem.name in (None, "a"):
+            crawl_logger.debug(f"evaluating link elem: {elem.name}, text: {s}, / {queue_links}")
             if links["text"] and links["text"][-1] not in (" ", "\n") and s and not in_nav:
                 links["text"] += " "
 
@@ -160,6 +166,7 @@ class Page:
                         if not child_policy.keep_params:
                             href = url_remove_query_string(href)
                         href = url_remove_fragment(href)
+                        crawl_logger.debug(f"queueing link: {href}")
                         target_doc = Document.queue(href, crawl_policy, document)
 
                         if target_doc != document:
@@ -172,6 +179,8 @@ class Page:
                                     pos=len(links["text"]),
                                     in_nav=in_nav,
                                 )
+                    else:
+                        crawl_logger.debug(f"not browsable scheme: {href}")
 
                     store_extern_link = not has_browsable_scheme(href) or target_doc is None
                     if crawl_policy.store_extern_links and store_extern_link:
@@ -214,6 +223,9 @@ class Page:
 
     def dom_walk(self, crawl_policy, queue_links, document):
         links = {"links": [], "text": ""}
+        soup = self.get_soup()
+        if not soup:
+            return links
         for elem in self.get_soup().children:
             self._dom_walk(elem, crawl_policy, links, queue_links, document, False)
         return links

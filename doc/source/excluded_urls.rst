@@ -1,5 +1,5 @@
-Excluded URLs
-=============
+🔗 Excluded URLs
+================
 
 The excluded URLs list can be reached from the :doc:`../admin_ui`, by clicking on ``Excluded URLs``.
 

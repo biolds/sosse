@@ -1,7 +1,7 @@
 Debian install
 ==============
 
-SOSSE can be installed using the official Debian repository. To do so, first import its GPG key:
+Sosse can be installed using the official Debian repository. To do so, first import its GPG key:
 
 .. code-block:: shell
 
@@ -16,7 +16,7 @@ Then setup the repository:
 
    echo 'deb [signed-by=/etc/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bookworm main' > /etc/apt/sources.list.d/piggledy.list
 
-The SOSSE package can then be installed with its dependencies:
+The Sosse package can then be installed with its dependencies:
 
 .. code-block:: shell
 
@@ -64,6 +64,18 @@ the command:
 .. note::
    A more recent Geckodriver may improve compatibily with the installed Firefox, though different versions have not been tested to work
    correctly with Sosse.
+
+Configuration Updates
+---------------------
+
+The Sosse configuration can be updated in the file located at `/etc/sosse/sosse.conf`. For detailed explanations of the
+configuration options, refer to the :doc:`../config_file`. After modifying the configuration file, it is necessary to
+restart the Sosse daemons to apply the changes. Use the following commands to restart the daemons:
+
+.. code-block:: shell
+
+   systemctl restart sosse-crawler
+   systemctl restart sosse-uwsgi
 
 Next steps
 ----------

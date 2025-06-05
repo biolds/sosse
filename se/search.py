@@ -1,27 +1,29 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 import re
 import uuid
 from collections import OrderedDict
+from urllib.parse import urlparse, urlunparse
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank
 from django.core.paginator import Paginator
 from django.db import models
+from django.http import QueryDict
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -29,12 +31,49 @@ from .document import Document, extern_link_flags, remove_accent
 from .html_asset import HTMLAsset
 from .models import SearchEngine, SearchHistory
 from .search_form import FILTER_FIELDS, SearchForm
+from .tag import Tag
 from .utils import human_nb
 from .views import RedirectException, UserView
 
 logger = logging.getLogger("web")
 
 FILTER_RE = "(ft|ff|fo|fv|fc)[0-9]+$"
+
+
+def remove_query_param(request, key, value=None):
+    url_parts = list(urlparse(request.get_full_path()))
+    query = QueryDict(url_parts[4], mutable=True)
+
+    if key in query:
+        if value is None:
+            query.pop(key)
+        else:
+            values = query.getlist(key)
+            if value in values:
+                values.remove(value)
+                if values:
+                    query.setlist(key, values)
+                else:
+                    query.pop(key)
+
+    url_parts[4] = query.urlencode()
+    return urlunparse(url_parts)
+
+
+def add_query_param(request, key, value):
+    url_parts = list(urlparse(request.get_full_path()))
+    query = QueryDict(url_parts[4], mutable=True)
+
+    if key in query:
+        values = query.getlist(key)
+        if value not in values:
+            values.append(value)
+            query.setlist(key, values)
+    else:
+        query[key] = value
+
+    url_parts[4] = query.urlencode()
+    return urlunparse(url_parts)
 
 
 def get_documents_from_request(request, form, stats_call=False):
@@ -55,10 +94,10 @@ def get_documents_from_request(request, form, stats_call=False):
 def get_documents(request, params, form, stats_call):
     REQUIRED_KEYS = ("ft", "ff", "fo", "fv")
 
-    results = Document.objects.all()
+    results = Document.objects.w_content().annotate(rank=models.Value(1.0))
     has_query = False
 
-    q = form.cleaned_data["q"]
+    q = form.cleaned_data.get("q", "")
     q = remove_accent(q)
     query = None
     if q:
@@ -66,8 +105,12 @@ def get_documents(request, params, form, stats_call):
         lang = form.cleaned_data["l"]
 
         query = SearchQuery(q, config=lang, search_type="websearch")
-        all_results = Document.objects.filter(vector=query).annotate(
-            rank=SearchRank(models.F("vector"), query),
+        all_results = (
+            Document.objects.w_content()
+            .filter(vector=query)
+            .annotate(
+                rank=SearchRank(models.F("vector"), query),
+            )
         )
         results = all_results.exclude(rank__lte=0.01)
 
@@ -136,6 +179,13 @@ def get_documents(request, params, form, stats_call):
             else:
                 key = f"{field}__text{param}"
                 qf = models.Q(**{key: value})
+        elif field == "tag":
+            key = f"name{param}"
+            _tags = Tag.objects.filter(**{key: value})
+            tags = set()
+            for tag in _tags:
+                tags |= set(Tag.get_tree(tag))
+            qf = models.Q(tags__in=tags)
         else:
             qparams = {field + param: value}
             qf = models.Q(**qparams)
@@ -150,6 +200,10 @@ def get_documents(request, params, form, stats_call):
         logger.debug(f"filter {ftype} {qf}")
         results = results.filter(qf)
 
+    tags = form.cleaned_data.get("tag", [])
+    for tag in tags:
+        results = results.filter(tags__in=Tag.get_tree(tag))
+
     doc_lang = form.cleaned_data.get("doc_lang")
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
@@ -158,7 +212,7 @@ def get_documents(request, params, form, stats_call):
         order_by = form.cleaned_data["order_by"]
         results = results.order_by(*order_by).distinct()
 
-    if not has_query:
+    if not has_query and not tags:
         results = Document.objects.none()
 
     return has_query, results, query
@@ -177,7 +231,8 @@ def add_headlines(paginated, query):
         if query:
             rnd = uuid.uuid1().hex
             pg_headline = (
-                Document.objects.filter(id=res.id)
+                Document.objects.w_content()
+                .filter(id=res.id)
                 .annotate(
                     headline=SearchHeadline(
                         "normalized_content",
@@ -284,14 +339,48 @@ class SearchView(UserView):
                     if asset:
                         preview_url = self.request.build_absolute_uri(settings.SOSSE_HTML_SNAPSHOT_URL) + asset.filename
                         r.preview = preview_url
+                r.ordered_tags = r.tags.order_by("name")
+                for tag in r.ordered_tags:
+                    tag.href = add_query_param(self.request, "tag", str(tag.id))
 
         extra_link_txt = "archive"
         if form.cleaned_data["c"]:
             extra_link_txt = "source"
 
+        tags = []
+        for tag in form.cleaned_data["tag"]:
+            tag.clear_href = remove_query_param(self.request, "tag", str(tag.id))
+            tags.append(tag)
+
         home_entries = None
-        if not has_query and settings.SOSSE_BROWSABLE_HOME:
-            home_entries = Document.objects.filter(show_on_homepage=True).order_by("title")
+        if (not has_query or tags) and settings.SOSSE_BROWSABLE_HOME:
+            home_entries = Document.objects.wo_content().filter(show_on_homepage=True, hidden=False)
+            if tags:
+                for tag in tags:
+                    home_entries = home_entries.filter(tags__in=Tag.get_tree(tag))
+                if not home_entries:
+                    has_query = True
+            home_entries = home_entries.order_by("title").distinct()
+
+        search_history = None
+        if (
+            (not has_query or tags)
+            and self.request.user.is_authenticated
+            and settings.SOSSE_HOME_SEARCH_HISTORY_SIZE > 0
+        ):
+            search_history = SearchHistory.objects.filter(user=self.request.user).order_by("-date")[
+                : settings.SOSSE_HOME_SEARCH_HISTORY_SIZE
+            ]
+
+            for entry in search_history:
+                if entry.tags:
+                    _tags = []
+                    for tag in entry.tags:
+                        tag = Tag.objects.filter(pk=tag).first()
+                        if tag:
+                            _tags.append(tag)
+                            tag.name = f"⭐ {tag.name}"
+                    entry.tags = _tags
 
         context.update(self._get_pagination(paginated))
         return context | {
@@ -302,9 +391,12 @@ class SearchView(UserView):
             "paginated": paginated,
             "has_query": has_query,
             "home_entries": home_entries,
+            "search_history": search_history,
             "q": q,
             "title": q,
             "sosse_langdetect_to_postgres": sosse_langdetect_to_postgres,
             "extra_link_txt": extra_link_txt,
             "FILTER_FIELDS": FILTER_FIELDS,
+            "tags": tags,
+            "clear_tags_href": remove_query_param(self.request, "tag"),
         }

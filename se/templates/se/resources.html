@@ -1,0 +1,194 @@
+{% extends "se/base.html" %}
+{% load static %}
+
+{% block css %}
+.resources {
+  padding: 2rem;
+  font-family: system-ui, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.resources > div {
+  flex: 1 1 380px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.resources h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.resources > div > p {
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.resources ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--hilight-bg);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.resources li {
+  margin-bottom: 1.2rem;
+}
+
+.resources img {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  vertical-align: middle;
+}
+
+#github_logo {
+  height: 22px;
+  width: 22px;
+  vertical-align: text-bottom;
+}
+
+.resources strong {
+  font-size: 1.05rem;
+  font-weight: bold;
+  text-color: var(--text);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.resources li p {
+  margin: 0 0 0.4rem;
+  color: var(--text-light);
+}
+
+.resources a {
+  font-weight: bold;
+}
+
+.resources img.social-img {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+{% endblock %}
+
+{% block body %}
+<div class="resources">
+  <div>
+    <h3>📚 Guides & Documentation</h3>
+    <ul>
+      <li>
+        <strong>📘 Technical Documentation</strong>
+        <p>Complete reference for configuration, setup, and deployment.</p>
+        <a href="https://sosse.readthedocs.io/en/v{{ settings.SOSSE_VERSION_TAG }}/introduction.html" target="_blank">Read the documentation</a>
+      </li>
+      <li>
+        <strong>🚀 Guides & Tutorials</strong>
+        <p>Use cases, best practices, and third-party integrations explained step by step.</p>
+        <a href="https://sosse.readthedocs.io/en/v{{ settings.SOSSE_VERSION_TAG }}/guides.html" target="_blank">View the guides</a>
+      </li>
+    </ul>
+  </div>
+
+  <div>
+    <h3>👥 Talk to People</h3>
+    <ul>
+      <li>
+        <strong>💬 Forum & Discussions</strong>
+        <p>Join community discussions and find answers to your questions.</p>
+        <a href="https://github.com/biolds/sosse/discussions" target="_blank">Join discussions on GitHub</a>
+      </li>
+      <li>
+        <strong>
+          <img src="{% static "se/discord-symbol.svg" %}" alt="Chat & Community Support Logo" />
+          Chat & Community Support
+        </strong>
+        <p>Chat with the community in real-time on Discord for any questions.</p>
+        <a href="https://discord.gg/Vt9cMf7BGK" target="_blank">Join our Discord</a>
+      </li>
+      <li>
+        <strong>💼 Professional Support</strong>
+        <p>Access premium support for personalized assistance and dedicated solutions.</p>
+        <a href="https://sosse.io/#services" target="_blank">Contact support</a>
+      </li>
+    </ul>
+  </div>
+
+  <div>
+    <h3>🔧 Open Source Development</h3>
+    <ul>
+      <li>
+        <strong>
+          <img src="{% static "se/github-mark.png" %}" id="github_logo" alt="GitHub Project Logo" />
+          GitHub Project
+        </strong>
+        <p>Source code, releases, pull requests, and more.</p>
+        <a href="https://github.com/biolds/sosse" target="_blank">View the project on GitHub</a>
+      </li>
+      <li>
+        <strong>🐞 Bug Tracking & Requests</strong>
+        <p>Open tickets, track issues, or view ongoing requests.</p>
+        <a href="https://github.com/biolds/sosse/issues" target="_blank">See issues on GitHub</a>
+      </li>
+      <li>
+        <strong>
+          <img src="{% static "se/gitlab-tanuki-scalability.svg" %}" alt="GitLab Project Logo" />
+          GitLab Project
+        </strong>
+        <p>Development, automation, and quality control.</p>
+        <a href="https://github.com/biolds1/sosse" target="_blank">View the project on GitLab</a>
+      </li>
+    </ul>
+  </div>
+
+  <div>
+    <h3>🏢 Information & Legal</h3>
+    <div>
+      <ul>
+        <li>
+          <strong>
+            <img src="{% static "se/logo.svg" %}" alt="Commercial Offers Logo" />
+            Commercial Offers
+          </strong>
+          <p>Professional support, premium services, and dedicated hosting solutions.</p>
+          <a href="https://sosse.io/#services" target="_blank">See commercial offers</a>
+        </li>
+        <li>
+          <strong>📄 About Us</strong>
+          <p>Learn about the mission, key features, and development of Sosse.</p>
+          <a href="{% url "about" %}">Learn more about the project</a>
+        </li>
+      </ul>
+  </div>
+
+  <div>
+    <h3>📢 News</h3>
+    <div>
+      <ul>
+        <li>
+          <strong>
+            RSS feed & Social Networks
+          </strong>
+          <a href="https://sosse.io/blog" title="RSS">
+            <img src="{% static "se/logo-rss.svg" %}" class="social-img" alt="RSS">
+          </a>
+          <a href="https://x.com/SosseIo" title="X">
+            <img src="{% static "se/logo-twitter.svg" %}" class="social-img" alt="X">
+          </a>
+          <a href="https://www.facebook.com/people/Search-engine-Sosse/61576372905658/" title="Facebook">
+            <img src="{% static "se/logo-facebook.svg" %}" class="social-img" alt="Facebook">
+          </a>
+        </li>
+      </ul>
+  </div>
+</div>
+{% endblock %}

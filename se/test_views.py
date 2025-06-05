@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
@@ -40,14 +40,17 @@ from .html import HTMLExcludedView, HTMLView
 from .models import CrawlerStats
 from .online import OnlineCheckView
 from .opensearch import OpensearchView
-from .preferences import PreferencesView
+from .profile import ProfileView
+from .resources import ResourcesView
 from .screenshot import ScreenshotFullView, ScreenshotView
 from .search import SearchView
 from .search_redirect import SearchRedirectView
+from .tag import Tag
+from .tags import AdminTagsView, ArchiveTagsView, SearchTagsView
+from .tags_list import TagsListView
 from .test_cookies_import import NETSCAPE_COOKIE_HEADER, NOW_TIMESTAMP
 from .test_views_mixin import ViewsTestMixin
 from .words import WordsView
-from .words_stats import WordStatsView
 from .www import WWWView
 
 CRAWL_URL = "http://127.0.0.1:8000/cookies"
@@ -61,7 +64,8 @@ class ViewsTest:
         self.crawl_policy.take_screenshots = True
         self.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
         self.crawl_policy.save()
-        self.doc = Document.objects.create(url=CRAWL_URL)
+        self.tag = Tag.objects.create(name="tag")
+        self.doc = Document.objects.wo_content().create(url=CRAWL_URL)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
 
@@ -86,11 +90,11 @@ class ViewsTest:
         for url, view_cls, params in (
             ("/?q=page", SearchView, {}),
             ("/about/", AboutView, {}),
-            ("/prefs/", PreferencesView, {}),
+            ("/resources/", ResourcesView, {}),
+            ("/profile/", ProfileView, {}),
             ("/history/", HistoryView, {}),
             ("/?q=page", SearchView, {}),
             ("/s/?q=page", SearchRedirectView, {}),
-            ("/word_stats/?q=page", WordStatsView, {}),
             ("/html/" + CRAWL_URL, HTMLView, {}),
             ("/www/" + CRAWL_URL, WWWView, {}),
             ("/www/http://unknown/", WWWView, {}),
@@ -104,6 +108,31 @@ class ViewsTest:
                 HTMLExcludedView,
                 {"crawl_policy": self.crawl_policy.id, "method": "url"},
             ),
+            ("/search_tags/", SearchTagsView, {}),
+            (f"/admin_tags/document/{self.doc.id}/", AdminTagsView, {"model": "document", "pk": self.doc.id}),
+            (
+                f"/admin_tags/crawlpolicy/{self.crawl_policy.id}/",
+                AdminTagsView,
+                {"model": "crawlpolicy", "pk": self.crawl_policy.id},
+            ),
+            (f"/archive_tags/{self.doc.id}/", ArchiveTagsView, {"pk": self.doc.id}),
+            (
+                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}&link=admin",
+                TagsListView,
+                {"model": "document", "pk": self.doc.id},
+            ),
+            (
+                f"/tags_list/document/{self.doc.id}/?tag={self.tag.id}&link=search",
+                TagsListView,
+                {"model": "document", "pk": self.doc.id},
+            ),
+            (
+                f"/tags_list/crawlpolicy/{self.crawl_policy.id}/?tag={self.tag.id}&link=admin",
+                TagsListView,
+                {"model": "crawlpolicy", "pk": self.crawl_policy.id},
+            ),
+            ("/online_check/" + CRAWL_URL, OnlineCheckView, {}),
+            ("/csv/?q=cookie", SearchView, {}),
         ):
             self._view_request(url, view_cls, params, self.admin_user, 200)
             self._view_request(url, view_cls, params, self.simple_user, 200)
@@ -143,7 +172,7 @@ class ViewsTest:
     def test_new_urls(self):
         from sosse.urls import urlpatterns
 
-        self.assertEqual(len(urlpatterns), 25)
+        self.assertEqual(len(urlpatterns), 30)
 
     def test_archive_redirect(self):
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)
@@ -177,7 +206,9 @@ class ViewsTest:
             ("/admin/se/excludedurl/", None),
             ("/admin/se/searchengine/", None),
             ("/admin/se/searchengine/?conflict=yes", None),
+            ("/admin/se/tag/", None),
             ("/admin/se/htmlasset/", None),
+            ("/admin/se/webhook/", None),
         ):
             response = self.admin_client.get(url)
             self.assertEqual(response.status_code, 200, f"{url} / {response}")

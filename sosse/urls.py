@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 """Sosse URL Configuration.
 
@@ -36,6 +36,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from se.about import AboutView
 from se.archive import ArchiveRedirectView
 from se.atom import AtomView
+from se.csv import CsvView
 from se.download import DownloadView
 from se.favicon import FavIconView
 from se.history import HistoryView
@@ -43,13 +44,15 @@ from se.html import HTMLExcludedView, HTMLView
 from se.login import SELoginView
 from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
-from se.preferences import PreferencesView
+from se.profile import ProfileView
+from se.resources import ResourcesView
 from se.rest_api import router
 from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView
+from se.tags import AdminTagsView, ArchiveTagsView, SearchTagsView
+from se.tags_list import TagsListView
 from se.words import WordsView
-from se.words_stats import WordStatsView
 from se.www import WWWView
 
 urlpatterns = [
@@ -57,10 +60,11 @@ urlpatterns = [
     path("", SearchView.as_view(), name="search"),
     path("about/", AboutView.as_view(), name="about"),
     path("s/", SearchRedirectView.as_view(), name="search_redirect"),
-    path("prefs/", PreferencesView.as_view()),
+    path("profile/", ProfileView.as_view(), name="profile"),
+    path("resources/", ResourcesView.as_view(), name="resources"),
     path("atom/", AtomView.as_view(), name="atom"),
+    path("csv/", CsvView.as_view(), name="csv"),
     path("online_check/", OnlineCheckView.as_view(), name="online_check"),
-    path("word_stats/", WordStatsView.as_view()),
     path("history/", HistoryView.as_view(), name="history"),
     path("login/", SELoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
@@ -77,6 +81,10 @@ urlpatterns = [
     re_path(r"^words/.*", WordsView.as_view(), name=WordsView.view_name),
     re_path(r"^archive/.*", ArchiveRedirectView.as_view(), name="archive"),
     re_path(r"^download/.*", DownloadView.as_view(), name=DownloadView.view_name),
+    path("search_tags/", SearchTagsView.as_view(), name="search_tags"),
+    re_path(r"^admin_tags/(?P<model>[a-z]+)/(?P<pk>[0-9]+)/", AdminTagsView.as_view(), name="admin_tags"),
+    re_path(r"^archive_tags/(?P<pk>[0-9]+)/", ArchiveTagsView.as_view(), name="archive_tags"),
+    re_path(r"^tags_list/(?P<model>[a-z]+)/(?P<pk>[0-9]+)/", TagsListView.as_view(), name="tags_list"),
     re_path(
         r"^html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$",
         HTMLExcludedView.as_view(),

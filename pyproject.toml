@@ -3,16 +3,23 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sosse"
+name = "Sosse"
 authors = [{ name = "Laurent Defert", email = "laurent_defert@yahoo.fr" }]
 readme = "README.md"
-description = "Selenium Open Source Search Engine"
+description = "Open-source, enterprise-grade web search & archiving."
 requires-python = ">=3.9"
-keywords = ["search engine", "crawler"]
-license = { text = "GNU Affero General Public License v3" }
+keywords = ["search engine", "crawler", "scraping"]
+license = "AGPL-3.0-only"
 classifiers = ["Framework :: Django", "Programming Language :: Python :: 3"]
-
 dynamic = ["version", "dependencies"]
+
+[project.urls]
+homepage = "https://sosse.io"
+source = "https://gitlab.com/biolds1/sosse"
+changelog = "https://gitlab.com/biolds1/sosse/-/blob/stable/CHANGELOG.md?ref_type=heads"
+documentation = "https://sosse.readthedocs.io/en/stable/introduction.html"
+issues = "https://github.com/biolds/sosse/issues"
+funding = "https://sosse.io/fr/contact/"
 
 [tool.setuptools]
 packages = [

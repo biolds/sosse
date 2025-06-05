@@ -4,7 +4,7 @@ Pip install
 Dependencies
 ------------
 
-Before installing SOSSE, you'll need to manually install the following softwares:
+Before installing Sosse, you'll need to manually install the following softwares:
 
 - a web server supporting `WSGI <https://wsgi.readthedocs.io/en/latest/learn.html>`_ (the steps below explains how to
   setup `Nginx <https://nginx.org/>`_)
@@ -35,7 +35,7 @@ The default configuration and directories can be created with the commands:
 .. code-block:: shell
 
    mkdir -p /run/sosse /var/log/sosse /var/www/.cache /var/www/.mozilla /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html
-   touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log
+   touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log /var/log/sosse/webhooks.log
    chown -R www-data:www-data /run/sosse /var/lib/sosse /var/www/.cache /var/www/.mozilla /var/log/sosse
    mkdir /etc/sosse
    /opt/sosse-venv/bin/sosse-admin default_conf > /etc/sosse/sosse.conf
@@ -125,6 +125,13 @@ Crawlers can now be started in the background with the command:
 .. code-block:: shell
 
    sudo -u www-data /opt/sosse-venv/bin/sosse-admin crawl &
+
+Configuration Updates
+---------------------
+
+The Sosse configuration can be updated in the file located at `/etc/sosse/sosse.conf`. For detailed explanations of the
+configuration options, refer to the :doc:`../config_file`. After modifying the configuration file, it is necessary to
+restart the Sosse daemons to apply the changes.
 
 Next steps
 ----------

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<div style="display: flex; flex-direction: column; width: 100%; min-height: 100%">
+  <div>
+    {% if not tags %}
+      No tags exist yet.
+      {% if change_permission %}
+        <div style="float: right">
+          {% include "se/components/tag_action.html" with text="✏️ Create" href=create_tag_href %}
+        </div>
+      {% endif %}
+    {% else %}
+      {% if change_permission %}
+        <div style="float: right; margin-left: 5px">
+          {% include "se/components/tag_action.html" with text="📝 Edit" href=view_tags_href %}
+        </div>
+        <div style="float: right">
+          {% include "se/components/tag_action.html" with text="✏️ Create" href=create_tag_href %}
+        </div>
+      {% endif %}
+        Selected:
+        <div id="editing_tags">
+          {% for tag in tags %}
+            {% include "se/components/tag.html" with suffix="-edit" on_delete=tag.js_add_tag_onclick classes="tag-select" bold=True %}
+          {% endfor %}
+          {% include "se/components/tag_action.html" with id="clear_selected_tags" text="⨉ Clear" onclick="clear_tags()" %}
+        </div>
+      <hr style="border: 0; height: 1px; background: var(--input-border-tl)">
+    {% endif %}
+  </div>
+
+  <div id="tags_list">
+    {% for tag in root_tags %}
+      {# one div per root tag to make the grid layout #}
+      <div>
+        {% for child in tag.descendants %}
+          <div> {# this div makes sure the tag takes the full width of the grid layout's panel #}
+            {% include "se/components/tag.html" with tag=child with_padding=True with_counters=True onclick=child.js_add_tag_onclick cursor_pointer=True %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <div style="flex-grow: 1"></div>
+
+  <div style="text-align: right">
+    <button style="padding-left; 20px" onclick="close_modal()">Cancel</button>
+    <button style="padding-left; 10px" id="tags_submit" onclick="{{ tags_edit_submit_onclick }}">{{ tags_edit_submit_text }}</button>
+  </div>
+</div>

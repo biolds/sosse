@@ -3,7 +3,8 @@
 
 {% block head %}
     <script type="text/javascript" src="{% static "se/index.js" %}"></script>
-    <link rel="search" type="application/opensearchdescription+xml" title="SOSSE" href="/opensearch.xml">
+    <link rel="search" type="application/opensearchdescription+xml" title="Sosse" href="/opensearch.xml">
+    <script src="{% static 'se/tags.js' %}"></script>
 {% endblock %}
 
 {% block css %}
@@ -27,8 +28,14 @@
         margin-bottom: 0px;
         display: inline;
     }
+    .res-title > a:visited {
+        color: #9e4efe;
+    }
     .res-url {
-        text-decoration: none;
+        color: #080;
+        font-size: 13px;
+    }
+    .res-url:visited {
         color: #080;
         font-size: 13px;
     }
@@ -36,12 +43,20 @@
         font-size: 10px;
         display: inline;
     }
-    .res-headline {
-        text-decoration: none;
-        color: #000;
+    .res-rank > a:visited {
+        color: #9e4efe;
+    }
+    a.res-headline {
+        color: var(--text);
+    }
+    a.res-headline:visited {
+        color: var(--text);
     }
     .res-highlight {
         background-color: #c6dcff;
+    }
+    .res .tag {
+      min-height: 15px;
     }
 
     #home-grid {
@@ -112,44 +127,10 @@
     #adv_search {
         padding-top: 20px;
     }
-    #stats_menu {
-        right: 8px;
-        width: 160px;
-        top: 88px;
-    }
     #atom_menu {
         right: 8px;
         width: 160px;
-        top: 128px;
-    }
-    #word_stats {
-        float: right;
-        text-align: left;
-        overflow-y: scroll;
-        height: 300px;
-        width: 250px;
-    }
-    #word_stats_list {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-    }
-    .word_stats_txt {
-        width: 90%;
-        margin-right: -8px;
-        padding: 2px 0px 2px 8px;
-        display: inline;
-    }
-    .links:hover .word_stats_txt {
-        background-color: #e7f0ff;
-    }
-    .word_stats_count {
-        width: 10%;
-        text-align: right;
-        display: inline;
-    }
-    .links:hover .word_stats_count {
-        background-color: #e7f0ff;
+        top: 88px;
     }
     .dyn_button {
         width: 38px;
@@ -169,9 +150,6 @@
         width: 40px;
         height: 40px;
     }
-    #stats_button {
-        background-image: url('{% static "se/icon-stats.svg" %}');
-    }
     #atom_button {
         background-image: url('{% static "se/icon-atom.svg" %}');
     }
@@ -182,6 +160,37 @@
     input[name="fv"] {
         min-width: 350px;
     }
+    #previous_search {
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px;
+      padding-left: 29%;
+      width: 30%;
+    }
+    .quick-history-link {
+      color: var(--text);
+      display: inline-block;
+      margin-right: 10px;
+      overflow: hidden;
+      text-align: left;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 143%;
+    }
+{% endblock %}
+
+{% block js %}
+  {{ block.super }}
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log('sosseArchiveLinks', localStorage.getItem('sosseArchiveLinks'));
+    if (localStorage.getItem('sosseArchiveLinks') === 'true') {
+      const links = document.querySelectorAll("#home-grid a");
+      links.forEach(link => {
+        link.href = `/archive/${link.href}`;
+      });
+    }
+  });
 {% endblock %}
 
 {% block top_bar %}
@@ -193,6 +202,23 @@
 
             {{ form.q }}<!--
             --><input id="search_button" class="img_button" type="submit" value=" " onclick="return on_submit()">
+            {% if search_history %}
+              <div id="previous_search">
+                <span title="Last searches" style="position: absolute; margin-left: -20px">
+                  <a href="{% url 'history' %}">
+                    🕑
+                  </a>
+                </span>
+                {% for e in search_history %}
+                  <a class="quick-history-link" href="{{ e.search_url }}">
+                    {% for tag in e.tags %}
+                      {% include "se/components/tag.html" with suffix="-history" %}
+                    {% endfor %}
+                    {{ e.query }}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
             <div id="more_div">
                 <a id="more" href="#" onclick="search_more()">⮟ params</a>
             </div>
@@ -242,11 +268,24 @@
 {% endblock %}
 
 {% block body %}
+    {% include "se/components/modal.html" with id="tags" title="⭐ Filtering" %}
+    <div id="search_tags" style="display: flow-root">
+        {% if tags %}
+            Filters:
+            {% for tag in tags %}
+                {% include "se/components/tag.html" with suffix="-search" bold=True %}
+            {% endfor %}
+            {% include "se/components/tag_action.html" with id="clear_tags" text="⨉ Clear" href=clear_tags_href padding=True %}
+        {% endif %}
+        <div style="float: right">
+            {% include "se/components/tag_action.html" with id="edit_search_tags" onclick="show_tags()" %}
+        </div>
+    </div>
     {% if has_query %}
         {% if results_count == '0' %}
             <div>
                 <div style="display: inline; font-size: 24px;">{{ animal }}</div>
-                No result {{ animal }}
+                No results found.
             </div>
         {% else %}
             <div>
@@ -254,27 +293,14 @@
                 {{ results_count }} site{{ results|pluralize:"s" }} found
             </div>
         {% endif %}
-        <div class="menu" id="stats_menu">
-            <button id="stats_button" title="Words statistics" class="menu_button img_button" onclick="return show_word_stats()">
-            </button>
-            <div id="word_stats" class="panel">
-                <ul id="word_stats_list" class="ul_stripe">
-                    <li>
-                        <div>
-                            Document's word statistics
-                        </div>
-                    </li>
-                </ul>
-                <div id="please_wait">
-                    Please wait.
-                </div>
-            </div>
-        </div>
         <div class="menu" id="atom_menu">
             <button id="atom_button" title="Atom feeds" class="menu_button img_button"></button>
             <div id="atom_menu_panel" class="panel">
                 <a href="/atom/?{{ request.META.QUERY_STRING }}" class="links menu_links">Atom results feed</a>
                 <a href="/atom/?{{ request.META.QUERY_STRING }}&archive=1" class="links menu_links">Atom archive feed</a>
+                {% if settings.SOSSE_CSV_EXPORT %}
+                    <a href="{% url "csv" %}?{{ request.META.QUERY_STRING }}" class="links menu_links">CSV export</a>
+                {% endif %}
             </div>
         </div>
         {% for r in paginated %}
@@ -288,13 +314,23 @@
                     {% if r.favicon and not r.favicon.missing %}
                         <img class="res-img" src="{% url 'favicon' r.favicon.id %}" alt="icon">
                     {% endif %}
-                    <a href="{{ r.link }}" {{ r.link_flag }}>
-                        <h3 class="res-title">{{ r.title }}</h3>
-                    </a>
+                    <h3 class="res-title">
+                      <a href="{{ r.link }}" {{ r.link_flag }}>
+                        {{ r.title }}
+                      </a>
+                    </h3>
                 </div>
+
                 <a href="{{ r.link }}" class="res-url" {{ r.link_flag }}>
                     {{ r.url }}
                 </a>
+                {% if r.ordered_tags %}
+                    <div class="res-rank">
+                        {% for tag in r.ordered_tags %}
+                            {% include "se/components/tag.html" with cursor_pointer=True %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="res-rank"> · {{ r.rank|floatformat:"1" }}</div>
                 <div class="res-rank"> · {{ r.lang_flag }}</div>
                 <div class="res-rank"> · <a href="{{ r.extra_link }}" {{ r.extra_link_flag }}>{{ extra_link_txt }}</a></div>

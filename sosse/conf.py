@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import hashlib
@@ -23,6 +23,7 @@ from typing import Any, Type, TypeAlias
 from django.core.management.utils import get_random_secret_key
 
 CONF_FILE = "/etc/sosse/sosse.conf"
+DEFAULT_USER_AGENT = "Sosse"
 
 ConfOptionValue: TypeAlias = bool | int | float | str | None
 
@@ -83,7 +84,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default="!",
         ),
         "default_search_redirect": ConfOption(
-            comment='Default search engine to use.\nLeave empty to use SOSSE by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
+            comment='Default search engine to use.\nLeave empty to use Sosse by default, use the search engine "Short name" otherwise\n\n.. warning::\n   This field is case sensitive.',
             default="",
         ),
         "online_search_redirect": ConfOption(
@@ -104,7 +105,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default="10",
         ),
         "sosse_shortcut": ConfOption(
-            comment="In case the default_shortcut is not empty this defines which shortcut searches SOSSE.",
+            comment="In case the default_shortcut is not empty this defines which shortcut searches Sosse.",
             default="",
         ),
         "allowed_host": ConfOption(
@@ -187,6 +188,16 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=True,
             type=bool,
         ),
+        "csv_export": ConfOption(
+            comment="Enable CSV export.",
+            default=True,
+            type=bool,
+        ),
+        "csv_export_size": ConfOption(
+            comment="Number of results returned by CSV export.",
+            default=200,
+            type=int,
+        ),
         "exclude_not_indexed": ConfOption(
             comment="Exclude page queued for indexing but not yet indexed from search results.",
             default=True,
@@ -231,17 +242,22 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=False,
             type=bool,
         ),
+        "home_search_history_size": ConfOption(
+            comment="Number of recent searches displayed on the homepage.",
+            default=3,
+            type=int,
+        ),
     },
     "crawler": {
         "crawler_count": ConfOption(
-            comment="Number of crawlers running concurrently (defaults to the number of CPU available).",
+            comment="Number of crawlers running concurrently (defaults to the number of CPU available divided by 2).",
             default="",
         ),
         "proxy": ConfOption(
             comment="Url of the HTTP proxy server to use.\nExample: http://192.168.0.1:8080/",
             default="",
         ),
-        "user_agent": ConfOption(comment="User agent sent by crawlers.", default="SOSSE"),
+        "user_agent": ConfOption(comment="User agent sent by crawlers.", default=DEFAULT_USER_AGENT),
         "fake_user_agent_browser": ConfOption(
             comment="""Use a preset UA using the `fake-useragent <https://github.com/fake-useragent/fake-useragent>`_ library.
 The UA will be selected among the provided browser, specified as a comma-separated list of values among: `chrome`, `edge`, `firefox`, `safari`.
@@ -389,6 +405,12 @@ LOGGING = {
             "filename": "/var/log/sosse/webserver.log",
             "formatter": "timestamp",
         },
+        "webhooks_file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "/var/log/sosse/webhooks.log",
+            "formatter": "timestamp",
+        },
     },
     "root": {
         "handlers": ["console"],
@@ -415,6 +437,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "webhooks": {
+            "handlers": ["webhooks_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
 
@@ -427,7 +454,7 @@ class Conf:
         # Read the real conf
         conf = ConfigParser()
         try:
-            conf.read_file(open(CONF_FILE), CONF_FILE)
+            conf.read_file(open(CONF_FILE, encoding="utf-8"), CONF_FILE)
         except FileNotFoundError:
             if "default_conf" not in sys.argv:
                 sys.stderr.write(f"WARNING: Configuration file {CONF_FILE} is missing\n")

@@ -1,21 +1,22 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 import os
 import re
+import signal
 import urllib.parse
 from base64 import b64decode, b64encode
 from datetime import timedelta
@@ -26,6 +27,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.http import QueryDict
+from django.urls import reverse
 from django.utils.timezone import now
 
 from .browser_request import BrowserRequest
@@ -64,6 +66,17 @@ class Link(models.Model):
 
     class Meta:
         unique_together = ("doc_from", "link_no")
+
+    def __str__(self):
+        if self.doc_from:
+            src_url = self.doc_from.url
+        else:
+            src_url = "<deleted>"
+        if self.doc_to:
+            dst_url = self.doc_to.url
+        else:
+            dst_url = self.extern_url
+        return f"{src_url} → {dst_url} ({self.link_no})"
 
     def pos_left(self):
         if not self.screen_pos:
@@ -120,8 +133,25 @@ class WorkerStats(models.Model):
     pid = models.PositiveIntegerField()
     state = models.CharField(max_length=8, choices=STATE, default="idle")
 
+    @staticmethod
+    def wake_up():
+        if getattr(settings, "TEST_MODE", False):
+            return
+        worker_pids = WorkerStats.objects.values_list("pid", flat=True)
+        for worker_pid in worker_pids:
+            try:
+                os.kill(worker_pid, signal.SIGUSR1)
+            except Exception as e:
+                crawl_logger.error(f"Error waking up worker {worker_pid}: {e}")
+
+            if not worker_pids:
+                crawl_logger.error("No worker running")
+
     @classmethod
-    def get_worker(cls, worker_no):
+    def get_worker(
+        cls,
+        worker_no,
+    ):
         return cls.objects.update_or_create(worker_no=worker_no, defaults={"pid": os.getpid()})[0]
 
     def update_state(self, state):
@@ -150,7 +180,7 @@ class WorkerStats(models.Model):
                 w.state = "exited"
 
             if w.state != "exited":
-                w.doc = Document.objects.filter(worker_no=w.worker_no).first()
+                w.doc = Document.objects.wo_content().filter(worker_no=w.worker_no).first()
         return workers
 
 
@@ -163,6 +193,7 @@ class CrawlerStats(models.Model):
 
     @staticmethod
     def create(t):
+        crawl_logger.debug("Creating crawler stats")
         CrawlerStats.objects.filter(t__lt=t - timedelta(hours=24), freq=MINUTELY).delete()
         CrawlerStats.objects.filter(t__lt=t - timedelta(days=365), freq=DAILY).delete()
 
@@ -171,8 +202,8 @@ class CrawlerStats(models.Model):
 
         doc_count = Document.objects.count()
         queued_url = (
-            Document.objects.filter(crawl_last__isnull=True).count()
-            + Document.objects.filter(crawl_next__lte=now()).count()
+            Document.objects.wo_content().filter(crawl_last__isnull=True).count()
+            + Document.objects.wo_content().filter(crawl_next__lte=now()).count()
         )
 
         today = now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -208,6 +239,12 @@ class SearchEngine(models.Model):
     description = models.CharField(max_length=1024, blank=True, default="")
     html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
+    builtin = models.BooleanField(default=False, verbose_name="Built-in")
+    enabled = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Search Engine"
+        verbose_name_plural = "Search Engines"
 
     def __str__(self):
         return self.short_name
@@ -247,7 +284,7 @@ class SearchEngine(models.Model):
 
     @classmethod
     def parse_xml_file(cls, f):
-        with open(f) as fd:
+        with open(f, encoding="utf-8") as fd:
             buf = fd.read()
 
         cls.parse_odf(buf)
@@ -315,7 +352,7 @@ class SearchEngine(models.Model):
             if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and se_str == settings.SOSSE_SOSSE_SHORTCUT:
                 return
 
-            se = SearchEngine.objects.filter(shortcut=se_str).first()
+            se = SearchEngine.objects.filter(enabled=True, shortcut=se_str).first()
             if se is None:
                 continue
 
@@ -325,11 +362,13 @@ class SearchEngine(models.Model):
             break
         else:
             if settings.SOSSE_ONLINE_SEARCH_REDIRECT and request and online_status(request) == "online":
-                se = SearchEngine.objects.filter(short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
+                se = SearchEngine.objects.filter(enabled=True, short_name=settings.SOSSE_ONLINE_SEARCH_REDIRECT).first()
 
             # Follow the default redirect if a query was provided
             if settings.SOSSE_DEFAULT_SEARCH_REDIRECT and query.strip():
-                se = SearchEngine.objects.filter(short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT).first()
+                se = SearchEngine.objects.filter(
+                    enabled=True, short_name=settings.SOSSE_DEFAULT_SEARCH_REDIRECT
+                ).first()
 
         if se:
             return se.get_search_url(query)
@@ -406,16 +445,23 @@ class SearchHistory(models.Model):
     querystring = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tags = models.JSONField(blank=True, null=True)
 
     @classmethod
     def save_history(cls, request, q):
         from .search import FILTER_RE
 
+        tags = None
         params = {}
 
         queryparams = ""
-        for key, val in request.GET.items():
-            if not re.match(FILTER_RE, key) and key not in ("l", "doc_lang", "s", "q"):
+        for key, val in sorted(request.GET.items(), key=lambda x: x[0]):
+            if key == "tag":
+                tags = request.GET.getlist("tag")
+                tags = [int(tag) for tag in tags]
+                continue
+
+            if not re.match(FILTER_RE, key) and key not in ("doc_lang", "s", "q"):
                 continue
             params[key] = val
 
@@ -426,11 +472,12 @@ class SearchHistory(models.Model):
                 queryparams += " "
             queryparams += val
 
+        if tags:
+            tags = sorted(tags)
+
         if q:
             if queryparams:
                 q = f"{q} ({queryparams})"
-        else:
-            q = queryparams
 
         qd = QueryDict(mutable=True)
         qd.update(params)
@@ -438,13 +485,25 @@ class SearchHistory(models.Model):
 
         if not request.user.is_anonymous:
             last = SearchHistory.objects.filter(user=request.user).order_by("date").last()
-            if last and last.querystring == qs:
+            if last and last.querystring == qs and last.tags == tags:
                 return
 
-            if not q and not qs:
+            if not q and not queryparams and not tags:
                 return
 
-            SearchHistory.objects.create(querystring=qs, query=q, user=request.user)
+            if not q:
+                q = queryparams
+
+            SearchHistory.objects.create(querystring=qs, query=q, user=request.user, tags=tags)
+
+    def search_url(self):
+        url = reverse("search_redirect") + f"?{self.querystring}"
+
+        if self.tags:
+            url += "&"
+            url += "&".join([f"tag={tag.pk}" for tag in self.tags])
+
+        return url
 
 
 class ExcludedUrl(models.Model):
@@ -454,3 +513,4 @@ class ExcludedUrl(models.Model):
 
     class Meta:
         verbose_name = "Excluded URL"
+        verbose_name_plural = "Excluded URLs"

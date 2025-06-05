@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 from functools import partialmethod
@@ -55,7 +55,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -67,7 +67,7 @@ class FunctionalTest(BaseFunctionalTest):
 
         self.assertEqual(Document.objects.count(), 1)
 
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
         self.assertEqual(doc.normalized_url, "127.0.0.1:8000")
         self.assertEqual(doc.title, TEST_SERVER_URL)
@@ -93,12 +93,16 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIsNone(doc.crawl_dt)
         self.assertEqual(doc.crawl_recurse, 0)
         self.assertEqual(doc.modified_date, doc.crawl_last)
+        self.assertFalse(doc.manual_crawl)
         self.assertEqual(doc.error, "")
         self.assertEqual(doc.error_hash, "")
         self.assertIsNone(doc.worker_no)
         self.assertFalse(doc.has_html_snapshot)
         self.assertFalse(doc.has_thumbnail)
-        self.assertEqual(len(Document._meta.get_fields()), 34)
+        self.assertEqual(doc.webhooks_result, {})
+        self.assertEqual(doc.tags.count(), 0)
+        self.assertEqual(doc.metadata, {})
+        self.assertEqual(len(Document._meta.get_fields()), 38)
 
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
@@ -158,7 +162,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex_pg=".*",
             mimetype_regex=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             take_screenshots=False,
@@ -197,7 +201,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -206,7 +210,7 @@ class FunctionalTest(BaseFunctionalTest):
         policy = CrawlPolicy.objects.create(
             url_regex=f"^{TEST_SERVER_URL}.*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             take_screenshots=False,
@@ -221,7 +225,7 @@ class FunctionalTest(BaseFunctionalTest):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "admin/")
         self.assertEqual(doc.normalized_url, "127.0.0.1:8000 admin")
         self.assertEqual(doc.title, "Site administration | Django site admin")
@@ -246,12 +250,16 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIsNone(doc.crawl_dt)
         self.assertEqual(doc.crawl_recurse, 0)
         self.assertEqual(doc.modified_date, doc.crawl_last)
+        self.assertFalse(doc.manual_crawl)
         self.assertEqual(doc.error, "")
         self.assertEqual(doc.error_hash, "")
         self.assertIsNone(doc.worker_no)
         self.assertFalse(doc.has_html_snapshot)
         self.assertFalse(doc.has_thumbnail)
-        self.assertEqual(len(Document._meta.get_fields()), 34)
+        self.assertEqual(doc.webhooks_result, {})
+        self.assertEqual(doc.tags.count(), 0)
+        self.assertEqual(doc.metadata, {})
+        self.assertEqual(len(Document._meta.get_fields()), 38)
 
         self.assertEqual(Cookie.objects.count(), 2)
         cookies = Cookie.objects.order_by("name").values()
@@ -293,7 +301,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -313,9 +321,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "nav")
+        self.assertEqual(Document.objects.w_content().get().content, "nav")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 2)
+            self.assertEqual(Document.objects.w_content().get().screenshot_count, 2)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -325,7 +333,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
             take_screenshots=self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS,
@@ -341,9 +349,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "")
+        self.assertEqual(Document.objects.w_content().get().content, "")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 2)
+            self.assertEqual(Document.objects.wo_content().get().screenshot_count, 2)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -353,7 +361,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -369,9 +377,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "")
+        self.assertEqual(Document.objects.w_content().get().content, "")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 1)
+            self.assertEqual(Document.objects.wo_content().get().screenshot_count, 1)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -381,7 +389,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -397,9 +405,9 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        self.assertEqual(Document.objects.get().content, "")
+        self.assertEqual(Document.objects.w_content().get().content, "")
         if self.BROWSE_MODE != DomainSetting.BROWSE_REQUESTS:
-            self.assertEqual(Document.objects.get().screenshot_count, 1)
+            self.assertEqual(Document.objects.wo_content().get().screenshot_count, 1)
 
         self.assertEqual(len(html_open.mock_calls), 4)
         self.assertNotIn(b"</nav>", html_open.mock_calls[2].args[0])
@@ -420,7 +428,7 @@ class FunctionalTest(BaseFunctionalTest):
             url_regex_pg=".*",
             mimetype_regex=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -434,7 +442,7 @@ class FunctionalTest(BaseFunctionalTest):
             self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "")
         self.assertEqual(doc.mimetype, mimetype)
 
@@ -469,7 +477,7 @@ class BrowserBasedFunctionalTest:
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -508,6 +516,51 @@ class BrowserBasedFunctionalTest:
         page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}")
         self.assertEqual(len(page.content), FILE_SIZE, page.content)
 
+    def test_150_script_updating_doc(self):
+        crawl_policy = CrawlPolicy.create_default()
+        crawl_policy.default_browse_mode = self.BROWSE_MODE
+        crawl_policy.script = """
+            return {
+                title: "JS test title",
+                content: "JS test content"
+            }
+        """
+        crawl_policy.save()
+
+        Document.queue(TEST_SERVER_URL, None, None)
+        self._crawl()
+
+        self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.wo_content().first()
+        self.assertEqual(doc.url, TEST_SERVER_URL)
+        self.assertEqual(doc.error, "")
+        self.assertEqual(doc.title, "JS test title")
+        self.assertEqual(doc.content, "JS test content")
+
+    def test_160_script_updating_doc_invalid(self):
+        crawl_policy = CrawlPolicy.create_default()
+        crawl_policy.default_browse_mode = self.BROWSE_MODE
+        crawl_policy.script = """
+            return {
+                title: [],
+            }
+        """
+        crawl_policy.save()
+
+        Document.queue(TEST_SERVER_URL, None, None)
+        with self.assertRaises(SkipIndexing) as e:
+            self._crawl()
+
+        self.assertEqual(
+            e.exception.args[0],
+            """Javascript result validation error:
+{'title': [ErrorDetail(string='Not a valid string.', code='invalid')]}
+Input data was:
+{'title': []}
+---""",
+        )
+
 
 class RequestsFunctionalTest(FunctionalTest, CleanTest, TransactionTestCase):
     BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
@@ -530,7 +583,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=DomainSetting.BROWSE_DETECT,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -541,7 +594,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "static/pages/browser_detect_js.html")
         self.assertIn("has JS", doc.content)
 
@@ -555,7 +608,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_mode=CrawlPolicy.RECRAWL_NONE,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
             default_browse_mode=DomainSetting.BROWSE_DETECT,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
@@ -566,7 +619,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.first()
+        doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "static/pages/browser_detect_no_js.html")
         self.assertIn("has no JS", doc.content)
 

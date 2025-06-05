@@ -1,0 +1,27 @@
+{% extends "!page.html" %}
+
+{%- block footer -%}
+<div style="padding-bottom: 24px">
+  <span>
+    🔍
+    <a href="{{ discussion_url }}?discussions_q={{ title_quoted|safe }}" target="_blank">
+       Search discussions
+    </a>
+  </span>
+
+  <span style="padding-left: 10px">
+    💬
+    <a href="{{ discussion_url }}/new?category=q-a&title=Question%20about%20the%20%22{{ title_quoted|safe }}%22%20doc%20page" target="_blank">
+       Discuss this page
+    </a>
+  </span>
+
+  <span style="padding-left: 10px">
+    🧑‍💼
+    <a href="https://sosse.io/#services" target="_blank">
+       Get professional support
+    </a>
+  </span>
+</div>
+  {{ super() }}
+{%- endblock -%}

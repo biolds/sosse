@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 from django.contrib.auth.models import User
@@ -22,11 +22,12 @@ from .document import Document
 from .models import Link, SearchEngine
 from .search import add_headlines, get_documents_from_request
 from .search_form import SearchForm
+from .tag import Tag
 
 
 class SearchTest(TransactionTestCase):
     def setUp(self):
-        self.root = Document.objects.create(
+        self.root = Document.objects.wo_content().create(
             url="http://127.0.0.1/",
             normalized_url="http://127.0.0.1/",
             content="Hello world one two three",
@@ -35,7 +36,7 @@ class SearchTest(TransactionTestCase):
             normalized_title="Root",
             crawl_last=timezone.now(),
         )
-        self.page = Document.objects.create(
+        self.page = Document.objects.wo_content().create(
             url="http://127.0.0.1/page1",
             normalized_url="http://127.0.0.1/page1",
             content="Page1, World Télé one three",
@@ -54,6 +55,31 @@ class SearchTest(TransactionTestCase):
             extern_url="http://perdu.com",
         )
 
+        self.tag1 = Tag.objects.create(name="tag1")
+        self.tag2 = Tag.objects.create(name="tag2")
+        self.tag3 = Tag.objects.create(name="tag3")
+        self.tagged_page = Document.objects.wo_content().create(
+            url="http://127.0.0.1/tagged",
+            normalized_url="http://127.0.0.1/tagged",
+            content="Tagged, tag one two",
+            normalized_content="Tagged, tag one two",
+            title="Tagged",
+            normalized_title="Tagged",
+            crawl_last=timezone.now(),
+        )
+        self.tagged_page.tags.set([self.tag1, self.tag2])
+
+        self.tagged_page2 = Document.objects.wo_content().create(
+            url="http://127.0.0.1/tagged2",
+            normalized_url="http://127.0.0.1/tagged2",
+            content="Tagged2, tag one three",
+            normalized_content="Tagged2, tag one three",
+            title="Tagged2",
+            normalized_title="Tagged2",
+            crawl_last=timezone.now(),
+        )
+        self.tagged_page2.tags.set([self.tag1])
+
         self.admin = User.objects.create(username="admin", is_superuser=True, is_staff=True)
         self.admin.set_password("admin")
         self.admin.save()
@@ -70,7 +96,7 @@ class SearchTest(TransactionTestCase):
         request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": params, "wsgi.input": ""})
         request.user = user or self.admin
         form = SearchForm(request.GET)
-        self.assertTrue(form.is_valid())
+        self.assertTrue(form.is_valid(), form.errors)
         return get_documents_from_request(request, form)[1]
 
     def test_001_q_search(self):
@@ -144,7 +170,7 @@ class SearchTest(TransactionTestCase):
 
     def test_015_exclude(self):
         docs = self._search_docs("ft1=exc&ff1=doc&fo1=contain&fv1=Hello")
-        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs.count(), 3, docs.values_list("url", flat=True))
         self.assertEqual(docs[0], self.page)
 
     def test_016_web_match(self):
@@ -153,7 +179,7 @@ class SearchTest(TransactionTestCase):
 
     def test_017_web_not_match(self):
         docs = self._search_docs("q=-hello")
-        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs.count(), 3)
         self.assertEqual(docs[0], self.page)
 
     def test_018_web_and(self):
@@ -171,7 +197,7 @@ class SearchTest(TransactionTestCase):
 
     def test_020_web_exact(self):
         docs = self._search_docs('q="one three"')
-        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs.count(), 2)
         self.assertEqual(docs[0], self.page)
 
     def test_021_headline(self):
@@ -207,10 +233,82 @@ class SearchTest(TransactionTestCase):
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
 
+    def test_050_search_tag(self):
+        docs = self._search_docs(f"tag={self.tag1.id}")
+        self.assertEqual(docs.count(), 2)
+        self.assertEqual(list(docs), [self.tagged_page, self.tagged_page2])
+
+        docs = self._search_docs(f"tag={self.tag2.id}")
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.tagged_page)
+
+        docs = self._search_docs(f"tag={self.tag1.id}&tag={self.tag2.id}")
+        self.assertEqual(docs.count(), 1, docs.values_list("url", flat=True))
+        self.assertEqual(docs[0], self.tagged_page)
+
+        docs = self._search_docs(f"tag={self.tag3.id}")
+        self.assertEqual(docs.count(), 0)
+
+        docs = self._search_docs(f"tag={self.tag1.id}&tag={self.tag3.id}")
+        self.assertEqual(docs.count(), 0)
+
+    def test_060_search_tag_includes_children(self):
+        subtag = Tag.objects.create(name="subtag", parent=self.tag1)
+        self.page.tags.add(subtag)
+
+        docs = self._search_docs(f"tag={self.tag1.id}")
+        self.assertEqual(docs.count(), 3, docs)
+        self.assertEqual(
+            sorted(docs, key=lambda x: x.id),
+            sorted([self.tagged_page, self.tagged_page2, self.page], key=lambda x: x.id),
+        )
+
+        docs = self._search_docs(f"tag={subtag.id}")
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
+    def test_070_search_tag_param(self):
+        docs = self._search_docs(f"ft1=inc&ff1=tag&fo1=contain&fv1={self.tag1.name}")
+        self.assertEqual(docs.count(), 2, docs.values_list("url", flat=True))
+        self.assertEqual(list(docs), [self.tagged_page, self.tagged_page2])
+
+        docs = self._search_docs(f"ft1=inc&ff1=tag&fo1=contain&fv1={self.tag2.name}")
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.tagged_page)
+
+        docs = self._search_docs(
+            f"ft1=inc&ff1=tag&fo1=contain&fv1={self.tag1.name}&ft2=inc&ff2=tag&fo2=contain&fv2={self.tag2.name}"
+        )
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.tagged_page)
+
+        docs = self._search_docs(f"ft1=inc&ff1=tag&fo1=contain&fv1={self.tag3.name}")
+        self.assertEqual(docs.count(), 0)
+
+        docs = self._search_docs(
+            f"ft1=inc&ff1=tag&fo1=contain&fv1={self.tag1.name}&ft2=inc&ff2=tag&fo2=contain&fv2={self.tag3.name}"
+        )
+        self.assertEqual(docs.count(), 0)
+
+    def test_080_search_tag_includes_children(self):
+        subtag = Tag.objects.create(name="subtag", parent=self.tag1)
+        self.page.tags.add(subtag)
+
+        docs = self._search_docs(f"ft1=inc&ff1=tag&fo1=contain&fv1={self.tag1.name}")
+        self.assertEqual(docs.count(), 3)
+        self.assertEqual(
+            sorted(docs, key=lambda x: x.id),
+            sorted([self.tagged_page, self.tagged_page2, self.page], key=lambda x: x.id),
+        )
+
+        docs = self._search_docs(f"ft1=inc&ff1=tag&fo1=contain&fv1={subtag.name}")
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], self.page)
+
 
 class ShortcutTest(TransactionTestCase):
     def setUp(self):
-        SearchEngine.objects.create(
+        self.se = SearchEngine.objects.create(
             short_name="fake",
             shortcut="f",
             html_template=self._search_url("{searchTerms}"),
@@ -261,3 +359,14 @@ class ShortcutTest(TransactionTestCase):
             self._search_url("test", "test2.com"),
         )
         self.assertEqual(SearchEngine.should_redirect("!s test"), None)
+
+    def test_50_shortcut_disable(self):
+        self.se.enabled = False
+        self.se.save()
+        SearchEngine.objects.create(
+            short_name="fake enabled",
+            shortcut="f",
+            html_template=self._search_url("{searchTerms}", "test-enabled.com"),
+        )
+
+        self.assertEqual(SearchEngine.should_redirect("!f test"), self._search_url("test", "test-enabled.com"))

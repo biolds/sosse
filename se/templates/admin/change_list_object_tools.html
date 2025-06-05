@@ -8,7 +8,7 @@
       {% blocktranslate with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktranslate %}
     </a>
   </li>
-    {% if cl.opts.verbose_name == 'cookie' %}
+      {% if cl.opts.verbose_name == 'cookie' %}
     <li>
       <a href="{% url 'admin:cookies_import' %}" class="addlink">
         Import cookies

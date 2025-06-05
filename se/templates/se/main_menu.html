@@ -22,18 +22,13 @@
     </div>
     <button class="menu_button img_button" id="user_menu_button" title="User"></button>
     <div id="user_menu_panel" class="panel">
-        <a href="/prefs/" class="links menu_links">Preferences</a>
+        <a href="{% url "profile" %}" class="links menu_links">Profile</a>
+        <a href="{% url "resources" %}" class="links menu_links">Resources</a>
         {% if user.is_active %}
-            <a href="{% url 'history' %}" class="links menu_links">History</a>
-            <a href="{% url 'admin:password_change' %}" class="links menu_links">Change pass</a>
             <a href="{% url 'logout' %}" class="links menu_links">Log out</a>
         {% else %}
             <a href="{% url 'login' %}" class="links menu_links">Log in</a>
         {% endif %}
-        <a href="/swagger/" class="links menu_links">Rest API</a>
-        <a href="https://sosse.readthedocs.io/en/v{{ settings.SOSSE_VERSION_TAG }}/introduction.html" class="links menu_links">Documentation</a>
-        <a href="https://discord.gg/Vt9cMf7BGK" class="links menu_links">Discord</a>
-        <a href="{% url 'about' %}" class="links menu_links">About</a>
     </div>
 </div>
 {% if user.is_active and user.is_staff %}

@@ -9,7 +9,7 @@
     {% else %}
         <link rel="icon" href="{% static "se/logo.svg" %}" />
     {% endif %}
-    <title>SOSSE</title>
+    <title>Sosse</title>
     <noscript>
         <meta http-equiv="REFRESH" content="0;url=/?q={{ q|safe }}">
     </noscript>
@@ -32,6 +32,7 @@
           currentParams.append('ps', pageSize);
         }
 
+        currentParams.delete('c');
         if (getArchiveLinks()) {
           currentParams.append('c', '1');
         }

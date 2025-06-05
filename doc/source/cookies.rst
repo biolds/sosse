@@ -1,7 +1,7 @@
-Cookies
-=======
+🍪 Cookies
+==========
 
-Cookies stored by the crawlers can be seen from the :doc:`../admin_ui`, by clicking on ``Cookies`` 🍪.
+Cookies stored by the crawlers can be seen from the :doc:`../admin_ui`, by clicking on ``Cookies``.
 
 .. image:: ../../tests/robotframework/screenshots/cookies_list.png
    :class: sosse-screenshot

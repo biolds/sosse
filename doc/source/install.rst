@@ -1,7 +1,7 @@
 Installation
 ============
 
-SOSSE can be installed in a few different ways 🦨:
+Sosse can be installed in a few different ways 🦨:
 
 .. toctree::
    :maxdepth: 2
@@ -13,3 +13,5 @@ SOSSE can be installed in a few different ways 🦨:
    install/pip_upgrades.rst
    install/docker.rst
    install/docker_upgrades.rst
+   install/docker_compose.rst
+   install/docker_compose_upgrades.rst

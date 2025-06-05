@@ -2,20 +2,21 @@
 {% load static %}
 
 {% if app_list %}
-  {% for app in app_list %}
-    <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}">
-      <table>
-        <caption>
-          <h4>
-            {% if app.app_label == 'se' %}
-              <img id="image-magnifier" src="{% static 'se/icon-search.svg' %}" style="width: 20px" />
-              {{ app.name }}
-            {% elif app.app_label == 'auth' %}
-              <img src="{% static 'se/icon-user.svg' %}" style="width: 20px" />
-              Authentication
-            {% endif %}
-           </h4>
-        </caption>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); grid-auto-rows: minmax(30px, auto)">
+    {% for app in app_list %}
+      <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}" style="max-width: 300px">
+        <table>
+          <caption>
+            <h4>
+              {% if app.app_label == 'se' %}
+                <img id="image-magnifier" src="{% static 'se/icon-search.svg' %}" style="width: 20px" />
+                {{ app.name }}
+              {% elif app.app_label == 'auth' %}
+                <img src="{% static 'se/icon-user.svg' %}" style="width: 20px" />
+                Authentication
+              {% endif %}
+            </h4>
+          </caption>
         {% if app.app_label == 'se' %}
           {% if 'se.add_document' in perms %}
             <tr>
@@ -43,36 +44,47 @@
         {% for model in app.models %}
           <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
             {% if model.admin_url %}
-              <th scope="row">{% if model.name == 'Crawl policies' %}⚡ {% endif %}<a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
+              <th scope="row">
+                {{ model.icon|default:"" }}
+              <a href="{{ model.admin_url }}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>{{ model.name }}</a></th>
             {% else %}
               <th scope="row">{{ model.name }}</th>
             {% endif %}
 
-            {% if model.add_url %}
-              <td>
-                <a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a>
-                {% if model.name == 'Cookies' %}
-                  <a href="{% url 'admin:cookies_import' %}" class="addlink">{% translate 'Import' %}</a>
-                {% endif %}
-              </td>
-            {% else %}
-              <td></td>
+              {% if model.add_url %}
+                <td>
+                  <a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a>
+                  {% if model.name == 'Cookies' %}
+                    <a href="{% url 'admin:cookies_import' %}" class="addlink">{% translate 'Import' %}</a>
+                  {% endif %}
+                </td>
+              {% else %}
+                <td></td>
+              {% endif %}
+            </tr>
+            {% if app.app_label == 'se' and model.name == 'Search Engines' %}
+              <tr>
+                <th scope="row">⚙️
+                  <a href="/swagger/">Rest API</a>
+                </th>
+              </tr>
             {% endif %}
-          </tr>
-          {% if app.app_label == 'se' and model.name == 'Crawl policies' %}
-          {# hack to insert a title #}
-          </table>
-          </div>
-          <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}">
-            <table>
-              <caption>
-                <h4><img src="{% static 'se/icon-cog.svg' %}" style="width: 20px; padding-right: 5px" />Advanced</h4>
-              </caption>
-          {% endif %}
-        {% endfor %}
-      </table>
-    </div>
-  {% endfor %}
+
+            {% if app.app_label == 'se' and model.name == 'Tags' %}
+            {# hack to insert a title #}
+            </table>
+            </div>
+            <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}" style="max-width: 300px">
+              <table>
+                <caption>
+                  <h4><img src="{% static 'se/icon-cog.svg' %}" style="width: 20px; padding-right: 5px" />Advanced</h4>
+                </caption>
+            {% endif %}
+          {% endfor %}
+        </table>
+      </div>
+    {% endfor %}
+  </div>
 {% else %}
   <p>{% translate 'You don’t have permission to view or edit anything.' %}</p>
 {% endif %}

@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta, timezone
@@ -18,12 +18,13 @@ from hashlib import md5
 from unittest import mock
 
 from django.test import TransactionTestCase, override_settings
+from feedparser import parse
 
 from .browser import AuthElemFailed, SkipIndexing
 from .crawl_policy import CrawlPolicy
 from .document import Document
 from .domain_setting import DomainSetting
-from .models import ExcludedUrl, Link
+from .models import ExcludedUrl, Link, WorkerStats
 from .page import Page
 from .test_mock import BrowserMock
 
@@ -64,6 +65,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.delete()
 
     def _crawl(self, url="http://127.0.0.1/"):
+        # Force create the worker
+        WorkerStats.get_worker(0)
+
         Document.queue(url, None, None)
         while Document.crawl(0):
             pass
@@ -83,7 +87,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(domain_setting.robots_status, DomainSetting.ROBOTS_EMPTY)
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_recurse, 0)
@@ -107,7 +111,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 2)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -162,7 +166,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 4)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -212,7 +216,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 1)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -231,7 +235,7 @@ class CrawlerTest(TransactionTestCase):
     def test_005_recrawl_none(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         now.side_effect = lambda: self.fake_now
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_NONE
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_NONE
         self.crawl_policy.recrawl_dt_min = None
         self.crawl_policy.recrawl_dt_max = None
         self.crawl_policy.save()
@@ -243,7 +247,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -255,7 +259,7 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_006_recrawl_constant(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_CONSTANT
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_CONSTANT
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = None
         self.crawl_policy.save()
@@ -264,7 +268,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -276,7 +280,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -288,7 +292,7 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_007_recrawl_adaptive(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_ADAPTIVE
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
         self.crawl_policy.save()
@@ -297,7 +301,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -309,7 +313,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -321,7 +325,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
@@ -348,7 +352,7 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 2)
-        doc1, doc2 = Document.objects.order_by("id")
+        doc1, doc2 = Document.objects.w_content().order_by("id")
         self.assertEqual(doc1.url, "http://127.0.0.1/")
         self.assertEqual(doc1.content, "base test")
         self.assertEqual(doc2.url, "http://127.0.0.1/base/test")
@@ -360,9 +364,9 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": Exception("Generic exception")})
 
         self._crawl()
-        doc = Document.objects.get()
-
         self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "")
         self.assertIn("Generic exception", doc.error)
@@ -374,9 +378,9 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": SkipIndexing("Skip test")})
 
         self._crawl()
-        doc = Document.objects.get()
-
         self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "")
         self.assertIn("Skip test", doc.error)
@@ -389,11 +393,11 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": AuthElemFailed(page, "xxx not found")})
 
         self._crawl()
-        doc = Document.objects.get()
-
         self.assertEqual(Document.objects.count(), 1)
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
-        self.assertEqual(doc.content, "test")
+        self.assertEqual(doc.content, "")
         self.assertIn("xxx not found", doc.error)
         self.assertNotIn("Traceback (most recent call last):", doc.error)
 
@@ -412,9 +416,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.save()
 
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "extern link")
 
@@ -431,10 +435,10 @@ class CrawlerTest(TransactionTestCase):
         self._crawl("http://127.0.0.1/extern.html")
 
         self.assertEqual(Document.objects.count(), 2)
-        doc1 = Document.objects.order_by("id").first()
+        doc1 = Document.objects.w_content().order_by("id").first()
         self.assertEqual(doc1.url, "http://127.0.0.1/")
         self.assertEqual(doc1.content, "extern link")
-        doc2 = Document.objects.order_by("id").last()
+        doc2 = Document.objects.w_content().order_by("id").last()
         self.assertEqual(doc2.url, "http://127.0.0.1/extern.html")
         self.assertEqual(doc2.content, "extern page")
 
@@ -458,7 +462,8 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock(self.MAILTO)
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "mail")
         self.assertEqual(Link.objects.count(), 0)
@@ -469,9 +474,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "mail")
 
@@ -487,9 +492,9 @@ class CrawlerTest(TransactionTestCase):
     def test_090_invalid_link(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock(self.INVALID_LINK)
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "link")
         self.assertEqual(Link.objects.count(), 0)
@@ -500,9 +505,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.store_extern_links = True
         self.crawl_policy.save()
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertEqual(doc.content, "link")
 
@@ -519,7 +524,6 @@ class CrawlerTest(TransactionTestCase):
         )
         ExcludedUrl.objects.create(url="http://127.0.0.1/page.html")
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
 
     @mock.patch("se.browser_request.BrowserRequest.get")
@@ -533,21 +537,21 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 2)
-        urls = Document.objects.values_list("url", flat=True).order_by("url")
+        urls = Document.objects.wo_content().values_list("url", flat=True).order_by("url")
         self.assertEqual(list(urls), ["http://127.0.0.1/", "http://127.0.0.1/page.html"])
 
     @mock.patch("se.browser_request.BrowserRequest.get")
     @mock.patch("se.document.now")
     def test_130_reschedule_no_change(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>aaa 42</body></html>"})
-        self.crawl_policy.recrawl_mode = CrawlPolicy.RECRAWL_ADAPTIVE
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_ADAPTIVE
         self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
         self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
         self.crawl_policy.save()
 
         now.side_effect = lambda: self.fake_now
         self._crawl()
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "aaa 42")
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
 
@@ -556,7 +560,7 @@ class CrawlerTest(TransactionTestCase):
         )
         now.side_effect = lambda: self.fake_next
         self._crawl()
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "aaa 24")
         self.assertEqual(doc.crawl_dt, timedelta(hours=2))
 
@@ -569,7 +573,7 @@ class CrawlerTest(TransactionTestCase):
 
         now.side_effect = lambda: self.fake_next2
         self._crawl()
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "bbb")
         self.assertEqual(doc.crawl_dt, timedelta(hours=1))
 
@@ -588,7 +592,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         self.assertEqual(Document.objects.count(), 2)
-        docs = Document.objects.order_by("id")
+        docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].content, "Root Nested")
         self.assertEqual(docs[0].crawl_recurse, 0)
@@ -611,9 +615,9 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy.save()
 
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertTrue(doc.hidden)
 
@@ -628,15 +632,15 @@ class CrawlerTest(TransactionTestCase):
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
         self.assertTrue(doc.hidden)
 
     def _test_modification_base(self):
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+
+        doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
 
         # Mark the document as modified in the past
@@ -654,7 +658,7 @@ class CrawlerTest(TransactionTestCase):
         self._test_modification_base()
 
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 1")
         self.assertEqual(doc.content_hash, md5(b"Hello world 1").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_yesterday)
@@ -670,10 +674,9 @@ class CrawlerTest(TransactionTestCase):
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
 
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 2")
         self.assertEqual(doc.content_hash, md5(b"Hello world 2").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_now)
@@ -689,10 +692,9 @@ class CrawlerTest(TransactionTestCase):
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
 
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 2")
         self.assertEqual(doc.content_hash, md5(b"Hello world 0").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_yesterday)
@@ -706,10 +708,138 @@ class CrawlerTest(TransactionTestCase):
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
         self._crawl()
-
         self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.get()
 
+        doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world change")
         self.assertEqual(doc.content_hash, md5(b"Hello world change").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_now)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_220_recrawl_cond_on_change__no_change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_230_recrawl_cond_on_change__change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 2)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_240_recrawl_cond_always(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_ALWAYS
+        self.crawl_policy.save()
+
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 2)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_250_recrawl_cond_manual__change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
+        self.crawl_policy.save()
+
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world change"})
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 2)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_260_recrawl_cond_manual__no_change(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
+        self.crawl_policy.save()
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        self._crawl()
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_270_recrawl_cond_manual__manual(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
+        self.crawl_policy.save()
+        self._test_modification_base()
+        self.assertEqual(Document.objects.count(), 1)
+        self.assertEqual(feedparser_parse.call_count, 1)
+
+        Document.objects.update(manual_crawl=True)
+        self._crawl()
+
+        self.assertEqual(feedparser_parse.call_count, 2)
+        self.assertFalse(Document.objects.wo_content().get().manual_crawl)
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("feedparser.parse", wraps=parse)
+    def test_280_recrawl_keeps_tags(self, feedparser_parse, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        self.crawl_policy.tags.create(name="tag1")
+
+        self.assertEqual(Document.objects.count(), 0)
+        self._crawl()
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.w_content().get()
+        self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1"])
+
+        doc.tags.create(name="tag2")
+        self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1", "tag2"])
+
+        self._crawl()
+        doc = Document.objects.w_content().get()
+        self.assertEqual(list(doc.tags.values_list("name", flat=True)), ["tag1", "tag2"])
+
+    @mock.patch("se.browser_request.BrowserRequest.get")
+    @mock.patch("se.document.now")
+    def test_290_recrawl_new_pages_first(self, now, BrowserRequest):
+        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
+        now.side_effect = lambda: self.fake_now
+
+        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_NONE
+        self.crawl_policy.save()
+
+        already_crawled = Document.objects.create(
+            url="http://127.0.0.1/page.html",
+            content="done",
+            crawl_last=self.fake_yesterday,
+            crawl_next=self.fake_yesterday,
+        )
+
+        WorkerStats.get_worker(0)
+        Document.queue("http://127.0.0.1/", None, None)
+        Document.crawl(0)
+
+        self.assertEqual(Document.objects.count(), 2)
+
+        doc = Document.objects.w_content().get(url="http://127.0.0.1/")
+        self.assertEqual(doc.crawl_last, self.fake_now)
+
+        already_crawled.refresh_from_db()
+        self.assertEqual(already_crawled.crawl_last, self.fake_yesterday)
+        self.assertEqual(already_crawled.crawl_next, self.fake_yesterday)

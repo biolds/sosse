@@ -1,9 +1,5 @@
 #!/usr/bin/bash
-su - postgres -c "psql -d sosse --command=\"DELETE FROM se_crawlpolicy;\""
-su - postgres -c "psql -d sosse --command=\"DELETE FROM se_link;\""
-su - postgres -c "psql -d sosse --command=\"DELETE FROM se_document;\""
-su - postgres -c "psql -d sosse --command=\"DELETE FROM se_cookie;\""
-su - postgres -c "psql -d sosse --command=\"DELETE FROM se_domainsetting;\""
-su - postgres -c "psql -d sosse --command=\"DELETE FROM se_searchhistory;\""
-exec /robotframework-venv/bin/robot --exitonerror --exitonfailure tests
+sosse-admin update_se
+sosse-admin default_admin
+exec /opt/venv-robotframework/bin/robot -V config.yaml --exitonerror --exitonfailure guides/
 #exec /robotframework-venv/bin/robot --exitonerror --exitonfailure 02_*.robot

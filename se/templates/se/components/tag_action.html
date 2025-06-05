@@ -1,0 +1,11 @@
+<div {% if id %}id="{{ id }}" {% endif %}class="tag tag-action" {% if padding %}style="margin-left: 10px" {% endif %}{% if onclick %}onclick="{{ onclick }}" {% endif %}>
+    {% if href %}
+      <a href="{{ href }}">
+    {% endif %}
+
+    {{ text|default:"⭐ Tags" }}
+
+    {% if href %}
+      </a>
+    {% endif %}
+</div>

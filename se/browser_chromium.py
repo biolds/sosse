@@ -1,19 +1,20 @@
 # Copyright 2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import logging
 import os
 
 from django.conf import settings
@@ -22,6 +23,8 @@ from selenium.webdriver.chrome.options import Options as ChromiumOptions
 
 from .browser_selenium import BrowserSelenium
 from .domain_setting import user_agent
+
+crawl_logger = logging.getLogger("crawler")
 
 
 class BrowserChromium(BrowserSelenium):
@@ -92,6 +95,8 @@ class BrowserChromium(BrowserSelenium):
     @classmethod
     def _get_download_file(cls):
         d = os.listdir(cls._get_download_dir())
+        crawl_logger.debug(f"Download dir: {cls._get_download_dir()}, current files: {d}")
+
         d = [x for x in d if not x.startswith(".")]
         if len(d) == 0:
             return None

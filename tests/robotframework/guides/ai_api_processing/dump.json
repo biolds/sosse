@@ -1,0 +1,347 @@
+[
+  {
+    "model": "se.crawlpolicy",
+    "pk": 39,
+    "fields": {
+      "url_regex": "(default)",
+      "url_regex_pg": ".*",
+      "enabled": true,
+      "recursion": "depth",
+      "mimetype_regex": ".*",
+      "recursion_depth": 0,
+      "keep_params": true,
+      "hide_documents": false,
+      "default_browse_mode": "detect",
+      "snapshot_html": true,
+      "snapshot_exclude_url_re": "",
+      "snapshot_exclude_mime_re": "",
+      "snapshot_exclude_element_re": "",
+      "thumbnail_mode": "preview",
+      "take_screenshots": false,
+      "screenshot_format": "jpg",
+      "remove_nav_elements": "idx",
+      "script": "",
+      "store_extern_links": false,
+      "recrawl_freq": "adaptive",
+      "recrawl_dt_min": "1 00:00:00",
+      "recrawl_dt_max": "365 00:00:00",
+      "hash_mode": "no_numbers",
+      "recrawl_condition": "manual",
+      "auth_login_url_re": "",
+      "auth_form_selector": "",
+      "tags": [],
+      "webhooks": []
+    }
+  },
+  {
+    "model": "se.crawlpolicy",
+    "pk": 44,
+    "fields": {
+      "url_regex": "https://demo.spreecommerce.org/products/.*glasses",
+      "url_regex_pg": "https://demo.spreecommerce.org/products/.*glasses",
+      "enabled": true,
+      "recursion": "never",
+      "mimetype_regex": ".*",
+      "recursion_depth": 0,
+      "keep_params": true,
+      "hide_documents": false,
+      "default_browse_mode": "firefox",
+      "snapshot_html": false,
+      "snapshot_exclude_url_re": "",
+      "snapshot_exclude_mime_re": "",
+      "snapshot_exclude_element_re": "",
+      "thumbnail_mode": "preview",
+      "take_screenshots": true,
+      "screenshot_format": "jpg",
+      "remove_nav_elements": "idx",
+      "script": "const detailsText = document.getElementById('product-details-page');\r\nconst text = detailsText.innerHTML;\r\nreturn {metadata: {productDetails: text}};",
+      "store_extern_links": false,
+      "recrawl_freq": "none",
+      "recrawl_dt_min": null,
+      "recrawl_dt_max": null,
+      "hash_mode": "no_numbers",
+      "recrawl_condition": "manual",
+      "auth_login_url_re": "",
+      "auth_form_selector": "",
+      "tags": [],
+      "webhooks": [
+        10
+      ]
+    }
+  },
+  {
+    "model": "se.favicon",
+    "pk": 238,
+    "fields": {
+      "url": "https://demo.spreecommerce.org/favicon.ico",
+      "content": "AAABAAEAAAAAAAEAIACQEwAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAEAAAABAAgGAAAAXHKoZgAAE1dJREFUeJzt3XuwnVV5x/Hvyc1wuFOCXAKhRIhBbpG0aLkogZYIFCoyBUa0AhK5dEoJ004UOwJTFRTlIhiQVrC25WKCDli5OJSLlltbrhHEEFCwVAgk4ZZAkpPTP55zpjsn+5zz7r0uz3r3/n1mnmFG4bzPWu/e737fd631LBARERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERSavHOwGRAmwMbD4QvcP8OyuAZcDyXEnloAuAdJupwBHATGA6MA3YtIX/vh94GXgK+AXwJPAE8AiwJmqmGegCIJ1uLHAO9sWfCswized+JXA/cB9wD/AAsDbBcUSkgu2BY7EvZb9DLAP+GfhzYLPEbY3iGGA1Pp1VcqwD5gb066BO6t93sQ/4C8Ai4MfAldgv7cHYs3Qu2wJfARZj58q7b4brr9uB04DfS9MNYQ6kcz6cKeJe4HhgjPq3UqzDno8vAWYD49vst6E2Bk4A5gB/Dfwr8E4B7W0lVgLXALtH6pMo5uDfMXWIdk9at/fvK8ClwD5t9h/AjsCjBbQlVqzFLgTbBfRJsHZ/0brVRt4J1NQk4CzsC/wYcAowoeJ/Ox74HvAMYReQ0owFPgv8Cns0cHkhrwuA5LY38A/AEuyiMNLjwXjgBuDTdO7FdxNgPnAn9uIyK10AxMtk7LHgh8B7mvz/44EbsZen3eBQ7O7o4JwHHZfzYCJNHAH8FHh6yP8+HXt52k0mYaMFc7DHnuR0AZASHEj3fdmHMwG4FrsYXJz6YHoEyGOJdwJSKz3A14EvpD7Q4AVgaeoDdYA1wOtt/rd3Aaez4W2uyEi+DJyR62Dn4T82WmqsJs7LqEnA4wW0R1Gf6MOmEycxdOzxCOAk4Eiav5ntVpdhM89i2AL4U+CAgZiOFmV5eRO4G7soP43dCb+BfekAtsRWCk4G9gRmAB8k/6PzSmB/bJQgiy2xW9Zf4n8F9Ip1wPPYUFTK2VpbA0cDV2DLTL3b3emxGlgAHEZ7U5S3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tQL2z9OsjrAbtoDL+wtWcjwOvK/dDhaTq1bAI7ka1EE2AX6A/xettFgHXI2tb5FAuWoFnJSrQR2mB3thm2JtfB3jWaw6kUTSAzxF2pO2FJiYq0Ed6gP4T+DyjJXAeehzlETqWgEanoljDHAW3bWGYC1WTWnn8O6T4fRiVVtSncAp+ZrSFXYGfoz/lzNl9GHvP3aP02Uymq+S5kQuzNmILvNhRt4Nt47xJvaC7/0R+0kqmEyaWgHdUO/P20eB+/D/8rYb64CfA3Ow2oniJHatgEVoRVZOhwALqM+IwXLgIjSWX4wPEfcEn543fRkwCSuEsQj/L3mzeBJ7mblpqg6Q9j1LnJO8ENvRRXzthxUijXVe240lA3kUXQhGt6tWquoUwpbsvoqN2a6JkZBE837gUOCggXhvwmMtxZ7r7wN+ik1rLp4uANJNJmObceyFPYdPxYYYt8GqF49mJfAK8Gts+65nsdv7J7CS77WjC4CI2Rjbm28s9qw+Dhslenvgn68Bq9yyExERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERGpqf8DAwE+Ba9bpuYAAAAASUVORK5CYII=",
+      "mimetype": "image/vnd.microsoft.icon",
+      "missing": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 732,
+    "fields": {
+      "doc_from": 16974,
+      "doc_to": 16972,
+      "text": "Sale Gold-Framed Glasses Regular price $74.99 Sale price $54.99",
+      "pos": 757,
+      "link_no": 0,
+      "extern_url": null,
+      "screen_pos": "300,1062,312,380",
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 733,
+    "fields": {
+      "doc_from": 16974,
+      "doc_to": 16973,
+      "text": "Horned Glasses Regular price $44.99",
+      "pos": 858,
+      "link_no": 1,
+      "extern_url": null,
+      "screen_pos": "636,1062,312,380",
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 734,
+    "fields": {
+      "doc_from": 16972,
+      "doc_to": 16973,
+      "text": "Horned Glasses Regular price $44.99",
+      "pos": 772,
+      "link_no": 0,
+      "extern_url": null,
+      "screen_pos": "300,1062,312,380",
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 735,
+    "fields": {
+      "doc_from": 16972,
+      "doc_to": 16974,
+      "text": "Sale Rimmed Glasses Regular price $74.99 Sale price $54.99",
+      "pos": 845,
+      "link_no": 1,
+      "extern_url": null,
+      "screen_pos": "636,1062,312,380",
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 736,
+    "fields": {
+      "doc_from": 16973,
+      "doc_to": 16972,
+      "text": "Sale Gold-Framed Glasses Regular price $74.99 Sale price $54.99",
+      "pos": 711,
+      "link_no": 0,
+      "extern_url": null,
+      "screen_pos": "300,1062,312,380",
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.link",
+    "pk": 737,
+    "fields": {
+      "doc_from": 16973,
+      "doc_to": 16974,
+      "text": "Sale Rimmed Glasses Regular price $74.99 Sale price $54.99",
+      "pos": 812,
+      "link_no": 1,
+      "extern_url": null,
+      "screen_pos": "636,1062,312,380",
+      "in_nav": false
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 445,
+    "fields": {
+      "path": "0008",
+      "depth": 1,
+      "numchild": 0,
+      "name": "Discount"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 446,
+    "fields": {
+      "path": "0006",
+      "depth": 1,
+      "numchild": 0,
+      "name": "Alert"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 447,
+    "fields": {
+      "path": "000E",
+      "depth": 1,
+      "numchild": 0,
+      "name": "Limited-Time"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 448,
+    "fields": {
+      "path": "000C",
+      "depth": 1,
+      "numchild": 0,
+      "name": "Free-Shipping"
+    }
+  },
+  {
+    "model": "se.tag",
+    "pk": 449,
+    "fields": {
+      "path": "000A",
+      "depth": 1,
+      "numchild": 0,
+      "name": "Flash-Sale"
+    }
+  },
+  {
+    "model": "se.webhook",
+    "pk": 10,
+    "fields": {
+      "name": "Generate Tags",
+      "enabled": true,
+      "trigger_condition": "manual",
+      "updates_doc": true,
+      "update_json_path": "choices.0.message.content",
+      "update_json_deserialize": true,
+      "url": "https://api.openai.com/v1/chat/completions",
+      "method": "post",
+      "username": "",
+      "password": "",
+      "headers": "Authorization: Bearer sk-proj-j04Va_******************************************************************************************************************************************************",
+      "body_template": "{\r\n  \"model\": \"gpt-4.1\",\r\n  \"messages\": [\r\n    {\r\n      \"role\": \"system\",\r\n      \"content\": \"You are an assistant who extracts promotional and commercial tags from a given text.\"\r\n    },\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Extract the product name and price from the HTML and return them under \\\"metadata\\\": { \\\"name\\\": \\\"...\\\", \\\"price\\\": \\\"...\\\" }.\r\n\r\nIdentify any promotional tags from this list:\r\n[\\\"Discount\\\", \\\"Bogo\\\", \\\"Limited-Time\\\", \\\"Clearance\\\", \\\"Bundle-Deal\\\", \\\"Seasonal-Sale\\\", \\\"Flash-Sale\\\", \\\"Free-Shipping\\\", \\\"Loyalty-Discount\\\", \\\"Coupon-Code\\\", \\\"Alert\\\"]\r\n\r\nIf there's a promotion, include the relevant tags.\r\nIf the product is or mentions gloves, add \\\"alert\\\".\r\n\r\nReturn this format:\r\n{ \\\"tags\\\": [...], \\\"metadata\\\": { \\\"name\\\": \\\"...\\\", \\\"price\\\": \\\"...\\\" } }\r\nIf no promo, return:\r\n{ \\\"tags\\\": [], \\\"metadata\\\": { \\\"name\\\": \\\"...\\\", \\\"price\\\": \\\"...\\\" } }\r\n\r\nHTML to analyze:\r\n${metadata.productDetails}\r\n\"\r\n    }\r\n  ],\r\n  \"temperature\": 0.3\r\n}",
+      "mimetype_re": ".*",
+      "title_re": ".*",
+      "content_re": ".*",
+      "tags": []
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16974,
+    "fields": {
+      "url": "https://demo.spreecommerce.org/products/rimmed-glasses",
+      "title": "Rimmed Glasses",
+      "content": "Welcome to the Spree Commerce Demo!\nRimmed Glasses\nRimmed Glasses Regular price $74.99\nSale price $54.99\nSale\nPinch to zoom\nSale\nRimmed Glasses\nRegular price $74.99\nSale price $54.99\nQuantity\nAdd To Cart\nAdd To Cart\nAdd to wishlist Remove from wishlist\nThis item is sold out\nAdd to waitlist to be notified when it is back in stock.\nEmail me about new products, sales, and more. You can unsubscribe at any time. Add to waitlist\nWelcome to your product description! This is where you grab your customers' attention and convince them why they need this amazing product. A great description does more than just list features—it tells a story, sparks interest, and helps customers imagine how this product will improve their lives.\nRead more\nYou might also like\nSale Gold-Framed Glasses Regular price $74.99 Sale price $54.99 Add to wishlist Remove from wishlist\nHorned Glasses Regular price $44.99 Add to wishlist Remove from wishlist\nSubscribe to our newsletter\nThis section lets you capture newsletter sign-ups, with all submissions conveniently recorded in the customer management area of your admin dashboard for easy access and follow-up.\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-30T16:17:36.435616+00:00",
+      "crawl_first": "2025-05-30T16:17:36.435616+00:00",
+      "crawl_last": "2025-05-31T10:33:25.484405+00:00",
+      "crawl_next": null,
+      "crawl_dt": null,
+      "favicon": 238,
+      "metadata": {
+        "name": "Rimmed Glasses",
+        "price": "$54.99"
+      },
+      "show_on_homepage": false,
+      "has_html_snapshot": false,
+      "screenshot_count": 3,
+      "screenshot_format": "jpg",
+      "screenshot_size": "1920x1080",
+      "has_thumbnail": false,
+      "tags": [
+        449,
+        445
+      ],
+      "webhooks_result": {
+        "10": {
+          "error": null,
+          "response": "{\n  \"id\": \"chatcmpl-BdDor3LLJpktrG4s7TDHGyGZzrie8\",\n  \"object\": \"chat.completion\",\n  \"created\": 1748687613,\n  \"model\": \"gpt-4.1-2025-04-14\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"{\\n  \\\"tags\\\": [\\\"discount\\\"],\\n  \\\"metadata\\\": {\\n    \\\"name\\\": \\\"Rimmed Glasses\\\",\\n    \\\"price\\\": \\\"$54.99\\\"\\n  }\\n}\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 7851,\n    \"completion_tokens\": 36,\n    \"total_tokens\": 7887,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": \"fp_51e1070cf2\"\n}\n",
+          "status_code": 200,
+          "status_string": "OK"
+        }
+      }
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16973,
+    "fields": {
+      "url": "https://demo.spreecommerce.org/products/horned-glasses",
+      "title": "Horned Glasses",
+      "content": "Welcome to the Spree Commerce Demo!\nHorned Glasses\nHorned Glasses Regular price $44.99\nPinch to zoom\nHorned Glasses\nRegular price $44.99\nQuantity\nAdd To Cart\nAdd To Cart\nAdd to wishlist Remove from wishlist\nThis item is sold out\nAdd to waitlist to be notified when it is back in stock.\nEmail me about new products, sales, and more. You can unsubscribe at any time. Add to waitlist\nWelcome to your product description! This is where you grab your customers' attention and convince them why they need this amazing product. A great description does more than just list features—it tells a story, sparks interest, and helps customers imagine how this product will improve their lives.\nRead more\nYou might also like\nSale Gold-Framed Glasses Regular price $74.99 Sale price $54.99 Add to wishlist Remove from wishlist\nSale Rimmed Glasses Regular price $74.99 Sale price $54.99 Add to wishlist Remove from wishlist\nSubscribe to our newsletter\nThis section lets you capture newsletter sign-ups, with all submissions conveniently recorded in the customer management area of your admin dashboard for easy access and follow-up.\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-30T16:17:27.532767+00:00",
+      "crawl_first": "2025-05-30T16:17:27.532767+00:00",
+      "crawl_last": "2025-05-31T10:33:51.313010+00:00",
+      "crawl_next": null,
+      "crawl_dt": null,
+      "favicon": 238,
+      "metadata": {
+        "name": "Horned Glasses",
+        "price": "$44.99"
+      },
+      "show_on_homepage": false,
+      "has_html_snapshot": false,
+      "screenshot_count": 3,
+      "screenshot_format": "jpg",
+      "screenshot_size": "1920x1080",
+      "has_thumbnail": false,
+      "webhooks_result": {
+        "10": {
+          "error": null,
+          "response": "{\n  \"id\": \"chatcmpl-BdDpFQjbV2p8RgGp5n64ydKIe8c9v\",\n  \"object\": \"chat.completion\",\n  \"created\": 1748687637,\n  \"model\": \"gpt-4.1-2025-04-14\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"{\\n  \\\"tags\\\": [],\\n  \\\"metadata\\\": {\\n    \\\"name\\\": \\\"Horned Glasses\\\",\\n    \\\"price\\\": \\\"$44.99\\\"\\n  }\\n}\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 7650,\n    \"completion_tokens\": 33,\n    \"total_tokens\": 7683,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": \"fp_51e1070cf2\"\n}\n",
+          "status_code": 200,
+          "status_string": "OK"
+        }
+      }
+    }
+  },
+  {
+    "model": "se.document",
+    "pk": 16972,
+    "fields": {
+      "url": "https://demo.spreecommerce.org/products/gold-framed-glasses",
+      "title": "Gold-Framed Glasses",
+      "content": "Welcome to the Spree Commerce Demo!\nGold-Framed Glasses\nGold-Framed Glasses Regular price $74.99\nSale price $54.99\nSale\nPinch to zoom\nSale\nGold-Framed Glasses\nRegular price $74.99\nSale price $54.99\nQuantity\nAdd To Cart\nAdd To Cart\nAdd to wishlist Remove from wishlist\nThis item is sold out\nAdd to waitlist to be notified when it is back in stock.\nEmail me about new products, sales, and more. You can unsubscribe at any time. Add to waitlist\nWelcome to your product description! This is where you grab your customers' attention and convince them why they need this amazing product. A great description does more than just list features—it tells a story, sparks interest, and helps customers imagine how this product will improve their lives.\nRead more\nYou might also like\nHorned Glasses Regular price $44.99 Add to wishlist Remove from wishlist\nSale Rimmed Glasses Regular price $74.99 Sale price $54.99 Add to wishlist Remove from wishlist\nSubscribe to our newsletter\nThis section lets you capture newsletter sign-ups, with all submissions conveniently recorded in the customer management area of your admin dashboard for easy access and follow-up.\n",
+      "mimetype": "text/html",
+      "modified_date": "2025-05-30T16:17:12.510689+00:00",
+      "crawl_first": "2025-05-30T16:17:12.510689+00:00",
+      "crawl_last": "2025-05-31T10:33:26.009031+00:00",
+      "crawl_next": null,
+      "crawl_dt": null,
+      "favicon": 238,
+      "metadata": {
+        "name": "Gold-Framed Glasses",
+        "price": "$54.99"
+      },
+      "show_on_homepage": true,
+      "has_html_snapshot": false,
+      "screenshot_count": 3,
+      "screenshot_format": "jpg",
+      "screenshot_size": "1920x1080",
+      "tags": [
+        445
+      ],
+      "has_thumbnail": false,
+      "webhooks_result": {
+        "10": {
+          "error": null,
+          "response": "{\n  \"id\": \"chatcmpl-BdDosg4lyT6zOf1pkJuAmXIRDjomm\",\n  \"object\": \"chat.completion\",\n  \"created\": 1748687614,\n  \"model\": \"gpt-4.1-2025-04-14\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"{\\n  \\\"tags\\\": [\\\"discount\\\", \\\"flash-sale\\\"],\\n  \\\"metadata\\\": {\\n    \\\"name\\\": \\\"Gold-Framed Glasses\\\",\\n    \\\"price\\\": \\\"$54.99\\\"\\n  }\\n}\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 7860,\n    \"completion_tokens\": 40,\n    \"total_tokens\": 7900,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": \"fp_51e1070cf2\"\n}\n",
+          "status_code": 200,
+          "status_string": "OK"
+        }
+      }
+    }
+  }
+]

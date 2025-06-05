@@ -1,19 +1,89 @@
 {% extends "se/base.html" %}
+{% load static %}
 
+{% block css %}
+  .info-block {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .info-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 1rem;
+  }
+
+  .info-block strong {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+{% endblock %}
 {% block body %}
+  <section>
+    <h1>Sosse 🦦</h1>
+
     <p>
-        SOSSE is a <a href="https://www.selenium.dev/">Selenium</a> based Open Source Search Engine {{ animal }}.
-    </p>
-    <p>
-        It is distributed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU Affero General Public License version 3</a>.
-    </p>
-    <p>
-        You can download a copy of its source code on <a href="https://gitlab.com/biolds1/sosse">Gitlab</a>.
+      <strong>Sosse</strong> (<em>Selenium Open Source Search Engine</em>) is an open source web archiving tool, crawler, and search engine.
+      It’s designed to handle dynamic web content, and is built for transparency, reproducibility, and long-term usability.
     </p>
 
-    SOSSE {{ settings.SOSSE_VERSION_TAG }}
-    {% if settings.SOSSE_VERSION_TAG != 'dev' %}
-        ({{ settings.SOSSE_VERSION_COMMIT }})
-    {% endif %}
-    - Copyright 2022-2024 Laurent Defert.
+    <p>
+      It is ideal for monitoring, archiving, or indexing web pages — including those rendered with JavaScript.
+      Sosse supports scheduled crawling, advanced querying, feed generation, and private search features.
+    </p>
+
+    <p>
+      Sosse is written in Python and supports browser-based crawling via Selenium, with <em>Firefox</em> or <em>Chromium</em>, and faster headless crawling using Requests.
+      PostgreSQL is used as the primary database backend.
+    </p>
+
+    <h2>Resources</h2>
+
+    <div class="info-block">
+      <img src="{% static 'se/logo.svg' %}" alt="Website" class="info-icon">
+      <div>
+        <strong>Official Website</strong><br>
+        Visit <a href="https://sosse.org" target="_blank" rel="noopener">sosse.org</a> for commercial offers, hosting services, and documentation.
+      </div>
+    </div>
+
+    <div class="info-block">
+      <img src="{% static 'se/agpl-logo.svg' %}" alt="AGPL License" class="info-icon">
+      <div>
+        <strong>License</strong><br>
+        Sosse is released under the
+        <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" rel="noopener">GNU AGPL v3</a>,
+        requiring all modifications and hosted uses to remain open.
+      </div>
+    </div>
+
+    <div class="info-block">
+      <img src="{% static 'se/gitlab-tanuki-scalability.svg' %}" alt="GitLab" class="info-icon">
+      <div>
+        <strong>Main Repository</strong><br>
+        <a href="https://gitlab.com/biolds1/sosse" target="_blank">GitLab</a> hosts the main codebase, issues, and CI.
+        Use it for merge requests, bug reports, or tracking development.
+      </div>
+    </div>
+
+    <div class="info-block">
+      <img src="{% static 'se/github-mark.png' %}" alt="GitHub" class="info-icon" style="width: 42px; height: 42px; margin: 0 10px 0 -4px">
+      <div>
+        <strong>Mirror Repository</strong><br>
+        <a href="https://github.com/biolds/sosse" target="_blank">GitHub</a> offers a convenient mirror for visibility and community interaction.
+      </div>
+    </div>
+
+    <p>
+      <strong>Current Version:</strong> Sosse {{ settings.SOSSE_VERSION_TAG }}
+      {% if settings.SOSSE_VERSION_TAG != 'dev' %}
+        (commit <code>{{ settings.SOSSE_VERSION_COMMIT }}</code>)
+      {% endif %}
+    </p>
+
+    <p style="margin-top: 2rem; color: #666;">
+      &copy; 2022–2025 Laurent Defert.
+    </p>
+  </section>
 {% endblock %}

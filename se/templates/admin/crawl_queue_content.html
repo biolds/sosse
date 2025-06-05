@@ -1,18 +1,24 @@
 {% load static %}
 <div style="padding: 8px 0px 5px 0px">
 {% if 'se.change_crawlerstats' in perms %}
-    <form method="POST" style="display: inline">
-      {% csrf_token %}
-      {% if pause %}
-        <input class="chart card" type="submit" name="pause" value="⏵ Running" style="background-color: #d9fabe">
-      {% else %}
-        <input class="chart card" type="submit" name="resume" value="⏸ Paused">
-      {% endif %}
-    </form>
+  <span class="chart card{% if pause %} green_bg"{% endif %}" onclick="document.getElementById('start_pause_button').submit()">
+    <div class="card_text">
+      <form id="start_pause_button" method="POST" style="padding-top: 15px">
+        {% csrf_token %}
+        {% if pause %}
+          <input type="hidden" name="pause" value="⏵ Running">
+          ⏵ Running
+        {% else %}
+          <input type="hidden" name="resume" value="⏸ Paused">
+          ⏸ Paused
+        {% endif %}
+      </form>
+    </div>
+  </span>
 {% endif %}
 
   <span class="chart card">
-    <a href="{% url 'admin:se_document_changelist' %}?queued=new&o=8" style="text-decoration: none">
+    <a href="{% url 'admin:se_document_changelist' %}?queued=new&o=8">
       <div id="queue_new_count" class="card_text" title="{{ queue_new_count }} new document{{ queue_new_count|pluralize }}">
         {{ queue_new_count }}<br/>
         🌟 New
@@ -21,7 +27,7 @@
   </span>
 
   <span class="chart card">
-    <a href="{% url 'admin:se_document_changelist' %}?queued=pending&o=8" style="text-decoration: none">
+    <a href="{% url 'admin:se_document_changelist' %}?queued=pending&o=8">
       <div id="queue_pending_count" class="card_text" title="{{ queue_pending_count }} document{{ queue_pending_count|pluralize }} pending">
         {{ queue_pending_count }}<br/>
         ⌛ Pending
@@ -30,7 +36,7 @@
   </span>
 
   <span class="chart card">
-    <a href="{% url 'admin:se_document_changelist' %}?queued=recurring&o=8" style="text-decoration: none">
+    <a href="{% url 'admin:se_document_changelist' %}?queued=recurring&o=8">
       <div id="queue_recurring_count" class="card_text" title="{{ queue_recurring_count }} document{{ queue_recurring_count|pluralize }} recurring">
         {{ queue_recurring_count }}<br/>
         🕑 Recurring
@@ -72,9 +78,15 @@
             </td>
             <td {% if not doc.in_history %}style="opacity: 0.3"{% endif %}>
                 {% if doc.error %}
-                    <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
+                    <img src="{% static "admin/img/icon-no.svg" %}">
                 {% else %}
-                    <img src="{% static "admin/img/icon-yes.svg" %}" alt="True">
+                    {% if doc.webhook_in_error %}
+                        <span title="Webhook {{ doc.webhook_in_error }} failed">📡</span>
+                    {% elif doc.robotstxt_rejected %}
+                        <span title="Rejected by robots.txt">🤖</span>
+                    {% else %}
+                        <img src="{% static "admin/img/icon-yes.svg" %}">
+                    {% endif %}
                 {% endif %}
             </td>
             {% if doc.worker_no is not None %}

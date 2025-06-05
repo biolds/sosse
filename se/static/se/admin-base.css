@@ -1116,3 +1116,13 @@ a.deletelink {
 body.dark-mode #image-magnifier {
   filter: invert(1);
 }
+
+#changelist-filter li a {
+  display: inline-block;
+  max-width: 200px;
+  /* ajuste selon l'espace dispo */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}

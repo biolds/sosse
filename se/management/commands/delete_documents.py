@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import sys
@@ -42,9 +42,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options["ignore_case"]:
-            docs = Document.objects.filter(url__regex=options["url regex"])
+            docs = Document.objects.wo_content().filter(url__regex=options["url regex"])
         else:
-            docs = Document.objects.filter(url__iregex=options["url regex"])
+            docs = Document.objects.wo_content().filter(url__iregex=options["url regex"])
 
         count = docs.count()
         if options["dry_run"]:

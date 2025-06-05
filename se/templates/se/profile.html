@@ -1,0 +1,157 @@
+{% extends "se/base.html" %}
+
+{% block js %}
+function getSelectedTheme() {
+    const selectedRadio = document.querySelector('input[name="theme"]:checked');
+    return selectedRadio ? selectedRadio.getAttribute('value') : null;
+}
+function setSelectedTheme(theme) {
+    const radioButton = document.querySelector(`input[name="theme"][value="${theme}"]`);
+    if (radioButton) {
+        radioButton.checked = true;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function(event) {
+    const theme = localStorage.getItem('sosseTheme') || 'auto';
+    setSelectedTheme(theme);
+
+    const supportedLangs = {{ supported_langs|safe }};
+    const langSelect = document.getElementById('language');
+    const userLang = getLang();
+
+    Object.keys(supportedLangs).map(function (langIso) {
+        const lang = supportedLangs[langIso];
+        const langInput = document.createElement('option');
+        langInput.value = langIso;
+
+        const langTitle = lang.name[0].toUpperCase() + lang.name.substr(1);
+        if (lang.flag) {
+            langInput.text = `${lang.flag} ${langTitle}`;
+        } else {
+            langInput.text = langTitle;
+        }
+
+        if (langIso === userLang) {
+            langInput.setAttribute('selected', '');
+        }
+        langSelect.append(langInput);
+    });
+
+    const pageSize = document.getElementById('page_size');
+    pageSize.value = getPageSize({{ settings.SOSSE_DEFAULT_PAGE_SIZE }});
+
+    const archiveLinks = document.getElementById('archive_links');
+    archiveLinks.checked = getArchiveLinks();
+
+    {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
+    const selectedOnlineMode = getOnlineMode();
+    const onlineMode = document.getElementById('online_mode');
+    const onlineModeOpts = onlineMode.getElementsByTagName('option');
+    for (let i = 0; i < onlineModeOpts.length; i++) {
+        const node = onlineModeOpts[i];
+        if (node.getAttribute('value') === selectedOnlineMode) {
+            node.setAttribute('selected', '');
+        }
+    };
+    {% endif %}
+});
+
+function save() {
+    localStorage.setItem('sosseTheme', getSelectedTheme());
+
+    const langSelect = document.getElementById('language');
+    localStorage.setItem('sosseLanguage', langSelect.value);
+
+    const pageSize = document.getElementById('page_size');
+    localStorage.setItem('sossePageSize', pageSize.value);
+
+    const archiveLinks = document.getElementById('archive_links');
+    localStorage.setItem('sosseArchiveLinks', archiveLinks.checked);
+
+    {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
+    const onlineMode = document.getElementById('online_mode');
+    localStorage.setItem('sosseOnlineMode', onlineMode.value);
+    {% endif %}
+
+    window.location = '/';
+}
+
+function cancel() {
+    window.location = '/';
+}
+
+function onlineCheck () {
+    const wait = document.getElementById('online_check_wait');
+    const result = document.getElementById('online_check');
+    result.innerHTML = '';
+    wait.style = 'display: inline-block';
+    fetch("{% url 'online_check' %}").then((response) => response.json()).then((response) => {
+        wait.style = 'display: none';
+        const url = '{{ settings.SOSSE_ONLINE_CHECK_URL|escapejs }}';
+        if (response.success) {
+            result.innerHTML = `<div style="color: green; display: inline-block;">✔</div> Request to ${url} succeeded.`;
+        } else {
+            result.innerHTML = `<div style="color: red; display: inline-block;">✖</div> Request to ${url} failed: ${response.status}`;
+        }
+    });
+}
+
+{% endblock %}
+
+{% block css %}
+.label {
+    padding-bottom: 5px;
+    font-weight: bold;
+}
+{% endblock %}
+
+{% block body %}
+    {% if user.is_active %}
+      <p>
+        👤 <a href="{% url 'admin:password_change' %}" style="padding-right: 20px">Change Pass</a>
+        🕑 <a href="{% url 'history' %}">Search History</a>
+      </p>
+    {% endif %}
+
+    <div class="label">Theme</div>
+    <label style="display: inline; cursor: pointer">
+        <input type="radio" name="theme" value="auto" checked>
+        🪄 Auto
+    </label>
+    <label style="display: inline; background-color: #fff; border-radius: 5px; color: #000; padding: 4px 12px 4px 4px; cursor: pointer">
+        <input type="radio" name="theme" value="light">
+        🔆 Light
+    </label>
+    <label style="display: inline; background-color: #000; border-radius: 5px; color: #fff; padding: 4px 12px 4px 4px; cursor: pointer">
+        <input type="radio" name="theme" value="dark">
+        🌙 Dark
+    </label>
+    <br/><br/>
+    <div class="label">Search terms parsing language</div>
+    <select id="language"></select>
+    <br/><br/>
+    <div class="label">Results by page</div>
+    <input id="page_size" type="number" step="10" min="10" max="{{ settings.SOSSE_MAX_PAGE_SIZE }}">
+    <br/><br/>
+    <input id="archive_links" type="checkbox">
+    <label for="archive_links">Search result main links point to the archive</label>
+    <br/><br/>
+
+    {% if settings.SOSSE_ONLINE_SEARCH_REDIRECT %}
+        <div class="label">Online mode</div>
+        <select id="online_mode">
+            <option value="">Autodetect</option>
+            <option value="o">Force online</option>
+            <option value="l">Force local</option>
+        </select>
+        <br/><br/>
+        <button onclick="onlineCheck()">Test autodetection</button>
+        <div id="online_check_wait" class="loader" style="display: none;">🪃</div>
+        <div id="online_check"></div>
+        <br/><br/>
+    {% endif %}
+
+    <button onclick="save()">Save</button>
+    <button onclick="cancel()">Cancel</button>
+{% endblock %}

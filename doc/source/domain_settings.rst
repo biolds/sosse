@@ -1,5 +1,5 @@
-Domain Settings
-===============
+🕸 Domain Settings
+==================
 
 Domain level parameters can be reached from the :doc:`../admin_ui`, by clicking on ``Domain settings``.
 

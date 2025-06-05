@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 # This file checks url conversion (percent encoding, punycode, spaces ...) and consistencies
@@ -226,7 +226,7 @@ class PageTest(TransactionTestCase):
 
     def test_20_no_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
-        doc = Document.objects.create(url=page.url)
+        doc = Document.objects.wo_content().create(url=page.url)
         doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "text")
         links = Link.objects.order_by("id")
@@ -241,7 +241,7 @@ class PageTest(TransactionTestCase):
 
     def test_30_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
-        doc = Document.objects.create(url=page.url)
+        doc = Document.objects.wo_content().create(url=page.url)
         self.crawl_policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
         doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "header nav link text footer")
@@ -279,14 +279,14 @@ class PageTest(TransactionTestCase):
 
     def test_60_no_comment(self):
         page = Page("http://test/", b"<html><body><!-- nothing -->text</body></html>", None)
-        doc = Document(url=page.url)
+        doc = Document.objects.create(url=page.url)
         doc.index(page, self.crawl_policy)
         self.assertEqual(doc.content, "text")
 
     def test_70_feeds(self):
         for feed in (ATOM_FEED, ATOM_FEED_WITH_HEADER, RSS_FEED):
             page = Page("http://test/", feed, None)
-            doc = Document.objects.create(url=page.url)
+            doc = Document.objects.wo_content().create(url=page.url)
             doc.index(page, self.crawl_policy)
 
             self.assertEqual(Document.objects.count(), 4)
@@ -308,4 +308,4 @@ class PageTest(TransactionTestCase):
             self.assertEqual(links[2].text, "Entry two")
             self.assertEqual(links[2].doc_to.url, "http://192.168.120.5/entry-two")
 
-            Document.objects.all().delete()
+            Document.objects.wo_content().all().delete()

@@ -1,5 +1,9 @@
-<span {% if add_to_queue %}class="{{ label_tag }}"{% endif %}>
-    ⚡
+<span {% if add_to_queue %}class="{{ label_tag }}"{% else %}title="Recursion"{% endif %}>
+    {% if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER %}
+      ⛔
+    {% else %}
+      ⚡
+    {% endif %}
     {% if add_to_queue %}
         {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
             Recurse into matching URLs
@@ -9,7 +13,7 @@
         {% elif crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH %}
             Crawl depending on depth
         {% else %}
-            Only this URL
+            {{ urls|length|pluralize:"Only this URL,Only these URLs" }}
         {% endif %}
     {% else %}
         {% if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL %}
@@ -25,7 +29,7 @@
     {% endif %}
 </span>
 
-<span class="{{ label_tag }}">
+<span class="{{ label_tag }}"{% if not add_to_queue %} title="Browser"{% endif %}>
     🌐 {% if add_to_queue %}with{% endif %}
     {% if crawl_policy.default_browse_mode == DomainSetting.BROWSE_DETECT %}
         {{ settings.SOSSE_DEFAULT_BROWSER|title }}
@@ -43,11 +47,11 @@
     {% endif %}
 </span>
 
-<span class="{{ label_tag }}">
+<span class="{{ label_tag }}"{% if not add_to_queue %} title="Recurrence"{% endif %}>
     🕑
-    {% if crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_NONE %}
+    {% if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_NONE %}
         only once
-    {% elif crawl_policy.recrawl_mode == CrawlPolicy.RECRAWL_CONSTANT %}
+    {% elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT %}
         {% if add_to_queue %}
             every {{ recrawl_every }}
         {% else %}
@@ -81,3 +85,11 @@
         {% endif %}
     </span>
 {% endif %}
+
+{% with webhooks_count=crawl_policy.webhooks.count %}
+    {% if webhooks_count %}
+        <span class="{{ label_tag }}">
+          📡 {{ webhooks_count }} webhook{{ webhooks_count|pluralize }}
+        </span>
+    {% endif %}
+{% endwith %}

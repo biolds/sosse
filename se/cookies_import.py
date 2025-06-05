@@ -1,16 +1,16 @@
 # Copyright 2024-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 from http.cookiejar import MozillaCookieJar
@@ -29,7 +29,7 @@ from .views import AdminView
 class CookieForm(forms.Form):
     cookies = forms.CharField(
         label="Cookies",
-        widget=forms.Textarea(attrs={"placeholder": "Enter cookies here..."}),
+        widget=forms.Textarea(attrs={"placeholder": "Enter cookies here or load a file below...", "autofocus": True}),
         required=False,
     )
     cookies.widget.attrs.update({"style": "width: 50%; padding-right: 0"})

@@ -1,16 +1,16 @@
 # Copyright 2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 
@@ -60,7 +60,7 @@ class AddToQueueTest(ViewsTestMixin, TransactionTestCase):
         response = self._request({"urls": urls, "action": "Confirm"})
         self.assertEqual(response.status_code, 302)
 
-        docs = Document.objects.order_by("url")
+        docs = Document.objects.wo_content().order_by("url")
         self.assertEqual(len(docs), 1)
         self.assertEqual(docs[0].url, "https://example-1.com/")
 
@@ -69,7 +69,7 @@ class AddToQueueTest(ViewsTestMixin, TransactionTestCase):
         response = self._request({"urls": urls, "action": "Confirm"})
         self.assertEqual(response.status_code, 302)
 
-        docs = Document.objects.order_by("url")
+        docs = Document.objects.wo_content().order_by("url")
         self.assertEqual(len(docs), 2)
         self.assertEqual(docs[0].url, "https://example-1.com/")
         self.assertEqual(docs[1].url, "https://example-2.com/")

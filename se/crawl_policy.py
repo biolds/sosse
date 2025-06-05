@@ -1,16 +1,16 @@
 # Copyright 2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
@@ -27,7 +27,9 @@ from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
 from .domain_setting import DomainSetting
-from .utils import plural
+from .tag import Tag
+from .utils import build_multiline_re, plural
+from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
 BROWSER_MAP = {
@@ -59,20 +61,29 @@ def validate_url_regexp(val):
 
 
 class CrawlPolicy(models.Model):
-    RECRAWL_NONE = "none"
-    RECRAWL_CONSTANT = "constant"
-    RECRAWL_ADAPTIVE = "adaptive"
-    RECRAWL_MODE = [
-        (RECRAWL_NONE, "Once"),
-        (RECRAWL_CONSTANT, "Constant time"),
-        (RECRAWL_ADAPTIVE, "Adaptive"),
+    RECRAWL_FREQ_NONE = "none"
+    RECRAWL_FREQ_CONSTANT = "constant"
+    RECRAWL_FREQ_ADAPTIVE = "adaptive"
+    RECRAWL_FREQ = [
+        (RECRAWL_FREQ_NONE, "Once"),
+        (RECRAWL_FREQ_CONSTANT, "Constant time"),
+        (RECRAWL_FREQ_ADAPTIVE, "Adaptive"),
     ]
 
     HASH_RAW = "raw"
     HASH_NO_NUMBERS = "no_numbers"
     HASH_MODE = [
-        (HASH_RAW, "Hash raw content"),
-        (HASH_NO_NUMBERS, "Normalize numbers before"),
+        (HASH_RAW, "Raw content"),
+        (HASH_NO_NUMBERS, "Normalize numbers"),
+    ]
+
+    RECRAWL_COND_ON_CHANGE = "change"
+    RECRAWL_COND_ALWAYS = "always"
+    RECRAWL_COND_MANUAL = "manual"
+    RECRAWL_CONDITION = [
+        (RECRAWL_COND_ON_CHANGE, "On change only"),
+        (RECRAWL_COND_ALWAYS, "Always"),
+        (RECRAWL_COND_MANUAL, "On change or manual trigger"),
     ]
 
     CRAWL_ALL = "always"
@@ -180,15 +191,16 @@ class CrawlPolicy(models.Model):
     )
     script = models.TextField(
         default="",
-        help_text="Javascript code to execute after the page is loaded",
+        help_text="Javascript code to execute after the page is loaded. If an object is returned, its content will be "
+        "used to overwrite the document's fields",
         blank=True,
     )
     store_extern_links = models.BooleanField(default=False, help_text="Store links to non-indexed pages")
 
-    recrawl_mode = models.CharField(
+    recrawl_freq = models.CharField(
         max_length=8,
-        choices=RECRAWL_MODE,
-        default=RECRAWL_ADAPTIVE,
+        choices=RECRAWL_FREQ,
+        default=RECRAWL_FREQ_ADAPTIVE,
         verbose_name="Crawl frequency",
         help_text="Adaptive frequency will increase delay between two crawls when the page stays unchanged",
     )
@@ -208,7 +220,15 @@ class CrawlPolicy(models.Model):
         max_length=10,
         choices=HASH_MODE,
         default=HASH_NO_NUMBERS,
-        help_text="Page content hashing method used to detect changes in the content",
+        verbose_name="Change detection",
+        help_text="Content to check for modifications",
+    )
+    recrawl_condition = models.CharField(
+        max_length=10,
+        choices=RECRAWL_CONDITION,
+        default=RECRAWL_COND_MANUAL,
+        verbose_name="Condition",
+        help_text="Specifies the conditions under which a page is reprocessed",
     )
 
     auth_login_url_re = models.TextField(
@@ -223,43 +243,42 @@ class CrawlPolicy(models.Model):
         verbose_name="Form selector",
         help_text="CSS selector pointing to the authentication &lt;form&gt; element",
     )
+    tags = models.ManyToManyField(Tag, blank=True)
+    webhooks = models.ManyToManyField(Webhook)
 
     class Meta:
-        verbose_name_plural = "crawl policies"
+        verbose_name = "Crawl Policy"
+        verbose_name_plural = "Crawl Policies"
 
     def __str__(self):
+        title = self.get_title_label()
+        return "「" + title + "」"
+
+    def get_title_label(self):
         if self.url_regex:
             url_regexs = [line.strip() for line in self.url_regex.splitlines()]
             url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
             if len(url_regexs) == 1:
-                return f"「{url_regexs[0]}」"
+                return f"{url_regexs[0]}"
             elif len(url_regexs) > 1:
                 others = len(url_regexs) - 1
                 others = f"{others} other{plural(others)}"
-                return f"「{url_regexs[0]} (and {others})」"
-        return "「<empty>」"
+                return f"{url_regexs[0]} (and {others})"
+        return "<empty>"
 
     def save(self, *args, **kwargs):
         if self.url_regex == "(default)":
             self.url_regex_pg = ".*"
             self.enabled = True
         else:
-            url_regexs = [line.strip() for line in self.url_regex.splitlines()]
-            url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
-            match len(url_regexs):
-                case 0:
-                    self.url_regex_pg = ""
-                case 1:
-                    self.url_regex_pg = url_regexs[0]
-                case _:
-                    self.url_regex_pg = "(" + "|".join(url_regexs) + ")"
+            self.url_regex_pg = build_multiline_re(self.url_regex)
         return super().save(*args, **kwargs)
 
     @staticmethod
     def create_default():
         # mandatory default policy
         policy, _ = CrawlPolicy.objects.get_or_create(
-            url_regex="(default)", defaults={"url_regex_pg": ".*", "recursion": CrawlPolicy.CRAWL_NEVER}
+            url_regex="(default)", defaults={"url_regex_pg": ".*", "recursion": CrawlPolicy.CRAWL_ON_DEPTH}
         )
         return policy
 

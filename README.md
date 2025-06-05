@@ -17,11 +17,13 @@
   </a>
 </p>
 
-# SOSSE 🦦
+# Sosse 🦦
 
-SOSSE (Selenium Open Source Search Engine) is a web archiving software, crawler, and search engine. It’s hosted on both
-[GitLab](https://gitlab.com/biolds1/sosse) and [GitHub](https://github.com/biolds/sosse). Feel free to use either platform to
-submit feature requests, bug reports, merge requests, or [start a discussion](https://github.com/biolds/sosse/discussions).
+**Discover Sosse** — the Selenium Open Source Search Engine built for powerful web archiving, crawling, and search.
+Explore all its features and capabilities on the [official website](https://sosse.io).
+
+Whether you're a developer, researcher, or data enthusiast, Sosse is ready to support your projects.
+Join the community on [GitHub](https://github.com/biolds/sosse) or [GitLab](https://gitlab.com/biolds1/sosse) to submit feature requests, report bugs, contribute code, or [start a discussion](https://github.com/biolds/sosse/discussions).
 
 ## Key Features
 
@@ -34,8 +36,16 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
 - 🔖 **Web Page Archiving**: Archive HTML content, adjust links for local use, download required assets, and support
   dynamic content. ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
 
+- 🏷️ **Tags**: Organize and filter crawled or archived pages using tags for better search and management.
+  ([doc](https://sosse.readthedocs.io/en/stable/tags.html))
+
 - 📂 **File Downloads**: Batch download binary files from web pages.
   ([doc](https://sosse.readthedocs.io/en/stable/guides/download.html))
+
+- 📡 **Webhooks**: Integrate with external services using highly flexible webhooks. Connect to proprietary AI platforms
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/ai_api_processing.html)) or locally hosted solutions
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/local_ai.html)) to enable advanced data extraction,
+  summarization, auto-tagging, notifications, and more.
 
 - 🔔 **Atom Feeds**: Generate content feeds for websites that don’t have them, or receive updates when a new page
   containing a keyword is published.
@@ -53,8 +63,8 @@ submit feature requests, bug reports, merge requests, or [start a discussion](ht
 Explore the 📚 [documentation](https://sosse.readthedocs.io/en/stable/index.html) and check out some
 📷 [screenshots](https://sosse.readthedocs.io/en/stable/screenshots.html).
 
-SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
-[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. SOSSE uses
+Sosse is written in Python and is distributed under the [GNU AGPLv3 license](https://www.gnu.org/licenses/agpl-3.0.en.html). It uses browser-based crawling with [Mozilla Firefox](https://www.mozilla.org/firefox/) or
+[Google Chromium](https://www.chromium.org/Home) alongside [Selenium](https://www.selenium.dev/) to index pages that rely on JavaScript. For faster crawling, [Requests](https://docs.python-requests.org/en/latest/index.html) can also be used. Sosse uses
 [PostgreSQL](https://www.postgresql.org/) for data storage.
 
 ## Try It Out
@@ -62,7 +72,7 @@ SOSSE is written in Python and is distributed under the [GNU AGPLv3 license](htt
 To quickly try the latest version with Docker:
 
 ```
-docker run -p 8005:80 biolds/sosse:latest
+docker run -p 8005:80 biolds/sosse:stable
 ```
 
 Then, open [http://127.0.0.1:8005/](http://127.0.0.1:8005/) and log in with the username `admin` and password `admin`.
@@ -71,4 +81,4 @@ For persistence of Docker data or alternative installation methods, please refer
 
 ## Stay Connected
 
-Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help, share ideas, or discuss SOSSE!
+Join the [Discord server](https://discord.gg/Vt9cMf7BGK) to get help, share ideas, or discuss Sosse!

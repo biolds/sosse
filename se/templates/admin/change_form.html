@@ -9,14 +9,24 @@
 </div>
 {% endblock %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "se/admin-change_form.js" %}"></script>
+{% endblock %}
+
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static "se/admin-forms.css" %}">
 {% endblock %}
 
+{% block content %}
+  {{ block.super }}
+  {% include "se/components/modal.html" with id="tags" title=tags_edit_title %}
+{% endblock %}
+
 {% block object-tools %}
     <span style="text-align: right">
-        <form action="{% url "admin:doaction" object_id %}" method="post">
+        <form action="{{ action_url }}" method="post">
             {% csrf_token %}
             {% for action in actions %}
                 {% if action.0 and action.0 != 'delete_selected' %}

@@ -1,22 +1,24 @@
 # Copyright 2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
+
 
 import logging
 
 import requests
 from django.conf import settings
+from requests.adapters import HTTPAdapter
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
 from .cookie import Cookie
@@ -34,6 +36,19 @@ def dict_merge(a, b):
         else:
             a[key] = b[key]
     return a
+
+
+def requests_params(_params):
+    params = {}
+
+    if settings.SOSSE_PROXY:
+        params["proxies"] = {
+            "http": settings.SOSSE_PROXY,
+            "https": settings.SOSSE_PROXY,
+        }
+    if settings.SOSSE_REQUESTS_TIMEOUT:
+        params["timeout"] = settings.SOSSE_REQUESTS_TIMEOUT
+    return dict_merge(params, _params)
 
 
 class BrowserRequest(Browser):
@@ -81,35 +96,51 @@ class BrowserRequest(Browser):
 
     @classmethod
     def _requests_params(cls):
-        params = {
-            "stream": True,
-            "allow_redirects": False,
-            "headers": {
-                "User-Agent": user_agent(),
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            },
-        }
-
-        if settings.SOSSE_PROXY:
-            params["proxies"] = {
-                "http": settings.SOSSE_PROXY,
-                "https": settings.SOSSE_PROXY,
+        return requests_params(
+            {
+                "allow_redirects": False,
+                "stream": True,
+                "headers": {
+                    "User-Agent": user_agent(),
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                },
             }
-        if settings.SOSSE_REQUESTS_TIMEOUT:
-            params["timeout"] = settings.SOSSE_REQUESTS_TIMEOUT
-        return params
+        )
+
+    _session_cache = {}
+
+    @classmethod
+    def _get_session(cls, url):
+        """Get or create a cached session for the given hostname."""
+        hostname = requests.utils.urlparse(url).hostname
+        if hostname not in cls._session_cache:
+            session = requests.Session()
+            adapter = HTTPAdapter(max_retries=0)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
+            cls._session_cache[hostname] = session
+        return cls._session_cache[hostname]
 
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):
         jar = cls._get_cookies(url)
         crawl_logger.debug(f"from the jar: {jar}")
-        s = requests.Session()
-        s.cookies = jar
 
-        func = getattr(s, method)
+        session = cls._get_session(url)
+        session.cookies = jar
+
+        func = getattr(session, method)
         kwargs = dict_merge(cls._requests_params(), kwargs)
+
+        # Drop the referer if the request is cross-origin
+        if kwargs.get("headers", {}).get("Referer"):
+            parsed_url = requests.utils.urlparse(url)
+            referer_parsed = requests.utils.urlparse(kwargs["headers"]["Referer"])
+            if parsed_url.hostname != referer_parsed.hostname:
+                kwargs["headers"].pop("Referer")
+
         r = func(url, **kwargs)
-        Cookie.set_from_jar(url, s.cookies)
+        Cookie.set_from_jar(url, session.cookies)
 
         content_length = int(r.headers.get("content-length", 0))
         if content_length / 1024 > max_file_size:
@@ -127,7 +158,7 @@ class BrowserRequest(Browser):
             raise PageTooBig(len(content), max_file_size)
 
         r._content = content
-        crawl_logger.debug(f"after request jar: {s.cookies}")
+        crawl_logger.debug(f"after request jar: {session.cookies}")
         return r
 
     @classmethod
@@ -170,6 +201,7 @@ class BrowserRequest(Browser):
             # Check for an HTML / meta redirect
             soup = page.get_soup()
             if soup:
+                has_redirect = False
                 for meta in page.get_soup().find_all("meta"):
                     if meta.get("http-equiv", "").lower() == "refresh" and meta.get("content", ""):
                         # handle redirect
@@ -181,11 +213,14 @@ class BrowserRequest(Browser):
                         if dest.startswith("url="):
                             dest = dest[4:]
 
-                        url = absolutize_url(url, dest)
-                        url = url_remove_fragment(url)
-                        redirect_count += 1
-                        crawl_logger.debug(f"{url}: html redirected")
-                        continue
+                            url = absolutize_url(url, dest)
+                            url = url_remove_fragment(url)
+                            redirect_count += 1
+                            has_redirect = True
+                            crawl_logger.debug(f"{url}: html redirected {meta}")
+                            break
+                if has_redirect:
+                    continue
             break
 
         if redirect_count > settings.SOSSE_MAX_REDIRECTS:

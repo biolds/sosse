@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import logging
@@ -56,7 +56,7 @@ class CacheRefresh(Exception):
 class HTMLCache:
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#expires_or_max-age
     @staticmethod
-    def _max_age_check(asset, max_file_size):
+    def _max_age_check(asset, referer, max_file_size):
         if (asset.max_age and asset.last_modified) or asset.etag:
             if (
                 asset.max_age
@@ -76,6 +76,7 @@ class HTMLCache:
                 headers = {
                     "Accept": "*/*",
                     "If-Modified-Since": http_date_format(asset.download_date),
+                    "Referer": referer,
                 }
 
                 if asset.etag:
@@ -113,7 +114,7 @@ class HTMLCache:
                 raise CacheMiss()
 
     @staticmethod
-    def _cache_check(url, max_file_size):
+    def _cache_check(url, referer, max_file_size):
         asset = HTMLAsset.objects.filter(url=url).order_by("download_date").last()
 
         if not asset:
@@ -124,15 +125,15 @@ class HTMLCache:
             logger.debug("cache miss, force refresh")
             raise CacheMiss()
 
-        HTMLCache._max_age_check(asset, max_file_size)
+        HTMLCache._max_age_check(asset, referer, max_file_size)
         HTMLCache._heuristic_check(asset)
         logger.debug("cache miss, cache outdated")
         raise CacheMiss()
 
     @staticmethod
-    def download(url, max_file_size):
+    def download(url, referer, max_file_size):
         try:
-            HTMLCache._cache_check(url, max_file_size)
+            HTMLCache._cache_check(url, referer, max_file_size)
         except CacheHit as e:
             e.asset.increment_ref()
             raise
@@ -145,7 +146,10 @@ class HTMLCache:
             url,
             check_status=True,
             max_file_size=max_file_size,
-            headers={"Accept": "*/*"},
+            headers={
+                "Accept": "*/*",
+                "Referer": referer,
+            },
         )
         return page
 
@@ -190,11 +194,12 @@ class HTMLCache:
         url = sanitize_url(url)
         filename_url = HTMLCache.html_filename(url, _hash, extension)
         dest = os.path.join(settings.SOSSE_HTML_SNAPSHOT_DIR, filename_url)
-        dest_dir, _ = dest.rsplit("/", 1)
-        os.makedirs(dest_dir, 0o755, exist_ok=True)
+        if not os.path.isfile(dest):
+            dest_dir, _ = dest.rsplit("/", 1)
+            os.makedirs(dest_dir, 0o755, exist_ok=True)
 
-        with open(dest, "wb") as fd:
-            fd.write(content)
+            with open(dest, "wb") as fd:
+                fd.write(content)
 
         return HTMLCache.create_cache_entry(url, filename_url, page)
 

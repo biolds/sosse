@@ -29,6 +29,12 @@ URL regex
 The regex matched against URLs to crawl. Multiple regex can be set, one by line. Lines starting with a ``#`` are
 treated as comments. The default ``(default)`` policy's regex cannot be modified.
 
+Tags
+""""
+
+This field defines the tags to be added to documents matching the policy. Tags are used to group documents and can be
+used to filter search results.
+
 Documents
 """""""""
 
@@ -142,7 +148,7 @@ Format of the image JPG or PNG.
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
-.. _script_params:
+.. _crawl_policy_script:
 
 Script
 """"""
@@ -173,8 +179,13 @@ In case the script triggers an error, further processing of the page is aborted 
 :ref:`document error field <document_error>`. It can be useful to use a tool such as
 `Tampermonkey <https://www.tampermonkey.net/>`_ to debug these kind of script.
 
-.. note::
+.. warning::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
+
+.. note::
+   The value returned by the script is used to update the document's data. This can be used to programmatically set the
+   document's title, content, tags, etc. All fields of the document available in the :doc:`../user/rest_api` can be
+   overwritten.
 
 .. _policy_archive:
 
@@ -211,6 +222,8 @@ Assets exclude HTML regex
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
 regex of ``audio|video`` would make the crawler skip the download of medias.
 
+.. _crawl_policy_recurrence:
+
 🕑 Recurrence
 -------------
 
@@ -228,14 +241,25 @@ How often pages should be reindexed:
   ``Recrawl dt min``. Then, when the page is recrawled the interval is multiplied by 2 if the content is unchanged,
   divided by 2 otherwise. The interval stays enclosed between ``Recrawl dt min`` and ``Recrawl dt max``.
 
-Hash mode
-"""""""""
+Change detection
+""""""""""""""""
 
 Define how changes between recrawl are detected:
 
-* ``Hash raw content``: raw text content is compared.
-* ``Normalize numbers before``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock
+* ``Raw content``: raw text content is compared.
+* ``Normalize numbers``: numbers are replaced by 0s before comparing, it can be useful to ignore counters, clock
   changes, ...
+
+Condition
+"""""""""
+
+Defines when the page is reprocessed:
+
+* ``On change only``: the content is reprocessed only when a change is detected.
+* ``Always``: the content is reprocessed every time the page is recrawled. (this can be useful if
+  the page only has pictures)
+* ``On change or manual trigger``: the content is reprocessed when a change is detected or when the
+  crawl was manually triggered.
 
 .. _authentication_params:
 
@@ -264,3 +288,17 @@ Authentication fields
 This defines the ``<input>`` fields to fill in the form. The fields are matched by their ``name`` attribute and filled
 with the ``value``. (hidden fields, like `CSRF <https://en.wikipedia.org/wiki/Cross-site_request_forgery>`_ preventing
 field, are automatically populated by the crawler)
+
+
+Actions
+-------
+
+.. image:: ../../../tests/robotframework/screenshots/crawl_policy_actions.png
+   :class: sosse-screenshot
+
+Using the actions dropdown, the following actions can be applied to the selected crawl policies:
+
+* ``Enable/Disable``: Toggles the Crawl Policy state.
+* ``Duplicate``: Makes a copy of the Crawl Policy.
+* ``Update doc tags``: Updates the tags of all documents matching the policy.
+* ``Clear & update doc tags``: Clears the tags of all documents matching the policy and updates them.

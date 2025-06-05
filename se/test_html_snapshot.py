@@ -1,16 +1,16 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 from unittest import mock
@@ -30,6 +30,11 @@ from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .html_snapshot import HTMLSnapshot, css_parser, extract_css_url
 from .page import Page
 from .test_mock import BrowserMock
+
+GET_EXPECTED_HEADERS = {
+    "Accept": "*/*",
+    "Referer": "http://127.0.0.1/",
+}
 
 
 class HTMLSnapshotTest:
@@ -112,13 +117,13 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/style.css",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -184,25 +189,25 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image2.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image3.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/video.mp4",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -364,7 +369,7 @@ class HTMLSnapshotTest:
                         "http://127.0.0.1/" + url_dl,
                         check_status=True,
                         max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                        headers={"Accept": "*/*"},
+                        headers=GET_EXPECTED_HEADERS,
                     )
                 ],
                 BrowserRequest.call_args_list,
@@ -424,13 +429,13 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/police.svg",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/police.woff",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -494,7 +499,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -571,7 +576,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/page.html",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 )
             ],
             BrowserRequest.call_args_list,
@@ -610,7 +615,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/toobig.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 )
             ],
             BrowserRequest.call_args_list,
@@ -668,7 +673,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/exception.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 )
             ],
             BrowserRequest.call_args_list,
@@ -725,13 +730,13 @@ class HTMLSnapshotTest:
                         long_file_url,
                         check_status=True,
                         max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                        headers={"Accept": "*/*"},
+                        headers=GET_EXPECTED_HEADERS,
                     ),
                     mock.call(
                         long_dir_url,
                         check_status=True,
                         max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                        headers={"Accept": "*/*"},
+                        headers=GET_EXPECTED_HEADERS,
                     ),
                 ],
                 BrowserRequest.call_args_list,
@@ -786,7 +791,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 )
             ],
             BrowserRequest.call_args_list,
@@ -849,13 +854,13 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/image.jpg",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -918,7 +923,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/video.mp4",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -980,7 +985,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS | {"Referer": page.url},
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -1058,7 +1063,7 @@ class HTMLSnapshotTest:
                 mock.patch("se.html_asset.open", mock_open),
                 mock.patch("se.html_cache.open", mock_open),
             ):
-                Document.objects.create(url=f"http://127.0.0.1/page{no}.html")
+                Document.objects.wo_content().create(url=f"http://127.0.0.1/page{no}.html")
                 Document.crawl(0)
                 self.assertEqual(
                     mock_open.mock_calls[0],
@@ -1081,7 +1086,7 @@ class HTMLSnapshotTest:
             mock.patch("se.html_asset.open", mock_open),
             mock.patch("se.html_cache.open", mock_open),
         ):
-            obj = Document.objects.first()
+            obj = Document.objects.wo_content().first()
             obj.delete_html()
             obj.delete()
             self.assertEqual(HTMLAsset.objects.count(), 2)
@@ -1093,7 +1098,7 @@ class HTMLSnapshotTest:
             )
             unlink.reset_mock()
 
-            obj = Document.objects.first()
+            obj = Document.objects.wo_content().first()
             obj.delete_html()
             obj.delete()
             self.assertEqual(HTMLAsset.objects.count(), 0)
@@ -1219,7 +1224,7 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,
@@ -1279,13 +1284,13 @@ class HTMLSnapshotTest:
                     "http://127.0.0.1/style.css",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image.png",
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
-                    headers={"Accept": "*/*"},
+                    headers=GET_EXPECTED_HEADERS,
                 ),
             ],
             BrowserRequest.call_args_list,

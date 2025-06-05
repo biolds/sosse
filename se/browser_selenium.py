@@ -1,16 +1,16 @@
 # Copyright 2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
@@ -211,13 +211,14 @@ class BrowserSelenium(Browser):
 
         current_url = cls.driver.current_url
         crawl_policy = CrawlPolicy.get_from_url(current_url)
+        script_result = None
         if crawl_policy and crawl_policy.script:
-            cls.driver.execute_script(crawl_policy.script)
+            script_result = cls.driver.execute_script(crawl_policy.script)
             cls._wait_for_ready(url)
 
         content = cls.driver.page_source.encode("utf-8")
         content = cls._escape_content_handler(content)
-        page = Page(current_url, content, cls)
+        page = Page(current_url, content, cls, script_result=script_result)
         page.title = cls.driver.title
         page.redirect_count = redirect_count
         return page

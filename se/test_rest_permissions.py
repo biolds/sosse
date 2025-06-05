@@ -1,23 +1,24 @@
 # Copyright 2022-2025 Laurent Defert
 #
-#  This file is part of SOSSE.
+#  This file is part of Sosse.
 #
-# SOSSE is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
+# Sosse is free software: you can redistribute it and/or modify it under the terms of the GNU Affero
 # General Public License as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# SOSSE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# Sosse is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License along with SOSSE.
+# You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.test import TransactionTestCase, override_settings
 
+from .document import Document
 from .test_rest_api import RestAPITest
 
 
@@ -25,18 +26,17 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
     def setUp(self):
         super().setUp()
         self.client.logout()
-        self.regular_user = User.objects.create(username="user")
-        self.regular_user.set_password("user")
+        self.regular_user = User.objects.create_user(username="user", password="user")
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_search_anonymous(self):
-        response = self.client.get("/api/document/")
-        self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content).get("count"), 2)
-
         response = self.client.post("/api/search/", {"query": "content"})
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(json.loads(response.content).get("count"), 1)
+
+        # Document API requires authentication and view_document permission
+        response = self.client.get("/api/document/")
+        self.assertEqual(response.status_code, 403, response.content)
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=False)
     def test_search_anonymous_forbidden(self):
@@ -87,3 +87,27 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
             set(json.loads(response.content).keys()),
             {"db", "screenshots", "html", "other", "free"},
         )
+
+    def test_document_update_permission(self):
+        doc = Document.objects.create(url="http://example.com", title="Example", content="Example content")
+        response = self.client.patch(
+            f"/api/document/{doc.id}/", {"title": "New title"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403, response.content)
+
+        self.client.login(username="user", password="user")
+        response = self.client.patch(
+            f"/api/document/{doc.id}/", {"title": "New title"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403, response.content)
+
+        permission = Permission.objects.get(codename="change_document")
+        self.regular_user.user_permissions.add(permission)
+        self.assertTrue(self.regular_user.has_perm("se.change_document"))
+        self.client.logout()
+        self.client.login(username="user", password="user")
+        response = self.client.patch(
+            f"/api/document/{doc.id}/", {"title": "New title"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(json.loads(response.content).get("title"), "New title")

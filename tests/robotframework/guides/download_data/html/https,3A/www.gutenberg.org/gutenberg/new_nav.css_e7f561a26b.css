@@ -1,0 +1,359 @@
+/*Strip the ul of padding and list styling*/
+nav {
+    left: 0;
+    padding: 0 10vw 0 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 999;
+    height: 3.6em;
+    font-family: "Trebuchet MS", Helvetica, Arial, sans-serif;
+  }
+  #main_logo {
+    top: 0;
+    left: 0;
+    position: absolute;
+  }
+
+  nav .searchbox {
+    position: relative;
+    float: left;
+    width: 28em;
+    padding: 0.2em;
+  }
+  nav .donatelink {
+    padding: 0.4em;
+  }
+  nav .searchbox input[type=text]{
+    height: 1.8em;
+    width: 18em;
+    border-radius: 1em;
+    color: black;
+    background-color: #f5f5f5;
+    padding-right: 0.3em;
+    padding-left: 0.3em;
+    border:none;
+  }
+  nav .searchbox input[type="submit"]:hover {
+    text-shadow: 0px 0px 6px rgba(255, 255, 255, 1);
+    -webkit-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+    -moz-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+     box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+    transition: all 0.4s ease 0s;
+  }
+  nav .searchbox input[type="submit"] {
+    color: #fff;
+    text-decoration: none;
+    background: #60a3bc;
+    padding: 0.4em;
+    border-radius: 2em;
+    display: inline-block;
+    border: none;
+  }
+  nav .donate {
+    color: black;
+    font-size: 0.7em;
+    width: 115%;
+    margin-top: 3.6em;
+    margin-left: 129px;
+    height: 3.6em;
+  }
+  nav .donate p {
+  margin: 0px 10px 0px 15px;
+  display: inline;
+  font-size: 1.39em;
+  position: relative;
+  top: 0.2em;
+}
+  nav .donate .donbtn {
+    display: inline-block;
+    cursor: pointer;
+    vertical-align: text-top;
+  }
+  nav .donate a:link {
+    text-decoration: underline;
+  }
+  nav .donate a:hover {
+    background: #BDAE92;
+    color: #fff; /* white */
+  }
+  @media screen and /*(orientation: portrait)*/(max-width : 1024px) {
+    nav {
+      height: auto;
+      font-size: 0.55em;
+      position: absolute;
+    }
+    nav .donate {
+      display: none;
+    }
+    nav .searchbox {
+      margin-left: 2em;
+      float: left;
+      display: inline-block;
+      padding: 0.2em;
+    }
+  }
+
+  #menu {
+    margin-left: 140px;
+    font-weight: bold;
+  }
+  #menu a {
+    text-decoration: none;
+  }
+
+  #menu ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  #menu .main-menu {
+    display: none;
+  }
+
+  #tm:checked + .main-menu {
+    display: block;
+  }
+
+  #menu input[type="checkbox"],
+  #menu ul span.drop-icon {
+    display: none;
+  }
+
+  #menu li,
+  #toggle-menu,
+  #menu .sub-menu {
+    border-style: solid;
+    border-color: rgba(0, 0, 0, .05);
+  }
+
+  #menu li,
+  #toggle-menu {
+    border-width: 0 0 1px;
+  }
+  #menu .sub-menu {
+    border-width: 1px 1px 0;
+    margin: 0 1em;
+  }
+
+  #menu .sub-menu li:last-child {
+    border-width: 0;
+  }
+
+  #menu li,
+  #toggle-menu,
+  #menu a {
+    position: relative;
+    display: block;
+    color: black;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, .125);
+  }
+
+  /*#toggle-menu {
+    background: #333;
+  }*/
+
+  #toggle-menu,
+  #menu a {
+    padding: 5px 1.5em;
+  }
+
+  #menu a {
+    transition: all .125s ease-in-out;
+    -webkit-transition: all .125s ease-in-out;
+  }
+
+  #menu .sub-menu {
+    display: none;
+  }
+
+  #menu input[type="checkbox"]:checked + .sub-menu {
+    display: block;
+  }
+
+  #menu .sub-menu a:hover {
+    color: #444;
+  }
+
+  #toggle-menu .drop-icon,
+  #menu li label.drop-icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  #menu label.drop-icon, #toggle-menu span.drop-icon {
+    padding: 1em;
+    font-size: 1em;
+    text-align: center;
+    background-color: rgba(0, 0, 0, .125);
+    text-shadow: 0 0 0 transparent;
+    color: rgba(255, 255, 255, .75);
+  }
+  @media only screen and (max-width: 1200px) and (min-width:1024px) {
+
+  }
+  @media only screen and (min-width: 1024px) {
+    /*TESTING_____________________*/
+    #menu .main-menu > li:last-child {
+      display: none;
+    }
+    #menu .main-menu {
+      display: block;
+    }
+
+    #toggle-menu,
+    #menu label.drop-icon {
+      display: none;
+    }
+
+    #menu ul span.drop-icon {
+      display: inline-block;
+    }
+
+    #menu li {
+      float: left;
+      border-width: 0 1px 0 0;
+    }
+
+    #menu .sub-menu li {
+      float: none;
+    }
+
+    #menu .sub-menu {
+      border-width: 0;
+      margin: 0;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width:max-content;
+      z-index: 3000;
+      max-height: 80vh;
+      overflow-y: auto;
+      font-weight: normal;
+    }
+
+    #menu .sub-menu,
+    #menu input[type="checkbox"]:checked + .sub-menu {
+      display: none;
+    }
+
+    #menu .sub-menu li {
+      border-width: 0 0 1px;
+      background-color:  #f0e1c5;
+      /*width: max-content;*/
+    }
+
+    #menu .sub-menu .sub-menu {
+      top: 0;
+      left: 100%;
+    }
+
+   #menu .sub-menu .drop-icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 1em;
+    }
+
+    #menu li:hover > input[type="checkbox"] + .sub-menu {
+      display: block;
+    }
+  }
+
+
+  /* Put theme-specific colors here to make it easy to switch between themes */
+  /* ORIGINAL THEME */
+  /* nav {
+    background-color: #EDDAB7;
+    color: #000000;
+  }
+  #menu {
+    background-color: #EDDAB7;
+  }
+  #menu .main-menu {
+    background-color: #EDDAB7;
+  }
+  #menu a:hover {
+    color: #27778f;
+  }
+  @media only screen and (min-width: 1024px) {
+    #menu .main-menu li {
+      background-color: #EDDAB7;
+    }
+  }
+  #menu .sub-menu {
+    background-color: #EDDAB7;
+  }
+  #menu .sub-menu li {
+    background-color: #f0e1c5;
+  }
+  nav .donate {
+    background-color: #F5ECDB;
+  } */
+
+
+  /* BLUE THEME */
+
+  nav {
+    background-color: #7ebed0;
+    color: #000000;
+  }
+  #menu {
+    background-color: #7ebed0;
+  }
+  #menu .main-menu {
+    background-color: #7ebed0;
+  }
+  #menu a:hover {
+    color: #fff;
+    transition: all 0.4s ease 0s;
+  }
+  @media only screen and (min-width: 1024px) {
+    #menu .main-menu li {
+      background-color: #7ebed0;
+    }
+  }
+  #menu .sub-menu {
+    background-color: #7ebed0;
+  }
+  #menu .sub-menu li {
+    background-color: #a3cdda;
+  }
+  nav .donate {
+    background-color: #c7dde3;
+  }
+
+
+
+  /* GOLD THEME */
+/*
+  nav {
+    background-color: #edd194;
+    color: #000000;
+  }
+  #menu {
+    background-color: #edd194;
+  }
+  #menu .main-menu {
+    background-color: #edd194;
+  }
+  #menu a:hover {
+    color: #27778f;
+  }
+  @media only screen and (min-width: 1024px) {
+    #menu .main-menu li {
+      background-color: #edd194;
+    }
+  }
+  #menu .sub-menu {
+    background-color: #edd194;
+  }
+  #menu .sub-menu li {
+    background-color: #f0dca9;
+  }
+  nav .donate {
+    background-color: #f3e8be;
+  }
+
+  */

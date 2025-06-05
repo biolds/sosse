@@ -1,0 +1,15 @@
+<span id="tag{% if suffix %}{{ suffix }}{% endif %}-{{ tag.id }}" class="tag{% if classes %} {{ classes }}{% endif %}" style="color: {{ tag.get_text_color }}; background-color: {{ tag.get_color }}{% if with_padding %}; margin-left: {{ tag.tree_padding }}px {% if not tag.parent and not with_padding %}; margin-top: 10px{% endif %}{% endif %} {% if tag.disabled %}; display: none{% endif %} {% if bold %}; font-weight: bold {% endif %} {% if cursor_pointer %}; cursor: pointer{% endif %}" {% if onclick %} onclick="{{ onclick }}" {% endif %}>
+  {% if tag.href %}
+    <a href="{{ tag.href }}" style="color: {{ tag.get_text_color }}">
+      {{ tag.name }}
+    </a>
+  {% else %}
+    {{ tag.name }}
+    {% if tag.clear_href or on_delete %}
+      <a class="tag_delete" {% if tag.clear_href %}href="{{ tag.clear_href }}" {% endif %} style="color: {{ tag.get_text_color }}; cursor: pointer" {% if on_delete %}onclick="{{ on_delete }}" {% endif %}>✖</a>
+    {% endif %}
+    {% if with_counters %}
+      <span class="tag-counter">-</span>
+    {% endif %}
+  {% endif %}
+</span>

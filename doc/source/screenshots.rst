@@ -41,10 +41,10 @@ Screenshots
    <br/>
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/history.png
+.. figure:: ../../tests/robotframework/screenshots/tags_filter.png
    :class: sosse-screenshot
 
-   :doc:`Search history <user/history>`
+   :doc:`Tagging <tags>`
 
 .. raw:: html
 

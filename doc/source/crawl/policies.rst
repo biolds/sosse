@@ -29,6 +29,12 @@ URL regex
 The regex matched against URLs to crawl. Multiple regex can be set, one by line. Lines starting with a ``#`` are
 treated as comments. The default ``(default)`` policy's regex cannot be modified.
 
+Tags
+""""
+
+This field defines the tags to be added to documents matching the policy. Tags are used to group documents and can be
+used to filter search results.
+
 Documents
 """""""""
 

@@ -36,8 +36,16 @@ Join the community on [GitHub](https://github.com/biolds/sosse) or [GitLab](http
 - 🔖 **Web Page Archiving**: Archive HTML content, adjust links for local use, download required assets, and support
   dynamic content. ([doc](https://sosse.readthedocs.io/en/stable/guides/archive.html))
 
+- 🏷️ **Tags**: Organize and filter crawled or archived pages using tags for better search and management.
+  ([doc](https://sosse.readthedocs.io/en/stable/tags.html))
+
 - 📂 **File Downloads**: Batch download binary files from web pages.
   ([doc](https://sosse.readthedocs.io/en/stable/guides/download.html))
+
+- 📡 **Webhooks**: Integrate with external services using highly flexible webhooks. Connect to proprietary AI platforms
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/ai_api_processing.html)) or locally hosted solutions
+  ([doc](https://sosse.readthedocs.io/en/stable/guides/local_ai.html)) to enable advanced data extraction,
+  summarization, auto-tagging, notifications, and more.
 
 - 🔔 **Atom Feeds**: Generate content feeds for websites that don’t have them, or receive updates when a new page
   containing a keyword is published.

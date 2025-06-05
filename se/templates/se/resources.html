@@ -72,6 +72,13 @@
 .resources a {
   font-weight: bold;
 }
+
+.resources img.social-img {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
 {% endblock %}
 
 {% block body %}
@@ -159,6 +166,27 @@
           <strong>📄 About Us</strong>
           <p>Learn about the mission, key features, and development of Sosse.</p>
           <a href="{% url "about" %}">Learn more about the project</a>
+        </li>
+      </ul>
+  </div>
+
+  <div>
+    <h3>📢 News</h3>
+    <div>
+      <ul>
+        <li>
+          <strong>
+            RSS feed & Social Networks
+          </strong>
+          <a href="https://sosse.io/blog" title="RSS">
+            <img src="{% static "se/logo-rss.svg" %}" class="social-img" alt="RSS">
+          </a>
+          <a href="https://x.com/SosseIo" title="X">
+            <img src="{% static "se/logo-twitter.svg" %}" class="social-img" alt="X">
+          </a>
+          <a href="https://www.facebook.com/people/Search-engine-Sosse/61576372905658/" title="Facebook">
+            <img src="{% static "se/logo-facebook.svg" %}" class="social-img" alt="Facebook">
+          </a>
         </li>
       </ul>
   </div>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 67.733332 67.733333"
+   version="1.1"
+   id="svg508"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="rss.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview510"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1"
+     inkscape:cx="126"
+     inkscape:cy="122.5"
+     inkscape:window-width="1330"
+     inkscape:window-height="768"
+     inkscape:window-x="36"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs505">
+
+
+</defs>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       x="0"
+       y="0"
+       style="fill:#b3b3b3;stroke-width:0.265;stroke-dasharray:none;fill-opacity:1"
+       width="67.73333"
+       height="67.73333"
+       id="rect347" />
+    <g
+       id="g355"
+       style="stroke-width:1.783;stroke-dasharray:none"
+       transform="scale(0.14862569)">
+		<path
+   style="fill:#ffffff;stroke-width:1.783;stroke-dasharray:none"
+   d="M 296.208,159.16 C 234.445,97.397 152.266,63.382 64.81,63.382 v 64.348 c 70.268,0 136.288,27.321 185.898,76.931 49.609,49.61 76.931,115.63 76.931,185.898 h 64.348 C 391.986,303.103 357.971,220.923 296.208,159.16 Z"
+   id="path349" />
+
+		<path
+   style="fill:#ffffff;stroke-width:1.783;stroke-dasharray:none"
+   d="m 64.143,172.273 v 64.348 c 84.881,0 153.938,69.056 153.938,153.939 h 64.348 c 0,-120.364 -97.922,-218.287 -218.286,-218.287 z"
+   id="path351" />
+
+		<circle
+   style="fill:#ffffff;stroke-width:1.783;stroke-dasharray:none"
+   cx="109.833"
+   cy="346.26001"
+   r="46.088001"
+   id="circle353" />
+
+	</g>
+  </g>
+</svg>

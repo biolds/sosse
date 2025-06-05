@@ -1,5 +1,5 @@
-Convert an RSS into Summaries Using a Webhook and Local AI
-==========================================================
+Convert an RSS feed into Summaries Using a Webhook and Local AI
+===============================================================
 
 This guide shows how to configure Sosse to automatically summarize articles from RSS feeds using a local AI model.
 It uses :doc:`../webhooks` and `Ollama <https://ollama.com/>`_, a Docker-based framework for running open-source LLMs

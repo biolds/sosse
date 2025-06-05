@@ -196,10 +196,11 @@
 |  | Create sample tags
 |  | Sosse Go To | http://127.0.0.1/admin/se/tag/
 |  | Wait Until Element Is Visible | id=result_list
-|  | SOSSe Capture Page Screenshot | tags_list.png
+|  | Sosse Capture Page Screenshot | tags_list.png
 |  | Click Element | xpath=//th[@class='field-_name']//span[contains(., 'Motherboard')]
 |  | Sosse Capture Page Screenshot | edit_tag.png
 |  | Sosse Go To | http://127.0.0.1/
 |  | Click Element | id=edit_search_tags
 |  | Wait Until Element Is Visible | id=tags
+|  | Wait Until Element Is Not Visible | class=loader
 |  | Sosse Capture Page Screenshot | tags_filter.png

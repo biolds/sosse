@@ -444,6 +444,10 @@ discord_tag_notif:
     - debian_pkg_check_firefox_tests
     - debian_pkg_check_chromium_docs
     - debian_pkg_check_firefox_docs
+    - pip_pkg_check_chromium_tests
+    - pip_pkg_check_firefox_tests
+    - pip_pkg_check_chromium_docs
+    - pip_pkg_check_firefox_docs
   script: |
     test -n "$DISCORD_TAG_NOTIF_URL"
     apt update

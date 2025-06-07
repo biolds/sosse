@@ -39,6 +39,7 @@ from .document_meta import DocumentMeta
 from .domain_setting import DomainSetting
 from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
+from .mime_handler import MimeHandler
 from .tag import Tag
 from .url import url_beautify, validate_url
 from .utils import reverse_no_escape
@@ -261,22 +262,30 @@ class Document(models.Model):
         return lang
 
     def _hash_content(self, content, crawl_policy):
-        if not isinstance(content, str):
-            raise ValueError("content must be a string")
+        if not self.mimetype:
+            raise Exception("mimetype is required")
 
-        from .crawl_policy import CrawlPolicy
+        if self.mimetype.startswith("text/"):
+            if not isinstance(content, str):
+                raise ValueError("content must be a string")
 
-        if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
-            pass
-        elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
-            try:
-                content = re.sub("[0-9]+", "0", content)
-            except UnicodeDecodeError:
+            from .crawl_policy import CrawlPolicy
+
+            if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
                 pass
+            elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
+                try:
+                    content = re.sub("[0-9]+", "0", content)
+                except UnicodeDecodeError:
+                    pass
+            else:
+                raise Exception("HASH_MODE not supported")
+            content = content.encode("utf-8")
         else:
-            raise Exception("HASH_MODE not supported")
+            if not isinstance(content, bytes):
+                raise ValueError("content must be a string")
 
-        return settings.HASHING_ALGO(content.encode("utf-8")).hexdigest()
+        return settings.HASHING_ALGO(content).hexdigest()
 
     def _index_log(self, s, stats, verbose):
         if not verbose:
@@ -395,7 +404,10 @@ class Document(models.Model):
         self.content = links["text"]
         crawl_logger.debug(f"queued links {len(links['links'])}")
 
-        self.content_hash = self._hash_content(self.content, crawl_policy)
+        # self.content may be empty if the page is not text-based, in this case we use the page content
+        _hash_content = self.content if self.mimetype.startswith("text/") else page.content
+        self.content_hash = self._hash_content(_hash_content, crawl_policy)
+
         self._schedule_next(current_hash != self.content_hash, crawl_policy)
 
         webhook_trigger_cond = {Webhook.TRIGGER_COND_ALWAYS}
@@ -425,7 +437,6 @@ class Document(models.Model):
 
         if self.mimetype.startswith("text/"):
             self._parse_xml(page, crawl_policy, stats, verbose)
-
             links = self._parse_text(page, crawl_policy, stats, verbose)
 
         if self.mimetype.startswith("text/"):
@@ -480,7 +491,11 @@ class Document(models.Model):
             serializer = DocumentSerializer(self, data=page.script_result, partial=True)
             serializer.user_doc_update("Javascript")
 
+        MimeHandler.run_for_document(self, page)
         Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
+
+        if not self.title:
+            self.title = self.url
 
     def convert_to_jpg(self):
         d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.image_name())
@@ -703,8 +718,8 @@ class Document(models.Model):
                         break
 
                     if page.url == doc.url:
-                        doc.index(page, crawl_policy)
                         doc.set_error("")
+                        doc.index(page, crawl_policy)
                         doc.save()
                         Link.objects.filter(extern_url=doc.url).update(extern_url=None, doc_to=doc)
                         break
@@ -842,4 +857,14 @@ class Document(models.Model):
                 webhook = Webhook.objects.filter(pk=webhook_id).first()
                 name = webhook.name if webhook else f"Deleted Webhook {webhook_id}"
                 return name
+        return None
+
+    def get_content_file(self):
+        if self.has_html_snapshot:
+            asset = HTMLAsset.objects.filter(url=self.url).first()
+            if asset:
+                asset_path = settings.SOSSE_HTML_SNAPSHOT_DIR + asset.filename
+                if os.path.exists(asset_path):
+                    return asset_path
+
         return None

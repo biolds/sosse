@@ -116,6 +116,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
         "static_root": ConfOption(var="STATIC_ROOT", default="/var/lib/sosse/static/"),
         "screenshots_url": ConfOption(default="/screenshots/"),
         "screenshots_dir": ConfOption(default="/var/lib/sosse/screenshots/"),
+        "scripts_dir": ConfOption(default="/var/lib/sosse/scripts/"),
         "html_snapshot_url": ConfOption(
             comment="Url path to HTML snapshot\n\n.. danger::\n   This value is hardcoded inside stored HTML snapshot. If you modify it, any HTML page previously stored as a snapshot will need to be crawled again in order to update internal links.",
             default="/snap/",
@@ -641,6 +642,7 @@ class Conf:
             "static_root",
             "screenshots_url",
             "screenshots_dir",
+            "scripts_dir",
             "html_snapshot_url",
             "html_snapshot_dir",
         ):
@@ -648,8 +650,10 @@ class Conf:
             if not val.endswith("/"):
                 settings["SOSSE_" + opt.upper()] = val + "/"
 
-        settings["SOSSE_THUMBNAILS_DIR"] = settings["SOSSE_SCREENSHOTS_DIR"] + "thumb/"
-        settings["SOSSE_THUMBNAILS_URL"] = settings["SOSSE_SCREENSHOTS_URL"] + "thumb/"
+        settings |= {
+            "SOSSE_THUMBNAILS_DIR": settings["SOSSE_SCREENSHOTS_DIR"] + "thumb/",
+            "SOSSE_THUMBNAILS_URL": settings["SOSSE_SCREENSHOTS_URL"] + "thumb/",
+        }
         return settings
 
     @classmethod

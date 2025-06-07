@@ -522,7 +522,7 @@ rebuild_unit_tests:
     - "/etc/init.d/postgresql start ||:"
     - "until pg_isready; do sleep 1; done"
     - apt-get update
-    - apt-get install -y rsync git
+    - apt-get install -y rsync git jq
     - sed -e 's#python3#/venv/bin/python3#' -i ./tests/test_app.sh
     - ./tests/test_app.sh
     - bash -c "$(grep -E '(mkdir|touch|chown|test)' /run.sh)" # Create log dir and files

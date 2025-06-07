@@ -223,6 +223,10 @@ class Page:
 
     def dom_walk(self, crawl_policy, queue_links, document):
         links = {"links": [], "text": ""}
+
+        if document and not document.mimetype.startswith("text/"):
+            return links
+
         soup = self.get_soup()
         if not soup:
             return links

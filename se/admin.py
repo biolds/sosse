@@ -42,6 +42,7 @@ from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .domain_setting import DomainSetting
 from .html_asset import HTMLAsset
+from .mime_handler import MimeHandler
 from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
 from .tag import Tag
 from .tag_field import TagField
@@ -60,6 +61,7 @@ class SEAdminSite(admin.AdminSite):
         "Document": "🔤 ",
         "DomainSetting": "🕸",
         "Webhook": "📡",
+        "MimeHandler": "🧩",
         "ExcludedUrl": "🔗",
         "SearchEngine": "🔍",
         "User": "👤",
@@ -77,6 +79,7 @@ class SEAdminSite(admin.AdminSite):
                     "DomainSetting",
                     "Cookie",
                     "Webhook",
+                    "MimeHandler",
                     "ExcludedUrl",
                     "SearchEngine",
                     "HTMLAsset",
@@ -763,7 +766,16 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     @admin.display(description="Mimetype")
     def _mimetype(obj):
         icon = mimetype_icon(obj.mimetype)
-        return f"{icon} {obj.mimetype}"
+        value = format_html(f"{icon} {obj.mimetype}")
+
+        handlers = MimeHandler.objects.extra(where=["%s ~ mimetype_re"], params=[obj.mimetype])
+        if handlers.exists():
+            value += format_html(
+                ' <a href="{}" style="margin-left: 10px">🧩 Handlers ({})</a>',
+                reverse("admin:se_mimehandler_changelist") + f"?q={obj.mimetype}",
+                handlers.count(),
+            )
+        return value
 
     @staticmethod
     @admin.display(description="Language")
@@ -1395,6 +1407,53 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
         )
 
     webhook_test.short_description = "Webhook test"
+
+
+@admin.register(MimeHandler)
+class MimeHandlerAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "enabled",
+        "docs",
+        "mimetype_re",
+    )
+    list_filter = ("enabled",)
+    search_fields = (
+        "name",
+        "mimetype_re",
+        "script",
+    )
+    fieldsets = (
+        (
+            None,
+            {"fields": ("name", "enabled", "related", "io_format", "mimetype_re", "script", "timeout")},
+        ),
+    )
+    readonly_fields = ("related",)
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, _ = super().get_search_results(request, queryset, search_term)
+        if search_term.strip():
+            queryset = MimeHandler.objects.extra(where=["%s ~ mimetype_re"], params=[search_term.strip()])
+        return queryset, False
+
+    @staticmethod
+    def related(obj):
+        doc_count = Document.objects.wo_content().filter(mimetype__regex=obj.mimetype_re).count()
+        params = urlencode({"mimetype__regex": obj.mimetype_re})
+        return format_html(
+            '<a href="{}">🔤&nbspDocuments ({})</a>', reverse("admin:se_document_changelist") + "?" + params, doc_count
+        )
+
+    @staticmethod
+    def docs(obj):
+        count = Document.objects.wo_content().filter(mimetype__regex=obj.mimetype_re).count()
+        params = urlencode({"mimetype__regex": obj.mimetype_re})
+        return format_html(
+            '<a href="{}">🔤 {}</a>',
+            reverse("admin:se_document_changelist") + "?" + params,
+            count,
+        )
 
 
 if settings.DEBUG:

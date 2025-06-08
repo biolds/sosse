@@ -3,6 +3,9 @@ ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
 ADD run.sh pg_run.sh /
 RUN chmod +x /run.sh /pg_run.sh
+RUN groupadd -g 900 postgres && \
+    useradd -u 900 -g 900 -m -d /var/lib/postgresql -s /bin/bash postgres && \
+    passwd -l postgres
 RUN apt-get update && apt-get install -y postgresql && apt-get clean
 
 WORKDIR /

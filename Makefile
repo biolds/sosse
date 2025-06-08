@@ -100,6 +100,7 @@ docker_push:
 docker_build:
 	$(MAKE) -C docker build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
+	docker tag biolds/sosse:pip-release biolds/sosse:stable
 
 _doc_test_debian:
 	cp doc/code_blocks.json /tmp/code_blocks.json

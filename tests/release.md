@@ -1,5 +1,6 @@
 - make docker_git_build
 - test (docker run -p 8005:80 -e SOSSE_CRAWLER_COUNT=1 biolds/sosse:git)
+- test upgrading the docker image
 - debian update: version + changelog : dch -i (available in the devscripts deb package)
 - doc version update in doc/source/conf.py
 - update the CHANGELOG.md using the last changelog build it the main branch

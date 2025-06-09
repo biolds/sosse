@@ -714,10 +714,10 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             links_from_here = format_html('🔗&nbsp<a href="{}">Links from here</a>', links_from_here_url)
 
             return format_html(
-                '<p style="margin: 0; height: 26px"><span>{}</span></p>'
-                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>'
-                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>'
-                '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
+                '<p style="margin-top: 0"><span>{}</span></p>'
+                '<p><span>{}</span><span class="label_tag">{}</span><br></p>'
+                '<p><span>{}</span><span class="label_tag">{}</span><br></p>'
+                '<p><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
                 archive,
                 policy,
                 domain,
@@ -1097,7 +1097,7 @@ class CrawlPolicyAdmin(InlineActionModelAdmin, ActiveTagMixin):
             tag_count,
         )
         return format_html(
-            '<p style="margin: 0; height: 26px"><span>{}</span><span class="label_tag">{}</span><br></p>', docs, tags
+            '<p style="margin-top: 0"><span>{}</span><span class="label_tag">{}</span><br></p>', docs, tags
         )
 
     @staticmethod

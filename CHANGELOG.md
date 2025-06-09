@@ -1,3 +1,7 @@
+## 1.13.1 (2025-06-09)
+### Bug fixes (1 change)
+- [fix upgrading from Docker image 1.12](https://gitlab.com/biolds1/sosse/-/commit/13d1bf3991866f312e43b00ce63244b26307efa9) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/178))
+
 ## 1.13.0 (2025-06-05)
 ### Features (12 changes)
 - [webhook triggering while crawling pages](https://gitlab.com/biolds1/sosse/-/commit/5cdc938acd02188d66995a2ebd641f8b6e2fa1bc) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/159))

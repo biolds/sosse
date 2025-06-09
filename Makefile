@@ -72,12 +72,12 @@ docker_run:
 docker_release_push:
 	docker push biolds/sosse:latest
 
-docker_release_build:
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	docker tag biolds/sosse:pip-release biolds/sosse:latest
+#docker_release_build:
+#	docker pull debian:bookworm
+#	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+#	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+#	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+#	docker tag biolds/sosse:pip-release biolds/sosse:latest
 
 # The test release build builds the git repo based package
 docker_release_build_test:
@@ -88,7 +88,6 @@ docker_release_build_test:
 	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	docker tag biolds/sosse:pip-release biolds/sosse:latest
 
 docker_git_build:
 	docker pull debian:bookworm
@@ -101,6 +100,7 @@ docker_push:
 docker_build:
 	$(MAKE) -C docker build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
+	docker tag biolds/sosse:pip-release biolds/sosse:stable
 
 _doc_test_debian:
 	cp doc/code_blocks.json /tmp/code_blocks.json

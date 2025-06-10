@@ -1,3 +1,7 @@
+## 1.13.2 (2025-06-10)
+### Bug fixes (1 change)
+- [fix static files update during Docker upgrade](https://gitlab.com/biolds1/sosse/-/commit/0237c3307213895adb94fc6eadf302cab96ebaf3) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/180))
+
 ## 1.13.1 (2025-06-09)
 ### Bug fixes (1 change)
 - [fix upgrading from Docker image 1.12](https://gitlab.com/biolds1/sosse/-/commit/13d1bf3991866f312e43b00ce63244b26307efa9) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/178))

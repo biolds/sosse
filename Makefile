@@ -69,12 +69,11 @@ docker_run:
 	docker run -p 8005:80 --mount source=sosse_postgres,destination=/var/lib/postgresql \
 						--mount source=sosse_var,destination=/var/lib/sosse biolds/sosse:latest
 
-#docker_release_build:
-#	docker pull debian:bookworm
-#	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-#	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-#	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-#	docker tag biolds/sosse:pip-release biolds/sosse:latest
+docker_release_build:
+	docker pull debian:bookworm
+	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
 
 # The test release build builds the git repo based package
 docker_release_build_test:

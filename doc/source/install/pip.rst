@@ -137,5 +137,5 @@ Next steps
 ----------
 
 Congrats! The installation is done, you can now point your brwoser to the Nginx and log in with the user ``admin`` and
-the password ``admin``. For more information about the configuration, you can follow the :doc:`../administration` pages,
-or follow :doc:`../guides/search` to start indexing documents.
+the password ``admin``. For more information about the configuration, you can follow
+:doc:`../guides/search` to start indexing documents, or explore other :doc:../guides'.

@@ -7,7 +7,7 @@ name = "Sosse"
 authors = [{ name = "Laurent Defert", email = "laurent_defert@yahoo.fr" }]
 readme = "README.md"
 description = "Open-source, enterprise-grade web search & archiving."
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 keywords = ["search engine", "crawler", "scraping"]
 license = "AGPL-3.0-only"
 classifiers = ["Framework :: Django", "Programming Language :: Python :: 3"]

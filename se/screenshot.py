@@ -37,11 +37,20 @@ class ScreenshotFullView(ArchiveMixin, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
+
+        # Update links to make them point internally
+        links = list(self.doc.links_to.filter(screen_pos__isnull=False).order_by("link_no"))
+        for link in links:
+            if link.doc_to:
+                continue
+
+            link.extern_url = self.request.build_absolute_uri("/html/" + link.extern_url)
+
         return context | {
             "screenshot": settings.SOSSE_SCREENSHOTS_URL + "/" + self.doc.image_name(),
             "screenshot_size": self.doc.screenshot_size.split("x"),
             "screenshot_format": self.doc.screenshot_format,
             "screenshot_mime": ("image/png" if self.doc.screenshot_format == "png" else "image/jpeg"),
-            "links": self.doc.links_to.filter(screen_pos__isnull=False).order_by("link_no"),
+            "links": links,
             "screens": range(self.doc.screenshot_count),
         }

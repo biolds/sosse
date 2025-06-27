@@ -6,6 +6,6 @@ chown 900:adm /var/log/postgresql/*
 
 /etc/init.d/postgresql start
 
-export SOSSE_DB_HOST=localhost
+export SOSSE_DB_HOST=${SOSSE_DB_HOST:-localhost}
 
 exec bash /run.sh

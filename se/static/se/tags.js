@@ -66,6 +66,14 @@ async function show_tags(tags_url = null) {
     });
   }
 
+  // Set the return url for Create button
+  document.querySelectorAll(".create-tag").forEach((createButton) => {
+    const link = createButton.getElementsByTagName("a")[0];
+    link.href = `${link.href}?return_url=${encodeURIComponent(
+      window.location.pathname + window.location.search,
+    )}`;
+  });
+
   const counts_url = "/api/tag/tree_doc_counts/";
   const response = await fetch(counts_url);
   if (!response.ok) {

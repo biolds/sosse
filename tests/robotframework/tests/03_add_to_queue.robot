@@ -102,3 +102,63 @@
 |  | Input Text | id=id_urls | http
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | Page Should Contain | url has no scheme
+
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http
+|  | Page Should Contain | url has no scheme
+
+| Crawl policy edit return url
+|  | [Tags] | returnurl
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+|  | Wait Until Element Is Visible | id=id_urls
+|  | Click Link | Edit
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
+|  | Click Element | xpath=//input[@value='Save']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+
+|  | Click Link | 「(default)」
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
+|  | Click Element | xpath=//input[@value='Save']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+
+|  | Click Link | Create a new policy
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/add/?url_regex=%5Ehttp%3A//127%5C.0%5C.0%5C.1/test&return_url=/admin/se/document/queue_confirm/?urls=http%3A%2F%2F127.0.0.1%2Ftest
+|  | Click Element | xpath=//input[@value='Save']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+|  | Click Element | xpath=//a[contains(., 'http://127\\.0\\.0\\.1/test')]
+|  | Click Link | Delete
+|  | Click Element | xpath=//input[@value='Yes, I’m sure']
+
+| Continue crawl policy edition
+|  | [Tags] | returnurl
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+|  | Click Link | 「(default)」
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
+|  | Click Element | xpath=//input[@value='Save and add another']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/add/
+
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+|  | Click Link | 「(default)」
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
+|  | Click Element | xpath=//input[@value='Save and continue editing']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/1/change/
+
+| Tag create return url
+|  | [Tags] | returnurl
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | Click Element | class=create-tag
+|  | Input Text | id=id_name | Processing3
+|  | Click Element | xpath=//input[@value='Save']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test

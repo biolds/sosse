@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 import re
+from urllib.parse import quote_plus
 
 from django import forms
 from django.contrib import messages
@@ -103,29 +104,31 @@ class AddToQueueConfirmationView(AddToQueueView):
     form_class = AddToQueueConfirmForm
 
     def dispatch(self, request, *args, **kwargs):
-        if request.method != "POST":
-            return redirect(reverse("admin:queue"))
         return super().dispatch(request, *args, **kwargs)
-
-    def get_urls(self):
-        form = AddToQueueForm(self.request.POST)
-        if not form.is_valid():
-            return []
-        return form.cleaned_data["urls"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        form = context["form"]
+        form_data = self.request.POST.copy()
+
+        # Take URLs from the address bar if available
+        if not form_data.get("urls") and self.request.GET.get("urls"):
+            urls = self.request.GET.getlist("urls")
+            urls = [url.strip() for url in urls if url.strip()]
+            form_data["urls"] = "\n".join(urls)
+
+        form = AddToQueueForm(form_data)
+        context["form"] = form
 
         if not form.is_valid():
             return context
 
-        urls = self.get_urls()
+        urls = form.cleaned_data["urls"]
         crawl_policies = set()
         for url in urls:
             crawl_policy = CrawlPolicy.get_from_url(url)
             crawl_policies.add(crawl_policy)
 
+        return_url = reverse("admin:queue_confirm") + "?urls=" + quote_plus("\n".join(urls))
         initial = {"urls": "\n".join(urls)}
         choices = []
         domain = None
@@ -144,7 +147,9 @@ class AddToQueueConfirmationView(AddToQueueView):
 
                 default_txt += ' using the policy <a href="{}">{}</a>'
                 default_txt = format_html(
-                    default_txt, reverse("admin:se_crawlpolicy_change", args=(matching.id,)), matching
+                    default_txt,
+                    reverse("admin:se_crawlpolicy_change", args=(matching.id,)) + "?return_url=" + return_url,
+                    matching,
                 )
                 choices.append(("default", default_txt))
                 domain = self._domain_name(urls[0])
@@ -162,12 +167,13 @@ class AddToQueueConfirmationView(AddToQueueView):
         form = AddToQueueConfirmForm(initial=initial)
         form.fields["crawl_policy_choice"].choices = choices
 
-        urls = ["^" + re.escape(url) for url in self.get_urls()]
+        urls_re = ["^" + re.escape(url) for url in urls]
 
         context |= {
             "crawl_policies": sorted(crawl_policies, key=lambda x: x.url_regex),
             "crawl_policy": crawl_policy,
-            "urls": urls,
+            "urls": urls_re,
+            "return_url": return_url,
             "CrawlPolicy": CrawlPolicy,
             "DomainSetting": DomainSetting,
             "form": form,

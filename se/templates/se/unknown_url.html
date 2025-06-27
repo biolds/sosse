@@ -15,10 +15,9 @@
     <p>
     </p>
     {% if 'se.add_document' in perms %}
-        <form method="post" action="{% url 'admin:queue_confirm' %}">
-            {% csrf_token %}
+        <form method="get" action="{% url 'admin:queue_confirm' %}">
             <input type="hidden" name="urls" value="{{ url }}">
-            <input type="submit" name="action" value="Add to crawl queue" style="margin-top: 16px">
+            <input type="submit" value="Add to crawl queue" style="margin-top: 16px">
         </form>
     {% endif %}
 {% endblock %}

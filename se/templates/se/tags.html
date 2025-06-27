@@ -5,7 +5,7 @@
       No tags exist yet.
       {% if change_permission %}
         <div style="float: right">
-          {% include "se/components/tag_action.html" with text="✏️ Create" href=create_tag_href %}
+          {% include "se/components/tag_action.html" with text="✏️ Create" href=create_tag_href create_tag=True %}
         </div>
       {% endif %}
     {% else %}
@@ -14,7 +14,7 @@
           {% include "se/components/tag_action.html" with text="📝 Edit" href=view_tags_href %}
         </div>
         <div style="float: right">
-          {% include "se/components/tag_action.html" with text="✏️ Create" href=create_tag_href %}
+          {% include "se/components/tag_action.html" with text="✏️ Create" href=create_tag_href create_tag=True %}
         </div>
       {% endif %}
         Selected:

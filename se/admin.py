@@ -23,7 +23,7 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import models
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, reverse
 from django.template import defaultfilters
 from django.template.loader import render_to_string
@@ -122,6 +122,22 @@ admin_site = SEAdminSite(name="admin")
 def get_admin():
     global admin_site
     return admin_site
+
+
+class ReturnUrlAdminMixin:
+    def response_add(self, request, obj, post_url_continue=None):
+        if "_continue" not in request.POST and "_addanother" not in request.POST:
+            return_url = request.GET.get("return_url")
+            if return_url:
+                return HttpResponseRedirect(return_url)
+        return super().response_add(request, obj, post_url_continue)
+
+    def response_change(self, request, obj):
+        if "_continue" not in request.POST and "_addanother" not in request.POST:
+            return_url = request.GET.get("return_url")
+            if return_url:
+                return HttpResponseRedirect(return_url)
+        return super().response_change(request, obj)
 
 
 class CharFieldForm(forms.ModelForm):
@@ -975,7 +991,7 @@ def clear_update_doc_tags(modeladmin, request, queryset):
 
 
 @admin.register(CrawlPolicy)
-class CrawlPolicyAdmin(InlineActionModelAdmin, ActiveTagMixin):
+class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMixin):
     inlines = [InlineAuthField]
     form = CrawlPolicyForm
     list_display = (
@@ -1252,7 +1268,7 @@ class TagForm(BaseTagForm):
 
 
 @admin.register(Tag)
-class TagAdmin(TreeAdmin):
+class TagAdmin(ReturnUrlAdminMixin, TreeAdmin):
     form = TagForm
     list_display = ("_name", "docs", "policies", "webhooks_count")
     fields = ("name", "_ref_node_id", "documents", "crawl_policies", "webhooks", "_position")

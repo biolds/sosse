@@ -302,3 +302,27 @@
 |  | ${tags_cell}= | Set Variable | //th[@class='field-url_regex' and contains(., 'http://example.com/.*')]/../td[@class='field-active_tags']
 |  | Element Should Contain | xpath=${tags_cell}//span[@class='tag'][1] | AI
 |  | Element Should Contain | xpath=${tags_cell}//span[@class='tag'][2] | General Usage
+
+| Tag create search return url
+|  | [Tags] | returnurl
+|  | Sosse Go To | http://127.0.0.1/s/?q\=Test
+|  | ${search_loc}= | Get Location
+|  | Click Element | id=edit_search_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | Click Element | class=create-tag
+|  | Input Text | id=id_name | Processing
+|  | Click Element | xpath=//input[@value='Save']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | ${search_loc}
+
+| Tag create archive return url
+|  | [Tags] | returnurl
+|  | Sosse Go To | http://127.0.0.1/html/http://127.0.0.1/screenshots/website/index.html
+|  | Click Element | id=fold_button
+|  | Click Element | id=edit_tags
+|  | Wait Until Element Is Visible | id=tags_list
+|  | Click Element | class=create-tag
+|  | Input Text | id=id_name | Processing2
+|  | Click Element | xpath=//input[@value='Save']
+|  | ${loc}= | Get Location
+|  | Should Be Equal | ${loc} | http://127.0.0.1/html/http://127.0.0.1/screenshots/website/index.html

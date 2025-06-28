@@ -282,6 +282,21 @@ def add_headlines(paginated, query):
 class SearchView(UserView):
     template_name = "se/search.html"
 
+    def _short_search_history(self):
+        search_history = SearchHistory.objects.filter(user=self.request.user).order_by("-date")
+        unique_history = []
+        unique_ids = []
+
+        for entry in search_history:
+            query_key = (entry.query, entry.querystring, entry.tags)
+            if query_key not in unique_history:
+                unique_history.append(query_key)
+                unique_ids.append(entry.id)
+            if len(unique_history) >= settings.SOSSE_HOME_SEARCH_HISTORY_SIZE:
+                break
+
+        return SearchHistory.objects.filter(id__in=unique_ids).order_by("-date")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         results = []
@@ -368,10 +383,7 @@ class SearchView(UserView):
             and self.request.user.is_authenticated
             and settings.SOSSE_HOME_SEARCH_HISTORY_SIZE > 0
         ):
-            search_history = SearchHistory.objects.filter(user=self.request.user).order_by("-date")[
-                : settings.SOSSE_HOME_SEARCH_HISTORY_SIZE
-            ]
-
+            search_history = self._short_search_history()
             for entry in search_history:
                 if entry.tags:
                     _tags = []

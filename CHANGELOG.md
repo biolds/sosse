@@ -1,3 +1,9 @@
+## 1.13.4 (2025-06-29)
+### Bug fixes (3 changes)
+- [fix duplicate elements in the home page history](https://gitlab.com/biolds1/sosse/-/commit/60d643604e270e490939a4a17d160925beb418e8) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))
+- [fix passing SOSSE_DB_HOST to Docker setup](https://gitlab.com/biolds1/sosse/-/commit/93dc9fc5f94707a9fb8a02786bf7e29c4ea680cc) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))
+- [fix screenshot archive links pointing to source pages](https://gitlab.com/biolds1/sosse/-/commit/16330cb26826bbe3ca82bb748fa1bee487c0029c) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))
+
 ## 1.13.3 (2025-06-15)
 ### Bug fixes (1 change)
 - [fix daily Docker image rebuild](https://gitlab.com/biolds1/sosse/-/commit/1baa0c80aabb83ccc5a8b897ac9152a725b1e055) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/181))

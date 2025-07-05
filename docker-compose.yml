@@ -18,7 +18,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:latest
+    image: postgres:17
     container_name: sosse_db
     environment:
       POSTGRES_USER: sosse_user

@@ -1,3 +1,9 @@
+## 1.13.5 (2025-07-05)
+### Bug fixes (1 change)
+- [documentation update: set postgres to version 17 in docker-compose.yml to avoid breaking upgrades](https://gitlab.com/biolds1/sosse/-/commit/61d1a47d13c0af0978dda32fe5d9cef554c0c4f5)
+
+> ⚠️ **Important**: Please update your `docker-compose.yml` file to set PostgreSQL to version 17. This will prevent issues during future upgrades. Refer to the [diff](https://gitlab.com/biolds1/sosse/-/commit/61d1a47d13c0af0978dda32fe5d9cef554c0c4f5) for more details.
+
 ## 1.13.4 (2025-06-29)
 ### Bug fixes (3 changes)
 - [fix duplicate elements in the home page history](https://gitlab.com/biolds1/sosse/-/commit/60d643604e270e490939a4a17d160925beb418e8) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))

@@ -453,7 +453,7 @@ discord_tag_notif:
     apt update
     apt install -y jq curl make
     changelog="$(grep -v '^# Changelog' < doc/source/CHANGELOG.md | sed '/^$/Q' | sed -e 's#(\(https\?://[^)]*\))#(<\1\>)#g')"
-    msg="$(jq -n --arg tag "$CI_COMMIT_TAG" --arg changelog "$changelog" '{"content": ($tag + " was just released! 🎉\n\n" + $changelog)}')"
+    msg="$(jq -n --arg tag "$CI_COMMIT_TAG" --arg changelog "$changelog" '{"content": ($tag + " was just tagged! 🎉\n\n" + $changelog)}')"
     curl -X POST -H 'Content-Type: application/json' -d "$msg" "$DISCORD_TAG_NOTIF_URL"
 
 rebuild_upgrade_check:

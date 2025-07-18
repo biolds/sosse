@@ -25,7 +25,7 @@ from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .crawl_policy import CrawlPolicy
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 
 TEST_SERVER_DOMAIN = "127.0.0.1:8000"
 TEST_SERVER_URL = f"http://{TEST_SERVER_DOMAIN}/"
@@ -184,15 +184,15 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
 
 class RequestsFunctionalTest(FunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
+    BROWSE_MODE = Domain.BROWSE_REQUESTS
     BROWSER_CLASS = BrowserRequest
 
 
 class ChromiumFunctionalTest(FunctionalTest, BrowserBasedFunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_CHROMIUM
+    BROWSE_MODE = Domain.BROWSE_CHROMIUM
     BROWSER_CLASS = BrowserChromium
 
 
 class FirefoxFunctionalTest(FunctionalTest, BrowserBasedFunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
+    BROWSE_MODE = Domain.BROWSE_FIREFOX
     BROWSER_CLASS = BrowserFirefox

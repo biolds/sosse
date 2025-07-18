@@ -24,7 +24,7 @@ from requests import HTTPError
 
 from .crawl_policy import CrawlPolicy
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .html_asset import HTMLAsset
 from .html_cache import HTML_SNAPSHOT_HASH_LEN, max_filename_size
 from .html_snapshot import HTMLSnapshot, css_parser, extract_css_url
@@ -40,7 +40,7 @@ GET_EXPECTED_HEADERS = {
 class HTMLSnapshotTest:
     def setUp(self):
         self.policy = CrawlPolicy.create_default()
-        self.policy.default_browse_mode = DomainSetting.BROWSE_REQUESTS
+        self.policy.default_browse_mode = Domain.BROWSE_REQUESTS
         self.policy.thumbnail_mode = CrawlPolicy.THUMBNAIL_MODE_NONE
         self.policy.save()
 

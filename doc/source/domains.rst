@@ -1,9 +1,9 @@
-🕸 Domain Settings
-==================
+🕸 Domains
+==========
 
 Domain level parameters can be reached from the :doc:`../admin_ui`, by clicking on ``Domain settings``.
 
-.. image:: ../../tests/robotframework/screenshots/domain_setting.png
+.. image:: ../../tests/robotframework/screenshots/domain.png
    :class: sosse-screenshot
 
 Domain settings are automatically created during crawling, but can also be updated manually or created manually.

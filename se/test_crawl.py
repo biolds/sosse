@@ -23,7 +23,7 @@ from feedparser import parse
 from .browser import AuthElemFailed, SkipIndexing
 from .crawl_policy import CrawlPolicy
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .models import ExcludedUrl, Link, WorkerStats
 from .page import Page
 from .test_mock import BrowserMock
@@ -41,7 +41,7 @@ class CrawlerTest(TransactionTestCase):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+            default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
@@ -49,7 +49,7 @@ class CrawlerTest(TransactionTestCase):
         self.crawl_policy = CrawlPolicy.objects.create(
             url_regex="http://127.0.0.1/",
             recursion=CrawlPolicy.CRAWL_ALL,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+            default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
@@ -81,10 +81,10 @@ class CrawlerTest(TransactionTestCase):
             BrowserRequest.call_args_list,
         )
 
-        domain_setting = DomainSetting.objects.get()
-        self.assertEqual(domain_setting.browse_mode, DomainSetting.BROWSE_REQUESTS)
-        self.assertEqual(domain_setting.domain, "127.0.0.1")
-        self.assertEqual(domain_setting.robots_status, DomainSetting.ROBOTS_EMPTY)
+        domain = Domain.objects.get()
+        self.assertEqual(domain.browse_mode, Domain.BROWSE_REQUESTS)
+        self.assertEqual(domain.domain, "127.0.0.1")
+        self.assertEqual(domain.robots_status, Domain.ROBOTS_EMPTY)
 
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
@@ -145,7 +145,7 @@ class CrawlerTest(TransactionTestCase):
         CrawlPolicy.objects.create(
             url_regex="http://127.0.0.2/.*",
             recursion=CrawlPolicy.CRAWL_ON_DEPTH,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+            default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
             take_screenshots=False,

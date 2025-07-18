@@ -33,7 +33,7 @@ from .crawl_policy import CrawlPolicy
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .download import DownloadView
 from .history import HistoryView
 from .html import HTMLExcludedView, HTMLView
@@ -198,8 +198,8 @@ class ViewsTest:
             ("/admin/se/document/?has_error=no", None),
             (f"/admin/se/document/{self.doc.id}/change/", None),
             ("/admin/se/document/analytics/", AnalyticsView),
-            ("/admin/se/domainsetting/", None),
-            (f"/admin/se/domainsetting/{DomainSetting.get_from_url(CRAWL_URL).id}/change/", None),
+            ("/admin/se/domain/", None),
+            (f"/admin/se/domain/{Domain.get_from_url(CRAWL_URL).id}/change/", None),
             ("/admin/se/cookie/", None),
             (f"/admin/se/cookie/?q={quote(CRAWL_URL)}", None),
             ("/admin/se/cookie/import/", CookiesImportView),
@@ -296,8 +296,8 @@ class ViewsTest:
 
 
 class ChromiumViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):
-    BROWSER = DomainSetting.BROWSE_CHROMIUM
+    BROWSER = Domain.BROWSE_CHROMIUM
 
 
 class FirefoxViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):
-    BROWSER = DomainSetting.BROWSE_FIREFOX
+    BROWSER = Domain.BROWSE_FIREFOX

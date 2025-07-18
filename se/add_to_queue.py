@@ -25,7 +25,7 @@ from django.views.generic import FormView
 
 from .crawl_policy import CrawlPolicy
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .models import WorkerStats
 from .tag_field import TagField
 from .url import sanitize_url, validate_url
@@ -175,7 +175,7 @@ class AddToQueueConfirmationView(AddToQueueView):
             "urls": urls_re,
             "return_url": return_url,
             "CrawlPolicy": CrawlPolicy,
-            "DomainSetting": DomainSetting,
+            "Domain": Domain,
             "form": form,
             "domain": domain,
         }

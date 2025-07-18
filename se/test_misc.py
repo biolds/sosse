@@ -16,7 +16,7 @@
 from django.test import TransactionTestCase, override_settings
 
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 
 ROBOTS_TXT = """
 # Test robots.txt
@@ -28,13 +28,13 @@ disallow: /disallow/*
 
 class MiscTest(TransactionTestCase):
     def test_robots_txt(self):
-        domain = DomainSetting.objects.create(domain="127.0.0.1")
+        domain = Domain.objects.create(domain="127.0.0.1")
         domain._parse_robotstxt(ROBOTS_TXT)
         self.assertEqual(domain.robots_allow, "/allow/.*")
         self.assertEqual(domain.robots_disallow, "/disallow/.*")
 
-        domain.robots_ua_hash = DomainSetting.ua_hash()
-        domain.robots_status = DomainSetting.ROBOTS_LOADED
+        domain.robots_ua_hash = Domain.ua_hash()
+        domain.robots_status = Domain.ROBOTS_LOADED
         domain.save()
 
         self.assertTrue(domain.robots_authorized("http://127.0.0.1/allow/aa"))

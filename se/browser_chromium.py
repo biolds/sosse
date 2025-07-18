@@ -22,7 +22,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromiumOptions
 
 from .browser_selenium import BrowserSelenium
-from .domain_setting import user_agent
+from .domain import user_agent
 
 crawl_logger = logging.getLogger("crawler")
 

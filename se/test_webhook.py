@@ -25,7 +25,7 @@ from sosse.conf import DEFAULT_USER_AGENT
 from .browser import SkipIndexing
 from .crawl_policy import CrawlPolicy
 from .document import Document, example_doc
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .models import WorkerStats
 from .tag import Tag
 from .test_functionals import TEST_SERVER_URL
@@ -51,7 +51,7 @@ class WebhookTest(TransactionTestCase):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+            default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
             take_screenshots=False,

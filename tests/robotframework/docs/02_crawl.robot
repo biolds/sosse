@@ -133,12 +133,12 @@
 |  | Sosse Capture Page Screenshot | metadata.png
 
 | Domain
-|  | Sosse Go To | http://127.0.0.1/admin/se/domainsetting/
+|  | Sosse Go To | http://127.0.0.1/admin/se/domain/
 |  | Wait Until Element Is Visible | id=result_list
 |  | ${dom_count}= | Get Element Count | xpath=//table[@id='result_list']/tbody/tr
 |  | Should Be Equal As Numbers | ${dom_count} | 1
 |  | Click Link | 127.0.0.1
-|  | Sosse Capture Page Screenshot | domain_setting.png
+|  | Sosse Capture Page Screenshot | domain.png
 
 | Cookies
 |  | Run Keyword And Ignore Error | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../cookies.json | shell=True

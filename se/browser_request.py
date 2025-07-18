@@ -22,7 +22,7 @@ from requests.adapters import HTTPAdapter
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
 from .cookie import Cookie
-from .domain_setting import user_agent
+from .domain import user_agent
 from .page import Page
 from .url import absolutize_url, url_remove_fragment
 

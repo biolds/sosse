@@ -33,7 +33,7 @@ Review the parameters, then click ``Confirm``. Sosse will crawl the site and log
 
 .. note::
    If pages aren’t crawled as expected, check whether the site’s `robots.txt` file is blocking the crawler.
-   *Bypass it only if authorized.* You can review this setting in the :doc:`../domain_settings` for the website.
+   *Bypass it only if authorized.* You can review this setting in the :doc:`../domains` for the website.
 
 Searching the Website
 ---------------------

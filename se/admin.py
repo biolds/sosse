@@ -40,7 +40,7 @@ from .crawl_policy import CrawlPolicy
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .html_asset import HTMLAsset
 from .mime_handler import MimeHandler
 from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
@@ -59,7 +59,7 @@ class SEAdminSite(admin.AdminSite):
         "CrawlPolicy": "⚡",
         "Tag": "⭐",
         "Document": "🔤 ",
-        "DomainSetting": "🕸",
+        "Domain": "🕸",
         "Webhook": "📡",
         "MimeHandler": "🧩",
         "ExcludedUrl": "🔗",
@@ -76,7 +76,7 @@ class SEAdminSite(admin.AdminSite):
                     "CrawlPolicy",
                     "Tag",
                     "Document",
-                    "DomainSetting",
+                    "Domain",
                     "Cookie",
                     "Webhook",
                     "MimeHandler",
@@ -710,17 +710,17 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             tags_url = reverse("admin:se_tag_changelist") + f"?document__id={obj.id}"
             tags = format_html('⭐&nbsp<a href="{}">Tags ({})</a>', tags_url, tags_count)
 
-            domain_setting = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
-            domain = format_html(
+            domain = Domain.get_from_url(obj.url, crawl_policy.default_browse_mode)
+            domain_link = format_html(
                 '🕸&nbsp<a href="{}">Domain {}</a>',
-                reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
-                domain_setting.domain,
+                reverse("admin:se_domain_change", args=(domain.id,)),
+                domain.domain,
             )
 
             cookies = format_html(
                 '🍪&nbsp<a href="{}">Cookies ({})</a>',
                 reverse("admin:se_cookie_changelist") + "?q=" + quote_plus(obj.url),
-                Cookie.objects.filter(domain=domain_setting.domain).count(),
+                Cookie.objects.filter(domain=domain.domain).count(),
             )
 
             source = obj.get_source_link()
@@ -739,7 +739,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                 '<p><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
                 archive,
                 policy,
-                domain,
+                domain_link,
                 tags,
                 cookies,
                 links_to_here,
@@ -764,18 +764,18 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     @staticmethod
     @admin.display(description="Robots.txt status")
     def _robotstxt_rejected(obj):
-        domain_setting = DomainSetting.get_from_url(obj.url)
+        domain = Domain.get_from_url(obj.url)
         if obj.robotstxt_rejected:
             return format_html(
                 '<img src="{}" alt="Rejected" title="Rejected" /> 🤖 Rejected by robots.txt file, see corresponding 🕸 <a href="{}">Domain</a>',
                 f"{settings.STATIC_URL}admin/img/icon-no.svg",
-                reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+                reverse("admin:se_domain_change", args=(domain.id,)),
             )
 
         return format_html(
             '<img src="{}" alt="Accepted" /> Accepted, see corresponding 🕸 <a href="{}">Domain</a>',
             f"{settings.STATIC_URL}admin/img/icon-yes.svg",
-            reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+            reverse("admin:se_domain_change", args=(domain.id,)),
         )
 
     @staticmethod
@@ -902,8 +902,8 @@ class CrawlPolicyForm(CharFieldForm):
                 self.add_error(key, "This field must be null when using this recrawl mode")
 
         if cleaned_data["default_browse_mode"] not in (
-            DomainSetting.BROWSE_CHROMIUM,
-            DomainSetting.BROWSE_FIREFOX,
+            Domain.BROWSE_CHROMIUM,
+            Domain.BROWSE_FIREFOX,
         ):
             if cleaned_data["thumbnail_mode"] in (
                 CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
@@ -1146,7 +1146,7 @@ class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMix
             {
                 "crawl_policy": obj,
                 "CrawlPolicy": CrawlPolicy,
-                "DomainSetting": DomainSetting,
+                "Domain": Domain,
                 "label_tag": "label_tag_inline",
                 "settings": settings,
             },
@@ -1171,8 +1171,8 @@ class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMix
         return super().get_search_results(request, queryset, search_term)
 
 
-@admin.register(DomainSetting)
-class DomainSettingAdmin(admin.ModelAdmin):
+@admin.register(Domain)
+class DomainAdmin(admin.ModelAdmin):
     list_display = ("domain", "ignore_robots", "robots_status", "browse_mode")
     search_fields = ("domain",)
     fields = (

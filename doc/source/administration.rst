@@ -15,7 +15,7 @@ Administration
    crawl/feeds.rst
    documents.rst
    tags.rst
-   domain_settings.rst
+   domains.rst
    cookies.rst
    webhooks.rst
    excluded_urls.rst

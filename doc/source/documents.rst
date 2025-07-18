@@ -42,7 +42,7 @@ Rejected by robots.txt
 ----------------------
 
 This indicates if the URL was not crawled due to a ``robots.txt`` rule. If necessary the ``robots.txt`` can be ignored
-in the :ref:`Domain settings <domain_ignore_robots>`.
+in the :ref:`Domain <domain_ignore_robots>`.
 
 Too many redirects
 ------------------

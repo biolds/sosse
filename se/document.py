@@ -36,7 +36,7 @@ from PIL import Image
 
 from .browser import AuthElemFailed, SkipIndexing
 from .document_meta import DocumentMeta
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
 from .mime_handler import MimeHandler
@@ -679,9 +679,9 @@ class Document(models.Model):
                 doc.crawl_last = now()
 
                 if doc.url.startswith("http://") or doc.url.startswith("https://"):
-                    domain_setting = DomainSetting.get_from_url(doc.url, crawl_policy.default_browse_mode)
+                    domain = Domain.get_from_url(doc.url, crawl_policy.default_browse_mode)
 
-                    if not domain_setting.robots_authorized(doc.url):
+                    if not domain.robots_authorized(doc.url):
                         crawl_logger.debug(f"{doc.url} rejected by robots.txt")
                         doc.robotstxt_rejected = True
                         n = now()
@@ -698,7 +698,7 @@ class Document(models.Model):
                         doc.robotstxt_rejected = False
 
                     try:
-                        page = crawl_policy.url_get(doc.url, domain_setting)
+                        page = crawl_policy.url_get(doc.url, domain)
                     except AuthElemFailed as e:
                         doc.content = e.page.content.decode("utf-8")
                         doc._schedule_next(True, crawl_policy)
@@ -846,8 +846,8 @@ class Document(models.Model):
         self.delete_screenshot()
         self.delete_thumbnail()
 
-    def default_domain_setting(self):
-        return DomainSetting.get_from_url(self.url)
+    def default_domain(self):
+        return Domain.get_from_url(self.url)
 
     def webhook_in_error(self):
         for webhook_id, webhook in self.webhooks_result.items():

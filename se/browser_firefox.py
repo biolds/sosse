@@ -25,7 +25,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 
 from .browser_selenium import BrowserSelenium
-from .domain_setting import user_agent
+from .domain import user_agent
 
 
 class BrowserFirefox(BrowserSelenium):

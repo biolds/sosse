@@ -26,16 +26,16 @@ from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .tag import Tag
 from .utils import build_multiline_re, plural
 from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
 BROWSER_MAP = {
-    DomainSetting.BROWSE_CHROMIUM: BrowserChromium,
-    DomainSetting.BROWSE_FIREFOX: BrowserFirefox,
-    DomainSetting.BROWSE_REQUESTS: BrowserRequest,
+    Domain.BROWSE_CHROMIUM: BrowserChromium,
+    Domain.BROWSE_FIREFOX: BrowserFirefox,
+    Domain.BROWSE_REQUESTS: BrowserRequest,
 }
 
 
@@ -137,8 +137,8 @@ class CrawlPolicy(models.Model):
 
     default_browse_mode = models.CharField(
         max_length=8,
-        choices=DomainSetting.BROWSE_MODE,
-        default=DomainSetting.BROWSE_DETECT,
+        choices=Domain.BROWSE_MODE,
+        default=Domain.BROWSE_DETECT,
         help_text="Python Request is faster, but can't execute Javascript and may break pages",
     )
 
@@ -314,12 +314,12 @@ class CrawlPolicy(models.Model):
     @staticmethod
     def _default_browser():
         if settings.SOSSE_DEFAULT_BROWSER == "chromium":
-            return DomainSetting.BROWSE_CHROMIUM
-        return DomainSetting.BROWSE_FIREFOX
+            return Domain.BROWSE_CHROMIUM
+        return Domain.BROWSE_FIREFOX
 
-    def url_get(self, url, domain_setting=None):
-        domain_setting = domain_setting or DomainSetting.get_from_url(url, self.default_browse_mode)
-        browser = self.get_browser(domain_setting=domain_setting, no_detection=False)
+    def url_get(self, url, domain=None):
+        domain = domain or Domain.get_from_url(url, self.default_browse_mode)
+        browser = self.get_browser(domain=domain, no_detection=False)
         page = browser.get(url)
 
         if page.redirect_count:
@@ -340,7 +340,7 @@ class CrawlPolicy(models.Model):
                     raise
                 raise Exception("Authentication failed")
 
-        if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
+        if domain.browse_mode == Domain.BROWSE_DETECT:
             crawl_logger.debug(f"browser detection on {url}")
             requests_page = BrowserRequest.get(url)
             browser_content = page.dom_walk(self, False, None)
@@ -349,29 +349,29 @@ class CrawlPolicy(models.Model):
             if browser_content["text"] != requests_content["text"]:
                 new_mode = self._default_browser()
             else:
-                new_mode = DomainSetting.BROWSE_REQUESTS
+                new_mode = Domain.BROWSE_REQUESTS
                 page = requests_page
             crawl_logger.debug(f"browser detected {new_mode} on {url}")
-            domain_setting.browse_mode = new_mode
-            domain_setting.save()
+            domain.browse_mode = new_mode
+            domain.save()
         return page
 
-    def get_browser(self, url=None, domain_setting=None, no_detection=True):
-        if url is None and domain_setting is None:
-            raise Exception("Either url or domain_setting must be provided")
-        if url is not None and domain_setting is not None:
-            raise Exception("Either url or domain_setting must be provided")
+    def get_browser(self, url=None, domain=None, no_detection=True):
+        if url is None and domain is None:
+            raise Exception("Either url or domain must be provided")
+        if url is not None and domain is not None:
+            raise Exception("Either url or domain must be provided")
 
         if url:
-            domain_setting = DomainSetting.get_from_url(url, self.default_browse_mode)
+            domain = Domain.get_from_url(url, self.default_browse_mode)
 
         browser_str = self.default_browse_mode
-        if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
-            if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
+        if self.default_browse_mode == Domain.BROWSE_DETECT:
+            if domain.browse_mode == Domain.BROWSE_DETECT:
                 if no_detection:
-                    raise Exception(f"browser mode is not yet known ({domain_setting})")
+                    raise Exception(f"browser mode is not yet known ({domain})")
                 browser_str = self._default_browser()
             else:
-                browser_str = domain_setting.browse_mode
+                browser_str = domain.browse_mode
 
         return BROWSER_MAP[browser_str]

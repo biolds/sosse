@@ -20,7 +20,7 @@ from django.test import TransactionTestCase
 
 from .crawl_policy import CrawlPolicy
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .page import Page
 from .test_mock import BrowserMock
 
@@ -31,7 +31,7 @@ class DocumentIndexTest(TransactionTestCase):
             url_regex="(default)",
             url_regex_pg=".*",
             recursion=CrawlPolicy.CRAWL_NEVER,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
+            default_browse_mode=Domain.BROWSE_REQUESTS,
             thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )

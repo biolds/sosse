@@ -55,4 +55,8 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
+        migrations.RenameModel(
+            old_name="DomainSetting",
+            new_name="Domain",
+        ),
     ]

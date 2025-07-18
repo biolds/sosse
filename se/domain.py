@@ -50,7 +50,7 @@ def user_agent():
     return UA_STR
 
 
-class DomainSetting(models.Model):
+class Domain(models.Model):
     BROWSE_DETECT = "detect"
     BROWSE_CHROMIUM = "selenium"
     BROWSE_FIREFOX = "firefox"
@@ -185,20 +185,20 @@ class DomainSetting(models.Model):
             crawl_logger.debug(f"{self.domain}: loading {robots_url}")
             self._parse_robotstxt(page.content.decode("utf-8"))
         except (requests.HTTPError, TooManyRedirects):
-            self.robots_status = DomainSetting.ROBOTS_EMPTY
+            self.robots_status = Domain.ROBOTS_EMPTY
         else:
-            self.robots_status = DomainSetting.ROBOTS_LOADED
+            self.robots_status = Domain.ROBOTS_LOADED
         crawl_logger.debug(f"{self.domain}: robots.txt {self.robots_status}")
 
     def robots_authorized(self, url):
         if self.ignore_robots:
             return True
 
-        if self.robots_status == DomainSetting.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:
+        if self.robots_status == Domain.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:
             self._load_robotstxt(url)
             self.save()
 
-        if self.robots_status == DomainSetting.ROBOTS_EMPTY:
+        if self.robots_status == Domain.ROBOTS_EMPTY:
             crawl_logger.debug(f"{self.domain}: robots.txt is empty")
             return True
 
@@ -237,4 +237,4 @@ class DomainSetting(models.Model):
             crawl_policy = CrawlPolicy.get_from_url(url)
             default_browse_mode = crawl_policy.default_browse_mode
 
-        return DomainSetting.objects.get_or_create(domain=domain, defaults={"browse_mode": default_browse_mode})[0]
+        return Domain.objects.get_or_create(domain=domain, defaults={"browse_mode": default_browse_mode})[0]

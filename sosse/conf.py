@@ -101,7 +101,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             type=float,
         ),
         "online_check_cache": ConfOption(
-            comment="Online check is done once every ``online_check_cache`` request. The special value ``once`` can be used to run the check only once, when the first request is done. ``0`` can be used to disable caching.\n\n.. note::\n   The cache is effective on a uwSGI worker basis, and as long as the uWSGI worker is alive. So even with a value of ``once`` a new request will be done everytime a new worker is spawned.",
+            comment="Online check is done once every ``online_check_cache`` request. The special value ``once`` can be used to run the check only once, when the first request is done. ``0`` can be used to disable caching.\n\n.. note::\n   The cache is effective on a uWSGI worker basis, and as long as the uWSGI worker is alive. So even with a value of ``once`` a new request will be done everytime a new worker is spawned.",
             default="10",
         ),
         "sosse_shortcut": ConfOption(

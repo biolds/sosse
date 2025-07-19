@@ -507,6 +507,7 @@ rebuild_docker:
 
 rebuild_unit_tests:
   image: "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
+  parallel: 3
   needs:
     - job: rebuild_docker
   rules:
@@ -529,7 +530,7 @@ rebuild_unit_tests:
     - /venv/bin/sosse-admin default_conf | sed -e "s/^#db_pass=.*/db_pass=sosse/" -e "s/^#debug=.*/debug=true/" -e "s/#dl_check_time=.*/dl_check_time=1/" -e "s,#online_check_url.*,online_check_url=http://localhost:8000/," -e "s/^#chromium_options=\(.*\)/chromium_options=\1 --no-sandbox --disable-dev-shm-usage/" > /etc/sosse/sosse.conf
     - cat /etc/sosse/sosse.conf
     - su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'"
-    - sudo -E -u www-data /venv/bin/python3 -m sosse.sosse_admin test -v3 || failed=1
+    - sudo --preserve-env=CI_NODE_TOTAL,CI_NODE_INDEX -u www-data /venv/bin/python3 -m sosse.sosse_admin test -v3 || failed=1
     - mv /var/log/sosse log
     - test -z "$failed"
 

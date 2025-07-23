@@ -24,12 +24,13 @@ from mimetypes import guess_extension
 from django.conf import settings
 from django.db import models
 
+from .builtin import BuiltinModel
 from .utils import build_multiline_re, validate_multiline_re
 
 crawl_logger = logging.getLogger("crawl_logger")
 
 
-class MimeHandler(models.Model):
+class MimeHandler(BuiltinModel):
     IO_FORMAT_CHOICES = [
         ("json_doc", "JSON Document"),
         ("content", "Content"),

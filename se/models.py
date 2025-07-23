@@ -31,6 +31,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from .browser_request import BrowserRequest
+from .builtin import BuiltinModel
 from .document import Document
 from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
@@ -233,14 +234,12 @@ def validate_search_url(value):
         )
 
 
-class SearchEngine(models.Model):
+class SearchEngine(BuiltinModel):
     short_name = models.CharField(unique=True, max_length=32, blank=True, default="")
     long_name = models.CharField(max_length=48, blank=True, default="")
     description = models.CharField(max_length=1024, blank=True, default="")
     html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
-    builtin = models.BooleanField(default=False, verbose_name="Built-in")
-    enabled = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Search Engine"

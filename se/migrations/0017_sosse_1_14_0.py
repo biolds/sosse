@@ -44,6 +44,7 @@ class Migration(migrations.Migration):
                     "timeout",
                     models.PositiveIntegerField(default=30, help_text="Timeout in seconds for the script execution"),
                 ),
+                ("builtin", models.BooleanField(default=False, verbose_name="Built-in")),
                 ("enabled", models.BooleanField(default=True)),
                 (
                     "io_format",

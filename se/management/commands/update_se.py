@@ -13,41 +13,28 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import json
-import os
-
 from django.conf import settings
-from django.core.management.base import BaseCommand
 
 from ...admin import ConflictingSearchEngineFilter
 from ...models import SearchEngine
+from ..builtin import UpdateBuiltinModel
 
-SE_FILE = "sosse/search_engines.json"
 
-
-class Command(BaseCommand):
+class Command(UpdateBuiltinModel):
     help = "Updates Search engine shortcuts."
     doc = "This updates :doc:`user/shortcuts` in the database based on their definition in the source code."
 
-    def handle(self, *args, **options):
-        count = 0
+    json_file = "sosse/search_engines.json"
+    expected_model = "se.searchengine"
+    model_class = SearchEngine
+    lookup_field = "short_name"
+    model_name = "search engines"
 
-        se_file = os.path.join(settings.BASE_DIR, SE_FILE)
-        for se in json.load(open(se_file, encoding="utf-8")):
-            if se["model"] != "se.searchengine":
-                raise ValueError(f"Invalid model {se['model']} in {se_file}")
-            se = se["fields"]
-            short_name = se.pop("short_name")
+    def update_existing(self, db_obj, fields):
+        fields.pop("shortcut")
+        return super().update_existing(db_obj, fields)
 
-            db_se, created = SearchEngine.objects.get_or_create(short_name=short_name, defaults=se)
-
-            if not created:
-                se.pop("shortcut")
-                SearchEngine.objects.filter(id=db_se.id).update(**se)
-
-            count += int(created)
-
-        self.stdout.write(f"{count} new search engines added")
+    def check_conflicts(self):
         conflicts = ConflictingSearchEngineFilter.conflicts(SearchEngine.objects.all())
 
         if len(conflicts):

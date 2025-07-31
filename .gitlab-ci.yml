@@ -210,6 +210,25 @@ doc_gen:
   script:
     - make doc_gen
 
+link_check:
+  image: biolds/sosse:doc
+  stage: test
+  when: manual
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  needs:
+    - doc_gen
+    - functional_docs_chromium
+    - functional_tests_chromium
+    - functional_guides_chromium
+  artifacts:
+    paths:
+      - doc/source/*_generated.rst
+      - doc/source/*/*_generated.rst
+      - doc/source/CHANGELOG.md
+  script:
+    - make _link_check
+
 doc_code_extract:
   image: biolds/sosse:doc
   stage: test

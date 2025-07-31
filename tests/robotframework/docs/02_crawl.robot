@@ -162,6 +162,8 @@
 |  | Should Not Be Equal As Numbers | ${dom_count} | 0
 |  | Wait Until Element Is Visible | id=footer
 |  | Sosse Capture Page Screenshot | search_engines_list.png
+|  | Input Text | id=searchbar | brave
+|  | Click Element | xpath=//input[@value='Search']
 |  | Click Link | Brave
 |  | Sosse Wait Until Page Contains | Long name
 |  | Sosse Capture Page Screenshot | search_engine.png

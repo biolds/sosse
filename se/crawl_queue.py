@@ -46,33 +46,27 @@ class CrawlQueueContentView(AdminView):
         )
 
         QUEUE_SIZE = 10
+
+        # In progress
         queue = list(Document.objects.wo_content().filter(worker_no__isnull=False).order_by("id")[:QUEUE_SIZE])
+
         if len(queue) < QUEUE_SIZE:
             queue = queue + list(
-                Document.objects.wo_content()
-                .filter(crawl_last__isnull=True)
-                .exclude(id__in=[q.pk for q in queue])
-                .order_by("id")[:QUEUE_SIZE]
+                Document.crawl_queue(Document.objects.wo_content().exclude(id__in=[q.pk for q in queue]))[
+                    : QUEUE_SIZE - len(queue)
+                ]
             )
-        if len(queue) < QUEUE_SIZE:
-            queue = queue + list(
-                Document.objects.wo_content()
-                .filter(crawl_last__isnull=False, crawl_next__isnull=False)
-                .exclude(id__in=[q.pk for q in queue])
-                .order_by("crawl_next", "id")[: QUEUE_SIZE - len(queue)]
-            )
+
         for doc in queue:
             doc.pending = True
 
         queue.reverse()
 
         history = list(
-            Document.objects.wo_content().filter(crawl_last__isnull=False).order_by("-crawl_last")[:QUEUE_SIZE]
+            Document.objects.wo_content()
+            .filter(models.Q(crawl_next__isnull=True) | models.Q(crawl_next__gt=now()), crawl_last__isnull=False)
+            .order_by("-crawl_last")[:QUEUE_SIZE]
         )
-
-        for doc in queue:
-            if doc in history:
-                history.remove(doc)
 
         for doc in history:
             doc.in_history = True

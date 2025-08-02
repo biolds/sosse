@@ -18,6 +18,7 @@ import os
 import signal
 import threading
 from datetime import timedelta
+from hashlib import md5
 from multiprocessing import Process, cpu_count
 from time import sleep
 from traceback import format_exc
@@ -168,6 +169,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Document.objects.wo_content().exclude(worker_no=None).update(worker_no=None)
+        error_msg = "Worker was killed"
+        error_hash = md5(error_msg.encode("utf-8"), usedforsecurity=False).hexdigest()
+        Document.objects.wo_content().filter(retries__gt=settings.SOSSE_WORKER_CRASH_RETRY).update(
+            error=error_msg, error_hash=error_hash
+        )
+
         CrawlPolicy.create_default()
 
         for url in options["urls"]:

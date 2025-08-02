@@ -404,7 +404,7 @@ class TagsFilter(admin.SimpleListFilter):
 
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
-    queryset.update(crawl_next=now(), manual_crawl=True)
+    queryset.update(crawl_next=now(), manual_crawl=True, retries=0)
     WorkerStats.wake_up()
     return redirect(reverse("admin:crawl_queue"))
 

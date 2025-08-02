@@ -377,6 +377,11 @@ The UA will be selected among the provided platform, specified as a comma-separa
             comment="Choose which CSS parser implementation to use. May be one of ``internal`` or ``cssutils``:\nYou may want to change this option when HTML snapshots have broken styles.",
             default="internal",
         ),
+        "worker_crash_retry": ConfOption(
+            comment="Retry ``worker_crash_retry`` times to index the page on worker crashes.",
+            default=1,
+            type=int,
+        ),
     },
 }
 

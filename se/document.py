@@ -125,6 +125,7 @@ class Document(models.Model):
     vector_lang = RegConfigField(default="simple")
     mimetype = models.CharField(max_length=64, null=True, blank=True)
     hidden = models.BooleanField(default=False, help_text="Hide this document from search results")
+    retries = models.PositiveIntegerField(default=0, verbose_name="Crawl retries")
 
     favicon = models.ForeignKey("FavIcon", null=True, blank=True, on_delete=models.SET_NULL)
     robotstxt_rejected = models.BooleanField(default=False, verbose_name="Rejected by robots.txt")
@@ -500,6 +501,8 @@ class Document(models.Model):
         if not self.title:
             self.title = self.url
 
+        self.retries = 0
+
     def convert_to_jpg(self):
         d = os.path.join(settings.SOSSE_SCREENSHOTS_DIR, self.image_name())
 
@@ -678,6 +681,7 @@ class Document(models.Model):
             crawl_logger.debug(f"Crawling {doc.url} with policy {crawl_policy}")
             try:
                 WorkerStats.objects.filter(id=worker_stats.id).update(doc_processed=models.F("doc_processed") + 1)
+                Document.objects.wo_content().filter(id=doc.id).update(retries=models.F("retries") + 1)
                 doc.worker_no = None
                 doc.crawl_last = now()
 
@@ -751,6 +755,7 @@ class Document(models.Model):
             except Exception as e:  # noqa
                 doc.set_error(format_exc())
                 doc._schedule_next(True, crawl_policy)
+                doc.retries = 0
                 doc.save()
                 crawl_logger.error(format_exc())
                 if getattr(settings, "TEST_MODE", False):
@@ -766,21 +771,24 @@ class Document(models.Model):
         return True
 
     @staticmethod
+    def crawl_queue(queryset=None):
+        if queryset is None:
+            queryset = Document.objects.wo_content()
+        return queryset.filter(
+            models.Q(crawl_last__isnull=True) | models.Q(crawl_last__isnull=False, crawl_next__lte=now()),
+            retries__lte=settings.SOSSE_WORKER_CRASH_RETRY,
+            worker_no__isnull=True,
+        ).order_by(
+            "-manual_crawl",  # to prioritize manual crawls
+            "-crawl_last",  # to prioritize documents with no crawl_last
+            "crawl_next",
+            "id",
+        )
+
+    @staticmethod
     def pick_queued(worker_no):
         while True:
-            doc = (
-                Document.objects.wo_content()
-                .filter(
-                    models.Q(crawl_last__isnull=True) | models.Q(crawl_last__isnull=False, crawl_next__lte=now()),
-                    worker_no__isnull=True,
-                )
-                .order_by(
-                    "-crawl_last",  # to prioritize documents with no crawl_last
-                    "crawl_next",
-                    "id",
-                )
-                .first()
-            )
+            doc = Document.crawl_queue().first()
             if doc is None:
                 return None
 

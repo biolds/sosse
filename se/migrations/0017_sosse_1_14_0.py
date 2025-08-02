@@ -65,4 +65,9 @@ class Migration(migrations.Migration):
             name="mime_handlers_result",
             field=models.TextField(blank=True, default=""),
         ),
+        migrations.AddField(
+            model_name="document",
+            name="retries",
+            field=models.PositiveIntegerField(default=0, verbose_name="Crawl retries"),
+        ),
     ]

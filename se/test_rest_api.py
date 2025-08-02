@@ -51,6 +51,7 @@ SERIALIZED_DOC1 = {
     "normalized_title": "title",
     "normalized_url": "http test",
     "redirect_url": None,
+    "retries": 0,
     "robotstxt_rejected": False,
     "screenshot_count": 0,
     "screenshot_format": "",

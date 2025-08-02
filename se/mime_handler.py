@@ -23,6 +23,7 @@ from mimetypes import guess_extension
 
 from django.conf import settings
 from django.db import models
+from PIL import Image
 
 from .builtin import BuiltinModel
 from .utils import build_multiline_re, validate_multiline_re
@@ -76,7 +77,7 @@ class MimeHandler(BuiltinModel):
                 crawl_logger.error(f"Failed to delete script file {script_path}: {e}")
         return super().delete(*args, **kwargs)
 
-    def execute(self, input_file: str):
+    def execute(self, input_file: str, temp_dir: str):
         script_path = self.get_script_path()
         args = ["/bin/bash", script_path, input_file]
 
@@ -88,6 +89,7 @@ class MimeHandler(BuiltinModel):
                 check=False,
                 capture_output=True,
                 text=True,
+                cwd=temp_dir,
                 timeout=self.timeout,
             )  # nosec B603
             crawl_logger.debug(f"[{self.name}] Return code: {result.returncode}")
@@ -135,32 +137,56 @@ class MimeHandler(BuiltinModel):
                     crawl_logger.debug(f"[{handler.name}] Handler matched for {doc.mimetype}")
 
                     input_path = temp_json_path if handler.io_format == "json_doc" else content_file
-                    code, stdout, stderr = handler.execute(input_path)
 
-                    if code != 0:
-                        doc.error = f"{doc.error or ''}\nExecution of {handler.name} failed with status {code}:\n{stderr}".strip()
-                        continue
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        code, stdout, stderr = handler.execute(input_path, temp_dir)
+                        doc.mime_handlers_result += f"{handler.name}:\n{stderr}\n\n"
 
-                    try:
-                        if handler.io_format == "json_doc":
-                            try:
-                                data = json.loads(stdout)
-                            except ValueError as e:
-                                doc.error = f"{doc.error or ''}\n{handler.name} output is not valid JSON: {e}\ncontent: {stdout[:1000]}"
-                                continue
+                        if code != 0:
+                            doc.error = f"{doc.error or ''}\nExecution of {handler.name} failed with status {code}:\n{stderr}".strip()
+                            continue
 
-                        else:
-                            data = {"content": stdout}
+                        crawl_logger.debug(f"got stdout {stdout}")
+                        try:
+                            if handler.io_format == "json_doc":
+                                try:
+                                    data = json.loads(stdout)
+                                except ValueError as e:
+                                    doc.error = f"{doc.error or ''}\n{handler.name} output is not valid JSON: {e}\ncontent: {stdout[:1000]}"
+                                    continue
 
-                        if stdout:
-                            serializer = DocumentSerializer(doc, data=data, partial=True)
-                            serializer.is_valid(raise_exception=True)
-                            serializer.update(doc, serializer.validated_data)
-                    except Exception as e:
-                        doc.error = f"{doc.error or ''}\n{handler.name} processing error: {e}".strip()
-                        if getattr(settings, "TEST_MODE", False):
-                            raise
-                        continue
+                            else:
+                                data = {"content": stdout}
+
+                            if stdout:
+                                preview = None
+                                if "preview" in data:
+                                    preview = data.pop("preview")
+                                    preview_file = os.path.join(temp_dir, preview)
+                                    if os.path.exists(preview_file):
+                                        with Image.open(preview_file) as img:
+                                            # Remove alpha channel from the png
+                                            img = img.convert("RGB")
+                                            img.thumbnail((160, 100))
+                                            thumb_jpg = os.path.join(
+                                                settings.SOSSE_THUMBNAILS_DIR, doc.image_name() + ".jpg"
+                                            )
+                                            dir_name = os.path.dirname(thumb_jpg)
+                                            os.makedirs(dir_name, exist_ok=True)
+                                            img.save(thumb_jpg, "jpeg")
+                                    else:
+                                        raise Exception(f"Preview file {preview} does not exist")
+                                serializer = DocumentSerializer(doc, data=data, partial=True)
+                                serializer.is_valid(raise_exception=True)
+                                serializer.update(doc, serializer.validated_data)
+                                if preview:
+                                    doc.has_thumbnail = True
+                        except Exception as e:
+                            doc.error = f"{doc.error or ''}\n{handler.name} processing error: {e}".strip()
+                            doc.mime_handlers_result += f"{handler.name}:\n{stderr}\n\n"
+                            if getattr(settings, "TEST_MODE", False):
+                                raise
+                            continue
         finally:
             if temp_json_path and os.path.exists(temp_json_path):
                 os.remove(temp_json_path)

@@ -236,8 +236,23 @@ def search_engine_enable_disable(modeladmin, request, queryset):
     )
 
 
+class BuiltinAdmin(admin.ModelAdmin):
+    def get_readonly_fields(self, request, obj=None):
+        return super().get_readonly_fields(request, obj)
+        if obj and obj.builtin:
+            fields = copy(self.get_fields(request))
+            fields.remove("enabled")
+            return fields
+        return super().get_readonly_fields(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.builtin:
+            return False
+        return super().has_delete_permission(request, obj)
+
+
 @admin.register(SearchEngine)
-class SearchEngineAdmin(admin.ModelAdmin):
+class SearchEngineAdmin(BuiltinAdmin):
     list_display = ("short_name", "enabled", "shortcut", "builtin")
     search_fields = ("short_name", "shortcut")
     readonly_fields = ("builtin",)
@@ -476,7 +491,14 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)
-    actions = [crawl_now, remove_from_crawl_queue, clear_tags, convert_to_jpg, switch_hidden, trigger_webhooks]
+    actions = [
+        crawl_now,
+        remove_from_crawl_queue,
+        clear_tags,
+        convert_to_jpg,
+        switch_hidden,
+        trigger_webhooks,
+    ]
     if settings.DEBUG:
         actions += [crawl_later]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
@@ -521,6 +543,15 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             },
         ),
         (
+            "🧩 Mime Handlers",
+            {
+                "fields": (
+                    "_mimetype2",
+                    "mime_handlers_result",
+                ),
+            },
+        ),
+        (
             "📡 Webhooks",
             {
                 "fields": ("_webhooks_result",),
@@ -540,9 +571,11 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         "_robotstxt_rejected",
         "too_many_redirects",
         "_mimetype",
+        "_mimetype2",
         "_lang_txt",
         "_content",
         "crawl_first",
+        "mime_handlers_result",
         "modified_date",
         "_crawl_last_txt",
         "_crawl_next_txt",
@@ -792,6 +825,9 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                 handlers.count(),
             )
         return value
+
+    # Duplicate field since django won't accept referencing it twice
+    _mimetype2 = _mimetype
 
     @staticmethod
     @admin.display(description="Language")
@@ -1426,7 +1462,7 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
 
 
 @admin.register(MimeHandler)
-class MimeHandlerAdmin(admin.ModelAdmin):
+class MimeHandlerAdmin(BuiltinAdmin):
     list_display = (
         "name",
         "enabled",

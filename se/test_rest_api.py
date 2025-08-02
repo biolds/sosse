@@ -44,6 +44,7 @@ SERIALIZED_DOC1 = {
     "lang_iso_639_1": "en",
     "manual_crawl": False,
     "metadata": {},
+    "mime_handlers_result": "",
     "mimetype": "text/html",
     "modified_date": None,
     "normalized_content": "content",

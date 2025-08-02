@@ -156,6 +156,7 @@ class Document(models.Model):
     worker_no = models.PositiveIntegerField(blank=True, null=True)
     webhooks_result = models.JSONField(default=dict)
     metadata = models.JSONField(default=dict)
+    mime_handlers_result = models.TextField(blank=True, default="")
 
     tags = models.ManyToManyField(Tag, blank=True)
 
@@ -304,6 +305,7 @@ class Document(models.Model):
         self.normalized_title = ""
         self.mimetype = ""
         self.manual_crawl = False
+        self.mime_handlers_result = ""
 
     def _clear_dump_content(self):
         from .models import Link
@@ -428,6 +430,7 @@ class Document(models.Model):
                 crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_MANUAL and not manual_crawl
             ):
                 Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
+                crawl_logger.debug(f"{self.url} has not changed, skipping indexing (content hash {self.content_hash})")
                 return
         if current_hash != self.content_hash:
             self.modified_date = n

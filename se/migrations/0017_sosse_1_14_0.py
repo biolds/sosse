@@ -60,4 +60,9 @@ class Migration(migrations.Migration):
             old_name="DomainSetting",
             new_name="Domain",
         ),
+        migrations.AddField(
+            model_name="document",
+            name="mime_handlers_result",
+            field=models.TextField(blank=True, default=""),
+        ),
     ]

@@ -25,7 +25,7 @@ from django.core.management.base import BaseCommand
 
 from sosse.conf import DEFAULTS as DEFAULT_CONF
 
-from .update_se import SE_FILE
+from .update_se import Command as UpdateSearchEngineCommand
 
 SECTIONS = [
     [
@@ -124,7 +124,7 @@ class Command(BaseCommand):
             if not has_content:
                 raise Exception("Failed")
         elif options["component"] == "se":
-            se_file = os.path.join(settings.BASE_DIR, SE_FILE)
+            se_file = os.path.join(settings.BASE_DIR, UpdateSearchEngineCommand.json_file)
             with open(se_file, encoding="utf-8") as f:
                 search_engines = json.load(f)
             search_engines = [entry["fields"] for entry in search_engines]

@@ -246,8 +246,8 @@ fieldset.collapsed .collapse-toggle {
 /* MONOSPACE TEXTAREAS */
 
 fieldset.monospace textarea {
-  font-family: "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier,
-    monospace;
+  font-family:
+    "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier, monospace;
 }
 
 /* SUBMIT ROW */
@@ -532,4 +532,10 @@ form .related-widget-wrapper ul {
 
 .clearable-file-input input {
   margin-top: 0;
+}
+
+/* Mime handler script form field formatting */
+.field-script .readonly {
+  white-space: pre;
+  font-family: monospace;
 }

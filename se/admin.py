@@ -238,7 +238,6 @@ def search_engine_enable_disable(modeladmin, request, queryset):
 
 class BuiltinAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
-        return super().get_readonly_fields(request, obj)
         if obj and obj.builtin:
             fields = copy(self.get_fields(request))
             fields.remove("enabled")
@@ -1467,7 +1466,7 @@ class MimeHandlerAdmin(BuiltinAdmin):
     fieldsets = (
         (
             None,
-            {"fields": ("name", "enabled", "related", "io_format", "mimetype_re", "script", "timeout")},
+            {"fields": ("name", "enabled", "related", "mimetype_re", "script", "timeout")},
         ),
     )
     readonly_fields = ("related",)

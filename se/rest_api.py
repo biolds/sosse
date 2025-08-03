@@ -29,13 +29,14 @@ from drf_spectacular.utils import (
 )
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
 
 from .browser import SkipIndexing
 from .document import Document, example_doc
+from .mime_handler import MimeHandler
 from .models import CrawlerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
@@ -189,6 +190,56 @@ class MimeStatsViewSet(viewsets.ViewSet):
                 indexed_mime["mimetype"] = f"{icon} <None>"
 
         return Response(indexed_mimes)
+
+
+class MimeHandlerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MimeHandler
+        fields = "__all__"
+        read_only_fields = ("builtin",)
+
+
+class MimeHandlerViewSet(viewsets.ModelViewSet):
+    queryset = MimeHandler.objects.all()
+    serializer_class = MimeHandlerSerializer
+    permission_classes = [DjangoModelPermissionsRW]
+
+    def perform_create(self, serializer):
+        serializer.save(builtin=False)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.builtin:
+            # For builtin handlers, only allow modification of 'enabled' field
+            allowed_fields = {"enabled"}
+            request_fields = set(request.data.keys())
+            if not request_fields.issubset(allowed_fields):
+                forbidden_fields = request_fields - allowed_fields
+                forbidden_fields = ", ".join(forbidden_fields)
+                raise PermissionDenied(
+                    f"Cannot modify fields {forbidden_fields} for built-in MIME handlers. Only 'enabled' can be modified."
+                )
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.builtin:
+            # For builtin handlers, only allow modification of 'enabled' field
+            allowed_fields = {"enabled"}
+            request_fields = set(request.data.keys())
+            if not request_fields.issubset(allowed_fields):
+                forbidden_fields = request_fields - allowed_fields
+                forbidden_fields = ", ".join(forbidden_fields)
+                raise PermissionDenied(
+                    f"Cannot modify fields {forbidden_fields} for built-in MIME handlers. Only 'enabled' can be modified."
+                )
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.builtin:
+            raise PermissionDenied("Cannot delete built-in MIME handlers")
+        return super().destroy(request, *args, **kwargs)
 
 
 class TagSlugRelatedField(serializers.SlugRelatedField):
@@ -448,4 +499,5 @@ router.register("stats", CrawlerStatsViewSet)
 router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
 router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
 router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
+router.register("mime_handler", MimeHandlerViewSet)
 router.register("webhook", WebhookViewSet, basename="webhook")

@@ -153,6 +153,7 @@ _pip_pkg_functional_tests:
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/pip
 
 _common_pip_functional_tests:
+	jq -r ".[].dependencies[]?" sosse/mime_handlers.json | sort -u | xargs apt install -y
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'sosse-admin default_conf' /tmp/code_blocks.json
 	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.chromium_options=.*/chromium_options=--enable-precise-memory-info --disable-default-apps --headless --no-sandbox --disable-dev-shm-usage/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.crawler_count=.*/crawler_count=1/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -e \\"s/^.default_browser=.*/default_browser=$(BROWSER)/\\" -i /tmp/code_blocks.json # add --no-sandbox --disable-dev-shm-usage to chromium's command line
@@ -160,6 +161,7 @@ _common_pip_functional_tests:
 
 _deb_pkg_functional_tests:
 	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
+	jq -r '.[].dependencies[]?' sosse/mime_handlers.json | sort -u | xargs apt install -y
 	grep '^ExecStartPre=' debian/sosse-uwsgi.service | sed -e 's/^ExecStartPre=-\?+\?//' -e 's/^/---- /'
 	bash -c "`grep '^ExecStartPre=' debian/sosse-uwsgi.service | sed -e 's/^ExecStartPre=-\?+\?//'`"
 	cp doc/code_blocks.json /tmp/code_blocks.json

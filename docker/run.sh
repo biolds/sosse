@@ -13,6 +13,7 @@ chown -R www-data:www-data /run/sosse /var/log/sosse/ /var/lib/sosse
 
 /venv/bin/sosse-admin migrate
 /venv/bin/sosse-admin update_se
+sudo -u www-data /venv/bin/sosse-admin update_mime
 /venv/bin/sosse-admin default_admin
 /venv/bin/uwsgi --uid www-data --gid www-data --ini /etc/sosse/uwsgi.ini --logto /var/log/sosse/uwsgi.log &
 /etc/init.d/nginx start

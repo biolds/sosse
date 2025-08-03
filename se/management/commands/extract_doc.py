@@ -127,7 +127,6 @@ class Command(BaseCommand):
             se_file = os.path.join(settings.BASE_DIR, UpdateSearchEngineCommand.json_file)
             with open(se_file, encoding="utf-8") as f:
                 search_engines = json.load(f)
-            search_engines = [entry["fields"] for entry in search_engines]
             SE_STR = "**Search Engine**"
             SC_STR = "**Shortcut example**"
             se_len = unicode_len(SE_STR)

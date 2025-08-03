@@ -17,6 +17,9 @@ RUN git clone --depth=1 https://gitlab.com/biolds1/httpbin.git /root/httpbin && 
 ADD requirements.txt /tmp
 RUN virtualenv /robotframework-venv && /robotframework-venv/bin/pip install -r /tmp/requirements.txt && /robotframework-venv/bin/pip cache purge
 RUN mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.com/GurvanKervern/dummy-static-website /var/lib/sosse/screenshots/website
+RUN cd /root && git clone https://gitlab.com/biolds1/sosse-plugins && \
+    cd /root/sosse-plugins && \
+    make install-all && mv mime/image-metadata/test/img-meta.png /var/lib/sosse/screenshots/img-meta.png
 RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf
 
 # Pre-commit installation

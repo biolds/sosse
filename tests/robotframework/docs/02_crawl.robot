@@ -168,6 +168,15 @@
 |  | Sosse Wait Until Page Contains | Long name
 |  | Sosse Capture Page Screenshot | search_engine.png
 
+| Mime Handlers
+|  | Sosse Go To | http://127.0.0.1/admin/se/mimehandler/
+|  | Wait Until Element Is Visible | id=result_list
+|  | Wait Until Element Is Visible | id=footer
+|  | Sosse Capture Page Screenshot | mime_handler_list.png
+|  | Click Element | xpath=//table[@id='result_list']/tbody/tr[1]/th/a
+|  | Wait Until Element Is Visible | id=footer
+|  | Sosse Capture Page Screenshot | mime_handler_detail.png
+
 | Authentication
 |  | Sosse Go To | http://127.0.0.1/admin/auth/user/
 |  | Wait Until Element Is Visible | id=result_list

@@ -25,7 +25,6 @@ class Command(UpdateBuiltinModel):
     doc = "This updates :doc:`user/shortcuts` in the database based on their definition in the source code."
 
     json_file = "sosse/search_engines.json"
-    expected_model = "se.searchengine"
     model_class = SearchEngine
     lookup_field = "short_name"
     model_name = "search engines"

@@ -4,22 +4,13 @@
 | Resource | common.robot
 | Resource | crawl_policy.robot
 | Resource | documents.robot
+| Resource | crawl_queue.robot
 | Test Setup | Setup
 
 | *Keywords* |
 | Setup
 |  | Clear Crawl Policies
 |  | Clear Documents
-
-| Wait For Queue | [Arguments] | ${expected_count}
-|  | Sosse Wait Until Page Contains | Crawl queue
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
-|  | Page Should Not Contain | No crawlers running.
-|  | Page Should Not Contain | exited
-|  | Wait Until Element Is Visible | xpath=//div[@id="queue_pending_count" and contains(., '0')] | 2min
-|  | Wait Until Element Is Visible | xpath=//div[@id="queue_new_count" and contains(., '0')] | 2min
-|  | ${doc_count}= | Get Element Count | xpath=//table[@id="result_list"]//tr
 
 | *Test Cases* |
 | Default policy - Index only this URL

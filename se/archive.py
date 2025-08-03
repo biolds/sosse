@@ -82,7 +82,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             page_title = title
 
         other_links = []
-        if self.doc.mimetype and self.doc.mimetype.startswith("text/"):
+        if self.doc.content:
             other_links = [
                 {
                     "href": reverse_no_escape("www", args=[self.doc.url]),

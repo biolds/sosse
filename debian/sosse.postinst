@@ -58,6 +58,7 @@ configure)
   sosse-admin collectstatic --noinput --clear
   sosse-admin migrate 2>/dev/null >/dev/null || :
   sosse-admin update_se 2>/dev/null >/dev/null || :
+  sosse-admin update_mime 2>/dev/null >/dev/null || :
 
   systemctl try-restart sosse-uwsgi 2>/dev/null >/dev/null || :
   systemctl try-restart sosse-crawler 2>/dev/null >/dev/null || :

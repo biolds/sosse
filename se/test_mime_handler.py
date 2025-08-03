@@ -35,7 +35,6 @@ class MimeHandlerTests(TransactionTestCase):
             script='echo \'{"title": "My PDF"}\'',
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="json_doc",
         )
 
         MimeHandler.run_for_document(self.doc, self.page)
@@ -45,27 +44,12 @@ class MimeHandlerTests(TransactionTestCase):
         self.assertEqual(self.doc.title, "My PDF")
         self.assertTrue(os.path.exists(handler.get_script_path()))
 
-    def test_text_content_handler_execution(self):
-        MimeHandler.objects.create(
-            name="PDF Content Extractor",
-            script='echo "Extracted PDF content"',
-            mimetype_re="^application/pdf$",
-            enabled=True,
-            io_format="content",
-        )
-
-        MimeHandler.run_for_document(self.doc, self.page)
-
-        self.assertEqual(self.doc.content, "Extracted PDF content")
-        self.assertEqual(self.doc.error, "")
-
     def test_handler_with_error_output(self):
         MimeHandler.objects.create(
             name="Failing Handler",
             script="exit 1",
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="content",
         )
 
         MimeHandler.run_for_document(self.doc, self.page)
@@ -80,7 +64,6 @@ class MimeHandlerTests(TransactionTestCase):
             script="echo 'not a json'",
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="json_doc",
         )
 
         MimeHandler.run_for_document(self.doc, self.page)
@@ -94,7 +77,6 @@ class MimeHandlerTests(TransactionTestCase):
             script="echo 'should not run'",
             mimetype_re="^image/.*$",
             enabled=True,
-            io_format="content",
         )
 
         MimeHandler.run_for_document(self.doc, self.page)
@@ -108,7 +90,6 @@ class MimeHandlerTests(TransactionTestCase):
             script="echo 'Should not run'",
             mimetype_re="^application/pdf$",
             enabled=False,
-            io_format="content",
         )
 
         MimeHandler.run_for_document(self.doc, self.page)
@@ -119,37 +100,23 @@ class MimeHandlerTests(TransactionTestCase):
     def test_mimetype_re_supports_multiple_patterns(self):
         MimeHandler.objects.create(
             name="Multiple Mimetypes Handler",
-            script="echo 'multi content'",
+            script='echo \'{"content": "multi content"}\'',
             mimetype_re="^text/plain$\n^application/pdf$",
             enabled=True,
-            io_format="content",
         )
         MimeHandler.run_for_document(self.doc, self.page)
         self.assertEqual(self.doc.content, "multi content")
         self.assertEqual(self.doc.error, "")
 
-    def test_io_format_json_doc(self):
+    def test_json_output(self):
         MimeHandler.objects.create(
             name="JSON Output Handler",
             script='echo \'{"title": "Output Format JSON"}\'',
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="json_doc",
         )
         MimeHandler.run_for_document(self.doc, self.page)
         self.assertEqual(self.doc.title, "Output Format JSON")
-        self.assertEqual(self.doc.error, "")
-
-    def test_io_format_content(self):
-        MimeHandler.objects.create(
-            name="Text Output Handler",
-            script='echo "Plain text from handler"',
-            mimetype_re="^application/pdf$",
-            enabled=True,
-            io_format="content",
-        )
-        MimeHandler.run_for_document(self.doc, self.page)
-        self.assertEqual(self.doc.content, "Plain text from handler")
         self.assertEqual(self.doc.error, "")
 
     def test_handler_timeout(self):
@@ -159,7 +126,6 @@ class MimeHandlerTests(TransactionTestCase):
             mimetype_re="^application/pdf$",
             timeout=1,
             enabled=True,
-            io_format="content",
         )
         MimeHandler.run_for_document(self.doc, self.page)
 
@@ -172,7 +138,6 @@ class MimeHandlerTests(TransactionTestCase):
             script="non_existent_command_xyz",
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="content",
         )
         MimeHandler.run_for_document(self.doc, self.page)
         self.assertIn("not found", self.doc.error)
@@ -190,7 +155,6 @@ echo "{\"title\": \"Modified $TITLE\", \"content\": \"Modified $CONTENT\"}"
 """,
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="json_doc",
         )
         self.doc.title = "Original Title"
         self.doc.content = "Original Content"
@@ -212,7 +176,6 @@ echo "{\"title\": \"Modified $TITLE\", \"content\": \"Modified $CONTENT\", \"url
 """,
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="json_doc",
         )
         self.doc.title = "Original Title"
         self.doc.content = "Original Content"
@@ -235,7 +198,6 @@ echo "{\"title\": \"Modifièd $TITLE\", \"content\": \"Modifiéd $CONTENT\"}"
 """,
             mimetype_re="^application/pdf$",
             enabled=True,
-            io_format="json_doc",
         )
         self.doc.title = "Original Title"
         self.doc.content = "Original Content"
@@ -246,15 +208,3 @@ echo "{\"title\": \"Modifièd $TITLE\", \"content\": \"Modifiéd $CONTENT\"}"
         self.assertEqual(self.doc.normalized_title, "Modified Original Title")
         self.assertEqual(self.doc.content, "Modifiéd Original Content")
         self.assertEqual(self.doc.normalized_content, "Modified Original Content")
-
-    def test_content_handler_reads_input(self):
-        # Write known content to tempfile
-        MimeHandler.objects.create(
-            name="Echo file content",
-            script="cat $1",
-            mimetype_re="^application/pdf$",
-            enabled=True,
-            io_format="content",
-        )
-        MimeHandler.run_for_document(self.doc, self.page)
-        self.assertEqual(self.doc.content, TEST_CONTENT)

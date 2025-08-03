@@ -196,7 +196,7 @@ class Document(models.Model):
                 else:
                     return reverse_no_escape("download", args=(self.url,))
 
-        if self.mimetype and self.mimetype.startswith("text/"):
+        if self.content:
             return reverse_no_escape("www", args=(self.url,))
         return reverse_no_escape("words", args=(self.url,))
 

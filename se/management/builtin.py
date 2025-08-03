@@ -22,19 +22,20 @@ from django.core.management.base import BaseCommand
 
 class UpdateBuiltinModel(BaseCommand):
     json_file = None
-    expected_model = None
     model_class = None
     lookup_field = None
     model_name = None
+    fields_to_remove = set()
 
     def handle(self, *args, **options):
         count = 0
 
         json_file_path = os.path.join(settings.BASE_DIR, self.json_file)
         for item in json.load(open(json_file_path, encoding="utf-8")):
-            if item["model"] != self.expected_model:
-                raise ValueError(f"Invalid model {item['model']} in {json_file_path}")
-            fields = item["fields"]
+            fields = item.copy()
+            for field in self.fields_to_remove:
+                fields.pop(field, None)
+
             lookup_value = fields.pop(self.lookup_field)
 
             db_obj, created = self.model_class.objects.get_or_create(
@@ -50,7 +51,21 @@ class UpdateBuiltinModel(BaseCommand):
         self.check_conflicts()
 
     def update_existing(self, db_obj, fields):
-        self.model_class.objects.filter(id=db_obj.id).update(**fields)
+        if not db_obj.builtin:
+            self.stderr.write(
+                self.style.WARNING(
+                    f"Skipping update of {self.model_name.rstrip('s')} '{getattr(db_obj, self.lookup_field)}' "
+                    f"because it is user-defined"
+                )
+            )
+            return
+        # Remove 'enabled' field to preserve user's enable/disable choice
+        fields.pop("enabled", None)
+        # Use save() instead of update() to ensure overridden save method is called
+        # (e.g., MimeHandler needs to write the JSON configuration file to disk)
+        for field, value in fields.items():
+            setattr(db_obj, field, value)
+        db_obj.save()
 
     def check_conflicts(self):
         pass

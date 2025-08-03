@@ -6,7 +6,7 @@
 - update the CHANGELOG.md using the last changelog build it the main branch
 - commit as "v1.10.1 release"
 - MR
-- create tag "vX.X.X"
+- create tag "vX.X.X" in sosse-plugins project first, then in sosse project
 - update the `stable` branch for the release (to update the `stable` version of readthedoc)
 - check RTD as the doc build can fail if Gitlab has concurrent builds running
 - pip release (this needs to be done before the docker step below)

@@ -29,7 +29,7 @@ class HTMLView(ArchiveMixin, TemplateView):
     view_name = "html"
 
     def get_context_data(self, *args, **kwargs):
-        if not self.doc.mimetype or not self.doc.mimetype.startswith("text/"):
+        if not self.doc.content:
             raise RedirectException(self.doc.get_absolute_url())
 
         url = self._url_from_request()

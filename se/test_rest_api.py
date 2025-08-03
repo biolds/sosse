@@ -22,6 +22,7 @@ from django.test import Client, TransactionTestCase
 from django.utils import timezone
 
 from .document import Document
+from .mime_handler import MimeHandler
 from .models import CrawlerStats
 from .tag import Tag
 
@@ -129,6 +130,23 @@ class RestAPITest:
         self.subtag = Tag.objects.create(name="Sub Tag", parent=self.tag)
         self.doc2.tags.set([self.subtag])
 
+        self.mime_handler_builtin = MimeHandler.objects.create(
+            name="Built-in Handler",
+            description="A built-in MIME handler",
+            script="echo 'builtin'",
+            mimetype_re="^text/plain$",
+            builtin=True,
+            enabled=True,
+        )
+        self.mime_handler_custom = MimeHandler.objects.create(
+            name="Custom Handler",
+            description="A custom MIME handler",
+            script="echo 'custom'",
+            mimetype_re="^application/json$",
+            builtin=False,
+            enabled=True,
+        )
+
 
 class APIQueryTest(RestAPITest, TransactionTestCase):
     def test_document_list(self):
@@ -161,11 +179,13 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "manual_crawl": False,
                         "metadata": {},
                         "mimetype": "image/png",
+                        "mime_handlers_result": "",
                         "modified_date": None,
                         "normalized_content": "other content2",
                         "normalized_title": "title2",
                         "normalized_url": "http test2",
                         "redirect_url": None,
+                        "retries": 0,
                         "robotstxt_rejected": False,
                         "screenshot_count": 0,
                         "screenshot_format": "",
@@ -464,3 +484,81 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
     def test_document_create_prohibited(self):
         response = self.client.post("/api/document/", {"url": "http://127.0.0.1/"}, content_type="application/json")
         self.assertEqual(response.status_code, 405, response.content)
+
+    def test_mime_handler_list(self):
+        response = self.client.get("/api/mime_handler/")
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 2)
+        self.assertTrue(any(handler["name"] == "Built-in Handler" for handler in data["results"]))
+        self.assertTrue(any(handler["name"] == "Custom Handler" for handler in data["results"]))
+
+    def test_mime_handler_detail(self):
+        response = self.client.get(f"/api/mime_handler/{self.mime_handler_custom.id}/")
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["name"], "Custom Handler")
+        self.assertEqual(data["builtin"], False)
+
+    def test_mime_handler_create(self):
+        response = self.client.post(
+            "/api/mime_handler/",
+            {
+                "name": "New Handler",
+                "description": "A new handler",
+                "script": "echo 'new'",
+                "mimetype_re": "^image/jpeg$",
+                "enabled": True,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["name"], "New Handler")
+        self.assertEqual(data["builtin"], False)
+
+    def test_mime_handler_update_custom(self):
+        response = self.client.patch(
+            f"/api/mime_handler/{self.mime_handler_custom.id}/",
+            {"description": "Updated description"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["description"], "Updated description")
+
+    def test_mime_handler_update_builtin_forbidden(self):
+        response = self.client.patch(
+            f"/api/mime_handler/{self.mime_handler_builtin.id}/",
+            {"description": "Should not work"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403, response.content)
+        data = json.loads(response.content)
+        self.assertIn("for built-in MIME handlers", data["detail"])
+
+    def test_mime_handler_delete_custom(self):
+        response = self.client.delete(f"/api/mime_handler/{self.mime_handler_custom.id}/")
+        self.assertEqual(response.status_code, 204, response.content)
+
+    def test_mime_handler_delete_builtin_forbidden(self):
+        response = self.client.delete(f"/api/mime_handler/{self.mime_handler_builtin.id}/")
+        self.assertEqual(response.status_code, 403, response.content)
+        data = json.loads(response.content)
+        self.assertIn("Cannot delete built-in MIME handlers", data["detail"])
+
+    def test_mime_handler_builtin_readonly(self):
+        response = self.client.post(
+            "/api/mime_handler/",
+            {
+                "name": "Test Handler",
+                "script": "echo 'test'",
+                "mimetype_re": "^text/test$",
+                "builtin": True,
+                "enabled": True,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["builtin"], False)

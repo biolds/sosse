@@ -28,17 +28,13 @@ from PIL import Image
 from .builtin import BuiltinModel
 from .utils import build_multiline_re, validate_multiline_re
 
-crawl_logger = logging.getLogger("crawl_logger")
+crawl_logger = logging.getLogger("crawler")
 
 
 class MimeHandler(BuiltinModel):
-    IO_FORMAT_CHOICES = [
-        ("json_doc", "JSON Document"),
-        ("content", "Content"),
-    ]
-
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
+    license = models.CharField(max_length=255, blank=True, help_text="License of the script, e.g. GPL-3.0")
     script = models.TextField(help_text="Shell script which receives a file path as first argument")
     mimetype_re = models.TextField(
         help_text="One regex per line to match MIME types (e.g. ^application/pdf$)",
@@ -46,7 +42,6 @@ class MimeHandler(BuiltinModel):
     )
     timeout = models.PositiveIntegerField(default=30, help_text="Timeout in seconds for the script execution")
     enabled = models.BooleanField(default=True)
-    io_format = models.CharField(max_length=20, choices=IO_FORMAT_CHOICES, default="content")
 
     def get_script_path(self):
         """Returns the absolute path to the stored script file, based on PK."""
@@ -96,8 +91,9 @@ class MimeHandler(BuiltinModel):
             crawl_logger.debug(f"[{self.name}] STDOUT:\n{result.stdout.strip()}")
             crawl_logger.debug(f"[{self.name}] STDERR:\n{result.stderr.strip()}")
             return result.returncode, result.stdout.strip(), result.stderr.strip()
-        except subprocess.TimeoutExpired:
-            msg = f"[{self.name}] Timeout after {self.timeout}s"
+        except subprocess.TimeoutExpired as e:
+            stderr_msg = e.stderr.decode() if e.stderr else ""
+            msg = f"{stderr_msg}\n[{self.name}] Timeout after {self.timeout}s".strip()
             crawl_logger.debug(msg)
             return -1, "", msg
 
@@ -108,7 +104,12 @@ class MimeHandler(BuiltinModel):
         crawl_logger.debug(f"Running mime handlers for {doc.url}")
 
         applicable_handlers = cls.objects.filter(enabled=True).order_by("name")
-        matched = False
+        for handler in applicable_handlers:
+            if re.match(build_multiline_re(handler.mimetype_re.strip()), doc.mimetype):
+                break
+        else:
+            crawl_logger.debug(f"No handler matched for {doc.mimetype}")
+            return
 
         temp_content_path = None
         temp_json_path = None
@@ -123,40 +124,35 @@ class MimeHandler(BuiltinModel):
                     temp_content_path = temp_file.name
                     content_file = temp_content_path
 
-            if any(h.io_format == "json_doc" for h in applicable_handlers):
-                with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as tf:
-                    json_doc = DocumentSerializer(doc).data
-                    json_doc["content_file"] = content_file
-                    json.dump(json_doc, tf)
-                    tf.flush()
-                    temp_json_path = tf.name
+            with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as tf:
+                json_doc = DocumentSerializer(doc).data
+                json_doc["content_file"] = content_file
+                json.dump(json_doc, tf)
+                tf.flush()
+                temp_json_path = tf.name
 
             for handler in applicable_handlers:
                 if re.match(build_multiline_re(handler.mimetype_re.strip()), doc.mimetype):
-                    matched = True
                     crawl_logger.debug(f"[{handler.name}] Handler matched for {doc.mimetype}")
 
-                    input_path = temp_json_path if handler.io_format == "json_doc" else content_file
-
                     with tempfile.TemporaryDirectory() as temp_dir:
-                        code, stdout, stderr = handler.execute(input_path, temp_dir)
+                        code, stdout, stderr = handler.execute(temp_json_path, temp_dir)
                         doc.mime_handlers_result += f"{handler.name}:\n{stderr}\n\n"
 
                         if code != 0:
                             doc.error = f"{doc.error or ''}\nExecution of {handler.name} failed with status {code}:\n{stderr}".strip()
+                            crawl_logger.error(f"Mime handler {handler.name} on {doc.url} with code {code}: {stderr}")
                             continue
 
-                        crawl_logger.debug(f"got stdout {stdout}")
                         try:
-                            if handler.io_format == "json_doc":
-                                try:
-                                    data = json.loads(stdout)
-                                except ValueError as e:
-                                    doc.error = f"{doc.error or ''}\n{handler.name} output is not valid JSON: {e}\ncontent: {stdout[:1000]}"
-                                    continue
-
-                            else:
-                                data = {"content": stdout}
+                            try:
+                                data = json.loads(stdout)
+                            except ValueError as e:
+                                doc.error = f"{doc.error or ''}\n{handler.name} output is not valid JSON: {e}\ncontent: {stdout[:1000]}"
+                                crawl_logger.error(
+                                    f"Mime handler {handler.name} output is not valid JSON on {doc.url}: {e}\ncontent: {stdout[:1000]}"
+                                )
+                                continue
 
                             if stdout:
                                 preview = None
@@ -184,6 +180,7 @@ class MimeHandler(BuiltinModel):
                         except Exception as e:
                             doc.error = f"{doc.error or ''}\n{handler.name} processing error: {e}".strip()
                             doc.mime_handlers_result += f"{handler.name}:\n{stderr}\n\n"
+                            crawl_logger.error(f"Mime handler {handler.name} processing error on {doc.url}: {e}")
                             if getattr(settings, "TEST_MODE", False):
                                 raise
                             continue
@@ -192,9 +189,6 @@ class MimeHandler(BuiltinModel):
                 os.remove(temp_json_path)
             if temp_content_path and os.path.exists(temp_content_path):
                 os.remove(temp_content_path)
-
-        if not matched:
-            crawl_logger.debug(f"No handler matched for {doc.mimetype}")
 
     def __str__(self):
         return self.name

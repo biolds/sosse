@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import requests
+from django.conf import settings
 from django.test import TransactionTestCase
 
 from .browser_request import BrowserRequest
@@ -40,3 +41,13 @@ class RequestsTest(TransactionTestCase):
         self._get(s, "http://127.0.0.1:8000/cookies/delete?test_key")
         cookies = list(s.cookies)
         self.assertEqual(cookies, [])
+
+    def test_30_percent_encoded_url_preserves_case(self):
+        # Make sure we don't trigger https://github.com/psf/requests/issues/6473
+        URL = "http://127.0.0.1:8000/%e2%82%ac"
+        r = BrowserRequest._requests_query("get", URL, settings.SOSSE_MAX_FILE_SIZE)
+        self.assertEqual(r.url, URL)
+
+        URL = "http://127.0.0.1:8000/%E2%82%ac"
+        r = BrowserRequest._requests_query("get", URL, settings.SOSSE_MAX_FILE_SIZE)
+        self.assertEqual(r.url, URL)

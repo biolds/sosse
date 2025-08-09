@@ -17,15 +17,18 @@
 import logging
 
 import requests
+import urllib3.util.url
 from django.conf import settings
 from requests.adapters import HTTPAdapter
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
+from .browser_request_hack import _encode_invalid_chars
 from .cookie import Cookie
 from .domain import user_agent
 from .page import Page
 from .url import absolutize_url, url_remove_fragment
 
+urllib3.util.url._encode_invalid_chars = _encode_invalid_chars
 crawl_logger = logging.getLogger("crawler")
 
 

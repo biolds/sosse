@@ -70,4 +70,9 @@ class Migration(migrations.Migration):
             name="retries",
             field=models.PositiveIntegerField(default=0, verbose_name="Crawl retries"),
         ),
+        migrations.AlterField(
+            model_name="document",
+            name="mimetype",
+            field=models.CharField(blank=True, max_length=128, null=True),
+        ),
     ]

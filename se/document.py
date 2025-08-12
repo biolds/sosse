@@ -123,7 +123,7 @@ class Document(models.Model):
     vector = SearchVectorField(null=True, blank=True)
     lang_iso_639_1 = models.CharField(max_length=6, null=True, blank=True, verbose_name="Language")
     vector_lang = RegConfigField(default="simple")
-    mimetype = models.CharField(max_length=64, null=True, blank=True)
+    mimetype = models.CharField(max_length=128, null=True, blank=True)
     hidden = models.BooleanField(default=False, help_text="Hide this document from search results")
     retries = models.PositiveIntegerField(default=0, verbose_name="Crawl retries")
 

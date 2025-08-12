@@ -343,7 +343,9 @@ doc_test_debian:
     - if: $CI_PIPELINE_SOURCE == "push"
   needs:
     - doc_code_extract
+    - debian_pkg
   script:
+    - mv deb/*.deb /tmp/
     - apt update
     - apt install -y make jq
     - make _doc_test_debian
@@ -355,7 +357,9 @@ doc_test_pip:
     - if: $CI_PIPELINE_SOURCE == "push"
   needs:
     - doc_code_extract
+    - pip_pkg
   script:
+    - mv dist/*.whl /tmp/
     - apt update
     - apt install -y make jq
     - make _doc_test_pip

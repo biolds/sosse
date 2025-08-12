@@ -111,17 +111,20 @@ docker_build:
 _doc_test_debian:
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'apt install -y sosse' /tmp/code_blocks.json
-	sed -e 's#apt install -y sosse#apt install -y sosse; /etc/init.d/nginx start \& /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
+	sed -e 's#apt install -y sosse#apt install -y sosse ; dpkg -i /tmp/sosse*.deb ; /etc/init.d/nginx start \& /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
 
 doc_test_debian:
 	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
 
 _doc_test_pip:
+	cp doc/code_blocks.json /tmp/code_blocks.json
+	grep -q 'pip install sosse' /tmp/code_blocks.json
+	sed -e 's#pip install sosse#pip install /tmp/*.whl#' -i /tmp/code_blocks.json
 	apt install -y chromium chromium-driver postgresql libpq-dev nginx python3-dev python3-pip virtualenv libmagic1
 	/etc/init.d/postgresql start &
 	bash ./tests/wait_for_pg.sh
-	bash ./tests/doc_test.sh doc/code_blocks.json install/pip
+	bash ./tests/doc_test.sh /tmp/code_blocks.json install/pip
 
 doc_test_pip:
 	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'

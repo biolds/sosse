@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Counter Test</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        let counter = 0;
+        let isRunning = true;
+        const counterElement = document.getElementById('counter');
+
+        function updateCounter() {
+          if (isRunning) {
+            counterElement.innerText = counter++;
+
+            if (counter >= 60) { // 3 seconds at 0.05s interval = 60 updates
+              isRunning = false;
+              setTimeout(() => {
+                counter = 0;
+                isRunning = true;
+                updateCounter();
+              }, 1000); // wait 1 second
+            } else {
+              setTimeout(updateCounter, 50); // 0.05 seconds = 50ms
+            }
+          }
+        }
+
+        updateCounter();
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Counter Test</h1>
+    <div id="counter">0</div>
+  </body>
+</html>

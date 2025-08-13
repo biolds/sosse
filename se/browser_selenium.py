@@ -132,9 +132,9 @@ class BrowserSelenium(Browser):
         )
         redirect_count = 0
 
+        retry = settings.SOSSE_JS_STABLE_RETRY
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
             # Wait for page being ready
-            retry = settings.SOSSE_JS_STABLE_RETRY
             while retry > 0 and cls._current_url() == url:
                 retry -= 1
                 if cls.driver.execute_script('return document.readyState === "complete";'):
@@ -149,20 +149,40 @@ class BrowserSelenium(Browser):
                 continue
 
             crawl_logger.debug(f"js stabilization start {url}")
-            # Wait for page content to be stable
-            retry = settings.SOSSE_JS_STABLE_RETRY
-            previous_content = None
-            content = None
+
+            # Inject DOM observer to track changes
+            cls.driver.execute_script("""
+                document.sosseReady = true;
+                document.sosseObserver = new MutationObserver(() => {
+                    document.sosseReady = false;
+                });
+                document.sosseObserver.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    characterData: true
+                });
+            """)
 
             while retry > 0 and cls._current_url() == url:
-                retry -= 1
-                content = cls.driver.page_source
-
-                if content == previous_content:
-                    break
-                previous_content = content
                 sleep(settings.SOSSE_JS_STABLE_TIME)
-                crawl_logger.debug(f"js changed {url}")
+                retry -= 1
+
+                is_ready = cls.driver.execute_script("return document.sosseReady;")
+                if is_ready:
+                    break
+                else:
+                    cls.driver.execute_script("document.sosseReady = true;")
+                    crawl_logger.debug(f"js changed {url}")
+
+            # Clean up observer
+            cls.driver.execute_script("""
+                if (document.sosseObserver) {
+                    document.sosseObserver.disconnect();
+                    delete document.sosseObserver;
+                    delete document.sosseReady;
+                }
+            """)
 
             if cls._current_url() != url:
                 redirect_count += 1

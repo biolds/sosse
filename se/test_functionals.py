@@ -631,3 +631,25 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         domain = Domain.objects.first()
         self.assertEqual(domain.domain, TEST_SERVER_DOMAIN)
         self.assertEqual(domain.browse_mode, Domain.BROWSE_REQUESTS)
+
+    def test_30_counter_test(self):
+        CrawlPolicy.objects.create(
+            url_regex="(default)",
+            url_regex_pg=".*",
+            recursion=CrawlPolicy.CRAWL_NEVER,
+            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            default_browse_mode=Domain.BROWSE_CHROMIUM,
+            snapshot_html=False,
+            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            take_screenshots=False,
+        )
+        Document.queue(TEST_SERVER_URL + "static/pages/stable_test.html", None, None)
+        self._crawl()
+        self.assertEqual(Document.objects.count(), 1)
+        doc = Document.objects.w_content().first()
+        self.assertEqual(doc.url, TEST_SERVER_URL + "static/pages/stable_test.html")
+        self.assertIn("59", doc.content)
+        self.assertEqual(Domain.objects.count(), 1)
+        domain = Domain.objects.first()
+        self.assertEqual(domain.domain, TEST_SERVER_DOMAIN)
+        self.assertEqual(domain.browse_mode, Domain.BROWSE_CHROMIUM)

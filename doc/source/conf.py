@@ -39,10 +39,7 @@ test_code_output = "code_blocks.json"
 
 linkcheck_ignore = [
     r"http://192\.168\.0\.1:8080/",
-    r"https://github\.com/.*",
-    r"https://gitlab\.com/.*",
     r"http://127\.0\.0\.1:8005/",
-    r"https://www\.gnu\.org/",
 ]
 linkcheck_retries = 3
 linkcheck_timeout = 60

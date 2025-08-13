@@ -488,14 +488,6 @@
     "builtin": true
   },
   {
-    "short_name": "Instagram",
-    "long_name": "Instagram",
-    "description": "Search Instagram",
-    "html_template": "https://www.instagram.com/explore/search/?q={searchTerms}",
-    "shortcut": "ig",
-    "builtin": true
-  },
-  {
     "short_name": "Pinterest",
     "long_name": "Pinterest",
     "description": "Search Pinterest",
@@ -613,14 +605,6 @@
     "description": "Private search engine",
     "html_template": "https://www.startpage.com/do/search?q={searchTerms}",
     "shortcut": "s",
-    "builtin": true
-  },
-  {
-    "short_name": "DeepL",
-    "long_name": "DeepL Translator",
-    "description": "Translate with DeepL",
-    "html_template": "https://www.deepl.com/translator#any/en/{searchTerms}",
-    "shortcut": "dl",
     "builtin": true
   },
   {
@@ -808,14 +792,6 @@
     "builtin": true
   },
   {
-    "short_name": "Facebook",
-    "long_name": "Facebook",
-    "description": "Search Facebook",
-    "html_template": "https://www.facebook.com/search/top?q={searchTerms}",
-    "shortcut": "fb",
-    "builtin": true
-  },
-  {
     "short_name": "Apple Music",
     "long_name": "Apple Music",
     "description": "Search Apple Music",
@@ -861,14 +837,6 @@
     "description": "Search anime on Crunchyroll",
     "html_template": "https://www.crunchyroll.com/search?q={searchTerms}",
     "shortcut": "cr",
-    "builtin": true
-  },
-  {
-    "short_name": "Netflix",
-    "long_name": "Netflix",
-    "description": "Search Netflix",
-    "html_template": "https://www.netflix.com/search?q={searchTerms}",
-    "shortcut": "nf",
     "builtin": true
   },
   {
@@ -936,14 +904,6 @@
     "builtin": true
   },
   {
-    "short_name": "Bitbucket",
-    "long_name": "Bitbucket",
-    "description": "Search Bitbucket repositories",
-    "html_template": "https://bitbucket.org/repo/all?name={searchTerms}",
-    "shortcut": "bb",
-    "builtin": true
-  },
-  {
     "short_name": "You.com",
     "long_name": "You.com",
     "description": "AI search engine",
@@ -952,18 +912,10 @@
     "builtin": true
   },
   {
-    "short_name": "Searx",
-    "long_name": "Searx",
-    "description": "Privacy metasearch engine",
-    "html_template": "https://searx.me/?q={searchTerms}",
-    "shortcut": "sx",
-    "builtin": true
-  },
-  {
     "short_name": "AZLyrics",
     "long_name": "AZLyrics",
     "description": "Song lyrics database",
-    "html_template": "https://search.azlyrics.com/search.php?q={searchTerms}",
+    "html_template": "https://www.azlyrics.com/search/?q={searchTerms}",
     "shortcut": "az",
     "builtin": true
   },

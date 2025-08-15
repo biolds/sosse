@@ -345,7 +345,7 @@ The UA will be selected among the provided platform, specified as a comma-separa
         ),
         "max_file_size": ConfOption(
             comment="Maximum file size to index (in kB).",
-            default=5000,
+            default=1000000,
             type=int,
         ),
         "max_html_asset_size": ConfOption(

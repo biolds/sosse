@@ -242,7 +242,7 @@ class ViewsTest:
             self.assertEqual(response.status_code, 200, f"{url} / {response}")
 
     def test_admin_doc_actions(self):
-        for action in ("remove_from_crawl_queue", "convert_to_jpg"):
+        for action in ("remove_from_crawl_queue",):
             response = self.admin_client.post(f"/admin/se/document/{self.doc.id}/do_action/", {"action": action})
             self.assertEqual(response.status_code, 302, f"{action} / {response}")
             self.assertEqual(

@@ -233,20 +233,20 @@ class BrowserRequest(Browser):
         return page
 
     @classmethod
-    def try_auth(cls, page, url, crawl_policy):
+    def try_auth(cls, page, url, collection):
         parsed = page.get_soup()
-        form = parsed.select(crawl_policy.auth_form_selector)
+        form = parsed.select(collection.auth_form_selector)
 
         if len(form) == 0:
             raise AuthElemFailed(
                 page,
-                f"Could not find element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Could not find element with CSS selector: {collection.auth_form_selector}",
             )
 
         if len(form) > 1:
             raise AuthElemFailed(
                 page,
-                f"Found multiple element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Found multiple element with CSS selector: {collection.auth_form_selector}",
             )
 
         form = form[0]
@@ -255,7 +255,7 @@ class BrowserRequest(Browser):
             if elem.get("name"):
                 payload[elem.get("name")] = elem.get("value")
 
-        for f in crawl_policy.authfield_set.values("key", "value"):
+        for f in collection.authfield_set.values("key", "value"):
             payload[f["key"]] = f["value"]
 
         post_url = form.get("action")

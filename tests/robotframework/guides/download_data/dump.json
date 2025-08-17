@@ -2146,7 +2146,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 1,
     "fields": {
       "url_regex": "(default)",
@@ -2177,7 +2177,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 2,
     "fields": {
       "url_regex": "^https://www.gutenberg.org/cache/epub/feeds/today.rss$",
@@ -2208,7 +2208,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 3,
     "fields": {
       "url_regex": "^https://www.gutenberg.org/ebooks/[0-9]+$\r\n^https://www.gutenberg.org/ebooks/[0-9]+.epub3.images$\r\n^https://www.gutenberg.org/cache/epub/.*epub$",

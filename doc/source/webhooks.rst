@@ -9,7 +9,7 @@ Webhooks allow external services to be notified when a page is crawled. The webh
 
 When an event such as a new page discovery or a content change occurs, the corresponding webhook will be triggered,
 sending an HTTP request to the specified URL. After creation, the webhook must be registered in
-:doc:`Crawl Policies <crawl/policies>`. The execution result can be viewed on the relevant
+:doc:`Collections <crawl/collections>`. The execution result can be viewed on the relevant
 :doc:`Document's page <documents>`.
 
 Webhook Configuration

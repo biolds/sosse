@@ -10,7 +10,7 @@ Administration
    crawl/queue.rst
    crawl/crawlers.rst
    crawl/analytics.rst
-   crawl/policies.rst
+   crawl/collections.rst
    crawl/recursion_depth.rst
    crawl/feeds.rst
    documents.rst

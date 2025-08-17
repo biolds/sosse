@@ -2,14 +2,14 @@
 | Library | SeleniumLibrary
 | Library | String
 | Resource | common.robot
-| Resource | crawl_policy.robot
+| Resource | collection.robot
 | Resource | documents.robot
 | Resource | crawl_queue.robot
 | Test Setup | Setup
 
 | *Keywords* |
 | Setup
-|  | Clear Crawl Policies
+|  | Clear Collections
 |  | Clear Documents
 
 

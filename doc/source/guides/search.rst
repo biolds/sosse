@@ -2,14 +2,14 @@ Website indexing & Search
 =========================
 
 Sosse allows you to crawl a website and search its pages for specific keywords. This process involves configuring
-a :doc:`Crawl Policy <../crawl/policies>` to define how the site is crawled, followed by searching for the desired
+a :doc:`Collection <../crawl/collections>` to define how the site is crawled, followed by searching for the desired
 content.
 
-Creating a Crawl Policy
+Creating a Collection
 -----------------------
 
-Crawl policies control how Sosse accesses and logs website content. This section covers key settings; for full details,
-see the :doc:`Crawl Policies <../crawl/policies>` documentation.
+Collections control how Sosse accesses and logs website content. This section covers key settings; for full details,
+see the :doc:`Collections <../crawl/collections>` documentation.
 
 By default, the crawler processes only directly queued pages. Enabling recursion ensures linked pages are also crawled:
 
@@ -29,7 +29,7 @@ Starting the Crawl
 
 To begin crawling, go to the :doc:`Crawl a new URL <../crawl/new_url>` page and enter the site's homepage URL.
 
-Review the parameters, then click ``Confirm``. Sosse will crawl the site and log pages matching the Crawl Policy.
+Review the parameters, then click ``Confirm``. Sosse will crawl the site and log pages matching the Collection.
 
 .. note::
    If pages aren’t crawled as expected, check whether the site’s `robots.txt` file is blocking the crawler.

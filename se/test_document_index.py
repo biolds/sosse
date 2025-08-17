@@ -18,7 +18,7 @@ from unittest import mock
 from django.db import connection, reset_queries
 from django.test import TransactionTestCase
 
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
 from .domain import Domain
 from .page import Page
@@ -27,12 +27,12 @@ from .test_mock import BrowserMock
 
 class DocumentIndexTest(TransactionTestCase):
     def setUp(self):
-        self.crawl_policy = CrawlPolicy.objects.create(
+        self.collection = Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
+            recursion=Collection.CRAWL_NEVER,
             default_browse_mode=Domain.BROWSE_REQUESTS,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -54,7 +54,7 @@ class DocumentIndexTest(TransactionTestCase):
         doc = Document.objects.wo_content().create(url="http://127.0.0.1")
 
         reset_queries()
-        doc.index(page, self.crawl_policy)
+        doc.index(page, self.collection)
         self.assertQueriesCountEqual(0)
 
     @mock.patch("se.browser_request.BrowserRequest.get")

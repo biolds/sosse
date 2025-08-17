@@ -21,7 +21,7 @@ from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 from django.views.generic import View
 
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document, extern_link_flags
 from .login import SosseLoginRequiredMixin
 from .online import online_status
@@ -66,7 +66,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
 
     def get_context_data(self):
         context = super().get_context_data()
-        crawl_policy = CrawlPolicy.get_from_url(self.doc.url)
+        collection = Collection.get_from_url(self.doc.url)
         beautified_url = url_beautify(self.doc.url)
         title = self.doc.title or beautified_url
         page_title = None
@@ -135,7 +135,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             model_tags.append(tag)
 
         return context | {
-            "crawl_policy": crawl_policy,
+            "collection": collection,
             "doc": self.doc,
             "www_redirect_url": self.doc.redirect_url and reverse_no_escape("archive", args=[self.doc.redirect_url]),
             "head_title": title,
@@ -160,7 +160,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             "url": url,
             "title": beautified_url,
             "beautified_url": beautified_url,
-            "crawl_policy": CrawlPolicy.get_from_url(url),
+            "collection": Collection.get_from_url(url),
             "extern_link_flags": extern_link_flags,
             "search_form": SearchForm({}),
             "online_status": online_status(self.request),

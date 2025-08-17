@@ -263,7 +263,7 @@ class Document(models.Model):
 
         return lang
 
-    def _hash_content(self, content, crawl_policy):
+    def _hash_content(self, content, collection):
         if not self.mimetype:
             raise Exception("mimetype is required")
 
@@ -271,11 +271,11 @@ class Document(models.Model):
             if not isinstance(content, str):
                 raise ValueError("content must be a string")
 
-            from .crawl_policy import CrawlPolicy
+            from .collection import Collection
 
-            if crawl_policy.hash_mode == CrawlPolicy.HASH_RAW:
+            if collection.hash_mode == Collection.HASH_RAW:
                 pass
-            elif crawl_policy.hash_mode == CrawlPolicy.HASH_NO_NUMBERS:
+            elif collection.hash_mode == Collection.HASH_NO_NUMBERS:
                 try:
                     content = re.sub("[0-9]+", "0", content)
                 except UnicodeDecodeError:
@@ -316,7 +316,7 @@ class Document(models.Model):
         self.delete_screenshot()
         self.delete_thumbnail()
 
-    def _parse_xml(self, page, crawl_policy, stats, verbose):
+    def _parse_xml(self, page, collection, stats, verbose):
         parsed = feedparser.parse(page.content)
         if len(getattr(parsed, "entries", [])) == 0:
             return
@@ -344,9 +344,9 @@ class Document(models.Model):
     def _normalized_content(content):
         return remove_accent(content)
 
-    def _parse_text(self, page, crawl_policy, stats, verbose):
+    def _parse_text(self, page, collection, stats, verbose):
         crawl_logger.debug(f"parsing {self.url}")
-        links = page.dom_walk(crawl_policy, True, self)
+        links = page.dom_walk(collection, True, self)
         text = links["text"]
 
         self._index_log(f"text / {len(links['links'])} links extraction", stats, verbose)
@@ -366,9 +366,9 @@ class Document(models.Model):
         self._index_log("bulk", stats, verbose)
         return links
 
-    def index(self, page, crawl_policy, verbose=False):
+    def index(self, page, collection, verbose=False):
         crawl_logger.debug(f"indexing {self.url}")
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
 
         n = now()
         stats = {"prev": n}
@@ -391,27 +391,27 @@ class Document(models.Model):
 
         self.normalized_title = self._normalized_title(self.title)
         self.mimetype = page.mimetype
-        self.hidden = crawl_policy.hide_documents
+        self.hidden = collection.hide_documents
 
         self.crawl_last = n
         if not self.crawl_first:
             self.crawl_first = n
 
-        if not re.match(crawl_policy.mimetype_regex, self.mimetype):
-            self._schedule_next(False, crawl_policy)
+        if not re.match(collection.mimetype_regex, self.mimetype):
+            self._schedule_next(False, collection)
 
             crawl_logger.debug(f"skipping {self.url} due to mimetype {self.mimetype}")
             return
 
-        links = page.dom_walk(crawl_policy, False, None)
+        links = page.dom_walk(collection, False, None)
         self.content = links["text"]
         crawl_logger.debug(f"queued links {len(links['links'])}")
 
         # self.content may be empty if the page is not text-based, in this case we use the page content
         _hash_content = self.content if self.mimetype.startswith("text/") else page.content
-        self.content_hash = self._hash_content(_hash_content, crawl_policy)
+        self.content_hash = self._hash_content(_hash_content, collection)
 
-        self._schedule_next(current_hash != self.content_hash, crawl_policy)
+        self._schedule_next(current_hash != self.content_hash, collection)
 
         webhook_trigger_cond = {Webhook.TRIGGER_COND_ALWAYS}
 
@@ -427,41 +427,41 @@ class Document(models.Model):
             webhook_trigger_cond |= {Webhook.TRIGGER_COND_MANUAL}
 
         if current_hash == self.content_hash:
-            if crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_ON_CHANGE or (
-                crawl_policy.recrawl_condition == CrawlPolicy.RECRAWL_COND_MANUAL and not manual_crawl
+            if collection.recrawl_condition == Collection.RECRAWL_COND_ON_CHANGE or (
+                collection.recrawl_condition == Collection.RECRAWL_COND_MANUAL and not manual_crawl
             ):
-                Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
+                Webhook.trigger(collection.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
                 crawl_logger.debug(f"{self.url} has not changed, skipping indexing (content hash {self.content_hash})")
                 return
         if current_hash != self.content_hash:
             self.modified_date = n
 
         self._clear_dump_content()
-        self.tags.add(*crawl_policy.tags.values_list("pk", flat=True))
+        self.tags.add(*collection.tags.values_list("pk", flat=True))
 
         if self.mimetype.startswith("text/"):
-            self._parse_xml(page, crawl_policy, stats, verbose)
-            links = self._parse_text(page, crawl_policy, stats, verbose)
+            self._parse_xml(page, collection, stats, verbose)
+            links = self._parse_text(page, collection, stats, verbose)
 
         if self.mimetype.startswith("text/"):
-            if crawl_policy.thumbnail_mode in (
-                CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
-                CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+            if collection.thumbnail_mode in (
+                Collection.THUMBNAIL_MODE_PREVIEW,
+                Collection.THUMBNAIL_MODE_PREV_OR_SCREEN,
             ):
                 if DocumentMeta.create_preview(page, self.image_name()):
                     self.has_thumbnail = True
 
-            if not self.has_thumbnail and crawl_policy.thumbnail_mode in (
-                CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
-                CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
+            if not self.has_thumbnail and collection.thumbnail_mode in (
+                Collection.THUMBNAIL_MODE_PREV_OR_SCREEN,
+                Collection.THUMBNAIL_MODE_SCREENSHOT,
             ):
-                crawl_policy.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
+                collection.get_browser(url=self.url).create_thumbnail(self.url, self.image_name())
                 self.has_thumbnail = True
         elif self.mimetype.startswith("image/"):
-            if crawl_policy.thumbnail_mode in (
-                CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
-                CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
-                CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
+            if collection.thumbnail_mode in (
+                Collection.THUMBNAIL_MODE_PREVIEW,
+                Collection.THUMBNAIL_MODE_PREV_OR_SCREEN,
+                Collection.THUMBNAIL_MODE_SCREENSHOT,
             ):
                 if DocumentMeta.preview_file_from_url(self.url, self.image_name()):
                     self.has_thumbnail = True
@@ -472,20 +472,20 @@ class Document(models.Model):
             FavIcon.extract(self, page)
             self._index_log("favicon", stats, verbose)
 
-            if crawl_policy.snapshot_html:
-                if crawl_policy.remove_nav_elements == CrawlPolicy.REMOVE_NAV_FROM_ALL:
+            if collection.snapshot_html:
+                if collection.remove_nav_elements == Collection.REMOVE_NAV_FROM_ALL:
                     page.remove_nav_elements()
-                snapshot = HTMLSnapshot(page, crawl_policy)
+                snapshot = HTMLSnapshot(page, collection)
                 snapshot.snapshot()
                 self.has_html_snapshot = True
         else:
-            if crawl_policy.snapshot_html:
+            if collection.snapshot_html:
                 HTMLCache.write_asset(self.url, page.content, page, mimetype=self.mimetype)
                 self.has_html_snapshot = True
 
         if self.mimetype.startswith("text/"):
-            if crawl_policy.take_screenshots:
-                self.screenshot_index(links["links"], crawl_policy)
+            if collection.take_screenshots:
+                self.screenshot_index(links["links"], collection)
 
         self._index_log("done", stats, verbose)
 
@@ -496,7 +496,7 @@ class Document(models.Model):
             serializer.user_doc_update("Javascript")
 
         MimeHandler.run_for_document(self, page)
-        Webhook.trigger(crawl_policy.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
+        Webhook.trigger(collection.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
 
         if not self.title:
             self.title = self.url
@@ -516,25 +516,25 @@ class Document(models.Model):
             img.save(dst, "jpeg")
             os.unlink(src)
 
-    def screenshot_index(self, links, crawl_policy):
-        from .crawl_policy import CrawlPolicy
+    def screenshot_index(self, links, collection):
+        from .collection import Collection
 
-        if crawl_policy.remove_nav_elements in (
-            CrawlPolicy.REMOVE_NAV_FROM_ALL,
-            CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
+        if collection.remove_nav_elements in (
+            Collection.REMOVE_NAV_FROM_ALL,
+            Collection.REMOVE_NAV_FROM_SCREENSHOT,
         ):
-            browser = crawl_policy.get_browser(url=self.url)
+            browser = collection.get_browser(url=self.url)
             browser.remove_nav_elements()
 
-        browser = crawl_policy.get_browser(url=self.url)
+        browser = collection.get_browser(url=self.url)
         img_count = browser.take_screenshots(self.url, self.image_name())
         crawl_logger.debug(f"took {img_count} screenshots for {self.url} with {browser}")
         self.screenshot_count = img_count
-        self.screenshot_format = crawl_policy.screenshot_format
+        self.screenshot_format = collection.screenshot_format
         w, h = browser.screen_size()
         self.screenshot_size = f"{w}x{h}"
 
-        if crawl_policy.screenshot_format == Document.SCREENSHOT_JPG:
+        if collection.screenshot_format == Document.SCREENSHOT_JPG:
             self.convert_to_jpg()
 
         browser.scroll_to_page(0)
@@ -565,11 +565,11 @@ class Document(models.Model):
 
     @staticmethod
     def manual_queue(url, show_on_homepage, crawl_depth):
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
 
         if crawl_depth is None:
-            crawl_policy = CrawlPolicy.get_from_url(url)
-            crawl_depth = crawl_policy.recursion_depth
+            collection = Collection.get_from_url(url)
+            crawl_depth = collection.recursion_depth
 
         doc, created = Document.objects.wo_content().get_or_create(url=url, defaults={"crawl_recurse": crawl_depth})
         if not created:
@@ -584,7 +584,7 @@ class Document(models.Model):
 
     @staticmethod
     def queue(url, parent_policy, parent):
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
         from .models import ExcludedUrl
 
         if ExcludedUrl.objects.filter(url=url, starting_with=False).first():
@@ -595,26 +595,26 @@ class Document(models.Model):
             crawl_logger.debug(f"skipping ExcludedUrl {url}")
             return None
 
-        crawl_policy = CrawlPolicy.get_from_url(url)
-        crawl_logger.debug(f"{url} matched {crawl_policy.url_regex}, {crawl_policy.recursion}")
+        collection = Collection.get_from_url(url)
+        crawl_logger.debug(f"{url} matched {collection.url_regex}, {collection.recursion}")
 
-        if crawl_policy.recursion == CrawlPolicy.CRAWL_ALL or parent is None:
+        if collection.recursion == Collection.CRAWL_ALL or parent is None:
             crawl_logger.debug(f"{url} -> always crawl")
-            return Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+            return Document.objects.wo_content().get_or_create(url=url, hidden=collection.hide_documents)[0]
 
-        if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER:
+        if collection.recursion == Collection.CRAWL_NEVER:
             crawl_logger.debug(f"{url} -> never crawl")
             return Document.objects.wo_content().filter(url=url).first()
 
         doc = None
         url_depth = None
 
-        if parent_policy.recursion == CrawlPolicy.CRAWL_ALL and parent_policy.recursion_depth > 0:
-            doc = Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+        if parent_policy.recursion == Collection.CRAWL_ALL and parent_policy.recursion_depth > 0:
+            doc = Document.objects.wo_content().get_or_create(url=url, hidden=collection.hide_documents)[0]
             url_depth = max(parent_policy.recursion_depth, doc.crawl_recurse)
             crawl_logger.debug(f"{url} -> recurse for {url_depth}")
-        elif parent_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
-            doc = Document.objects.wo_content().get_or_create(url=url, hidden=crawl_policy.hide_documents)[0]
+        elif parent_policy.recursion == Collection.CRAWL_ON_DEPTH and parent.crawl_recurse > 1:
+            doc = Document.objects.wo_content().get_or_create(url=url, hidden=collection.hide_documents)[0]
             url_depth = max(parent.crawl_recurse - 1, doc.crawl_recurse)
             crawl_logger.debug(f"{url} -> recurse at {url_depth}")
         else:
@@ -627,33 +627,33 @@ class Document(models.Model):
         doc = doc or Document.objects.wo_content().filter(url=url).first()
         return doc
 
-    def _schedule_next(self, changed, crawl_policy):
-        from .crawl_policy import CrawlPolicy
+    def _schedule_next(self, changed, collection):
+        from .collection import Collection
 
         stop = False
-        if crawl_policy.recursion == CrawlPolicy.CRAWL_NEVER or (
-            crawl_policy.recursion == CrawlPolicy.CRAWL_ON_DEPTH and self.crawl_recurse == 0
+        if collection.recursion == Collection.CRAWL_NEVER or (
+            collection.recursion == Collection.CRAWL_ON_DEPTH and self.crawl_recurse == 0
         ):
             stop = True
 
-        if crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_NONE or stop:
+        if collection.recrawl_freq == Collection.RECRAWL_FREQ_NONE or stop:
             self.crawl_next = None
             self.crawl_dt = None
-        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_CONSTANT:
-            self.crawl_next = self.crawl_last + crawl_policy.recrawl_dt_min
+        elif collection.recrawl_freq == Collection.RECRAWL_FREQ_CONSTANT:
+            self.crawl_next = self.crawl_last + collection.recrawl_dt_min
             self.crawl_dt = None
-        elif crawl_policy.recrawl_freq == CrawlPolicy.RECRAWL_FREQ_ADAPTIVE:
+        elif collection.recrawl_freq == Collection.RECRAWL_FREQ_ADAPTIVE:
             if self.crawl_dt is None:
-                self.crawl_dt = crawl_policy.recrawl_dt_min
+                self.crawl_dt = collection.recrawl_dt_min
             elif not changed:
-                self.crawl_dt = min(crawl_policy.recrawl_dt_max, self.crawl_dt * 2)
+                self.crawl_dt = min(collection.recrawl_dt_max, self.crawl_dt * 2)
             else:
-                self.crawl_dt = max(crawl_policy.recrawl_dt_min, self.crawl_dt / 2)
+                self.crawl_dt = max(collection.recrawl_dt_min, self.crawl_dt / 2)
             self.crawl_next = self.crawl_last + self.crawl_dt
 
     @staticmethod
     def crawl(worker_no):
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
         from .models import Link, WorkerStats
 
         doc = Document.pick_queued(worker_no)
@@ -677,8 +677,8 @@ class Document(models.Model):
 
         while True:
             # Loop until we stop redirecting
-            crawl_policy = CrawlPolicy.get_from_url(doc.url)
-            crawl_logger.debug(f"Crawling {doc.url} with policy {crawl_policy}")
+            collection = Collection.get_from_url(doc.url)
+            crawl_logger.debug(f"Crawling {doc.url} with policy {collection}")
             try:
                 WorkerStats.objects.filter(id=worker_stats.id).update(doc_processed=models.F("doc_processed") + 1)
                 Document.objects.wo_content().filter(id=doc.id).update(retries=models.F("retries") + 1)
@@ -686,7 +686,7 @@ class Document(models.Model):
                 doc.crawl_last = now()
 
                 if doc.url.startswith("http://") or doc.url.startswith("https://"):
-                    domain = Domain.get_from_url(doc.url, crawl_policy.default_browse_mode)
+                    domain = Domain.get_from_url(doc.url, collection.default_browse_mode)
 
                     if not domain.robots_authorized(doc.url):
                         crawl_logger.debug(f"{doc.url} rejected by robots.txt")
@@ -705,10 +705,10 @@ class Document(models.Model):
                         doc.robotstxt_rejected = False
 
                     try:
-                        page = crawl_policy.url_get(doc.url, domain)
+                        page = collection.url_get(doc.url, domain)
                     except AuthElemFailed as e:
                         doc.content = e.page.content.decode("utf-8")
-                        doc._schedule_next(True, crawl_policy)
+                        doc._schedule_next(True, collection)
                         doc.set_error(f"Locating authentication element failed at {e.page.url}:\n{e.args[0]}")
                         doc._clear_base_content()
                         doc._clear_dump_content()
@@ -716,7 +716,7 @@ class Document(models.Model):
                         crawl_logger.error(f"Locating authentication element failed at {e.page.url}:\n{e.args[0]}")
                         break
                     except SkipIndexing as e:
-                        doc._schedule_next(False, crawl_policy)
+                        doc._schedule_next(False, collection)
                         doc.set_error(e.args[0])
                         doc._clear_base_content()
                         doc._clear_dump_content()
@@ -726,7 +726,7 @@ class Document(models.Model):
 
                     if page.url == doc.url:
                         doc.set_error("")
-                        doc.index(page, crawl_policy)
+                        doc.index(page, collection)
                         doc.save()
                         Link.objects.filter(extern_url=doc.url).update(extern_url=None, doc_to=doc)
                         break
@@ -736,7 +736,7 @@ class Document(models.Model):
                         crawl_logger.debug(
                             f"{worker_no} redirect {doc.url} -> {page.url} (redirect no {page.redirect_count})"
                         )
-                        doc._schedule_next(doc.redirect_url != page.url, crawl_policy)
+                        doc._schedule_next(doc.redirect_url != page.url, collection)
                         doc._clear_base_content()
                         doc._clear_dump_content()
                         doc.set_error("")
@@ -754,7 +754,7 @@ class Document(models.Model):
                     break
             except Exception as e:  # noqa
                 doc.set_error(format_exc())
-                doc._schedule_next(True, crawl_policy)
+                doc._schedule_next(True, collection)
                 doc.retries = 0
                 doc.save()
                 crawl_logger.error(format_exc())

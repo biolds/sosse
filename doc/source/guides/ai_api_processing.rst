@@ -17,13 +17,13 @@ page content and produce relevant tags. For demonstration purposes, this guide u
    :alt: Screenshot showing tag-based detection
    :class: sosse-screenshot
 
-Set Up a Crawl Policy
+Set Up a Collection
 ---------------------
 
-First, define a crawl policy to handle the web pages you want to analyze. See the :doc:`../crawl/policies` for more
+First, define a Collection to handle the web pages you want to analyze. See the :doc:`../crawl/collections` for more
 details.
 
-- **Navigate to** ``⚡ Crawl Policies`` in the admin panel.
+- **Navigate to** ``⚡ Collections`` in the admin panel.
 - **Create a New Policy**:
 
   - Use an URL pattern that matches URLs of interest, ensuring that only relevant pages are processed for tag
@@ -123,10 +123,10 @@ The format matches the :doc:`../user/rest_api` response, enabling us to overwrit
 .. warning::
    The **Webhook test** button at the bottom of the page allows you to trigger the webhook with an example document.
    However, the example document lacks the ``${metadata.productDetails}`` field containing the custom HTML extracted by
-   the Crawl Policy's script, which will result in the error: "Invalid path: metadata.productDetails". To avoid this,
+   the Collection's script, which will result in the error: "Invalid path: metadata.productDetails". To avoid this,
    you can pass the page's text content using the document's ``${content}`` field instead.
 
-You can now go back to the ``⚡ Crawl Policies`` page and select the newly created webhook under the
+You can now go back to the ``⚡ Collections`` page and select the newly created webhook under the
 ``📡 Webhooks`` tab.
 
 Page Crawling and Webhook Results

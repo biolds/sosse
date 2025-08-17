@@ -8,7 +8,7 @@
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import FavIcon ; FavIcon.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.document import Document ; Document.objects.wo_content().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.html_asset import HTMLAsset ; HTMLAsset.objects.all().delete()
-|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.crawl_policy import CrawlPolicy ; CrawlPolicy.objects.all().delete()
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.collection import Collection ; Collection.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.tag import Tag ; Tag.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.webhook import Webhook ; Webhook.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/local_ai/dump.json | shell=True

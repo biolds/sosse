@@ -1,6 +1,6 @@
 [
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 39,
     "fields": {
       "url_regex": "(default)",
@@ -34,7 +34,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 45,
     "fields": {
       "url_regex": "^https://segment\\.com/blog/rss\\.xml$",
@@ -68,7 +68,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 46,
     "fields": {
       "url_regex": "^https://segment\\.com/blog/",

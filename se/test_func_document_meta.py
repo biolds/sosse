@@ -23,7 +23,7 @@ from PIL import Image
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
 from .domain import Domain
 
@@ -87,28 +87,28 @@ class FunctionalTest(BaseFunctionalTest):
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, color)
 
     def test_10_thumbnail_preview(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_PREVIEW,
             take_screenshots=False,
         )
         Document.queue(TEST_SERVER_OGP_URL, None, None)
         self._test_preview()
 
     def test_20_thumbnail_preview_missing(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_PREVIEW,
             take_screenshots=False,
         )
         Document.queue(TEST_SERVER_URL, None, None)
@@ -124,14 +124,14 @@ class FunctionalTest(BaseFunctionalTest):
 
 class BrowserBasedFunctionalTest(BaseFunctionalTest):
     def test_10_thumbnail_screenshot(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_SCREENSHOT,
             take_screenshots=False,
         )
 
@@ -147,28 +147,28 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, (255, 255, 255))
 
     def test_20_thumbnail_fallback_preview(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_PREV_OR_SCREEN,
             take_screenshots=False,
         )
         Document.queue(TEST_SERVER_OGP_URL, None, None)
         self._test_preview()
 
     def test_30_thumbnail_fallback_screenshot(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_PREV_OR_SCREEN,
             take_screenshots=False,
         )
         Document.queue(TEST_SERVER_URL, None, None)

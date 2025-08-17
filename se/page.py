@@ -127,8 +127,8 @@ class Page:
             selector = self._build_selector(elem.parent) + selector
         return selector
 
-    def _dom_walk(self, elem, crawl_policy, links, queue_links, document, in_nav=False):
-        from .crawl_policy import CrawlPolicy
+    def _dom_walk(self, elem, collection, links, queue_links, document, in_nav=False):
+        from .collection import Collection
         from .document import Document
         from .models import Link
 
@@ -141,7 +141,7 @@ class Page:
         if elem.name in ("[document]", "title", "script", "style"):
             return
 
-        if crawl_policy.remove_nav_elements != CrawlPolicy.REMOVE_NAV_NO and elem.name in ("nav", "header", "footer"):
+        if collection.remove_nav_elements != Collection.REMOVE_NAV_NO and elem.name in ("nav", "header", "footer"):
             in_nav = True
 
         s = self._get_elem_text(elem)
@@ -161,13 +161,13 @@ class Page:
 
                     if has_browsable_scheme(href):
                         href_for_policy = absolutize_url(self.base_url(), href)
-                        child_policy = CrawlPolicy.get_from_url(href_for_policy)
+                        child_policy = Collection.get_from_url(href_for_policy)
                         href = absolutize_url(self.base_url(), href)
                         if not child_policy.keep_params:
                             href = url_remove_query_string(href)
                         href = url_remove_fragment(href)
                         crawl_logger.debug(f"queueing link: {href}")
-                        target_doc = Document.queue(href, crawl_policy, document)
+                        target_doc = Document.queue(href, collection, document)
 
                         if target_doc != document:
                             if target_doc:
@@ -183,7 +183,7 @@ class Page:
                         crawl_logger.debug(f"not browsable scheme: {href}")
 
                     store_extern_link = not has_browsable_scheme(href) or target_doc is None
-                    if crawl_policy.store_extern_links and store_extern_link:
+                    if collection.store_extern_links and store_extern_link:
                         href = elem.get("href").strip()
                         try:
                             href = absolutize_url(self.base_url(), href)
@@ -200,7 +200,7 @@ class Page:
                         )
 
                     if link:
-                        if crawl_policy.take_screenshots:
+                        if collection.take_screenshots:
                             link.css_selector = self._build_selector(elem)
                         links["links"].append(link)
 
@@ -212,7 +212,7 @@ class Page:
 
         if hasattr(elem, "children"):
             for child in elem.children:
-                self._dom_walk(child, crawl_policy, links, queue_links, document, in_nav)
+                self._dom_walk(child, collection, links, queue_links, document, in_nav)
 
         if elem.name in ("div", "p", "li", "h1", "h2", "h3", "h4", "h5", "h6"):
             if links["text"] and not in_nav:
@@ -221,7 +221,7 @@ class Page:
                 elif links["text"][-1] != "\n":
                     links["text"] += "\n"
 
-    def dom_walk(self, crawl_policy, queue_links, document):
+    def dom_walk(self, collection, queue_links, document):
         links = {"links": [], "text": ""}
 
         if document and not document.mimetype.startswith("text/"):
@@ -231,5 +231,5 @@ class Page:
         if not soup:
             return links
         for elem in self.get_soup().children:
-            self._dom_walk(elem, crawl_policy, links, queue_links, document, False)
+            self._dom_walk(elem, collection, links, queue_links, document, False)
         return links

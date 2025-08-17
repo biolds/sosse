@@ -61,10 +61,10 @@ Screenshots
    <br/>
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/crawl_policy_decision_no_hilight.png
+.. figure:: ../../tests/robotframework/screenshots/collection_decision_no_hilight.png
    :class: sosse-screenshot
 
-   :doc:`Crawl Policies setup <crawl/policies>`
+   :doc:`Collections setup <crawl/collections>`
 
 .. raw:: html
 

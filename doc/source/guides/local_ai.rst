@@ -38,10 +38,10 @@ You now have a local LLM endpoint running at ``http://localhost:11434`` with the
 
      docker exec -it ollama ollama run llama3.2
 
-Crawl Policies for RSS Feeds and Posts
+Collections for RSS Feeds and Posts
 --------------------------------------
 
-Create a crawl policy to handle RSS feeds (refer to :doc:`../crawl/policies` for more details), navigate to ``⚡ Crawl
+Create a Collection to handle RSS feeds (refer to :doc:`../crawl/collections` for more details), navigate to ``⚡ Crawl
 Policies`` in the admin panel, then create a new policy:
 
 - ``URL regex``::
@@ -51,7 +51,7 @@ Policies`` in the admin panel, then create a new policy:
 - Set ``Recursion depth`` to ``1`` to limit recursion to articles only.
 - Under ``🕑 Recurrence``, specify the desired refresh interval, such as ``1 hour``.
 
-Create a separate crawl policy to manage RSS posts:
+Create a separate Collection to manage RSS posts:
 
 - ``URL regex``::
 
@@ -104,7 +104,7 @@ We instruct Ollama to summarize the article's content, provided in the ``${conte
 a JSON object. The format aligns with the :doc:`../user/rest_api` response, allowing us to modify any fields in the
 document.
 
-You can now go back to the ``⚡ Crawl Policies`` page and select the newly created webhook under the
+You can now go back to the ``⚡ Collections`` page and select the newly created webhook under the
 ``📡 Webhooks`` tab.
 
 Summarizing RSS Articles

@@ -22,7 +22,7 @@ from django.test import TransactionTestCase
 
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
 from .models import Link
 from .page import Page
@@ -208,10 +208,10 @@ class PageTest(TransactionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.crawl_policy = CrawlPolicy.create_default()
-        self.crawl_policy.snapshot_html = False
-        self.crawl_policy.recursion = CrawlPolicy.CRAWL_ALL
-        self.crawl_policy.save()
+        self.collection = Collection.create_default()
+        self.collection.snapshot_html = False
+        self.collection.recursion = Collection.CRAWL_ALL
+        self.collection.save()
 
     def test_10_beautifulsoup(self):
         page = Page("http://127.0.0.1/", FAKE_PAGE, None)
@@ -227,7 +227,7 @@ class PageTest(TransactionTestCase):
     def test_20_no_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
         doc = Document.objects.wo_content().create(url=page.url)
-        doc.index(page, self.crawl_policy)
+        doc.index(page, self.collection)
         self.assertEqual(doc.content, "text")
         links = Link.objects.order_by("id")
         self.assertEqual(len(links), 1)
@@ -242,8 +242,8 @@ class PageTest(TransactionTestCase):
     def test_30_nav_element(self):
         page = Page("http://test/", self.NAV_HTML, None)
         doc = Document.objects.wo_content().create(url=page.url)
-        self.crawl_policy.remove_nav_elements = CrawlPolicy.REMOVE_NAV_NO
-        doc.index(page, self.crawl_policy)
+        self.collection.remove_nav_elements = Collection.REMOVE_NAV_NO
+        doc.index(page, self.collection)
         self.assertEqual(doc.content, "header nav link text footer")
 
         links = Link.objects.order_by("id")
@@ -280,14 +280,14 @@ class PageTest(TransactionTestCase):
     def test_60_no_comment(self):
         page = Page("http://test/", b"<html><body><!-- nothing -->text</body></html>", None)
         doc = Document.objects.create(url=page.url)
-        doc.index(page, self.crawl_policy)
+        doc.index(page, self.collection)
         self.assertEqual(doc.content, "text")
 
     def test_70_feeds(self):
         for feed in (ATOM_FEED, ATOM_FEED_WITH_HEADER, RSS_FEED):
             page = Page("http://test/", feed, None)
             doc = Document.objects.wo_content().create(url=page.url)
-            doc.index(page, self.crawl_policy)
+            doc.index(page, self.collection)
 
             self.assertEqual(Document.objects.count(), 4)
             self.assertEqual(doc.url, page.url)

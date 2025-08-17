@@ -18,7 +18,7 @@ from django.template.response import SimpleTemplateResponse
 from django.test import TransactionTestCase
 
 from .add_to_queue import AddToQueueConfirmationView
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
 from .test_views_mixin import ViewsTestMixin
 
@@ -31,7 +31,7 @@ class FakeAdminSite:
 class AddToQueueTest(ViewsTestMixin, TransactionTestCase):
     def setUp(self, *args, **kwargs):
         super().setUp(*args, **kwargs)
-        CrawlPolicy.objects.create(url_regex="https://alternative-policy.com/", recursion=CrawlPolicy.CRAWL_ALL)
+        Collection.objects.create(url_regex="https://alternative-policy.com/", recursion=Collection.CRAWL_ALL)
 
     def _request(self, params):
         request = self._request_from_factory("/admin/se/document/queue_confirm/", self.admin_user, "post", params)

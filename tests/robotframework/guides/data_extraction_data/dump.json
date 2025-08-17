@@ -1,6 +1,6 @@
 [
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 39,
     "fields": {
       "url_regex": "(default)",
@@ -36,7 +36,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 40,
     "fields": {
       "url_regex": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",

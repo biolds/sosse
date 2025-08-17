@@ -1,6 +1,6 @@
 [
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 39,
     "fields": {
       "url_regex": "(default)",
@@ -34,7 +34,7 @@
     }
   },
   {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 44,
     "fields": {
       "url_regex": "https://demo.spreecommerce.org/products/.*glasses",

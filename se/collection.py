@@ -60,7 +60,7 @@ def validate_url_regexp(val):
             raise ValidationError(error)
 
 
-class CrawlPolicy(models.Model):
+class Collection(models.Model):
     RECRAWL_FREQ_NONE = "none"
     RECRAWL_FREQ_CONSTANT = "constant"
     RECRAWL_FREQ_ADAPTIVE = "adaptive"
@@ -247,8 +247,8 @@ class CrawlPolicy(models.Model):
     webhooks = models.ManyToManyField(Webhook)
 
     class Meta:
-        verbose_name = "Crawl Policy"
-        verbose_name_plural = "Crawl Policies"
+        verbose_name = "Collection"
+        verbose_name_plural = "Collections"
 
     def __str__(self):
         title = self.get_title_label()
@@ -276,21 +276,21 @@ class CrawlPolicy(models.Model):
 
     @staticmethod
     def create_default():
-        # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(
-            url_regex="(default)", defaults={"url_regex_pg": ".*", "recursion": CrawlPolicy.CRAWL_ON_DEPTH}
+        # mandatory default collection
+        collection, _ = Collection.objects.get_or_create(
+            url_regex="(default)", defaults={"url_regex_pg": ".*", "recursion": Collection.CRAWL_ON_DEPTH}
         )
-        return policy
+        return collection
 
     @staticmethod
     def get_from_url(url, queryset=None):
         if queryset is None:
-            queryset = CrawlPolicy.objects.all()
+            queryset = Collection.objects.all()
         queryset = queryset.filter(enabled=True)
         queryset = queryset.exclude(url_regex="(default)")
         queryset = queryset.exclude(url_regex_pg="")
 
-        policy = (
+        collection = (
             queryset.annotate(
                 match_len=models.functions.Length(
                     models.Func(
@@ -306,10 +306,10 @@ class CrawlPolicy(models.Model):
             .first()
         )
 
-        if policy is None:
-            return CrawlPolicy.create_default()
+        if collection is None:
+            return Collection.create_default()
 
-        return policy
+        return collection
 
     @staticmethod
     def _default_browser():

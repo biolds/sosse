@@ -2,7 +2,7 @@
 | Library | SeleniumLibrary
 | Library | String
 | Resource | common.robot
-| Resource | crawl_policy.robot
+| Resource | collection.robot
 | Resource | documents.robot
 | Resource | tags.robot
 | Resource | profile.robot
@@ -11,13 +11,13 @@
 | Create tags
 |  | Create sample tags
 
-| Create Crawl Policy
-|  | Clear Crawl Policies
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+| Create Collection
+|  | Clear Collections
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
 |  | Input Text | id=id_url_regex | http://127.0.0.1/screenshots/website/.*
 |  | Click Element | xpath=//input[@value="Save"]
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/
 
 | Crawl a new URL
 |  | Clear Documents
@@ -252,9 +252,9 @@
 |  | ${tags_count}= | Get Element Count | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
 |  | Should Be Equal As Integers | ${tags_count} | 0
 
-| Admin - Create crawl policy with tag
-|  | Clear Crawl Policies
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+| Admin - Create Collection with tag
+|  | Clear Collections
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
 |  | Input Text | id=id_url_regex | http://example.com/.*
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -265,12 +265,12 @@
 |  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | AI
 |  | Click Element | xpath=//input[@value="Save"]
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/
 |  | ${active_tags}= | Get WebElement | xpath=//th[@class='field-url_regex' and contains(., 'http://example.com/.*')]/../td[@class='field-active_tags']
 |  | Element Should Contain | ${active_tags} | AI
 
-| Admin - Edit crawl policy with tag
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
+| Admin - Edit Collection with tag
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
 |  | Click Link | http://example.com/.*
 |  | Click Element | id=edit_tags
 |  | Wait Until Element Is Visible | id=tags_list
@@ -298,7 +298,7 @@
 |  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'][2] | General Usage
 |  | Click Element | xpath=//input[@value="Save"]
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/
 |  | ${tags_cell}= | Set Variable | //th[@class='field-url_regex' and contains(., 'http://example.com/.*')]/../td[@class='field-active_tags']
 |  | Element Should Contain | xpath=${tags_cell}//span[@class='tag'][1] | AI
 |  | Element Should Contain | xpath=${tags_cell}//span[@class='tag'][2] | General Usage

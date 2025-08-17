@@ -6,12 +6,12 @@
 | Authentication
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import Link ; Link.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.document import Document ; Document.objects.wo_content().delete()
-|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.crawl_policy import CrawlPolicy ; CrawlPolicy.objects.all().delete()
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.collection import Collection ; Collection.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/auth_data/dump.json | shell=True
 |  | Run Command | rm | -rf | /var/lib/sosse/screenshots
 |  | Run Command | mkdir | -p | /var/lib/sosse/
 |  | Run Command | cp | -r | ${CURDIR}/auth_data/* | /var/lib/sosse/ | shell=True
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
 |  | Click Element | xpath=//table[@id='result_list']//a[contains(., '8083')]
 |  | Click Link | 🔒 Authentication
 |  | Sosse Capture Page Screenshot | guide_authentication_auth.png

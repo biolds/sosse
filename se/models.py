@@ -108,7 +108,7 @@ class Link(models.Model):
 class AuthField(models.Model):
     key = models.CharField(max_length=256, verbose_name="<input> name attribute")
     value = models.CharField(max_length=256)
-    crawl_policy = models.ForeignKey("CrawlPolicy", on_delete=models.CASCADE)
+    collection = models.ForeignKey("Collection", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "authentication field"

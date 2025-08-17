@@ -24,8 +24,8 @@ from .browser import SkipIndexing
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
+from .collection import Collection
 from .cookie import Cookie
-from .crawl_policy import CrawlPolicy
 from .document import Document
 from .domain import Domain
 from .html_asset import HTMLAsset
@@ -51,14 +51,14 @@ class BaseFunctionalTest:
 
 class FunctionalTest(BaseFunctionalTest):
     def test_10_simple(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -159,12 +159,12 @@ class FunctionalTest(BaseFunctionalTest):
         self._check_key_val("deflated", "true", page.content)
 
     def test_50_cookies(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
             mimetype_regex=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             take_screenshots=False,
@@ -199,29 +199,29 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(Cookie.objects.count(), 0)
 
     def test_70_authentication(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
-        policy = CrawlPolicy.objects.create(
+        policy = Collection.objects.create(
             url_regex=f"^{TEST_SERVER_URL}.*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
             take_screenshots=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             auth_login_url_re=f"{TEST_SERVER_URL}admin/login/.*",
             auth_form_selector="#login-form",
         )
-        AuthField.objects.create(key="username", value=TEST_SERVER_USER, crawl_policy=policy)
-        AuthField.objects.create(key="password", value=TEST_SERVER_PASS, crawl_policy=policy)
+        AuthField.objects.create(key="username", value=TEST_SERVER_USER, collection=policy)
+        AuthField.objects.create(key="password", value=TEST_SERVER_PASS, collection=policy)
 
         Document.queue(TEST_SERVER_URL + "admin/", None, None)
         self._crawl()
@@ -301,16 +301,16 @@ class FunctionalTest(BaseFunctionalTest):
             self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE + 1}")
 
     def test_100_remove_nav_no(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=self.BROWSE_MODE != Domain.BROWSE_REQUESTS,
-            remove_nav_elements=CrawlPolicy.REMOVE_NAV_NO,
+            remove_nav_elements=Collection.REMOVE_NAV_NO,
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
@@ -333,16 +333,16 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_110_remove_nav_from_index(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=self.BROWSE_MODE != Domain.BROWSE_REQUESTS,
             snapshot_html=True,
-            remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_INDEX,
+            remove_nav_elements=Collection.REMOVE_NAV_FROM_INDEX,
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
@@ -361,16 +361,16 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_120_remove_nav_from_screenshot(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=self.BROWSE_MODE != Domain.BROWSE_REQUESTS,
-            remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
+            remove_nav_elements=Collection.REMOVE_NAV_FROM_SCREENSHOT,
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
@@ -389,16 +389,16 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_130_remove_nav_from_all(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=self.BROWSE_MODE != Domain.BROWSE_REQUESTS,
-            remove_nav_elements=CrawlPolicy.REMOVE_NAV_FROM_ALL,
+            remove_nav_elements=Collection.REMOVE_NAV_FROM_ALL,
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
@@ -427,15 +427,15 @@ class FunctionalTest(BaseFunctionalTest):
 
     def _test_bin_file_download(self, filename, mimetype, checksum):
         bin_url = TEST_SERVER_URL + "static/pages/" + filename
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
             mimetype_regex=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -477,14 +477,14 @@ class BrowserBasedFunctionalTest:
 
         makedirs.side_effect = None
 
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -521,15 +521,15 @@ class BrowserBasedFunctionalTest:
         self.assertEqual(len(page.content), FILE_SIZE, page.content)
 
     def test_150_script_updating_doc(self):
-        crawl_policy = CrawlPolicy.create_default()
-        crawl_policy.default_browse_mode = self.BROWSE_MODE
-        crawl_policy.script = """
+        collection = Collection.create_default()
+        collection.default_browse_mode = self.BROWSE_MODE
+        collection.script = """
             return {
                 title: "JS test title",
                 content: "JS test content"
             }
         """
-        crawl_policy.save()
+        collection.save()
 
         Document.queue(TEST_SERVER_URL, None, None)
         self._crawl()
@@ -543,14 +543,14 @@ class BrowserBasedFunctionalTest:
         self.assertEqual(doc.content, "JS test content")
 
     def test_160_script_updating_doc_invalid(self):
-        crawl_policy = CrawlPolicy.create_default()
-        crawl_policy.default_browse_mode = self.BROWSE_MODE
-        crawl_policy.script = """
+        collection = Collection.create_default()
+        collection.default_browse_mode = self.BROWSE_MODE
+        collection.script = """
             return {
                 title: [],
             }
         """
-        crawl_policy.save()
+        collection.save()
 
         Document.queue(TEST_SERVER_URL, None, None)
         with self.assertRaises(SkipIndexing) as e:
@@ -583,14 +583,14 @@ class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, BrowserBasedFunctionalT
 
 class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
     def test_10_detect_browser(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=Domain.BROWSE_DETECT,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -608,14 +608,14 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self.assertEqual(domain.browse_mode, Domain.BROWSE_CHROMIUM)
 
     def test_20_detect_browser(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=Domain.BROWSE_DETECT,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -633,14 +633,14 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self.assertEqual(domain.browse_mode, Domain.BROWSE_REQUESTS)
 
     def test_30_counter_test(self):
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
+            recursion=Collection.CRAWL_NEVER,
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=Domain.BROWSE_CHROMIUM,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
         Document.queue(TEST_SERVER_URL + "static/pages/stable_test.html", None, None)

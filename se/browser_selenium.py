@@ -225,15 +225,15 @@ class BrowserSelenium(Browser):
 
     @classmethod
     def _get_page(cls, url):
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
 
         redirect_count = cls._wait_for_ready(url)
 
         current_url = cls.driver.current_url
-        crawl_policy = CrawlPolicy.get_from_url(current_url)
+        collection = Collection.get_from_url(current_url)
         script_result = None
-        if crawl_policy and crawl_policy.script:
-            script_result = cls.driver.execute_script(crawl_policy.script)
+        if collection and collection.script:
+            script_result = cls.driver.execute_script(collection.script)
             cls._wait_for_ready(url)
 
         content = cls.driver.page_source.encode("utf-8")
@@ -465,12 +465,12 @@ class BrowserSelenium(Browser):
     @classmethod
     @retry
     def take_screenshots(cls, url, image_name):
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
 
-        crawl_policy = CrawlPolicy.get_from_url(url)
-        if crawl_policy and crawl_policy.remove_nav_elements in (
-            CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
-            CrawlPolicy.REMOVE_NAV_FROM_ALL,
+        collection = Collection.get_from_url(url)
+        if collection and collection.remove_nav_elements in (
+            Collection.REMOVE_NAV_FROM_SCREENSHOT,
+            Collection.REMOVE_NAV_FROM_ALL,
         ):
             cls.remove_nav_elements()
 
@@ -580,24 +580,24 @@ class BrowserSelenium(Browser):
 
     @classmethod
     @retry
-    def try_auth(cls, page, url, crawl_policy):
-        form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
+    def try_auth(cls, page, url, collection):
+        form = cls._find_elements_by_selector(cls.driver, collection.auth_form_selector)
 
         if len(form) == 0:
             raise AuthElemFailed(
                 page,
-                f"Could not find auth element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Could not find auth element with CSS selector: {collection.auth_form_selector}",
             )
 
         if len(form) > 1:
             raise AuthElemFailed(
                 page,
-                f"Found multiple auth element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Found multiple auth element with CSS selector: {collection.auth_form_selector}",
             )
 
         crawl_logger.debug("form found")
         form = form[0]
-        for f in crawl_policy.authfield_set.values("key", "value"):
+        for f in collection.authfield_set.values("key", "value"):
             elem = cls._find_elements_by_selector(form, f'input[name="{f["key"]}"]')
             if len(elem) != 1:
                 raise Exception(f"Found {len(elem)} input element when trying to set auth field {f['key']}")

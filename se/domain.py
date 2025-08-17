@@ -229,12 +229,12 @@ class Domain(models.Model):
 
     @classmethod
     def get_from_url(cls, url, default_browse_mode=None):
-        from .crawl_policy import CrawlPolicy
+        from .collection import Collection
 
         domain = urlparse(url).netloc
 
         if not default_browse_mode:
-            crawl_policy = CrawlPolicy.get_from_url(url)
-            default_browse_mode = crawl_policy.default_browse_mode
+            collection = Collection.get_from_url(url)
+            default_browse_mode = collection.default_browse_mode
 
         return Domain.objects.get_or_create(domain=domain, defaults={"browse_mode": default_browse_mode})[0]

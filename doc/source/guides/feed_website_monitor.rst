@@ -8,11 +8,11 @@ watching for event announcements.
 For this use case, we’ll monitor a website for common functional errors, like missing pages, server crashes, forbidden
 access, and database issues, and generate an Atom feed of faulty pages.
 
-Creating the Crawl Policies
+Creating the Collections
 ---------------------------
 
-Crawl policies are essential for controlling how Sosse accesses and logs content from websites. For more details, see
-the :doc:`Crawl Policies <../crawl/policies>` documentation.
+Collections are essential for controlling how Sosse accesses and logs content from websites. For more details, see
+the :doc:`Collections <../crawl/collections>` documentation.
 
 We add a policy for the website that we want to monitor, with the parameters:
 
@@ -22,7 +22,7 @@ We add a policy for the website that we want to monitor, with the parameters:
 - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Constant time`` and clear the ``Recrawl dt max``
   field.
 
-.. image:: ../../../tests/robotframework/screenshots/guide_feed_website_monitor_policies.png
+.. image:: ../../../tests/robotframework/screenshots/guide_feed_website_monitor_collections.png
    :class: sosse-screenshot
 
 Start Crawling
@@ -32,7 +32,7 @@ To start crawling, go to the :doc:`Crawl a new URL <../crawl/new_url>` page and 
 ``https://my.broken-website.com/``.
 
 Check the parameters, then click ``Confirm``. Once confirmed, Sosse will begin crawling and logging any pages that match
-the regular expression from the Crawl Policy every day.
+the regular expression from the Collection every day.
 
 Generate Atom Feed
 ------------------
@@ -59,7 +59,7 @@ The pages in error can then be followed by subscribing to the ``Atom results fee
 Additional Options
 ------------------
 
-You may need to update the :doc:`Crawl Policy <../crawl/policies>` to use a browser if the site relies on JavaScript or
+You may need to update the :doc:`Collection <../crawl/collections>` to use a browser if the site relies on JavaScript or
 requires authentication to access private areas. Additionally, it could be useful to configure the :ref:`atom
 feed <ui_atom_feeds>` to function while anonymous searches are disabled. Once configured, you can integrate it with
 services like `Zapier <https://zapier.com/>`_ or `IFTTT <https://ifttt.com/>`_ to trigger notifications whenever a new

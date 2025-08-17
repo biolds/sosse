@@ -6,10 +6,10 @@
 | Monitor website
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import Link ; Link.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.document import Document ; Document.objects.wo_content().delete()
-|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.crawl_policy import CrawlPolicy ; CrawlPolicy.objects.all().delete()
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.collection import Collection ; Collection.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/feed_monitor_data/dump.json | shell=True
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
-|  | Sosse Capture Page Screenshot | guide_feed_website_monitor_policies.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
+|  | Sosse Capture Page Screenshot | guide_feed_website_monitor_collections.png
 |  | Sosse Go To | http://127.0.0.1/?l\=fr&ps\=20&c\=1&o\=l&q\=&doc_lang\=&s\=-modified_date&ft1\=inc&ff1\=doc&fo1\=regexp&fv1\=%28Unavailable%7CGateway+Timeout%7CRequest+Timeout%29
 # Increase the bottom padding of the top bar to make the Atom dropdown visible
 |  | Execute Javascript | const top_bar = document.getElementById('top_bar')

@@ -75,9 +75,9 @@
 | Admin pages
 |  | Go To | http://127.0.0.1/admin/
 |  | VRT check | Admin
-|  | Go To | http://127.0.0.1/admin/se/crawlpolicy/
+|  | Go To | http://127.0.0.1/admin/se/collection/
 |  | VRT check | Admin - list view
-|  | Go To | http://127.0.0.1/admin/se/crawlpolicy/1/change/
+|  | Go To | http://127.0.0.1/admin/se/collection/1/change/
 |  | VRT check | Admin - edit view
 |  | Go To | http://127.0.0.1/admin/auth/user/1/delete/
 |  | VRT check | Admin - delete view

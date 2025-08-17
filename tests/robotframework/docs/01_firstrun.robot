@@ -28,8 +28,8 @@
 |  | Sosse Capture Page Screenshot | clear_admin_crawlers.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/analytics/
 |  | Sosse Capture Page Screenshot | clear_admin_analytics.png
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
-|  | Sosse Capture Page Screenshot | clear_admin_crawlpolicy.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
+|  | Sosse Capture Page Screenshot | clear_admin_collection.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/
 |  | Sosse Capture Page Screenshot | clear_admin_document.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/webhook/

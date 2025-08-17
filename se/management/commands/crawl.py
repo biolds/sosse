@@ -30,7 +30,7 @@ from django.utils.timezone import now
 
 from ...browser_chromium import BrowserChromium
 from ...browser_firefox import BrowserFirefox
-from ...crawl_policy import CrawlPolicy
+from ...collection import Collection
 from ...document import Document
 from ...models import MINUTELY, CrawlerStats, WorkerStats
 
@@ -175,7 +175,7 @@ class Command(BaseCommand):
             error=error_msg, error_hash=error_hash
         )
 
-        CrawlPolicy.create_default()
+        Collection.create_default()
 
         for url in options["urls"]:
             Document.manual_queue(url, False, None)

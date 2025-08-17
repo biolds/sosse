@@ -21,7 +21,7 @@ from django.test import TransactionTestCase, override_settings
 from feedparser import parse
 
 from .browser import AuthElemFailed, SkipIndexing
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
 from .domain import Domain
 from .models import ExcludedUrl, Link, WorkerStats
@@ -37,21 +37,21 @@ class CrawlerTest(TransactionTestCase):
     ]
 
     def setUp(self):
-        self.root_policy = CrawlPolicy.objects.create(
+        self.root_policy = Collection.objects.create(
             url_regex="(default)",
             url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
+            recursion=Collection.CRAWL_NEVER,
             default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
-        self.crawl_policy = CrawlPolicy.objects.create(
+        self.collection = Collection.objects.create(
             url_regex="http://127.0.0.1/",
-            recursion=CrawlPolicy.CRAWL_ALL,
+            recursion=Collection.CRAWL_ALL,
             default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
@@ -62,7 +62,7 @@ class CrawlerTest(TransactionTestCase):
 
     def tearDown(self):
         self.root_policy.delete()
-        self.crawl_policy.delete()
+        self.collection.delete()
 
     def _crawl(self, url="http://127.0.0.1/"):
         # Force create the worker
@@ -139,15 +139,15 @@ class CrawlerTest(TransactionTestCase):
                 "http://127.0.0.3/": b"Page3",
             }
         )
-        self.crawl_policy.recursion_depth = 2
-        self.crawl_policy.save()
+        self.collection.recursion_depth = 2
+        self.collection.save()
 
-        CrawlPolicy.objects.create(
+        Collection.objects.create(
             url_regex="http://127.0.0.2/.*",
-            recursion=CrawlPolicy.CRAWL_ON_DEPTH,
+            recursion=Collection.CRAWL_ON_DEPTH,
             default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
         self._crawl()
@@ -206,9 +206,9 @@ class CrawlerTest(TransactionTestCase):
                 "http://127.0.0.1/page1/": b"Page1",
             }
         )
-        self.crawl_policy.store_extern_links = True
-        self.crawl_policy.save()
-        CrawlPolicy.objects.create(url_regex="http://127.0.0.1/page1/", recursion=CrawlPolicy.CRAWL_NEVER)
+        self.collection.store_extern_links = True
+        self.collection.save()
+        Collection.objects.create(url_regex="http://127.0.0.1/page1/", recursion=Collection.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(
             BrowserRequest.call_args_list == self.DEFAULT_GETS,
@@ -235,10 +235,10 @@ class CrawlerTest(TransactionTestCase):
     def test_005_recrawl_none(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         now.side_effect = lambda: self.fake_now
-        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_NONE
-        self.crawl_policy.recrawl_dt_min = None
-        self.crawl_policy.recrawl_dt_max = None
-        self.crawl_policy.save()
+        self.collection.recrawl_freq = Collection.RECRAWL_FREQ_NONE
+        self.collection.recrawl_dt_min = None
+        self.collection.recrawl_dt_max = None
+        self.collection.save()
 
         self._crawl()
         self.assertTrue(
@@ -259,10 +259,10 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_006_recrawl_constant(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_CONSTANT
-        self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
-        self.crawl_policy.recrawl_dt_max = None
-        self.crawl_policy.save()
+        self.collection.recrawl_freq = Collection.RECRAWL_FREQ_CONSTANT
+        self.collection.recrawl_dt_min = timedelta(hours=1)
+        self.collection.recrawl_dt_max = None
+        self.collection.save()
 
         now.side_effect = lambda: self.fake_now
         self._crawl()
@@ -292,10 +292,10 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_007_recrawl_adaptive(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_ADAPTIVE
-        self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
-        self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
-        self.crawl_policy.save()
+        self.collection.recrawl_freq = Collection.RECRAWL_FREQ_ADAPTIVE
+        self.collection.recrawl_dt_min = timedelta(hours=1)
+        self.collection.recrawl_dt_max = timedelta(hours=3)
+        self.collection.save()
 
         now.side_effect = lambda: self.fake_now
         self._crawl()
@@ -410,10 +410,10 @@ class CrawlerTest(TransactionTestCase):
             }
         )
 
-        self.crawl_policy.url_regex = "http://127.0.0.1/$"
-        self.crawl_policy.url_regex_pg = "http://127.0.0.1/$"
-        self.crawl_policy.store_extern_links = True
-        self.crawl_policy.save()
+        self.collection.url_regex = "http://127.0.0.1/$"
+        self.collection.url_regex_pg = "http://127.0.0.1/$"
+        self.collection.store_extern_links = True
+        self.collection.save()
 
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
@@ -428,9 +428,9 @@ class CrawlerTest(TransactionTestCase):
         self.assertIsNone(link.doc_to)
         self.assertEqual(link.extern_url, "http://127.0.0.1/extern.html")
 
-        self.crawl_policy.url_regex = "http://127.0.0.1/.*$"
-        self.crawl_policy.url_regex_pg = "http://127.0.0.1/.*$"
-        self.crawl_policy.save()
+        self.collection.url_regex = "http://127.0.0.1/.*$"
+        self.collection.url_regex_pg = "http://127.0.0.1/.*$"
+        self.collection.save()
 
         self._crawl("http://127.0.0.1/extern.html")
 
@@ -451,8 +451,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.browser_request.BrowserRequest.get")
     def test_050_binary_indexing(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({})
-        self.crawl_policy.mimetype_regex = ".*"
-        self.crawl_policy.save()
+        self.collection.mimetype_regex = ".*"
+        self.collection.save()
         self._crawl("http://127.0.0.1/image.png")
 
     MAILTO = {"http://127.0.0.1/": b'<body><a href="mailto:test@exemple.com">mail</a></body>'}
@@ -471,8 +471,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.browser_request.BrowserRequest.get")
     def test_070_unknown_scheme_store(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock(self.MAILTO)
-        self.crawl_policy.store_extern_links = True
-        self.crawl_policy.save()
+        self.collection.store_extern_links = True
+        self.collection.save()
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
 
@@ -502,8 +502,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.browser_request.BrowserRequest.get")
     def test_100_invalid_link_store(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock(self.INVALID_LINK)
-        self.crawl_policy.store_extern_links = True
-        self.crawl_policy.save()
+        self.collection.store_extern_links = True
+        self.collection.save()
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
 
@@ -544,10 +544,10 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.document.now")
     def test_130_reschedule_no_change(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"<html><body>aaa 42</body></html>"})
-        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_ADAPTIVE
-        self.crawl_policy.recrawl_dt_min = timedelta(hours=1)
-        self.crawl_policy.recrawl_dt_max = timedelta(hours=3)
-        self.crawl_policy.save()
+        self.collection.recrawl_freq = Collection.RECRAWL_FREQ_ADAPTIVE
+        self.collection.recrawl_dt_min = timedelta(hours=1)
+        self.collection.recrawl_dt_max = timedelta(hours=3)
+        self.collection.save()
 
         now.side_effect = lambda: self.fake_now
         self._crawl()
@@ -611,8 +611,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.browser_request.BrowserRequest.get")
     def test_160_hidden(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.hide_documents = True
-        self.crawl_policy.save()
+        self.collection.hide_documents = True
+        self.collection.save()
 
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
@@ -626,8 +626,8 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self.root_policy.hide_documents = True
         self.root_policy.save()
-        self.crawl_policy.enabled = False
-        self.crawl_policy.save()
+        self.collection.enabled = False
+        self.collection.save()
 
         self._crawl()
 
@@ -653,8 +653,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("se.browser_request.BrowserRequest.get")
     def test_180_modification_no_change(self, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 1"})
-        self.crawl_policy.hash_mode = CrawlPolicy.HASH_RAW
-        self.crawl_policy.save()
+        self.collection.hash_mode = Collection.HASH_RAW
+        self.collection.save()
         self._test_modification_base()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -668,8 +668,8 @@ class CrawlerTest(TransactionTestCase):
     def test_190_modification_change(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 1"})
         now.side_effect = lambda: self.fake_now
-        self.crawl_policy.hash_mode = CrawlPolicy.HASH_RAW
-        self.crawl_policy.save()
+        self.collection.hash_mode = Collection.HASH_RAW
+        self.collection.save()
         self._test_modification_base()
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
@@ -686,8 +686,8 @@ class CrawlerTest(TransactionTestCase):
     def test_200_modification_no_change_number_normalize(self, now, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 1"})
         now.side_effect = lambda: self.fake_now
-        self.crawl_policy.hash_mode = CrawlPolicy.HASH_NO_NUMBERS
-        self.crawl_policy.save()
+        self.collection.hash_mode = Collection.HASH_NO_NUMBERS
+        self.collection.save()
         self._test_modification_base()
 
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world 2"})
@@ -742,8 +742,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("feedparser.parse", wraps=parse)
     def test_240_recrawl_cond_always(self, feedparser_parse, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_ALWAYS
-        self.crawl_policy.save()
+        self.collection.recrawl_condition = Collection.RECRAWL_COND_ALWAYS
+        self.collection.save()
 
         self._test_modification_base()
         self.assertEqual(Document.objects.count(), 1)
@@ -756,8 +756,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("feedparser.parse", wraps=parse)
     def test_250_recrawl_cond_manual__change(self, feedparser_parse, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
-        self.crawl_policy.save()
+        self.collection.recrawl_condition = Collection.RECRAWL_COND_MANUAL
+        self.collection.save()
 
         self._test_modification_base()
         self.assertEqual(Document.objects.count(), 1)
@@ -771,8 +771,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("feedparser.parse", wraps=parse)
     def test_260_recrawl_cond_manual__no_change(self, feedparser_parse, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
-        self.crawl_policy.save()
+        self.collection.recrawl_condition = Collection.RECRAWL_COND_MANUAL
+        self.collection.save()
         self._test_modification_base()
         self.assertEqual(Document.objects.count(), 1)
         self.assertEqual(feedparser_parse.call_count, 1)
@@ -784,8 +784,8 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("feedparser.parse", wraps=parse)
     def test_270_recrawl_cond_manual__manual(self, feedparser_parse, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.recrawl_condition = CrawlPolicy.RECRAWL_COND_MANUAL
-        self.crawl_policy.save()
+        self.collection.recrawl_condition = Collection.RECRAWL_COND_MANUAL
+        self.collection.save()
         self._test_modification_base()
         self.assertEqual(Document.objects.count(), 1)
         self.assertEqual(feedparser_parse.call_count, 1)
@@ -800,7 +800,7 @@ class CrawlerTest(TransactionTestCase):
     @mock.patch("feedparser.parse", wraps=parse)
     def test_280_recrawl_keeps_tags(self, feedparser_parse, BrowserRequest):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.crawl_policy.tags.create(name="tag1")
+        self.collection.tags.create(name="tag1")
 
         self.assertEqual(Document.objects.count(), 0)
         self._crawl()
@@ -821,8 +821,8 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         now.side_effect = lambda: self.fake_now
 
-        self.crawl_policy.recrawl_freq = CrawlPolicy.RECRAWL_FREQ_NONE
-        self.crawl_policy.save()
+        self.collection.recrawl_freq = Collection.RECRAWL_FREQ_NONE
+        self.collection.save()
 
         already_crawled = Document.objects.create(
             url="http://127.0.0.1/page.html",

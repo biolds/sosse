@@ -1,33 +1,33 @@
-⚡ Crawl Policies
-=================
+⚡ Collections
+==============
 
 Policy matching
 ---------------
 
-Crawl policies define which pages are indexed and how they are indexed. The policy list can be reached by clicking
-``⚡ Crawl policies`` from the :doc:`../admin_ui`.
+Collections define which pages are indexed and how they are indexed. The collection list can be reached by clicking
+``⚡ Collections`` from the :doc:`../admin_ui`.
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_list.png
+.. image:: ../../../tests/robotframework/screenshots/collection_list.png
    :class: sosse-screenshot
 
-When the crawler indexes a page or evaluates a link to queue it, it will find the best matching policy to know how to
-handle the link. The policy having the ``URL regex`` matching the longest part of the link URL is selected. On last
-resort, the default policy ``(default)`` is selected.
+When the crawler indexes a page or evaluates a link to queue it, it will find the best matching collection to know
+how to handle the link. The collection having the ``URL regex`` matching the longest part of the link URL is selected.
+On last resort, the default collection ``(default)`` is selected.
 
-You can see which policy would match by typing an URL in the search bar of the ``⚡ Crawl policies``, or in the
+You can see which collection would match by typing an URL in the search bar of the ``⚡ Collections``, or in the
 ``🌐 Crawl a new URL`` page (see :doc:`new_url`).
 
 ⚡ Crawl
 --------
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_decision.png
+.. image:: ../../../tests/robotframework/screenshots/collection_decision.png
    :class: sosse-screenshot
 
 URL regex
 """""""""
 
 The regex matched against URLs to crawl. Multiple regex can be set, one by line. Lines starting with a ``#`` are
-treated as comments. The default ``(default)`` policy's regex cannot be modified.
+treated as comments. The default ``(default)`` collection's regex cannot be modified.
 
 Tags
 """"
@@ -49,11 +49,11 @@ Recursion, recursion depth
 
 ``Recursion`` can be one of:
 
-* ``Crawl all pages``: URLs matching the policy will be crawled
+* ``Crawl all pages``: URLs matching the collection will be crawled
 * ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see
   :doc:`recursion_depth`)
-* ``Never crawl``: URLs matching the policy are not crawled unless they are queued manually (in this case, no recursion
-  occurs)
+* ``Never crawl``: URLs matching the collection are not crawled unless they are queued manually (in this case, no
+  recursion occurs)
 
 ``Recursion depth`` is only relevant when the ``Recursion`` is ``Crawl all pages`` and defines the recursion depth for
 links outside the policy. See :doc:`recursion_depth` for more explanations.
@@ -106,12 +106,12 @@ Defines the source for pages thumbnails displayed in the search results and home
 .. note::
    To take screenshot as thumbnails, the ``Default browse mode`` needs to be ``Chromium`` or ``Firefox``.
 
-.. _policy_take_screenshot:
+.. _collection_take_screenshot:
 
 🌍 Browser
 ----------
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_browser.png
+.. image:: ../../../tests/robotframework/screenshots/collection_browser.png
    :class: sosse-screenshot
 
 .. _default_browse_params:
@@ -129,13 +129,14 @@ Can be one of:
 * ``Firefox``: Firefox is used.
 * ``Python Requests``: Python Requests is used.
 
-.. _policy_create_thumbnails:
+.. _collection_create_thumbnails:
 
 Take screenshots
 """"""""""""""""
 
 Enables taking screenshots of pages for offline use. When the option
-:ref:`Create thumbnails <policy_create_thumbnails>` is disabled, the screenshot is displayed in search results instead.
+:ref:`Create thumbnails <collection_create_thumbnails>` is disabled, the screenshot is displayed in search results
+instead.
 
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
@@ -148,7 +149,7 @@ Format of the image JPG or PNG.
 .. note::
    This option requires the ``Default browse mode`` to be ``Chromium`` or ``Firefox`` in order to work.
 
-.. _crawl_policy_script:
+.. _collection_script:
 
 Script
 """"""
@@ -187,12 +188,12 @@ In case the script triggers an error, further processing of the page is aborted 
    document's title, content, tags, etc. All fields of the document available in the :doc:`../user/rest_api` can be
    overwritten.
 
-.. _policy_archive:
+.. _collection_archive:
 
 🔖 Archive
 ----------
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_archive.png
+.. image:: ../../../tests/robotframework/screenshots/collection_archive.png
    :class: sosse-screenshot
 
 Archive content
@@ -222,12 +223,12 @@ Assets exclude HTML regex
 This field defines a regular expression of HTML element of related assets to skip downloading. For example, setting a
 regex of ``audio|video`` would make the crawler skip the download of medias.
 
-.. _crawl_policy_recurrence:
+.. _collection_recurrence:
 
 🕑 Recurrence
 -------------
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_updates.png
+.. image:: ../../../tests/robotframework/screenshots/collection_updates.png
    :class: sosse-screenshot
 
 Crawl frequency, Recrawl dt
@@ -268,13 +269,13 @@ Defines when the page is reprocessed:
 
 See :doc:`../guides/authentication` for an example on authentication.
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_auth.png
+.. image:: ../../../tests/robotframework/screenshots/collection_auth.png
    :class: sosse-screenshot
 
 Login URL regex
 """""""""""""""
 
-If crawling a page matching the policy gets redirected to an URL matching the ``Login URL regex``, the crawler will
+If crawling a page matching the collection gets redirected to an URL matching the ``Login URL regex``, the crawler will
 attempt to authenticate using the parameters defined below.
 
 Form selector
@@ -293,12 +294,12 @@ field, are automatically populated by the crawler)
 Actions
 -------
 
-.. image:: ../../../tests/robotframework/screenshots/crawl_policy_actions.png
+.. image:: ../../../tests/robotframework/screenshots/collection_actions.png
    :class: sosse-screenshot
 
-Using the actions dropdown, the following actions can be applied to the selected crawl policies:
+Using the actions dropdown, the following actions can be applied to the selected Collections:
 
-* ``Enable/Disable``: Toggles the Crawl Policy state.
-* ``Duplicate``: Makes a copy of the Crawl Policy.
+* ``Enable/Disable``: Toggles the Collection state.
+* ``Duplicate``: Makes a copy of the Collection.
 * ``Update doc tags``: Updates the tags of all documents matching the policy.
 * ``Clear & update doc tags``: Clears the tags of all documents matching the policy and updates them.

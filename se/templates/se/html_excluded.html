@@ -4,9 +4,9 @@
     <p>
         This file was not {% if method == 'mimetype' %}saved{% else %}downloaded{% endif %} because its {{ method }} matched the exclusion regex of assets to download.
     </p>
-    {% if crawl_policy and 'se.view_crawlpolicy' in perms %}
+    {% if collection and 'se.view_collection' in perms %}
         <p>
-            The crawl policy <a href="{% url 'admin:se_crawlpolicy_change' crawl_policy.id %}">{{ crawl_policy }}</a> can be modified to make this file available.
+            The collection <a href="{% url 'admin:se_collection_change' collection.id %}">{{ collection }}</a> can be modified to make this file available.
         </p>
     {% endif %}
 {% endblock %}

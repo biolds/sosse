@@ -13,6 +13,6 @@ multiple URLs to be crawled when a worker is available.
 By default, only the URLs queued for crawling will be visited. The crawler will not recurse into discovered links unless
 explicitly configured.
 
-To control how pages are indexed and whether recursion occurs, update the relevant settings in :doc:`policies`.
+To control how pages are indexed and whether recursion occurs, update the relevant settings in :doc:`collections`.
 
 After submitting a URL, the next page shows the :doc:`queue`.

@@ -12,7 +12,7 @@
 |  | Sosse Capture Page Screenshot | admin_ui.png
 
 | Crawl a new URL
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
 |  | Input Text | id=id_url_regex | http://127.0.0.1/screenshots/website/.*
 |  | Click Link | 🌍 Browser
 |  | Select From List By Label | id=id_default_browse_mode | Chromium
@@ -60,23 +60,23 @@
 |  | Sosse Capture Page Screenshot | analytics.png
 |  | Run Command | ${SOSSE_ADMIN} | delete_documents | http://127.0.0.1/screenshots/website/jp.html
 
-| Crawl policies
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
+| Collections
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
 |  | Wait Until Element Is Visible | id=result_list
-|  | Sosse Capture Page Screenshot | crawl_policy_list.png
+|  | Sosse Capture Page Screenshot | collection_list.png
 |  | Hilight | class=actions
-|  | Sosse Capture Page Screenshot | crawl_policy_actions.png
+|  | Sosse Capture Page Screenshot | collection_actions.png
 |  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
 # The default policy is read-only so the help text is hidden
 |  | Page should not contain | URL regular expressions for this policy
 |  | ${recursion} | Get Selected List Label | id=id_recursion
 |  | Should Be Equal As Strings | ${recursion} | Depending on depth
-|  | Sosse Capture Page Screenshot | crawl_policy_decision_no_hilight.png
+|  | Sosse Capture Page Screenshot | collection_decision_no_hilight.png
 |  | Scroll To Elem | id=tabs
-|  | Sosse Capture Page Screenshot | crawl_policy_decision.png
+|  | Sosse Capture Page Screenshot | collection_decision.png
 
 # Non default policy should show the help
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
 |  | Page should contain | URL regular expressions for this policy
 |  | ${recursion} | Get Selected List Label | id=id_recursion
 |  | Should Be Equal As Strings | ${recursion} | Crawl all pages
@@ -84,22 +84,22 @@
 |  | Reload Page
 |  | Scroll To Elem | id=tabs
 |  | Click Link | 🌍 Browser
-|  | Sosse Capture Page Screenshot | crawl_policy_browser.png
+|  | Sosse Capture Page Screenshot | collection_browser.png
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs
 |  | Click Link | 🔖 Archive
-|  | Sosse Capture Page Screenshot | crawl_policy_archive.png
+|  | Sosse Capture Page Screenshot | collection_archive.png
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs
 |  | Click Link | 🕑 Recurrence
-|  | Sosse Capture Page Screenshot | crawl_policy_updates.png
+|  | Sosse Capture Page Screenshot | collection_updates.png
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs
 |  | Click Link | 🔒 Authentication
-|  | Sosse Capture Page Screenshot | crawl_policy_auth.png
+|  | Sosse Capture Page Screenshot | collection_auth.png
 
 | Crawl on depth
 |  | Reload Page
@@ -112,7 +112,7 @@
 |  | Click Element | xpath=//input[@value='Check and queue']
 |  | Sosse Capture Page Screenshot | crawl_on_depth_add.png
 
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/add/
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
 |  | Wait Until Element Is Visible | id=id_url_regex
 |  | Input Text | id=id_url_regex | https://en.wikipedia.org/.*
 |  | Input Text | id=id_recursion_depth | 2

@@ -22,7 +22,7 @@ from django.test import TransactionTestCase, override_settings
 from django.utils.html import format_html
 from requests import HTTPError
 
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
 from .domain import Domain
 from .html_asset import HTMLAsset
@@ -39,9 +39,9 @@ GET_EXPECTED_HEADERS = {
 
 class HTMLSnapshotTest:
     def setUp(self):
-        self.policy = CrawlPolicy.create_default()
+        self.policy = Collection.create_default()
         self.policy.default_browse_mode = Domain.BROWSE_REQUESTS
-        self.policy.thumbnail_mode = CrawlPolicy.THUMBNAIL_MODE_NONE
+        self.policy.thumbnail_mode = Collection.THUMBNAIL_MODE_NONE
         self.policy.save()
 
     def test_010_html_dump(self):
@@ -772,7 +772,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = CrawlPolicy.objects.create(
+        policy = Collection.objects.create(
             url_regex="http://127.0.0.1/.*",
             snapshot_exclude_url_re="http://127.0.0.1/excluded.*",
         )
@@ -838,7 +838,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = CrawlPolicy.objects.create(url_regex="http://127.0.0.1/.*", snapshot_exclude_mime_re="image/jpe?g")
+        policy = Collection.objects.create(url_regex="http://127.0.0.1/.*", snapshot_exclude_mime_re="image/jpe?g")
         HTML = b"""<html><head></head><body>
             <img src="/image.jpg"/>
             <img src="/image.png"/>
@@ -907,7 +907,7 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = CrawlPolicy.objects.create(url_regex="http://127.0.0.1/.*", snapshot_exclude_element_re="aud.*")
+        policy = Collection.objects.create(url_regex="http://127.0.0.1/.*", snapshot_exclude_element_re="aud.*")
         HTML = b"""<html><head></head><body>
             <audio src="/audio.wav"></audio>
             <video src="/video.mp4"></video>

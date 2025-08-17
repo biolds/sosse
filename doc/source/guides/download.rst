@@ -13,11 +13,11 @@ classic literary works.
    wish to download the full database, there are more appropriate methods than crawling, such as the
    `Mirroring How-To <https://www.gutenberg.org/help/mirroring.html>`_. 🐞
 
-Creating Crawl Policies
+Creating Collections
 -----------------------
 
-Crawl policies are essential for controlling how Sosse accesses and downloads content from websites. For more details,
-see the :doc:`Crawl Policies <../crawl/policies>` documentation.
+Collections are essential for controlling how Sosse accesses and downloads content from websites. For more details,
+see the :doc:`Collections <../crawl/collections>` documentation.
 
 For Project Gutenberg, we will create two policies:
 
@@ -42,7 +42,7 @@ Configure it as follows:
 - In the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Once`` (as reference pages and books do not need
   updates after initial download). Additionally, clear both the ``Recrawl dt min`` and ``Recrawl dt max`` fields.
 
-.. image:: ../../../tests/robotframework/screenshots/guide_download_crawl_policies.png
+.. image:: ../../../tests/robotframework/screenshots/guide_download_collections.png
    :class: sosse-screenshot
 
 Start Crawling

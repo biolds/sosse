@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
             name="url_regex",
             field=models.TextField(
                 help_text="URL regular expressions for this policy. (one by line, lines starting with # are ignored)",
-                validators=[se.crawl_policy.validate_url_regexp],
+                validators=[se.collection.validate_url_regexp],
             ),
         ),
         migrations.RunPython(url_regex_pg, reverse_url_regex_pg),

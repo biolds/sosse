@@ -18,6 +18,7 @@ import json
 from django.contrib.auth.models import Permission, User
 from django.test import TransactionTestCase, override_settings
 
+from .collection import Collection
 from .document import Document
 from .test_rest_api import RestAPITest
 
@@ -89,7 +90,10 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
         )
 
     def test_document_update_permission(self):
-        doc = Document.objects.create(url="http://example.com", title="Example", content="Example content")
+        collection = Collection.create_default()
+        doc = Document.objects.create(
+            url="http://example.com", collection=collection, title="Example", content="Example content"
+        )
         response = self.client.patch(
             f"/api/document/{doc.id}/", {"title": "New title"}, content_type="application/json"
         )

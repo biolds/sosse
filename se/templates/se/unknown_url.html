@@ -15,9 +15,6 @@
     <p>
     </p>
     {% if 'se.add_document' in perms %}
-        <form method="get" action="{% url 'admin:queue_confirm' %}">
-            <input type="hidden" name="urls" value="{{ url }}">
-            <input type="submit" value="Add to crawl queue" style="margin-top: 16px">
-        </form>
+      <a href="{% url 'admin:queue' %}?urls={{ doc.url|urlencode }}&show_on_homepage=false" class="a_button">Add to Crawl Queue</a>
     {% endif %}
 {% endblock %}

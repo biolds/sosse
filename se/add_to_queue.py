@@ -12,32 +12,126 @@
 #
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
+
+
 import re
-from urllib.parse import quote_plus
+from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.html import format_html
 from django.views.generic import FormView
 
 from .collection import Collection
 from .document import Document
-from .domain import Domain
 from .models import WorkerStats
-from .tag_field import TagField
 from .url import sanitize_url, validate_url
 from .utils import human_datetime, plural
 from .views import AdminView
 
 
+def _add_unique_patterns(existing_regex, new_patterns):
+    """Add new patterns to existing regex, avoiding duplicates."""
+    if not new_patterns:
+        return existing_regex
+
+    # Get existing patterns as a set for deduplication check
+    existing_patterns = set()
+    if existing_regex:
+        existing_patterns = {pattern.strip() for pattern in existing_regex.split("\n") if pattern.strip()}
+
+    # Filter new patterns to only include those not already present
+    new_pattern_list = [pattern.strip() for pattern in new_patterns.split("\n") if pattern.strip()]
+    unique_new_patterns = [pattern for pattern in new_pattern_list if pattern not in existing_patterns]
+
+    if not unique_new_patterns:
+        return existing_regex
+
+    # Append only the unique new patterns to existing content
+    if existing_regex:
+        return existing_regex + "\n" + "\n".join(unique_new_patterns)
+    else:
+        return "\n".join(unique_new_patterns)
+
+
+def queue_urls(urls, collection, show_on_homepage, crawl_scope):
+    """Queue URLs for crawling with the specified collection and scope
+    settings."""
+    # Extract hostnames if scope modification is requested
+    if crawl_scope != AddToQueueForm.CRAWL_SCOPE_NO_CHANGE:
+        hostnames = set()
+        for url in urls:
+            try:
+                parsed = urlparse(url)
+                if parsed.hostname:
+                    hostnames.add(parsed.hostname)
+            except Exception:  # nosec B112
+                continue
+
+        # Add hostnames to appropriate regex field if we have any
+        if hostnames:
+            hostname_patterns = [f"^https?://{re.escape(hostname)}/.*" for hostname in hostnames]
+            new_patterns = "\n".join(hostname_patterns)
+
+            if crawl_scope == AddToQueueForm.CRAWL_SCOPE_UNLIMITED:
+                # Add to unlimited_regex
+                collection.unlimited_regex = _add_unique_patterns(collection.unlimited_regex, new_patterns)
+            elif crawl_scope == AddToQueueForm.CRAWL_SCOPE_LIMITED:
+                # Add to limited_regex
+                collection.limited_regex = _add_unique_patterns(collection.limited_regex, new_patterns)
+
+            collection.save()
+
+    # Queue each URL
+    for url in urls:
+        Document.manual_queue(url, collection, show_on_homepage)
+
+
 class AddToQueueForm(forms.Form):
+    CRAWL_SCOPE_NO_CHANGE = "no_change"
+    CRAWL_SCOPE_UNLIMITED = "unlimited"
+    CRAWL_SCOPE_LIMITED = "limited"
+
+    CRAWL_SCOPE_CHOICES = [
+        (CRAWL_SCOPE_NO_CHANGE, "Keep collection settings unchanged"),
+        (CRAWL_SCOPE_UNLIMITED, "Crawl entire websites (unlimited depth)"),
+        (CRAWL_SCOPE_LIMITED, "Crawl websites with depth limit from collection settings"),
+    ]
+
     urls = forms.CharField(
-        widget=forms.Textarea(attrs={"style": "width: 100%; padding-right: 0", "rows": "3"}),
+        widget=forms.Textarea(attrs={"style": "width: 100%; padding-right: 0", "rows": "3", "autofocus": True}),
         label="URLs to crawl",
     )
+    collection = forms.ModelChoiceField(
+        queryset=Collection.objects.all(),
+        required=True,
+        label="Collection",
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label=None,
+    )
+    crawl_scope = forms.ChoiceField(
+        choices=CRAWL_SCOPE_CHOICES,
+        initial=CRAWL_SCOPE_NO_CHANGE,
+        widget=forms.RadioSelect,
+        label="Crawling scope",
+        help_text="Choose how to crawl the websites from these URLs",
+    )
+    show_on_homepage = forms.BooleanField(
+        required=False,
+        help_text="Display the initial document on the homepage",
+        initial=True,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            default_collection = Collection.objects.get(name="Default")
+            self.fields["collection"].initial = default_collection.pk
+        except Collection.DoesNotExist:
+            first_collection = Collection.objects.first()
+            self.fields["collection"].initial = first_collection.pk
 
     def clean_urls(self):
         errors = []
@@ -70,163 +164,63 @@ class AddToQueueView(AdminView, FormView):
         self.admin_site = kwargs.pop("admin_site")
         super().__init__(*args, **kwargs)
 
+    def get_initial(self):
+        initial = super().get_initial()
+
+        # Pre-populate form fields from GET parameters
+        if "urls" in self.request.GET:
+            initial["urls"] = self.request.GET.get("urls")
+        if "collection" in self.request.GET:
+            try:
+                collection_id = int(self.request.GET.get("collection"))
+                if Collection.objects.filter(id=collection_id).exists():
+                    initial["collection"] = collection_id
+            except (ValueError, TypeError):
+                pass
+        if "show_on_homepage" in self.request.GET:
+            initial["show_on_homepage"] = self.request.GET.get("show_on_homepage").lower() == "true"
+        else:
+            # Default value when no GET parameter is provided
+            initial["show_on_homepage"] = True
+        return initial
+
     def get_context_data(self, **kwargs):
+        Collection.create_default()
         context = super().get_context_data(**kwargs)
         context.update(self.admin_site.each_context(self.request))
-        context["form"].fields["urls"].widget.attrs.update({"autofocus": True})
-        return context
+        form = context["form"]
 
-
-class AddToQueueConfirmForm(AddToQueueForm):
-    collection_choice = forms.ChoiceField(
-        widget=forms.RadioSelect,
-        choices=[],
-        required=False,
-    )
-    tags = TagField(Document, None)
-    recursion_depth = forms.IntegerField(min_value=0, required=False, help_text="Maximum depth of links to follow")
-    show_on_homepage = forms.BooleanField(
-        initial=True,
-        required=False,
-        help_text="Display the initial document on the homepage",
-    )
-    show_on_homepage.widget.attrs.update({"checked": True})
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if kwargs.get("data"):
-            # Since collection_choice choices depend on the urls, we pop it to skip validation
-            self.fields.pop("collection_choice")
-
-
-class AddToQueueConfirmationView(AddToQueueView):
-    form_class = AddToQueueConfirmForm
-
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        form_data = self.request.POST.copy()
-
-        # Take URLs from the address bar if available
-        if not form_data.get("urls") and self.request.GET.get("urls"):
-            urls = self.request.GET.getlist("urls")
-            urls = [url.strip() for url in urls if url.strip()]
-            form_data["urls"] = "\n".join(urls)
-
-        form = AddToQueueForm(form_data)
-        context["form"] = form
-
-        if not form.is_valid():
-            return context
-
-        urls = form.cleaned_data["urls"]
-        collections = set()
-        for url in urls:
-            collection = Collection.get_from_url(url)
-            collections.add(collection)
-
-        return_url = reverse("admin:queue_confirm") + "?urls=" + quote_plus("\n".join(urls))
-        initial = {"urls": "\n".join(urls)}
-        choices = []
-        domain = None
-        if len(urls) == 1:
-            # In case the policy matches the default, we give the possibility to
-            # create a new policy for the domain
-            matching = Collection.get_from_url(urls[0])
-            if matching == Collection.create_default() and matching.recursion != Collection.CRAWL_ALL:
-                if matching.recursion == Collection.CRAWL_ON_DEPTH:
-                    if matching.recursion_depth:
-                        default_txt = f"<b>Follow links up to {matching.recursion_depth} level</b> (override below)"
-                    else:
-                        default_txt = "<b>Index only this URL</b> (or override <i>recursion depth</i> below)"
-                elif matching.recursion == Collection.CRAWL_NEVER:
-                    default_txt = "<b>Index only this URL</b>"
-
-                default_txt += ' using the policy <a href="{}">{}</a>'
-                default_txt = format_html(
-                    default_txt,
-                    reverse("admin:se_collection_change", args=(matching.id,)) + "?return_url=" + return_url,
-                    matching,
+        collections = Collection.objects.all()
+        for collection in collections:
+            if collection.recrawl_freq == Collection.RECRAWL_FREQ_CONSTANT:
+                context["recrawl_every"] = human_datetime(collection.recrawl_dt_min)
+            elif collection.recrawl_freq == Collection.RECRAWL_FREQ_ADAPTIVE:
+                context.update(
+                    {
+                        "recrawl_min": human_datetime(collection.recrawl_dt_min),
+                        "recrawl_max": human_datetime(collection.recrawl_dt_max),
+                    }
                 )
-                choices.append(("default", default_txt))
-                domain = self._domain_name(urls[0])
-                choices.append(
-                    (
-                        "domain",
-                        format_html("<b>Index all pages of https://{}/</b> (creates a new policy)", domain),
-                    )
-                )
-                initial["collection_choice"] = "default"
-
-        if len(collections) == 1:
-            initial["recursion_depth"] = collection.recursion_depth
-
-        form = AddToQueueConfirmForm(initial=initial)
-        form.fields["collection_choice"].choices = choices
-
-        urls_re = ["^" + re.escape(url) for url in urls]
-
-        context |= {
-            "collections": sorted(collections, key=lambda x: x.url_regex),
-            "collection": collection,
-            "urls": urls_re,
+        return_url = reverse("admin:queue")
+        return context | {
+            "collections": collections,
             "return_url": return_url,
             "Collection": Collection,
-            "Domain": Domain,
             "form": form,
-            "domain": domain,
         }
 
-        if collection.recrawl_freq == Collection.RECRAWL_FREQ_CONSTANT:
-            context["recrawl_every"] = human_datetime(collection.recrawl_dt_min)
-        elif collection.recrawl_freq == Collection.RECRAWL_FREQ_ADAPTIVE:
-            context.update(
-                {
-                    "recrawl_min": human_datetime(collection.recrawl_dt_min),
-                    "recrawl_max": human_datetime(collection.recrawl_dt_max),
-                }
-            )
-
-        return context
-
-    def _domain_name(self, url):
-        return re.match(r"https?://([^/]+)", url).group(1)
-
-    def _create_domain_policy(self, url, tags):
-        domain = self._domain_name(url)
-        policy = Collection.create_default()
-        webhooks = list(policy.webhooks.all())
-        policy.id = None
-        policy.url_regex = f"^https?://{re.escape(domain)}/"
-        policy.recursion = Collection.CRAWL_ALL
-        policy.save()
-        policy.tags.set(tags)
-        policy.webhooks.set(webhooks)
-
     def form_valid(self, form):
-        if self.request.POST.get("action") == "Confirm":
-            if self.request.POST.get("collection_choice") == "domain":
-                self._create_domain_policy(form.cleaned_data["urls"][0], form.cleaned_data["tags"])
+        urls = form.cleaned_data["urls"]
+        collection = form.cleaned_data["collection"]
+        crawl_scope = form.cleaned_data["crawl_scope"]
 
-            urls = form.cleaned_data["urls"]
-            for url in urls:
-                show_on_homepage = bool(form.cleaned_data.get("show_on_homepage"))
-                crawl_recurse = form.cleaned_data.get("recursion_depth")
-                doc = Document.manual_queue(url, show_on_homepage, crawl_recurse)
-                if self.request.POST.get("collection_choice") == "default":
-                    doc.tags.set(form.cleaned_data["tags"])
+        queue_urls(urls, collection, form.cleaned_data["show_on_homepage"], crawl_scope)
 
-            url_count = len(urls)
-            if url_count > 1:
-                msg = f"{url_count} URLs were queued."
-            else:
-                msg = "URL was queued."
-            WorkerStats.wake_up()
-            messages.success(self.request, msg)
-            return redirect(reverse("admin:crawl_queue"))
-
-        context = self.get_context_data()
-        return self.render_to_response(context)
+        url_count = len(urls)
+        if url_count > 1:
+            msg = f"{url_count} URLs were queued."
+        else:
+            msg = "URL was queued."
+        WorkerStats.wake_up()
+        messages.success(self.request, msg)
+        return redirect(reverse("admin:crawl_queue"))

@@ -18,6 +18,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
 
+from .collection import Collection
 from .document import Document
 from .models import Link, SearchEngine
 from .search import add_headlines, get_documents_from_request
@@ -27,6 +28,7 @@ from .tag import Tag
 
 class SearchTest(TransactionTestCase):
     def setUp(self):
+        self.collection = Collection.create_default()
         self.root = Document.objects.wo_content().create(
             url="http://127.0.0.1/",
             normalized_url="http://127.0.0.1/",
@@ -35,6 +37,7 @@ class SearchTest(TransactionTestCase):
             title="Root",
             normalized_title="Root",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.page = Document.objects.wo_content().create(
             url="http://127.0.0.1/page1",
@@ -44,6 +47,7 @@ class SearchTest(TransactionTestCase):
             title="Page1",
             normalized_title="Page1",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.link = Link.objects.create(doc_from=self.root, doc_to=self.page, text="link text", pos=0, link_no=0)
 
@@ -66,6 +70,7 @@ class SearchTest(TransactionTestCase):
             title="Tagged",
             normalized_title="Tagged",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.tagged_page.tags.set([self.tag1, self.tag2])
 
@@ -77,6 +82,7 @@ class SearchTest(TransactionTestCase):
             title="Tagged2",
             normalized_title="Tagged2",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.tagged_page2.tags.set([self.tag1])
 

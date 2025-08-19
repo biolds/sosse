@@ -32,6 +32,7 @@ from django.utils.timezone import now
 
 from .browser_request import BrowserRequest
 from .builtin import BuiltinModel
+from .crawl_policy_backup import AuthFieldBackup, CrawlPolicyBackup  # noqa: F401
 from .document import Document
 from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
@@ -407,7 +408,7 @@ class FavIcon(models.Model):
                 favicon.content = data
                 favicon.missing = False
             else:
-                page = BrowserRequest.get(url, check_status=True)
+                page = BrowserRequest.get(url, doc.collection, check_status=True)
                 from magic import from_buffer as magic_from_buffer
 
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)

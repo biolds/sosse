@@ -61,7 +61,7 @@ Screenshots
    <br/>
    <br/>
 
-.. figure:: ../../tests/robotframework/screenshots/collection_decision_no_hilight.png
+.. figure:: ../../tests/robotframework/screenshots/collection_detail.png
    :class: sosse-screenshot
 
    :doc:`Collections setup <crawl/collections>`

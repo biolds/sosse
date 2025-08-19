@@ -1,6 +1,7 @@
 | *Settings* |
 | Library | SeleniumLibrary
 | Resource | ../tests/common.robot
+| Resource | ../tests/documents.robot
 
 | *Test Cases* |
 | Data extraction
@@ -8,10 +9,11 @@
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.document import Document ; Document.objects.wo_content().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.html_asset import HTMLAsset ; HTMLAsset.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.collection import Collection ; Collection.objects.all().delete()
-|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/data_extraction_data/dump.json | shell=True
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.tag import Tag ; Tag.objects.all().delete()
+|  | Load Data With Collection | ${CURDIR}/data_extraction_data/dump.json
 
 |  | Sosse Go To | http://127.0.0.1/admin/se/collection/
-|  | Click Link | https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*
+|  | Click Link | TED - Tenders Electronic Daily
 |  | Click Link | 🌍 Browser
 |  | Sosse Capture Page Screenshot | guide_data_extract_collection.png
 

@@ -13,25 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import logging
-import re
 from datetime import timedelta
 
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.db import DataError, connection, models, transaction
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
 
-from .browser import AuthElemFailed
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
 from .domain import Domain
-from .tag import Tag
-from .utils import build_multiline_re
-from .webhook import Webhook
 
-crawl_logger = logging.getLogger("crawler")
 BROWSER_MAP = {
     Domain.BROWSE_CHROMIUM: BrowserChromium,
     Domain.BROWSE_FIREFOX: BrowserFirefox,
@@ -39,26 +31,7 @@ BROWSER_MAP = {
 }
 
 
-@transaction.atomic
-def validate_url_regexp(val):
-    cursor = connection.cursor()
-    for line_no, line in enumerate(val.splitlines()):
-        line = line.strip()
-        if line.startswith("#") or not line:
-            continue
-
-        try:
-            # Try the regexp on Psql
-            cursor.execute("SELECT 1 FROM se_document WHERE url ~ %s", params=[val])
-        except DataError as e:
-            if len(val.splitlines()) == 1:
-                error = e.__cause__
-            else:
-                error = f"Regex on line {line_no + 1} failed: {e.__cause__}"
-            raise ValidationError(error)
-
-
-class Collection(models.Model):
+class CrawlPolicyBackup(models.Model):
     RECRAWL_FREQ_NONE = "none"
     RECRAWL_FREQ_CONSTANT = "constant"
     RECRAWL_FREQ_ADAPTIVE = "adaptive"
@@ -84,6 +57,15 @@ class Collection(models.Model):
         (RECRAWL_COND_MANUAL, "On change or manual trigger"),
     ]
 
+    CRAWL_ALL = "always"
+    CRAWL_ON_DEPTH = "depth"
+    CRAWL_NEVER = "never"
+    CRAWL_CONDITION = [
+        (CRAWL_ALL, "Crawl all pages"),
+        (CRAWL_ON_DEPTH, "Depending on depth"),
+        (CRAWL_NEVER, "Never crawl"),
+    ]
+
     REMOVE_NAV_FROM_INDEX = "idx"
     REMOVE_NAV_FROM_SCREENSHOT = "scr"
     REMOVE_NAV_FROM_ALL = "yes"
@@ -105,36 +87,15 @@ class Collection(models.Model):
         (THUMBNAIL_MODE_SCREENSHOT, "Take a screenshot"),
         (THUMBNAIL_MODE_NONE, "No thumbnail"),
     )
-
-    name = models.CharField(max_length=256, unique=True)
-    unlimited_regex = models.TextField(
-        blank=True,
-        default="",
-        validators=[validate_url_regexp],
-        verbose_name="Unlimited depth URL regex",
-        help_text="URL regular expressions. Matching URLs will have unlimited crawling recursion depth (one per line; lines starting with # are ignored)",
+    url_regex = models.TextField(
+        help_text="URL regular expressions for this policy. (one by line, lines starting with # are ignored)",
     )
-    unlimited_regex_pg = models.TextField(default="")
-    limited_regex = models.TextField(
-        blank=True,
-        default="",
-        validators=[validate_url_regexp],
-        verbose_name="Limited depth URL regex",
-        help_text="URL regular expressions. Matching URLs will have limited crawling recursion depth (one per line; lines starting with # are ignored)",
-    )
-    limited_regex_pg = models.TextField(default="")
-    excluded_regex = models.TextField(
-        blank=True,
-        default="",
-        validators=[validate_url_regexp],
-        verbose_name="Excluded URL regex",
-        help_text="URL regular expressions to exclude from this collection. (one by line, lines starting with # are ignored)",
-    )
-    excluded_regex_pg = models.TextField(default="")
+    url_regex_pg = models.TextField()
+    enabled = models.BooleanField(default=True)
+    recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
     mimetype_regex = models.TextField(default=".*")
     recursion_depth = models.PositiveIntegerField(
-        default=1,
-        verbose_name="Limited recursion depth",
+        default=0,
         help_text="Level of external links (links that don't match the regex) to recurse into",
     )
     keep_params = models.BooleanField(
@@ -252,120 +213,19 @@ class Collection(models.Model):
         verbose_name="Form selector",
         help_text="CSS selector pointing to the authentication &lt;form&gt; element",
     )
-    tags = models.ManyToManyField(Tag, blank=True)
-    webhooks = models.ManyToManyField(Webhook)
+    tags = ArrayField(
+        models.CharField(max_length=128),
+        blank=True,
+        default=list,
+    )
+    webhooks = ArrayField(
+        models.CharField(max_length=512),
+        blank=True,
+        default=list,
+    )
 
-    class Meta:
-        ordering = ["name"]
 
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        self.unlimited_regex_pg = build_multiline_re(self.unlimited_regex) if self.unlimited_regex else ""
-        self.limited_regex_pg = build_multiline_re(self.limited_regex) if self.limited_regex else ""
-        self.excluded_regex_pg = build_multiline_re(self.excluded_regex) if self.excluded_regex else ""
-        return super().save(*args, **kwargs)
-
-    @staticmethod
-    def create_default():
-        try:
-            return Collection.objects.get(name="Default")
-        except Collection.DoesNotExist:
-            existing = Collection.objects.first()
-            if existing:
-                return existing
-            return Collection.objects.create(name="Default")
-
-    @staticmethod
-    def get_from_url(url, queryset=None):
-        if queryset is None:
-            queryset = Collection.objects.all()
-        queryset = queryset.exclude(unlimited_regex="(default)")
-        queryset = queryset.exclude(unlimited_regex_pg="")
-
-        collection = (
-            queryset.annotate(
-                match_len=models.functions.Length(
-                    models.Func(
-                        models.Value(url),
-                        models.F("unlimited_regex_pg"),
-                        function="REGEXP_SUBSTR",
-                        output_field=models.TextField(),
-                    )
-                )
-            )
-            .filter(match_len__gt=0)
-            .order_by("-match_len")
-            .first()
-        )
-
-        if collection is None:
-            return Collection.create_default()
-
-        return collection
-
-    @staticmethod
-    def _default_browser():
-        if settings.SOSSE_DEFAULT_BROWSER == "chromium":
-            return Domain.BROWSE_CHROMIUM
-        return Domain.BROWSE_FIREFOX
-
-    def url_get(self, url, domain=None):
-        domain = domain or Domain.get_from_url(url)
-        browser = self.get_browser(domain=domain, no_detection=False)
-        page = browser.get(url, self)
-
-        if page.redirect_count:
-            # The request was redirected, check if we need auth
-            try:
-                crawl_logger.debug(f"may auth {page.url} / {self.auth_login_url_re}")
-                if self.auth_login_url_re and self.auth_form_selector and re.search(self.auth_login_url_re, page.url):
-                    crawl_logger.debug(f"doing auth for {url}")
-                    new_page = page.browser.try_auth(page, url, self)
-
-                    if new_page.url != url:
-                        crawl_logger.debug(f"reopening {url} after auth")
-                        page = browser.get(url, self)
-                    else:
-                        page = new_page
-            except Exception as e:
-                if isinstance(e, AuthElemFailed):
-                    raise
-                raise Exception("Authentication failed")
-
-        if self.default_browse_mode == Domain.BROWSE_DETECT and domain.browse_mode == Domain.BROWSE_DETECT:
-            crawl_logger.debug(f"browser detection on {url}")
-            requests_page = BrowserRequest.get(url, self)
-            browser_content = page.dom_walk(self, False, None)
-            requests_content = requests_page.dom_walk(self, False, None)
-
-            if browser_content["text"] != requests_content["text"]:
-                new_mode = self._default_browser()
-            else:
-                new_mode = Domain.BROWSE_REQUESTS
-                page = requests_page
-            crawl_logger.debug(f"browser detected {new_mode} on {url}")
-            domain.browse_mode = new_mode
-            domain.save()
-        return page
-
-    def get_browser(self, url=None, domain=None, no_detection=True):
-        if url is None and domain is None:
-            raise Exception("Either url or domain must be provided")
-        if url is not None and domain is not None:
-            raise Exception("Either url or domain must be provided")
-
-        if url:
-            domain = Domain.get_from_url(url)
-
-        browser_str = self.default_browse_mode
-        if self.default_browse_mode == Domain.BROWSE_DETECT:
-            if domain.browse_mode == Domain.BROWSE_DETECT:
-                if no_detection:
-                    raise Exception(f"browser mode is not yet known ({domain})")
-                browser_str = self._default_browser()
-            else:
-                browser_str = domain.browse_mode
-
-        return BROWSER_MAP[browser_str]
+class AuthFieldBackup(models.Model):
+    key = models.CharField(max_length=256, verbose_name="<input> name attribute")
+    value = models.CharField(max_length=256)
+    crawl_policy = models.ForeignKey("CrawlPolicyBackup", on_delete=models.CASCADE)

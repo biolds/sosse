@@ -1,6 +1,7 @@
 | *Settings* |
 | Library | SeleniumLibrary
 | Resource | ../tests/common.robot
+| Resource | ../tests/documents.robot
 
 | *Test Cases* |
 | Local AI
@@ -11,7 +12,7 @@
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.collection import Collection ; Collection.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.tag import Tag ; Tag.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.webhook import Webhook ; Webhook.objects.all().delete()
-|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/local_ai/dump.json | shell=True
+|  | Load Data With Collection | ${CURDIR}/local_ai/dump.json
 |  | Run Command | rm | -rf | /var/lib/sosse/screenshots
 |  | Run Command | mkdir | -p | /var/lib/sosse/
 |  | Run Command | cp | -r | ${CURDIR}/local_ai/* | /var/lib/sosse/ | shell=True

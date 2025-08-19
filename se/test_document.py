@@ -28,9 +28,9 @@ from .test_mock import BrowserMock
 class DocumentTest(TransactionTestCase):
     def setUp(self):
         self.collection = Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+            name="Test Collection",
+            unlimited_regex="(default)",
+            unlimited_regex_pg=".*",
             default_browse_mode=Domain.BROWSE_REQUESTS,
             thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
@@ -40,7 +40,7 @@ class DocumentTest(TransactionTestCase):
         # Force create the worker
         WorkerStats.get_worker(0)
 
-        Document.queue(url, None, None)
+        Document.queue(url, self.collection, None)
         while Document.crawl(0):
             pass
 

@@ -47,8 +47,8 @@ Starting the Crawl
 After configuring authentication in the Collection, navigate to the :doc:`Crawl a new URL <../crawl/new_url>` page and
 enter the Calibre-Web instance URL.
 
-Review the parameters and click ``Confirm``. Sosse will log in using the provided credentials and begin crawling pages
-accessible to the authenticated user.
+Review the parameters and click ``Add to Crawl Queue``. Sosse will log in using the provided credentials and begin
+crawling pages accessible to the authenticated user.
 
 Searching the Library
 ---------------------

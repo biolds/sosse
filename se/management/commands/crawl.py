@@ -53,6 +53,11 @@ class Command(BaseCommand):
             help="Quit when the queue is empty.",
         )
         parser.add_argument(
+            "--collection",
+            type=int,
+            help="Collection ID to use for URLs added to the queue.",
+        )
+        parser.add_argument(
             "urls",
             nargs="*",
             type=str,
@@ -168,6 +173,14 @@ class Command(BaseCommand):
                 sleep(5)
 
     def handle(self, *args, **options):
+        # Validate that urls and collection parameters are both provided or both omitted
+        if options["urls"] and not options["collection"]:
+            self.stderr.write("Error: --collection parameter is required when URLs are provided.")
+            return
+        if options["collection"] and not options["urls"]:
+            self.stderr.write("Error: URLs must be provided when --collection parameter is used.")
+            return
+
         Document.objects.wo_content().exclude(worker_no=None).update(worker_no=None)
         error_msg = "Worker was killed"
         error_hash = md5(error_msg.encode("utf-8"), usedforsecurity=False).hexdigest()
@@ -178,7 +191,12 @@ class Command(BaseCommand):
         Collection.create_default()
 
         for url in options["urls"]:
-            Document.manual_queue(url, False, None)
+            try:
+                collection = Collection.objects.get(id=options["collection"])
+            except Collection.DoesNotExist:
+                self.stderr.write(f"Collection with ID {options['collection']} does not exist.")
+                return
+            Document.manual_queue(url, collection, False)
 
         worker_count = settings.SOSSE_CRAWLER_COUNT
         if worker_count is None:

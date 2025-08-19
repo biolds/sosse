@@ -11,7 +11,6 @@ Administration
    crawl/crawlers.rst
    crawl/analytics.rst
    crawl/collections.rst
-   crawl/recursion_depth.rst
    crawl/feeds.rst
    documents.rst
    tags.rst

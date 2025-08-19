@@ -15,6 +15,7 @@
 
 from django.shortcuts import reverse
 
+from .collection import Collection
 from .tag import Tag
 from .tags import AdminTagsView
 
@@ -58,7 +59,10 @@ class TagsListView(AdminTagsView):
 
         obj = self._get_obj()
         if obj:
-            title = f"⭐ Tags of {obj.get_title_label()}"
+            if isinstance(obj, Collection):
+                title = f"⭐ Tags of {obj.name}"
+            else:
+                title = f"⭐ Tags of {obj.get_title_label()}"
             obj_pk = obj.pk
         else:
             title = "⭐ Tags"

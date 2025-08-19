@@ -18,6 +18,7 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.template.loader import render_to_string
 from django.urls import reverse
 
+from .collection import Collection
 from .tag import Tag
 
 
@@ -43,7 +44,10 @@ class TagWidget(CheckboxSelectMultiple):
                 tags.append(tag)
 
         if self.instance and self.instance.pk:
-            title = f"⭐ Tags of {self.instance.get_title_label()}"
+            if self.model == Collection:
+                title = f"⭐ Tags of {self.instance.name}"
+            else:
+                title = f"⭐ Tags of {self.instance.get_title_label()}"
         else:
             title = "⭐ Tags"
         tags_url = f"'/admin_tags/{model_name}/0/'"

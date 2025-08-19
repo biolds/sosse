@@ -160,10 +160,8 @@ class Page:
                     href = href.strip()
 
                     if has_browsable_scheme(href):
-                        href_for_policy = absolutize_url(self.base_url(), href)
-                        child_policy = Collection.get_from_url(href_for_policy)
                         href = absolutize_url(self.base_url(), href)
-                        if not child_policy.keep_params:
+                        if not collection.keep_params:
                             href = url_remove_query_string(href)
                         href = url_remove_fragment(href)
                         crawl_logger.debug(f"queueing link: {href}")

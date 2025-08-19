@@ -1,62 +1,53 @@
 ⚡ Collections
 ==============
 
-Policy matching
----------------
-
-Collections define which pages are indexed and how they are indexed. The collection list can be reached by clicking
-``⚡ Collections`` from the :doc:`../admin_ui`.
+Collections group :doc:`documents <../documents>` and define crawling rules that determine which pages are indexed
+and how they are processed. Access the collection list by clicking ``⚡ Collections`` from the :doc:`../admin_ui`.
 
 .. image:: ../../../tests/robotframework/screenshots/collection_list.png
    :class: sosse-screenshot
 
-When the crawler indexes a page or evaluates a link to queue it, it will find the best matching collection to know
-how to handle the link. The collection having the ``URL regex`` matching the longest part of the link URL is selected.
-On last resort, the default collection ``(default)`` is selected.
+Each collection acts as a template that controls crawling behavior and document processing. When you manually add
+URLs, you select which collection to use. When the crawler discovers new links during crawling, they automatically
+inherit the same collection as their parent page.
 
-You can see which collection would match by typing an URL in the search bar of the ``⚡ Collections``, or in the
-``🌐 Crawl a new URL`` page (see :doc:`new_url`).
+You can choose which collection to add an URL to and trigger crawling in the ``🌐 Crawl a new URL`` page
+(see :doc:`new_url`).
 
-⚡ Crawl
---------
+⚡ Crawl tab
+------------
 
-.. image:: ../../../tests/robotframework/screenshots/collection_decision.png
+.. image:: ../../../tests/robotframework/screenshots/collection_detail.png
    :class: sosse-screenshot
 
-URL regex
-"""""""""
+URL patterns
+""""""""""""
 
-The regex matched against URLs to crawl. Multiple regex can be set, one by line. Lines starting with a ``#`` are
-treated as comments. The default ``(default)`` collection's regex cannot be modified.
+Collections use three types of URL regular expressions to control crawling:
+
+* **Unlimited depth URL regex**: URLs matching this pattern are crawled without depth limits. Multiple regex can be set,
+  one per line. Lines starting with ``#`` are treated as comments.
+* **Limited depth URL regex**: URLs matching this pattern are crawled with limited recursion depth (see ``Limited
+  recursion depth`` setting).
+* **Excluded URL regex**: URLs matching this pattern are excluded from this collection and will not be crawled.
 
 Tags
 """"
 
-This field defines the tags to be added to documents matching the policy. Tags are used to group documents and can be
-used to filter search results.
+This field defines the tags that will be automatically applied to documents added to the collection. Tags help
+organize and categorize documents, and can be used to filter search results.
 
-Documents
-"""""""""
+Related
+"""""""
 
-Shows the URLs in the database that match the regex.
+This field contains links to the Documents in the Collection and the Tags defined in the collection.
 
 .. _recursion_depth_params:
 
-Recursion, recursion depth
-""""""""""""""""""""""""""
+Limited recursion depth
+"""""""""""""""""""""""
 
-``Recursion`` and ``Recursion depth`` parameters define which links to recurse into.
-
-``Recursion`` can be one of:
-
-* ``Crawl all pages``: URLs matching the collection will be crawled
-* ``Depending on depth``: URLs matching the policy are crawled depending on the recursion level (see
-  :doc:`recursion_depth`)
-* ``Never crawl``: URLs matching the collection are not crawled unless they are queued manually (in this case, no
-  recursion occurs)
-
-``Recursion depth`` is only relevant when the ``Recursion`` is ``Crawl all pages`` and defines the recursion depth for
-links outside the policy. See :doc:`recursion_depth` for more explanations.
+This setting defines the maximum depth for crawling URLs that match the ``Limited depth URL regex`` pattern.
 
 Mimetype regex
 """"""""""""""
@@ -108,8 +99,8 @@ Defines the source for pages thumbnails displayed in the search results and home
 
 .. _collection_take_screenshot:
 
-🌍 Browser
-----------
+🌍 Browser tab
+--------------
 
 .. image:: ../../../tests/robotframework/screenshots/collection_browser.png
    :class: sosse-screenshot
@@ -190,8 +181,8 @@ In case the script triggers an error, further processing of the page is aborted 
 
 .. _collection_archive:
 
-🔖 Archive
-----------
+🔖 Archive tab
+--------------
 
 .. image:: ../../../tests/robotframework/screenshots/collection_archive.png
    :class: sosse-screenshot
@@ -225,8 +216,8 @@ regex of ``audio|video`` would make the crawler skip the download of medias.
 
 .. _collection_recurrence:
 
-🕑 Recurrence
--------------
+🕑 Recurrence tab
+-----------------
 
 .. image:: ../../../tests/robotframework/screenshots/collection_updates.png
    :class: sosse-screenshot
@@ -264,8 +255,8 @@ Defines when the page is reprocessed:
 
 .. _authentication_params:
 
-🔒 Authentication
------------------
+🔒 Authentication tab
+---------------------
 
 See :doc:`../guides/authentication` for an example on authentication.
 
@@ -275,7 +266,7 @@ See :doc:`../guides/authentication` for an example on authentication.
 Login URL regex
 """""""""""""""
 
-If crawling a page matching the collection gets redirected to an URL matching the ``Login URL regex``, the crawler will
+If crawling a page gets redirected to an URL matching the ``Login URL regex``, the crawler will
 attempt to authenticate using the parameters defined below.
 
 Form selector
@@ -299,7 +290,6 @@ Actions
 
 Using the actions dropdown, the following actions can be applied to the selected Collections:
 
-* ``Enable/Disable``: Toggles the Collection state.
 * ``Duplicate``: Makes a copy of the Collection.
-* ``Update doc tags``: Updates the tags of all documents matching the policy.
-* ``Clear & update doc tags``: Clears the tags of all documents matching the policy and updates them.
+* ``Update doc tags``: Updates the tags of all documents in the collection.
+* ``Clear & update doc tags``: Clears the tags of all documents in the collection and updates them.

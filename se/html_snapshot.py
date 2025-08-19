@@ -385,7 +385,7 @@ class HTMLSnapshot:
         page = None
 
         try:
-            page = HTMLCache.download(url, referer, settings.SOSSE_MAX_HTML_ASSET_SIZE)
+            page = HTMLCache.download(url, self.collection, referer, settings.SOSSE_MAX_HTML_ASSET_SIZE)
             content = page.content
             mimetype = force_mime or page.mimetype
 

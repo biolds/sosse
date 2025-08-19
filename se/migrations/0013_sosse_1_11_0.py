@@ -48,7 +48,7 @@ def reverse_url_regex_pg(apps, schema_editor):
         else:
             regexs = policy.url_regex.splitlines()
             regexs = [regex for regex in regexs if regex and not regex.startswith("#")]
-            policy.url_regex = regexs[0]
+            policy.url_regex = regexs[0] if regexs else ""
 
         policy.save()
 

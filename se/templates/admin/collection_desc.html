@@ -1,32 +1,22 @@
-<span {% if add_to_queue %}class="{{ label_tag }}"{% else %}title="Recursion"{% endif %}>
-    {% if collection.recursion == Collection.CRAWL_NEVER %}
-      ⛔
-    {% else %}
-      ⚡
-    {% endif %}
-    {% if add_to_queue %}
-        {% if collection.recursion == Collection.CRAWL_ALL %}
-            Recurse into matching URLs
-            {% if collection.recursion_depth > 1 %}
-            , {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} depth otherwise</li>
-            {% endif %}
-        {% elif collection.recursion == Collection.CRAWL_ON_DEPTH %}
-            Crawl depending on depth
-        {% else %}
-            {{ urls|length|pluralize:"Only this URL,Only these URLs" }}
-        {% endif %}
-    {% else %}
-        {% if collection.recursion == Collection.CRAWL_ALL %}
-            recurse all
-            {% if collection.recursion_depth > 1 %}
-            , {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} depth otherwise</li>
-            {% endif %}
-        {% elif collection.recursion == Collection.CRAWL_ON_DEPTH %}
-            recursion limited
-        {% else %}
-            never recurse
-        {% endif %}
-    {% endif %}
+<span {% if add_to_queue %}class="{{ label_tag }}"{% else %}title="Collection"{% endif %}>
+  ⚡
+  {% if collection.unlimited_regex_pg %}
+    Unlimited recursion
+  {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg %}
+    Unlimited recursion
+  {% endif %}
+
+  {% if collection.unlimited_regex_pg and collection.limited_regex_pg and collection.recursion_depth != 0 %}
+    /
+  {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg and collection.recursion_depth != 0 %}
+    /
+  {% endif %}
+
+  {% if collection.limited_regex_pg and collection.recursion_depth != 0 %}
+    {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} recursion
+  {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg and collection.recursion_depth != 0 %}
+    {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} recursion
+  {% endif %}
 </span>
 
 <span class="{{ label_tag }}"{% if not add_to_queue %} title="Browser"{% endif %}>
@@ -53,13 +43,13 @@
         only once
     {% elif collection.recrawl_freq == Collection.RECRAWL_FREQ_CONSTANT %}
         {% if add_to_queue %}
-            every {{ recrawl_every }}
+            every {{ recrawl_every }}
         {% else %}
             constant
         {% endif %}
     {% else %}
         {% if add_to_queue %}
-            from every {{ recrawl_min }} to every {{ recrawl_max }}
+            from every {{ recrawl_min }} to every {{ recrawl_max }}
         {% else %}
             adaptive
         {% endif %}

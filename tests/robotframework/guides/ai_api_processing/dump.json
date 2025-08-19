@@ -1,46 +1,11 @@
 [
   {
     "model": "se.collection",
-    "pk": 39,
-    "fields": {
-      "url_regex": "(default)",
-      "url_regex_pg": ".*",
-      "enabled": true,
-      "recursion": "depth",
-      "mimetype_regex": ".*",
-      "recursion_depth": 0,
-      "keep_params": true,
-      "hide_documents": false,
-      "default_browse_mode": "detect",
-      "snapshot_html": true,
-      "snapshot_exclude_url_re": "",
-      "snapshot_exclude_mime_re": "",
-      "snapshot_exclude_element_re": "",
-      "thumbnail_mode": "preview",
-      "take_screenshots": false,
-      "screenshot_format": "jpg",
-      "remove_nav_elements": "idx",
-      "script": "",
-      "store_extern_links": false,
-      "recrawl_freq": "adaptive",
-      "recrawl_dt_min": "1 00:00:00",
-      "recrawl_dt_max": "365 00:00:00",
-      "hash_mode": "no_numbers",
-      "recrawl_condition": "manual",
-      "auth_login_url_re": "",
-      "auth_form_selector": "",
-      "tags": [],
-      "webhooks": []
-    }
-  },
-  {
-    "model": "se.collection",
     "pk": 44,
     "fields": {
-      "url_regex": "https://demo.spreecommerce.org/products/.*glasses",
-      "url_regex_pg": "https://demo.spreecommerce.org/products/.*glasses",
-      "enabled": true,
-      "recursion": "never",
+      "name": "Tagging collection",
+      "unlimited_regex": "https://demo.spreecommerce.org/products/.*glasses",
+      "unlimited_regex_pg": "https://demo.spreecommerce.org/products/.*glasses",
       "mimetype_regex": ".*",
       "recursion_depth": 0,
       "keep_params": true,
@@ -64,9 +29,7 @@
       "auth_login_url_re": "",
       "auth_form_selector": "",
       "tags": [],
-      "webhooks": [
-        10
-      ]
+      "webhooks": [10]
     }
   },
   {
@@ -259,10 +222,7 @@
       "screenshot_format": "jpg",
       "screenshot_size": "1920x1080",
       "has_thumbnail": false,
-      "tags": [
-        449,
-        445
-      ],
+      "tags": [449, 445],
       "webhooks_result": {
         "10": {
           "error": null,
@@ -330,9 +290,7 @@
       "screenshot_count": 3,
       "screenshot_format": "jpg",
       "screenshot_size": "1920x1080",
-      "tags": [
-        445
-      ],
+      "tags": [445],
       "has_thumbnail": false,
       "webhooks_result": {
         "10": {

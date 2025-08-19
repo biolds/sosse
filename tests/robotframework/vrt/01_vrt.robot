@@ -16,11 +16,10 @@
 |  | Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Wait Until Page Contains | Create a new policy
+|  | Select From List By Label | id=id_collection | Default
 |  | VRT check | New policy
-|  | Click Element | xpath=//input[@value='Confirm']
-|  | Wait Until Page Contains | Crawl queue
+|  | Click Element | xpath=//input[@value='Add to Crawl Queue']
+|  | Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Page Should Not Contain | No crawlers running.
@@ -29,7 +28,7 @@
 |  | Wait Until Page Contains | 0 pending documents | 2min
 |  | Page Should Contain | idle
 |  | Reload Page
-|  | Wait Until Page Contains | Crawl queue
+|  | Wait Until Page Contains | Crawl queue
 |  | Scroll To Bottom
 |  | VRT check | Crawl queue
 

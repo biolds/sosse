@@ -37,6 +37,13 @@ class WebhookTest(TransactionTestCase):
     maxDiff = None
 
     def setUp(self):
+        self.collection = Collection.objects.create(
+            name="Test Collection",
+            default_browse_mode=Domain.BROWSE_REQUESTS,
+            snapshot_html=False,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
+            take_screenshots=False,
+        )
         self.webhook = Webhook.objects.create(
             name="Test Webhook",
             url=f"{TEST_SERVER_URL}post",
@@ -45,17 +52,9 @@ class WebhookTest(TransactionTestCase):
             body_template='{"content": "${content}", "title": "${title}"}',
         )
         self.document = example_doc()
+        self.document.collection = self.collection
         self.document.metadata = {"key": "value"}
         self.document.save()
-        self.collection = Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
-            default_browse_mode=Domain.BROWSE_REQUESTS,
-            snapshot_html=False,
-            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
-            take_screenshots=False,
-        )
         self.collection.webhooks.add(self.webhook)
         self.tag = Tag.objects.create(name="Test")
         self.tag_child = Tag.objects.create(name="Test Child", parent=self.tag)
@@ -133,7 +132,7 @@ class WebhookTest(TransactionTestCase):
             if self.document:
                 self.document.delete()
                 self.document = None
-            Document.queue("http://127.0.0.1/full_page.html", None, None)
+            Document.queue("http://127.0.0.1/full_page.html", self.collection, None)
             Document.crawl(0)
             self.assertEqual(Document.objects.count(), 1)
             doc = Document.objects.w_content().first()

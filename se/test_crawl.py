@@ -30,25 +30,17 @@ from .test_mock import BrowserMock
 
 
 class CrawlerTest(TransactionTestCase):
-    DEFAULT_GETS = [
-        mock.call("http://127.0.0.1/robots.txt", check_status=True),
-        mock.call("http://127.0.0.1/"),
-        mock.call("http://127.0.0.1/favicon.ico", check_status=True),
-    ]
+    def get_default_gets(self):
+        return [
+            mock.call("http://127.0.0.1/robots.txt", self.collection, check_status=True),
+            mock.call("http://127.0.0.1/", self.collection),
+            mock.call("http://127.0.0.1/favicon.ico", self.collection, check_status=True),
+        ]
 
     def setUp(self):
-        self.root_policy = Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
-            default_browse_mode=Domain.BROWSE_REQUESTS,
-            snapshot_html=False,
-            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
-            take_screenshots=False,
-        )
         self.collection = Collection.objects.create(
-            url_regex="http://127.0.0.1/",
-            recursion=Collection.CRAWL_ALL,
+            name="Test Collection",
+            unlimited_regex="http://127.0.0.1/",
             default_browse_mode=Domain.BROWSE_REQUESTS,
             snapshot_html=False,
             thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
@@ -61,14 +53,13 @@ class CrawlerTest(TransactionTestCase):
         self.fake_next3 = datetime(2000, 1, 1, 6, tzinfo=timezone.utc)
 
     def tearDown(self):
-        self.root_policy.delete()
         self.collection.delete()
 
     def _crawl(self, url="http://127.0.0.1/"):
         # Force create the worker
         WorkerStats.get_worker(0)
 
-        Document.queue(url, None, None)
+        Document.queue(url, self.collection, None)
         while Document.crawl(0):
             pass
 
@@ -77,18 +68,19 @@ class CrawlerTest(TransactionTestCase):
         BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
         self._crawl()
         self.assertTrue(
-            BrowserRequest.call_args_list == self.DEFAULT_GETS,
+            BrowserRequest.call_args_list == self.get_default_gets(),
             BrowserRequest.call_args_list,
         )
 
         domain = Domain.objects.get()
-        self.assertEqual(domain.browse_mode, Domain.BROWSE_REQUESTS)
+        self.assertEqual(domain.browse_mode, Domain.BROWSE_DETECT)
         self.assertEqual(domain.domain, "127.0.0.1")
         self.assertEqual(domain.robots_status, Domain.ROBOTS_EMPTY)
 
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_recurse, 0)
         self.assertFalse(doc.hidden)
@@ -106,16 +98,19 @@ class CrawlerTest(TransactionTestCase):
         )
         self._crawl()
         self.assertTrue(
-            BrowserRequest.call_args_list == self.DEFAULT_GETS + [mock.call("http://127.0.0.1/page1/")],
+            BrowserRequest.call_args_list
+            == self.get_default_gets() + [mock.call("http://127.0.0.1/page1/", self.collection)],
             BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 2)
         docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
+        self.assertEqual(docs[0].collection, self.collection)
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
         self.assertEqual(docs[1].url, "http://127.0.0.1/page1/")
+        self.assertEqual(docs[1].collection, self.collection)
         self.assertEqual(docs[1].content, "Page1 Link1")
         self.assertEqual(docs[1].crawl_recurse, 0)
 
@@ -139,28 +134,21 @@ class CrawlerTest(TransactionTestCase):
                 "http://127.0.0.3/": b"Page3",
             }
         )
+        self.collection.unlimited_regex = r"http://127\.0\.0\.1/"
+        self.collection.limited_regex = r"http://127\.0\.0\.2/"
         self.collection.recursion_depth = 2
         self.collection.save()
-
-        Collection.objects.create(
-            url_regex="http://127.0.0.2/.*",
-            recursion=Collection.CRAWL_ON_DEPTH,
-            default_browse_mode=Domain.BROWSE_REQUESTS,
-            snapshot_html=False,
-            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
-            take_screenshots=False,
-        )
         self._crawl()
 
         self.assertTrue(
             BrowserRequest.call_args_list
-            == self.DEFAULT_GETS
+            == self.get_default_gets()
             + [
-                mock.call("http://127.0.0.1/page1/"),
-                mock.call("http://127.0.0.2/robots.txt", check_status=True),
-                mock.call("http://127.0.0.2/"),
-                mock.call("http://127.0.0.2/favicon.ico", check_status=True),
-                mock.call("http://127.0.0.2/page1/"),
+                mock.call("http://127.0.0.1/page1/", self.collection),
+                mock.call("http://127.0.0.2/robots.txt", self.collection, check_status=True),
+                mock.call("http://127.0.0.2/", self.collection),
+                mock.call("http://127.0.0.2/favicon.ico", self.collection, check_status=True),
+                mock.call("http://127.0.0.2/page1/", self.collection),
             ],
             BrowserRequest.call_args_list,
         )
@@ -168,17 +156,21 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 4)
         docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
+        self.assertEqual(docs[0].collection, self.collection)
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
         self.assertEqual(docs[1].url, "http://127.0.0.1/page1/")
+        self.assertEqual(docs[1].collection, self.collection)
         self.assertEqual(docs[1].content, "Page1 Link1 Link3")
         self.assertEqual(docs[1].crawl_recurse, 0)
         self.assertEqual(docs[2].url, "http://127.0.0.2/")
+        self.assertEqual(docs[2].collection, self.collection)
         self.assertEqual(docs[2].content, "No 2 No 2 Link1 Link3")
-        self.assertEqual(docs[2].crawl_recurse, 2)
+        self.assertEqual(docs[2].crawl_recurse, 1)
         self.assertEqual(docs[3].url, "http://127.0.0.2/page1/")
+        self.assertEqual(docs[3].collection, self.collection)
         self.assertEqual(docs[3].content, "Page2 No 2 Link2")
-        self.assertEqual(docs[3].crawl_recurse, 1)
+        self.assertEqual(docs[3].crawl_recurse, 0)
 
         self.assertEqual(Link.objects.count(), 3)
         links = Link.objects.order_by("id")
@@ -206,18 +198,19 @@ class CrawlerTest(TransactionTestCase):
                 "http://127.0.0.1/page1/": b"Page1",
             }
         )
+        self.collection.unlimited_regex = r"http://127\.0\.0\.1/$"
         self.collection.store_extern_links = True
         self.collection.save()
-        Collection.objects.create(url_regex="http://127.0.0.1/page1/", recursion=Collection.CRAWL_NEVER)
         self._crawl()
         self.assertTrue(
-            BrowserRequest.call_args_list == self.DEFAULT_GETS,
+            BrowserRequest.call_args_list == self.get_default_gets(),
             BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 1)
         docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
+        self.assertEqual(docs[0].collection, self.collection)
         self.assertEqual(docs[0].content, "Root Link1")
         self.assertEqual(docs[0].crawl_recurse, 0)
 
@@ -242,13 +235,14 @@ class CrawlerTest(TransactionTestCase):
 
         self._crawl()
         self.assertTrue(
-            BrowserRequest.call_args_list == self.DEFAULT_GETS,
+            BrowserRequest.call_args_list == self.get_default_gets(),
             BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
         self.assertEqual(doc.crawl_last, self.fake_now)
@@ -270,6 +264,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
         self.assertEqual(doc.crawl_last, self.fake_now)
@@ -282,6 +277,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
         self.assertEqual(doc.crawl_last, self.fake_next)
@@ -303,6 +299,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
         self.assertEqual(doc.crawl_last, self.fake_now)
@@ -327,6 +324,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world")
         self.assertEqual(doc.crawl_first, self.fake_now)
         self.assertEqual(doc.crawl_last, self.fake_next2)
@@ -354,8 +352,10 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 2)
         doc1, doc2 = Document.objects.w_content().order_by("id")
         self.assertEqual(doc1.url, "http://127.0.0.1/")
+        self.assertEqual(doc1.collection, self.collection)
         self.assertEqual(doc1.content, "base test")
         self.assertEqual(doc2.url, "http://127.0.0.1/base/test")
+        self.assertEqual(doc2.collection, self.collection)
         self.assertEqual(doc2.content, "test page")
 
     @override_settings(TEST_MODE=False)
@@ -368,6 +368,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "")
         self.assertIn("Generic exception", doc.error)
         self.assertIn("Traceback (most recent call last):", doc.error)
@@ -382,6 +383,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "")
         self.assertIn("Skip test", doc.error)
         self.assertNotIn("Traceback (most recent call last):", doc.error)
@@ -397,6 +399,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "")
         self.assertIn("xxx not found", doc.error)
         self.assertNotIn("Traceback (most recent call last):", doc.error)
@@ -410,8 +413,8 @@ class CrawlerTest(TransactionTestCase):
             }
         )
 
-        self.collection.url_regex = "http://127.0.0.1/$"
-        self.collection.url_regex_pg = "http://127.0.0.1/$"
+        self.collection.unlimited_regex = "http://127.0.0.1/$"
+        self.collection.unlimited_regex_pg = "http://127.0.0.1/$"
         self.collection.store_extern_links = True
         self.collection.save()
 
@@ -420,6 +423,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "extern link")
 
         self.assertEqual(Link.objects.count(), 1)
@@ -428,8 +432,8 @@ class CrawlerTest(TransactionTestCase):
         self.assertIsNone(link.doc_to)
         self.assertEqual(link.extern_url, "http://127.0.0.1/extern.html")
 
-        self.collection.url_regex = "http://127.0.0.1/.*$"
-        self.collection.url_regex_pg = "http://127.0.0.1/.*$"
+        self.collection.unlimited_regex = "http://127.0.0.1/.*$"
+        self.collection.unlimited_regex_pg = "http://127.0.0.1/.*$"
         self.collection.save()
 
         self._crawl("http://127.0.0.1/extern.html")
@@ -437,9 +441,11 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 2)
         doc1 = Document.objects.w_content().order_by("id").first()
         self.assertEqual(doc1.url, "http://127.0.0.1/")
+        self.assertEqual(doc1.collection, self.collection)
         self.assertEqual(doc1.content, "extern link")
         doc2 = Document.objects.w_content().order_by("id").last()
         self.assertEqual(doc2.url, "http://127.0.0.1/extern.html")
+        self.assertEqual(doc2.collection, self.collection)
         self.assertEqual(doc2.content, "extern page")
 
         self.assertEqual(Link.objects.count(), 1)
@@ -478,6 +484,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "mail")
 
         self.assertEqual(Link.objects.count(), 1)
@@ -496,6 +503,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "link")
         self.assertEqual(Link.objects.count(), 0)
 
@@ -509,6 +517,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "link")
 
         self.assertEqual(Link.objects.count(), 1)
@@ -587,16 +596,19 @@ class CrawlerTest(TransactionTestCase):
         )
         self._crawl()
         self.assertTrue(
-            BrowserRequest.call_args_list == self.DEFAULT_GETS + [mock.call("http://127.0.0.1/page1/")],
+            BrowserRequest.call_args_list
+            == self.get_default_gets() + [mock.call("http://127.0.0.1/page1/", self.collection)],
             BrowserRequest.call_args_list,
         )
 
         self.assertEqual(Document.objects.count(), 2)
         docs = Document.objects.w_content().order_by("id")
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
+        self.assertEqual(docs[0].collection, self.collection)
         self.assertEqual(docs[0].content, "Root Nested")
         self.assertEqual(docs[0].crawl_recurse, 0)
         self.assertEqual(docs[1].url, "http://127.0.0.1/page1/")
+        self.assertEqual(docs[1].collection, self.collection)
         self.assertEqual(docs[1].content, "Page1")
         self.assertEqual(docs[1].crawl_recurse, 0)
 
@@ -619,21 +631,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
-        self.assertTrue(doc.hidden)
-
-    @mock.patch("se.browser_request.BrowserRequest.get")
-    def test_170_policy_disabled(self, BrowserRequest):
-        BrowserRequest.side_effect = BrowserMock({"http://127.0.0.1/": b"Hello world"})
-        self.root_policy.hide_documents = True
-        self.root_policy.save()
-        self.collection.enabled = False
-        self.collection.save()
-
-        self._crawl()
-
-        self.assertEqual(Document.objects.count(), 1)
-        doc = Document.objects.wo_content().get()
-        self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
         self.assertTrue(doc.hidden)
 
     def _test_modification_base(self):
@@ -642,6 +640,7 @@ class CrawlerTest(TransactionTestCase):
 
         doc = Document.objects.wo_content().get()
         self.assertEqual(doc.url, "http://127.0.0.1/")
+        self.assertEqual(doc.collection, self.collection)
 
         # Mark the document as modified in the past
         doc.modified_date = self.fake_yesterday
@@ -697,6 +696,7 @@ class CrawlerTest(TransactionTestCase):
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "Hello world 2")
         self.assertEqual(doc.content_hash, md5(b"Hello world 0").hexdigest())
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.modified_date, self.fake_yesterday)
 
     @mock.patch("se.browser_request.BrowserRequest.get")
@@ -711,6 +711,7 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(Document.objects.count(), 1)
 
         doc = Document.objects.w_content().get()
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.content, "Hello world change")
         self.assertEqual(doc.content_hash, md5(b"Hello world change").hexdigest())
         self.assertEqual(doc.modified_date, self.fake_now)
@@ -825,6 +826,7 @@ class CrawlerTest(TransactionTestCase):
         self.collection.save()
 
         already_crawled = Document.objects.create(
+            collection=self.collection,
             url="http://127.0.0.1/page.html",
             content="done",
             crawl_last=self.fake_yesterday,
@@ -832,7 +834,7 @@ class CrawlerTest(TransactionTestCase):
         )
 
         WorkerStats.get_worker(0)
-        Document.queue("http://127.0.0.1/", None, None)
+        Document.queue("http://127.0.0.1/", self.collection, None)
         Document.crawl(0)
 
         self.assertEqual(Document.objects.count(), 2)

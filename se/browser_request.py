@@ -168,13 +168,19 @@ class BrowserRequest(Browser):
     def get(
         cls,
         url,
+        collection,
         check_status=False,
         max_file_size=None,
         **kwargs,
     ) -> Page:
+        from .collection import Collection
+
         REDIRECT_CODE = (301, 302, 307, 308)
         page = None
         redirect_count = 0
+
+        if collection is not None and not isinstance(collection, Collection):
+            raise Exception("Collection must be None or an instance of Collection")
 
         if max_file_size is None:
             # max_file_size cannot be set as a kwargs paramater, as it prevents
@@ -278,4 +284,4 @@ class BrowserRequest(Browser):
         location = absolutize_url(r.url, location)
         location = url_remove_fragment(location)
         crawl_logger.debug(f"got redirected to {location} after authentication")
-        return cls.get(location)
+        return cls.get(location, collection)

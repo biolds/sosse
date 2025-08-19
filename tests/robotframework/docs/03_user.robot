@@ -1,6 +1,17 @@
 | *Settings* |
 | Library | SeleniumLibrary
 | Resource | ../tests/common.robot
+| Resource | ../tests/collection.robot
+| Resource | ../tests/documents.robot
+| Resource | ../tests/webhooks.robot
+| Suite Setup | Suite Setup Steps
+
+| *Keywords* |
+| Suite Setup Steps
+|  | Clear Documents
+|  | Clear Collections
+|  | Clear Webhooks
+|  | Crawl Test Website
 
 | *Test Cases* |
 | Search
@@ -37,9 +48,10 @@
 |  | Sosse Capture Page Screenshot | profile.png
 
 | History
+|  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import SearchHistory ; SearchHistory.objects.all().delete()
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../searchhistory.json | shell=True
 |  | Sosse Go To | http://127.0.0.1/history/
-|  | Sosse Wait Until Page Contains | 4 elements in the history
+|  | Sosse Wait Until Page Contains | 3 elements in the history
 |  | Sosse Capture Page Screenshot | history.png
 |  | Capture Element Screenshot | xpath=//input[@class='del_button img_button' and @value=''] | history_delete.png
 |  | Capture Element Screenshot | id=del_all | history_delete_all.png
@@ -50,6 +62,7 @@
 |  | Sosse Capture Page Screenshot | archive_header.png
 |  | Reload Page
 |  | Select Frame | xpath=//iframe[1]
+|  | Wait Until Element Is Visible | xpath=//a[@class='img_link'][2]
 |  | Scroll To Bottom
 |  | Mouse Over | xpath=//a[@class='img_link'][2]
 |  | Sosse Capture Page Screenshot | archive_screenshot.png
@@ -71,10 +84,24 @@
 |  | Sosse Capture Page Screenshot |
 |  | Capture Element Screenshot | id=search_form | syndication_feed.png
 
+| Swagger
+|  | [Tags] | swagger
+|  | Sosse Go To | http://127.0.0.1/admin/
+|  | Click Link | Rest API
+|  | Wait Until Element Is Visible | id=swagger-ui
+|  | Wait Until Element Is Visible | id=operations-api-api_document_list
+|  | Sosse Capture Page Screenshot | swagger.png
+|  | Click Element | id=operations-api-api_document_list
+|  | Click Button | class=try-out__btn
+|  | Click Button | class=execute
+|  | Wait Until Element Is Visible | class=live-responses-table
+|  | Element Should Contain | class=live-responses-table | Dummy static website
+
 | Browsable home
 |  | [Tags] | browsable_home
+|  | Clear Documents
 |  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_favicon.json | shell=True
-|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../home_docs.json | shell=True
+|  | Load Data With Collection | ${CURDIR}/../home_docs.json
 |  | Run Command | sed | -e | s/^#browsable_home.*/browsable_home\=true/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
 |  | Sosse Go To | http://127.0.0.1/
@@ -90,19 +117,6 @@
 |  | Capture Element Screenshot | id=user_menu | online_mode_status.png
 |  | Run Command | sed | -e | s/^online_search_redirect.*/#online_search_redirect\=DuckDuckGo/ | -i | /etc/sosse/sosse.conf
 |  | Run Command | killall | -s | HUP | uwsgi
-
-| Swagger
-|  | [Tags] | swagger
-|  | Sosse Go To | http://127.0.0.1/admin/
-|  | Click Link | Rest API
-|  | Wait Until Element Is Visible | id=swagger-ui
-|  | Wait Until Element Is Visible | id=operations-api-api_document_list
-|  | Sosse Capture Page Screenshot | swagger.png
-|  | Click Element | id=operations-api-api_document_list
-|  | Click Button | class=try-out__btn
-|  | Click Button | class=execute
-|  | Wait Until Element Is Visible | class=live-responses-table
-|  | Element Should Contain | class=live-responses-table | Dummy static website
 
 | Document Webhook
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/327/change/

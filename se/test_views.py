@@ -28,7 +28,6 @@ from .archive import ArchiveRedirectView
 from .atom import AtomView
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
-from .collection import Collection
 from .cookies_import import CookiesImportView
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
@@ -59,13 +58,12 @@ CRAWL_URL = "http://127.0.0.1:8000/cookies"
 class ViewsTest:
     def setUp(self):
         super().setUp()
-        self.collection = Collection.create_default()
         self.collection.default_browse_mode = self.BROWSER
         self.collection.take_screenshots = True
         self.collection.screenshot_format = Document.SCREENSHOT_PNG
         self.collection.save()
         self.tag = Tag.objects.create(name="tag")
-        self.doc = Document.objects.wo_content().create(url=CRAWL_URL)
+        self.doc = Document.objects.wo_content().create(url=CRAWL_URL, collection=self.collection)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
 
@@ -178,7 +176,7 @@ class ViewsTest:
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)
         response = ArchiveRedirectView.as_view()(request)
         self.assertEqual(response.status_code, 302, response)
-        self.assertEqual(response.url, "/screenshot/" + CRAWL_URL, response)
+        self.assertEqual(response.url, f"/screenshot/{self.doc.collection.id}/" + CRAWL_URL, response)
 
     def test_admin_views(self):
         for url, view_cls in (

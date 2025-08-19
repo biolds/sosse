@@ -39,10 +39,10 @@ GET_EXPECTED_HEADERS = {
 
 class HTMLSnapshotTest:
     def setUp(self):
-        self.policy = Collection.create_default()
-        self.policy.default_browse_mode = Domain.BROWSE_REQUESTS
-        self.policy.thumbnail_mode = Collection.THUMBNAIL_MODE_NONE
-        self.policy.save()
+        self.collection = Collection.create_default()
+        self.collection.default_browse_mode = Domain.BROWSE_REQUESTS
+        self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_NONE
+        self.collection.save()
 
     def test_010_html_dump(self):
         HTML = b"<html><head></head><body>test</body></html>"
@@ -59,7 +59,7 @@ class HTMLSnapshotTest:
         </body></html>"""
 
         page = Page("http://127.0.0.1/", HTML, None)
-        HTMLSnapshot(page, self.policy).sanitize()
+        HTMLSnapshot(page, self.collection).sanitize()
         dump = page.dump_html()
         self.assertEqual(
             dump,
@@ -72,7 +72,7 @@ class HTMLSnapshotTest:
         </head><body>test</body></html>"""
 
         page = Page("http://127.0.0.1/", HTML, None)
-        HTMLSnapshot(page, self.policy).sanitize()
+        HTMLSnapshot(page, self.collection).sanitize()
         dump = page.dump_html()
         self.assertEqual(dump, b"<html><head>\n            \n        </head><body>test</body></html>")
 
@@ -82,7 +82,7 @@ class HTMLSnapshotTest:
         </body></html>"""
 
         page = Page("http://127.0.0.1/", HTML, None)
-        HTMLSnapshot(page, self.policy).sanitize()
+        HTMLSnapshot(page, self.collection).sanitize()
         dump = page.dump_html()
         self.assertEqual(
             dump,
@@ -107,7 +107,7 @@ class HTMLSnapshotTest:
             <img src="/image.png"/>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -115,12 +115,14 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/style.css",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -179,7 +181,7 @@ class HTMLSnapshotTest:
             </video>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -187,24 +189,28 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image2.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image3.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/video.mp4",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -276,7 +282,7 @@ class HTMLSnapshotTest:
             <a href="http://127.0.0.2/">link</a>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
@@ -302,7 +308,7 @@ class HTMLSnapshotTest:
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="/>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
@@ -359,7 +365,7 @@ class HTMLSnapshotTest:
     src: {url_in_css}
     }}""".encode()
             page = Page("http://127.0.0.1/", CSS, None)
-            snap = HTMLSnapshot(page, self.policy)
+            snap = HTMLSnapshot(page, self.collection)
             output = css_parser().handle_css(snap, "http://127.0.0.1/", CSS, False)
 
             self.assertTrue(
@@ -367,6 +373,7 @@ class HTMLSnapshotTest:
                 == [
                     mock.call(
                         "http://127.0.0.1/" + url_dl,
+                        self.collection,
                         check_status=True,
                         max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                         headers=GET_EXPECTED_HEADERS,
@@ -419,7 +426,7 @@ class HTMLSnapshotTest:
             <div style="color: #fff"></div>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -427,12 +434,14 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/police.svg",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/police.woff",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -489,7 +498,7 @@ class HTMLSnapshotTest:
             <div style='background-image: url("/image.png")'></div>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -497,6 +506,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -542,7 +552,7 @@ class HTMLSnapshotTest:
             test
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
@@ -566,7 +576,7 @@ class HTMLSnapshotTest:
             <img src="/page.html"/>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -574,6 +584,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/page.html",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -605,7 +616,7 @@ class HTMLSnapshotTest:
 
         mock_open = mock.mock_open()
         with mock.patch("se.html_cache.open", mock_open):
-            snap = HTMLSnapshot(page, self.policy)
+            snap = HTMLSnapshot(page, self.collection)
             snap.handle_assets()
 
         self.assertTrue(
@@ -613,6 +624,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/toobig.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -663,7 +675,7 @@ class HTMLSnapshotTest:
 
         mock_open = mock.mock_open()
         with mock.patch("se.html_cache.open", mock_open):
-            snap = HTMLSnapshot(page, self.policy)
+            snap = HTMLSnapshot(page, self.collection)
             snap.handle_assets()
 
         self.assertTrue(
@@ -671,6 +683,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/exception.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -720,7 +733,7 @@ class HTMLSnapshotTest:
                 <img src="{long_dir_url}"/>
             </body></html>""".encode()
             page = Page("http://127.0.0.1/", HTML, None)
-            snap = HTMLSnapshot(page, self.policy)
+            snap = HTMLSnapshot(page, self.collection)
             snap.handle_assets()
 
             self.assertTrue(
@@ -728,12 +741,14 @@ class HTMLSnapshotTest:
                 == [
                     mock.call(
                         long_file_url,
+                        self.collection,
                         check_status=True,
                         max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                         headers=GET_EXPECTED_HEADERS,
                     ),
                     mock.call(
                         long_dir_url,
+                        self.collection,
                         check_status=True,
                         max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                         headers=GET_EXPECTED_HEADERS,
@@ -772,8 +787,9 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = Collection.objects.create(
-            url_regex="http://127.0.0.1/.*",
+        collection = Collection.objects.create(
+            name="Test Collection",
+            unlimited_regex="http://127.0.0.1/.*",
             snapshot_exclude_url_re="http://127.0.0.1/excluded.*",
         )
         HTML = b"""<html><head></head><body>
@@ -781,7 +797,7 @@ class HTMLSnapshotTest:
             <img src="/image.png"/>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, policy)
+        snap = HTMLSnapshot(page, collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -789,6 +805,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -816,7 +833,7 @@ class HTMLSnapshotTest:
             reverse(
                 "html_excluded",
                 args=(
-                    policy.id,
+                    collection.id,
                     "url",
                 ),
             ),
@@ -838,13 +855,15 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = Collection.objects.create(url_regex="http://127.0.0.1/.*", snapshot_exclude_mime_re="image/jpe?g")
+        collection = Collection.objects.create(
+            name="Test Collection 2", unlimited_regex="http://127.0.0.1/.*", snapshot_exclude_mime_re="image/jpe?g"
+        )
         HTML = b"""<html><head></head><body>
             <img src="/image.jpg"/>
             <img src="/image.png"/>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, policy)
+        snap = HTMLSnapshot(page, collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -852,12 +871,14 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/image.jpg",
+                    collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -885,7 +906,7 @@ class HTMLSnapshotTest:
             reverse(
                 "html_excluded",
                 args=(
-                    policy.id,
+                    collection.id,
                     "mime",
                 ),
             ),
@@ -907,13 +928,15 @@ class HTMLSnapshotTest:
         _open.side_effect = lambda *args, **kwargs: open("/dev/null", *args[1:], **kwargs)
         makedirs.side_effect = None
 
-        policy = Collection.objects.create(url_regex="http://127.0.0.1/.*", snapshot_exclude_element_re="aud.*")
+        collection = Collection.objects.create(
+            name="Test Collection 3", unlimited_regex="http://127.0.0.1/.*", snapshot_exclude_element_re="aud.*"
+        )
         HTML = b"""<html><head></head><body>
             <audio src="/audio.wav"></audio>
             <video src="/video.mp4"></video>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, policy)
+        snap = HTMLSnapshot(page, collection)
         snap.handle_assets()
 
         self.assertTrue(
@@ -921,6 +944,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/video.mp4",
+                    collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -948,7 +972,7 @@ class HTMLSnapshotTest:
             reverse(
                 "html_excluded",
                 args=(
-                    policy.id,
+                    collection.id,
                     "element",
                 ),
             ),
@@ -975,7 +999,7 @@ class HTMLSnapshotTest:
         </body></html>"""
 
         page = Page("http://127.0.0.1/" + url, HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.snapshot()
 
         self.assertTrue(
@@ -983,6 +1007,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS | {"Referer": page.url},
@@ -1063,7 +1088,7 @@ class HTMLSnapshotTest:
                 mock.patch("se.html_asset.open", mock_open),
                 mock.patch("se.html_cache.open", mock_open),
             ):
-                Document.objects.wo_content().create(url=f"http://127.0.0.1/page{no}.html")
+                Document.objects.wo_content().create(url=f"http://127.0.0.1/page{no}.html", collection=self.collection)
                 Document.crawl(0)
                 self.assertEqual(
                     mock_open.mock_calls[0],
@@ -1211,7 +1236,7 @@ class HTMLSnapshotTest:
             <img src="/test-exception"/>
         </body></html>"""
         page = Page("http://127.0.0.1/", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
 
         mock_open = mock.mock_open()
         with mock.patch("se.html_cache.open", mock_open):
@@ -1222,6 +1247,7 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -1273,7 +1299,7 @@ class HTMLSnapshotTest:
             <img src="image.png"/>
         </body></html>"""
         page = Page("http://127.0.0.1/path/page.html", HTML, None)
-        snap = HTMLSnapshot(page, self.policy)
+        snap = HTMLSnapshot(page, self.collection)
         snap.sanitize()
         snap.handle_assets()
 
@@ -1282,12 +1308,14 @@ class HTMLSnapshotTest:
             == [
                 mock.call(
                     "http://127.0.0.1/style.css",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
                 ),
                 mock.call(
                     "http://127.0.0.1/image.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,

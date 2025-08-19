@@ -16,12 +16,14 @@
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
+from .collection import Collection
 from .document import Document
 
 
 class CommandsTest(TransactionTestCase):
     def setUp(self):
-        Document.objects.wo_content().create(url="http://test/")
+        self.collection = Collection.create_default()
+        Document.objects.wo_content().create(url="http://test/", collection=self.collection)
 
     def test_delete_document_match(self):
         self.assertEqual(Document.objects.count(), 1)

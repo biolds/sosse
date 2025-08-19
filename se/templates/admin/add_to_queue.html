@@ -12,27 +12,120 @@
   {{ blocksuper }}
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const radioDefault = document.getElementById('id_collection_choice_0');
-      const radioDomain = document.getElementById('id_collection_choice_1');
-      const labelDefault = document.getElementById('tags_label_default');
-      const labelDomain = document.getElementById('tags_label_domain');
+      const select = document.getElementById("id_collection");
 
-      function updateLabels() {
-        if (radioDefault.checked) {
-          labelDefault.style.display = 'block';
-          labelDomain.style.display = 'none';
-        } else if (radioDomain.checked) {
-          labelDefault.style.display = 'none';
-          labelDomain.style.display = 'block';
+      function updateDescription(value) {
+        document.querySelectorAll("[id^='collection-desc-']")
+          .forEach(d => d.style.display = "none");
+        if (value) {
+          const target = document.getElementById("collection-desc-" + value);
+          if (target) target.style.display = "block";
         }
       }
 
-      // Attach event listeners to radio buttons
-      radioDefault.addEventListener('change', updateLabels);
-      radioDomain.addEventListener('change', updateLabels);
+      updateDescription(select.value);
+      select.addEventListener("change", function() {
+        updateDescription(this.value);
+      });
 
-      // Initialize the correct label visibility on page load
-      updateLabels();
+      // Pass the URLs from the textarea to prepopulate the collection creation link
+      const urlsTextarea = document.getElementById("id_urls");
+      const createCollectionLink = document.getElementById("create-collection-link");
+
+      function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      function getFirstUrl() {
+        const urls = urlsTextarea.value.trim().split('\n');
+        return urls[0] ? urls[0].trim() : '';
+      }
+
+      function updateCreateCollectionLink() {
+        if (createCollectionLink) {
+          const firstUrl = getFirstUrl();
+
+          // Build return URL with form parameters
+          const returnParams = new URLSearchParams();
+          const urlsValue = urlsTextarea.value;
+          const collectionSelect = document.getElementById("id_collection");
+          const showOnHomepageInput = document.getElementById("id_show_on_homepage");
+          const tagsInput = document.getElementById("id_tags");
+
+          if (urlsValue) returnParams.set('urls', urlsValue);
+          if (collectionSelect && collectionSelect.value) returnParams.set('collection', collectionSelect.value);
+          if (showOnHomepageInput) returnParams.set('show_on_homepage', showOnHomepageInput.checked);
+          if (tagsInput && tagsInput.value) returnParams.set('tags', tagsInput.value);
+
+          const returnUrl = "{% url 'admin:queue' %}" + (returnParams.toString() ? '?' + returnParams.toString() : '');
+          const baseUrl = "{% url 'admin:se_collection_add' %}?return_url=" + encodeURIComponent(returnUrl);
+
+          if (firstUrl) {
+            const escapedUrl = escapeRegex(firstUrl);
+            const regexPattern = `^${escapedUrl}`;
+            createCollectionLink.href = baseUrl + `&unlimited_regex=${encodeURIComponent(regexPattern)}`;
+          } else {
+            createCollectionLink.href = baseUrl;
+          }
+        }
+      }
+
+      // Update link on page load and when form fields change
+      updateCreateCollectionLink();
+      urlsTextarea.addEventListener('input', updateCreateCollectionLink);
+      urlsTextarea.addEventListener('change', updateCreateCollectionLink);
+
+      // Update link when other form fields change
+      if (document.getElementById("id_collection")) {
+        document.getElementById("id_collection").addEventListener('change', updateCreateCollectionLink);
+      }
+      if (document.getElementById("id_show_on_homepage")) {
+        document.getElementById("id_show_on_homepage").addEventListener('change', updateCreateCollectionLink);
+      }
+      if (document.getElementById("id_tags")) {
+        document.getElementById("id_tags").addEventListener('input', updateCreateCollectionLink);
+      }
+
+      // Update edit collection links with form parameters
+      function updateEditCollectionLinks() {
+        const editLinks = document.querySelectorAll('.edit-collection-link');
+        editLinks.forEach(link => {
+          const collectionId = link.getAttribute('data-collection-id');
+
+          // Build return URL with form parameters
+          const returnParams = new URLSearchParams();
+          const urlsValue = urlsTextarea.value;
+          const collectionSelect = document.getElementById("id_collection");
+          const showOnHomepageInput = document.getElementById("id_show_on_homepage");
+          const tagsInput = document.getElementById("id_tags");
+
+          if (urlsValue) returnParams.set('urls', urlsValue);
+          if (collectionSelect && collectionSelect.value) returnParams.set('collection', collectionSelect.value);
+          if (showOnHomepageInput) returnParams.set('show_on_homepage', showOnHomepageInput.checked);
+          if (tagsInput && tagsInput.value) returnParams.set('tags', tagsInput.value);
+
+          const returnUrl = "{% url 'admin:queue' %}" + (returnParams.toString() ? '?' + returnParams.toString() : '');
+          const baseUrl = `/admin/se/collection/${collectionId}/change/?return_url=` + encodeURIComponent(returnUrl);
+          link.href = baseUrl;
+        });
+      }
+
+      // Update edit links when form fields change
+      urlsTextarea.addEventListener('input', updateEditCollectionLinks);
+      urlsTextarea.addEventListener('change', updateEditCollectionLinks);
+      if (document.getElementById("id_collection")) {
+        document.getElementById("id_collection").addEventListener('change', updateEditCollectionLinks);
+      }
+      if (document.getElementById("id_show_on_homepage")) {
+        document.getElementById("id_show_on_homepage").addEventListener('change', updateEditCollectionLinks);
+      }
+      if (document.getElementById("id_tags")) {
+        document.getElementById("id_tags").addEventListener('input', updateEditCollectionLinks);
+      }
+
+      // Initialize edit links on page load
+      updateEditCollectionLinks();
+
     });
   </script>
 {% endblock %}
@@ -40,25 +133,21 @@
 {% block breadcrumbs %}
     <a href="{% url 'admin:index' %}">Admin</a> &gt;
     <a href="{% url 'admin:se_collection_changelist' %}">Collections</a> &gt;
-    <span class="current">Add to queue</span>
+    <span class="current">Add to Crawl Queue</span>
 {% endblock %}
 
 {% block title %}
-    {{ block.super }} - Add to queue
+    {{ block.super }} - Add to Crawl Queue
 {% endblock %}
 
 {% block content_title %}
-    {{ block.super }} - Add to queue
+    {{ block.super }} - Add to Crawl Queue
 {% endblock %}}
 
 {% block content %}
     {% include "se/components/modal.html" with id="tags" title=tags_edit_title %}
-    {% if collections %}
-      <form method="post" action="{% url 'admin:queue_confirm' %}">
-          {% csrf_token %}
-    {% else %}
-      <form method="get" action="{% url 'admin:queue_confirm' %}">
-    {% endif %}
+    <form method="post" action="{% url 'admin:queue' %}">
+        {% csrf_token %}
         <h3>{{ form.urls.label }}</h3>
         {{ form.urls.errors }}
         {{ form.urls }}
@@ -66,81 +155,52 @@
             <p class="help">{{ form.urls.help_text|safe }}</p>
         {% endif %}
 
-        {% if collections %}
-            <input type="submit" name="action" value="Refresh" style="margin-top: 5px">
+        <p>
+            <label for="id_collection">Collection:</label>
+            {{ form.collection }}
+            <a id="create-collection-link" href="{% url 'admin:se_collection_add' %}?return_url={% url 'admin:queue' %}" style="margin-left: 10px;">Create new Collection</a>
+        </p>
 
-            <h3>Collection{{ collections|length|pluralize:",s" }}</h3>
-            {% if form.fields.collection_choice.choices %}
-                <p>
-                    {% include "admin/collection_desc.html" with add_to_queue=True label_tag="label_tag" urls=urls %}
-                    <span class="label_tag">
-                    📝 <a href="{% url 'admin:se_collection_change' collection.id %}?return_url={{ return_url }}">Edit</a>
-                  </span>
-                </p>
+        <p>
+            {{ form.crawl_scope.errors }}
+            <label>{{ form.crawl_scope.label }}:</label>
+            {{ form.crawl_scope }}
+            {% if form.crawl_scope.help_text %}
+                <small><p class="help">{{ form.crawl_scope.help_text|safe }}</p></small>
+            {% endif %}
+        </p>
 
-                <p>
-                  {{ form.collection_choice }}
-                </p>
-
-                <p>
-                  <div class="form-row field-tags">
-                    <label id="tags_label_default" for="tags">Tags for this URL:</label>
-                    <label id="tags_label_domain" for="tags" style="display: none">Tags for all pages of https://{{ domain }}/:</label>
-                    <div style="margin-top: 3px;">
-                      {{ form.tags }}
+        <p>
+            <label>Parameters:</label>
+            {% for collection in collections %}
+                <div id="collection-desc-{{ collection.id }}" style="display: none">
+                    {% include "admin/collection_desc.html" with add_to_queue=True label_tag="label_tag" %}
+                    <a class="edit-collection-link" data-collection-id="{{ collection.id }}" href="{% url 'admin:se_collection_change' collection.id %}?return_url={% url 'admin:queue' %}" style="margin-left: 10px;">Edit Collection</a>
+                    <div style="padding: 10px 0px 0px 15px;">
+                        {% if model_tags %}
+                            Tags:
+                        {% endif %}
+                        {% with model_tags=collection.tags.all %}
+                            {% for tag in model_tags %}
+                                {% include "se/components/tag.html" with suffix="-select" classes="tag-select" %}
+                            {% empty %}
+                                <em>No tags</em>
+                            {% endfor %}
+                        {% endwith %}
                     </div>
-                  </div>
-                </p>
+                </div>
+            {% endfor %}
+        </p>
 
-                <p>
-                    <a href="{% url 'admin:se_collection_add' %}?url_regex={{ urls|first|urlencode }}&return_url={{ return_url }}">Create a new policy</a>
-                </p>
-            {% elif collections|length == 1 %}
-                <p id="matching_policy">
-                    {{ urls|length|pluralize:"This URL,These URLs" }} will be crawled with policy <a href="{% url 'admin:se_collection_change' collection.id %}?return_url={{ return_url }}">{{ collection }}</a>:
-                </p>
-                <p>
-                    {% include "admin/collection_desc.html" with add_to_queue=True label_tag="label_tag" urls=urls %}
-                </p>
-                <p>
-                    <a href="{% url 'admin:se_collection_add' %}?url_regex={{ urls|first|urlencode }}&return_url={{ return_url }}">Create a new policy</a>
-                </p>
-            {% else %}
-                <p>
-                    These URLs will be crawled with policies:
-                    <ul>
-                        {% for collection in collections %}
-                            <li><a href="{% url 'admin:se_collection_change' collection.id %}&return_url={{ return_url }}">{{ collection }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </p>
+        <p>
+            {{ form.show_on_homepage.errors }}
+            {{ form.show_on_homepage }}
+            <label class="vCheckboxLabel" for="id_show_on_homepage">{{ form.show_on_homepage.label }}</label>
+            {% if form.show_on_homepage.help_text %}
+                <small><p class="help">{{ form.show_on_homepage.help_text|safe }}</p></small>
             {% endif %}
+        </p>
 
-            {% if collection.recursion == Collection.CRAWL_ON_DEPTH or settings.SOSSE_BROWSABLE_HOME %}
-                <h3>Parameters</h3>
-            {% endif %}
-            {% if collection.recursion == Collection.CRAWL_ON_DEPTH %}
-                {{ form.recursion_depth.errors }}
-                {{ form.recursion_depth.label_tag }} {{ form.recursion_depth }}
-                {% if form.recursion_depth.help_text %}
-                    <small><p class="help">{{ form.recursion_depth.help_text|safe }}</p></small>
-                {% endif %}
-            {% endif %}
-            {% if settings.SOSSE_BROWSABLE_HOME %}
-                {{ form.show_on_homepage.errors }}
-                {{ form.show_on_homepage }}
-                <label class="vCheckboxLabel" for="id_show_on_homepage">Show on homepage</label>
-
-                {% if form.show_on_homepage.help_text %}
-                    <small><p class="help">{{ form.show_on_homepage.help_text|safe }}</p></small>
-                {% endif %}
-            {% endif %}
-            <input type="hidden" name="confirmation" value="1">
-            <p>
-                <input type="submit" name="action" value="Confirm" autofocus>
-            </p>
-        {% else %}
-            <input type="submit" value="Check and queue" style="margin-top: 5px">
-        {% endif %}
+        <input type="submit" value="Add to Crawl Queue" style="margin-top: 5px">
     </form>
 {% endblock %}

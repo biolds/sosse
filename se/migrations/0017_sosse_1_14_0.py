@@ -82,17 +82,4 @@ class Migration(migrations.Migration):
             migrations.RunPython.noop,
             truncate_mimetype_reverse,
         ),
-        migrations.RenameModel(
-            old_name="CrawlPolicy",
-            new_name="Collection",
-        ),
-        migrations.AlterModelOptions(
-            name="collection",
-            options={"verbose_name": "Collection", "verbose_name_plural": "Collections"},
-        ),
-        migrations.RenameField(
-            model_name="authfield",
-            old_name="crawl_policy",
-            new_name="collection",
-        ),
     ]

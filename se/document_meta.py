@@ -64,6 +64,7 @@ class DocumentMeta:
         else:
             img_page = BrowserRequest.get(
                 url,
+                None,
                 headers={
                     "User-Agent": settings.SOSSE_USER_AGENT,
                     "Accept": "image/*",

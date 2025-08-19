@@ -13,143 +13,68 @@
 |  | Clear Documents
 
 | *Test Cases* |
-| Default policy - Index only this URL
+| Show on homepage
+|  | Crawl Test Website
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/
+|  | Click Link | http://127.0.0.1/screenshots/website/index.html
+|  | Element Should Be Visible | xpath=//input[@id='id_show_on_homepage' and @checked]
+|  | Sosse Go To | http://127.0.0.1/
+|  | Page Should Contain | http://127.0.0.1/screenshots/website/index.html
+
+| Show on homepage disabled
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
+|  | Click Element | id=id_show_on_homepage
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Element Should Be Visible | xpath=//b[text()='Index only this URL']
-|  | Element Should Be Visible | xpath=//b[text()='Index all pages of https://127.0.0.1/']
-|  | Element Should Be Visible | id=id_recursion_depth
-|  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags_list
-|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]/span | General Usage
-|  | Click Element | xpath=//div[@id='tags_list']/div/div[1]/span
-|  | Click Element | id=tags_submit
-|  | Wait Until Element Is Not Visible | id=tags
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
-|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
-# Check tags can be edited again
-|  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags_list
-|  | ${tags_count}= | Get Element Count | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))]
-|  | Should Be Equal As Integers | ${tags_count} | 1
-|  | Element Should Contain | xpath=//div[@id='editing_tags']//span[@class='tag tag-select' and not(contains(@style, 'display: none'))] | General Usage
-|  | Click Element | id=tags_submit
-|  | Wait Until Element Is Not Visible | id=tags
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
-|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
-|  | Click Element | xpath=//input[@value='Confirm']
-|  | Sosse Wait Until Page Contains | Crawl queue
+|  | Click Element | xpath=//input[@value='Add to Crawl Queue']
+|  | Sosse Wait Until Page Contains | URL was queued
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
 |  | Wait For Queue | 1
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/
 |  | Click Link | http://127.0.0.1/screenshots/website/index.html
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
-|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
-
-| Default policy - Index domain pages
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_urls
-|  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Element Should Be Visible | xpath=//b[text()='Index only this URL']
-|  | Element Should Be Visible | xpath=//b[text()='Index all pages of https://127.0.0.1/']
-|  | Element Should Be Visible | id=id_recursion_depth
-|  | Click Element | xpath=//b[text()='Index all pages of https://127.0.0.1/']
-|  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags_list
-|  | Element Should Contain | xpath=//div[@id='tags_list']/div/div[1]/span | General Usage
-|  | Click Element | xpath=//div[@id='tags_list']/div/div[1]/span
-|  | Click Element | id=tags_submit
-|  | Wait Until Element Is Not Visible | id=tags
-|  | Click Element | xpath=//input[@value='Confirm']
-|  | Sosse Wait Until Page Contains | Crawl queue
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
-|  | Wait For Queue | 4
-# Check the policy
-|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
-|  | Element Should Be Visible | xpath=//p[@class='paginator' and contains(., '2 Collections')]
-|  | Click Link | ^https?://127\\.0\\.0\\.1/
-|  | ${recursion}= | Get Selected List Label | id=id_recursion
-|  | Should Be Equal | ${recursion} | Crawl all pages
-|  | Element Should Be Visible | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select']
-|  | Element Should Contain | xpath=//div[@class='form-row field-tags']//span[@class='tag tag-select'] | General Usage
-
-# Existing policy
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_urls
-|  | Input Text | id=id_urls | http://127.0.0.1/test
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Element Should Contain | id=matching_policy | This URL will be crawled with policy
-|  | ${matching_policy}= | Get Text | xpath=//p[@id='matching_policy']/a
-|  | Should Be Equal | ${matching_policy} | 「^https?://127\\.0\\.0\\.1/」
+|  | Element Should Not Be Visible | xpath=//input[@id='id_show_on_homepage' and @checked]
+|  | Sosse Go To | http://127.0.0.1/
+|  | Page Should Not Contain | http://127.0.0.1/screenshots/website/index.html
 
 | Invalid URL
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http
-|  | Click Element | xpath=//input[@value='Check and queue']
+|  | Select From List By Label | id=id_collection | Default
+|  | Click Element | xpath=//input[@value='Add to Crawl Queue']
 |  | Page Should Contain | url has no scheme
 
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http
-|  | Page Should Contain | url has no scheme
-
-| Collection edit return url
+| Form prefill
 |  | [Tags] | returnurl
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-|  | Wait Until Element Is Visible | id=id_urls
-|  | Click Link | Edit
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
+|  | ${collection_id}= | Get Default Collection Id
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/?urls\=http://127.0.0.1/test&collection\=${collection_id}&show_on_homepage\=false
+|  | Element Should Contain | id=id_urls | http://127.0.0.1/test
+|  | ${selected_collection}= | Get Selected List Value | id=id_collection
+|  | Should Be Equal | ${selected_collection} | ${collection_id}
+|  | Element Should Not Be Visible | xpath=//input[@id='id_show_on_homepage' and @checked]
+# Check links
+|  | ${create_collection}= | Get Element Attribute | id=create-collection-link | href
+|  | Should Be Equal | ${create_collection} | http://127.0.0.1/admin/se/collection/add/?return_url\=%2Fadmin%2Fse%2Fdocument%2Fqueue%2F%3Furls%3Dhttp%253A%252F%252F127.0.0.1%252Ftest%26collection%3D${collection_id}%26show_on_homepage%3Dfalse&unlimited_regex\=%5Ehttp%3A%2F%2F127%5C.0%5C.0%5C.1%2Ftest
+|  | ${edit_collection}= | Get Element Attribute | xpath=//div[starts-with(@id, 'collection-desc-') and @style='display: block;']//a | href
+|  | Should Be Equal | ${edit_collection} | http://127.0.0.1/admin/se/collection/${collection_id}/change/?return_url\=%2Fadmin%2Fse%2Fdocument%2Fqueue%2F%3Furls%3Dhttp%253A%252F%252F127.0.0.1%252Ftest%26collection%3D${collection_id}%26show_on_homepage%3Dfalse
+
+# Update Form
+|  | Input Text | id=id_urls | http://127.0.0.2/
+|  | Click Element | id=id_show_on_homepage
+
+# Check links
+|  | ${create_collection}= | Get Element Attribute | id=create-collection-link | href
+|  | Should Be Equal | ${create_collection} | http://127.0.0.1/admin/se/collection/add/?return_url\=%2Fadmin%2Fse%2Fdocument%2Fqueue%2F%3Furls%3Dhttp%253A%252F%252F127.0.0.2%252F%26collection%3D${collection_id}%26show_on_homepage%3Dtrue&unlimited_regex\=%5Ehttp%3A%2F%2F127%5C.0%5C.0%5C.2%2F
+|  | ${edit_collection}= | Get Element Attribute | xpath=//div[starts-with(@id, 'collection-desc-') and @style='display: block;']//a | href
+|  | Should Be Equal | ${edit_collection} | http://127.0.0.1/admin/se/collection/${collection_id}/change/?return_url\=%2Fadmin%2Fse%2Fdocument%2Fqueue%2F%3Furls%3Dhttp%253A%252F%252F127.0.0.2%252F%26collection%3D${collection_id}%26show_on_homepage%3Dtrue
+
+# Check return URL works
+|  | Click Link | Create new Collection
+|  | Element Should Contain | id=id_unlimited_regex | ^http://127\\.0\\.0\\.2/
+|  | Input Text | id=id_name | Collection test
 |  | Click Element | xpath=//input[@value='Save']
 |  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-
-|  | Click Link | 「(default)」
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
-|  | Click Element | xpath=//input[@value='Save']
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-
-|  | Click Link | Create a new policy
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/add/?url_regex=%5Ehttp%3A//127%5C.0%5C.0%5C.1/test&return_url=/admin/se/document/queue_confirm/?urls=http%3A%2F%2F127.0.0.1%2Ftest
-|  | Click Element | xpath=//input[@value='Save']
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-|  | Click Element | xpath=//a[contains(., 'http://127\\.0\\.0\\.1/test')]
-|  | Click Link | Delete
-|  | Click Element | xpath=//input[@value='Yes, I’m sure']
-
-| Continue Collection edition
-|  | [Tags] | returnurl
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-|  | Click Link | 「(default)」
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
-|  | Click Element | xpath=//input[@value='Save and add another']
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/add/
-
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-|  | Click Link | 「(default)」
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/1/change/?return_url\=/admin/se/document/queue_confirm/?urls\=http%3A%2F%2F127.0.0.1%2Ftest
-|  | Click Element | xpath=//input[@value='Save and continue editing']
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/collection/1/change/
-
-| Tag create return url
-|  | [Tags] | returnurl
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
-|  | Click Element | id=edit_tags
-|  | Wait Until Element Is Visible | id=tags_list
-|  | Click Element | class=create-tag
-|  | Input Text | id=id_name | Processing3
-|  | Click Element | xpath=//input[@value='Save']
-|  | ${loc}= | Get Location
-|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue_confirm/?urls\=http://127.0.0.1/test
+|  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/queue/?urls\=http%3A%2F%2F127.0.0.2%2F&collection\=${collection_id}&show_on_homepage\=true
+|  | Element Should Contain | id=id_urls | http://127.0.0.2/
+|  | Element Should Be Visible | xpath=//input[@id='id_show_on_homepage' and @checked]

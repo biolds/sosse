@@ -21,6 +21,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TransactionTestCase
 from django.utils import timezone
 
+from .collection import Collection
 from .document import Document
 from .mime_handler import MimeHandler
 from .models import CrawlerStats
@@ -92,6 +93,7 @@ class RestAPITest:
     maxDiff = None
 
     def setUp(self):
+        self.collection = Collection.create_default()
         self.client = Client(HTTP_USER_AGENT="Mozilla/5.0")
         self.user = User.objects.create_user(username="admin", password="admin", is_superuser=True)
         self.user.save()
@@ -109,6 +111,7 @@ class RestAPITest:
             crawl_last=now,
             lang_iso_639_1="en",
             mimetype="text/html",
+            collection=self.collection,
         )
         self.doc2 = Document.objects.wo_content().create(
             url="http://127.0.0.1/test2",
@@ -121,6 +124,7 @@ class RestAPITest:
             crawl_last=now,
             lang_iso_639_1="en",
             mimetype="image/png",
+            collection=self.collection,
         )
 
         self.crawler_stat1 = CrawlerStats.objects.create(t=now, doc_count=23, queued_url=24, indexing_speed=2, freq="M")
@@ -159,8 +163,9 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC1 | {"id": self.doc1.id},
+                    SERIALIZED_DOC1 | {"id": self.doc1.id, "collection": self.collection.id},
                     {
+                        "collection": self.collection.id,
                         "content": "Other Content2",
                         "content_hash": None,
                         "crawl_dt": None,
@@ -208,7 +213,9 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
     def test_document_detail(self):
         response = self.client.get(f"/api/document/{self.doc1.id}/")
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content), SERIALIZED_DOC1 | {"id": self.doc1.id})
+        self.assertEqual(
+            json.loads(response.content), SERIALIZED_DOC1 | {"id": self.doc1.id, "collection": self.collection.id}
+        )
 
     def test_stats_list(self):
         response = self.client.get("/api/stats/")
@@ -319,6 +326,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     SERIALIZED_DOC1
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.12158542,
                     }
@@ -350,6 +358,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     SERIALIZED_DOC2
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 1.0,
                     }
@@ -372,6 +381,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     SERIALIZED_DOC1
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.6079271,
                     }
@@ -394,11 +404,13 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     SERIALIZED_DOC1
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.6079271,
                     },
                     SERIALIZED_DOC2
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 0.6079271,
                         "hidden": True,
@@ -423,6 +435,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     SERIALIZED_DOC2
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 1.0,
                     },
@@ -446,6 +459,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "results": [
                     SERIALIZED_DOC2
                     | {
+                        "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 1.0,
                     },

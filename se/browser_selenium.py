@@ -219,18 +219,15 @@ class BrowserSelenium(Browser):
             m = re.match(content_re, content)
             if m:
                 content_url = m.group("url").decode("utf-8")
-                page = BrowserRequest.get(content_url)
+                page = BrowserRequest.get(content_url, None)
                 return page.content
         return content
 
     @classmethod
-    def _get_page(cls, url):
-        from .collection import Collection
-
+    def _get_page(cls, url, collection):
         redirect_count = cls._wait_for_ready(url)
 
         current_url = cls.driver.current_url
-        collection = Collection.get_from_url(current_url)
         script_result = None
         if collection and collection.script:
             script_result = cls.driver.execute_script(collection.script)
@@ -327,7 +324,7 @@ class BrowserSelenium(Browser):
 
     @classmethod
     @retry
-    def get(cls, url):
+    def get(cls, url, collection):
         current_url = cls.driver.current_url
         crawl_logger.debug(f"get on {url}, current {current_url}")
 
@@ -360,7 +357,7 @@ class BrowserSelenium(Browser):
                 return page
 
         crawl_logger.debug("page get")
-        page = cls._get_page(url)
+        page = cls._get_page(url, collection)
         crawl_logger.debug("save cookies")
         cls._save_cookies(url)
         return page
@@ -464,10 +461,9 @@ class BrowserSelenium(Browser):
 
     @classmethod
     @retry
-    def take_screenshots(cls, url, image_name):
+    def take_screenshots(cls, collection, image_name):
         from .collection import Collection
 
-        collection = Collection.get_from_url(url)
         if collection and collection.remove_nav_elements in (
             Collection.REMOVE_NAV_FROM_SCREENSHOT,
             Collection.REMOVE_NAV_FROM_ALL,
@@ -614,9 +610,9 @@ class BrowserSelenium(Browser):
         cls._save_cookies(current_url)
 
         if current_url != url:
-            return cls.get(url)
+            return cls.get(url, collection)
 
-        return cls._get_page(url)
+        return cls._get_page(url, collection)
 
     @classmethod
     def page_change_wait_setup(cls):

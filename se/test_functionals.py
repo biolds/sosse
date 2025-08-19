@@ -50,11 +50,9 @@ class BaseFunctionalTest:
 
 
 class FunctionalTest(BaseFunctionalTest):
-    def test_10_simple(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+    def setUp(self):
+        self.collection = Collection.objects.create(
+            name="Test Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
@@ -62,13 +60,15 @@ class FunctionalTest(BaseFunctionalTest):
             take_screenshots=False,
         )
 
-        Document.queue(TEST_SERVER_URL, None, None)
+    def test_10_simple(self):
+        Document.queue(TEST_SERVER_URL, self.collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
 
         doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL)
+        self.assertEqual(doc.collection, self.collection)
         self.assertEqual(doc.normalized_url, "127.0.0.1:8000")
         self.assertEqual(doc.title, TEST_SERVER_URL)
         self.assertEqual(doc.normalized_title, "http://127.0.0.1:8000/")
@@ -91,7 +91,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(doc.crawl_first, doc.crawl_last)
         self.assertIsNone(doc.crawl_next)
         self.assertIsNone(doc.crawl_dt)
-        self.assertEqual(doc.crawl_recurse, 0)
+        self.assertEqual(doc.crawl_recurse, 1)
         self.assertEqual(doc.modified_date, doc.crawl_last)
         self.assertFalse(doc.manual_crawl)
         self.assertEqual(doc.error, "")
@@ -104,7 +104,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(doc.webhooks_result, {})
         self.assertEqual(doc.tags.count(), 0)
         self.assertEqual(doc.metadata, {})
-        self.assertEqual(len(Document._meta.get_fields()), 40)
+        self.assertEqual(len(Document._meta.get_fields()), 41)
 
         self.assertEqual(Cookie.objects.count(), 0)
         self.assertEqual(Link.objects.count(), 0)
@@ -117,7 +117,7 @@ class FunctionalTest(BaseFunctionalTest):
 
     def test_20_user_agent(self):
         self._reset_user_agent()
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent")
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent", self.collection)
         self._check_key_val(
             "user-agent",
             f'"{settings.SOSSE_USER_AGENT}"',
@@ -130,7 +130,7 @@ class FunctionalTest(BaseFunctionalTest):
     @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=["pc"])
     def test_21_fake_ua_chrome(self):
         self._reset_user_agent()
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent")
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent", self.collection)
         self.assertRegex(page.content, b"Mozilla.*Windows.*Chrome")
 
     @expectedFailure
@@ -140,36 +140,26 @@ class FunctionalTest(BaseFunctionalTest):
     @override_settings(SOSSE_FAKE_USER_AGENT_PLATFORM=["pc"])
     def test_22_fake_ua_firefox(self):
         self._reset_user_agent()
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent")
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent", self.collection)
         self.assertRegex(page.content, b"Mozilla.*Linux.*Firefox")
 
     @override_settings(SOSSE_USER_AGENT="")
     @override_settings(SOSSE_FAKE_USER_AGENT_BROWSER=["safari"])
     def test_23_fake_ua_safari(self):
         self._reset_user_agent()
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent")
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "user-agent", self.collection)
         self.assertRegex(page.content, b"Mozilla.*Safari")
 
     def test_30_gzip(self):
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "gzip")
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "gzip", self.collection)
         self._check_key_val("deflated", "true", page.content)
 
     def test_40_deflate(self):
-        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "deflate")
+        page = self.BROWSER_CLASS.get(TEST_SERVER_URL + "deflate", self.collection)
         self._check_key_val("deflated", "true", page.content)
 
     def test_50_cookies(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            mimetype_regex=".*",
-            recursion=Collection.CRAWL_NEVER,
-            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            take_screenshots=False,
-        )
-        Document.queue(TEST_SERVER_URL + "cookies/set?test_key=test_value", None, None)
+        Document.queue(TEST_SERVER_URL + "cookies/set?test_key=test_value", self.collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 2)
@@ -189,7 +179,7 @@ class FunctionalTest(BaseFunctionalTest):
     def test_60_cookie_delete(self):
         self.test_50_cookies()
 
-        Document.queue(TEST_SERVER_URL + "cookies/delete?test_key", None, None)
+        Document.queue(TEST_SERVER_URL + "cookies/delete?test_key", self.collection, None)
         self._crawl()
 
         # Clear the expired cookie
@@ -199,19 +189,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(Cookie.objects.count(), 0)
 
     def test_70_authentication(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
-            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
-            take_screenshots=False,
-        )
-        policy = Collection.objects.create(
-            url_regex=f"^{TEST_SERVER_URL}.*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Authentication Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=False,
@@ -220,15 +199,16 @@ class FunctionalTest(BaseFunctionalTest):
             auth_login_url_re=f"{TEST_SERVER_URL}admin/login/.*",
             auth_form_selector="#login-form",
         )
-        AuthField.objects.create(key="username", value=TEST_SERVER_USER, collection=policy)
-        AuthField.objects.create(key="password", value=TEST_SERVER_PASS, collection=policy)
+        AuthField.objects.create(key="username", value=TEST_SERVER_USER, collection=collection)
+        AuthField.objects.create(key="password", value=TEST_SERVER_PASS, collection=collection)
 
-        Document.queue(TEST_SERVER_URL + "admin/", None, None)
+        Document.queue(TEST_SERVER_URL + "admin/", collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().first()
         self.assertEqual(doc.url, TEST_SERVER_URL + "admin/")
+        self.assertEqual(doc.collection, collection)
         self.assertEqual(doc.normalized_url, "127.0.0.1:8000 admin")
         self.assertEqual(doc.title, "Site administration | Django site admin")
         self.assertEqual(doc.normalized_title, "Site administration | Django site admin")
@@ -250,7 +230,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(doc.crawl_first, doc.crawl_last)
         self.assertIsNone(doc.crawl_next)
         self.assertIsNone(doc.crawl_dt)
-        self.assertEqual(doc.crawl_recurse, 0)
+        self.assertEqual(doc.crawl_recurse, 1)
         self.assertEqual(doc.modified_date, doc.crawl_last)
         self.assertFalse(doc.manual_crawl)
         self.assertEqual(doc.error, "")
@@ -263,7 +243,7 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(doc.webhooks_result, {})
         self.assertEqual(doc.tags.count(), 0)
         self.assertEqual(doc.metadata, {})
-        self.assertEqual(len(Document._meta.get_fields()), 40)
+        self.assertEqual(len(Document._meta.get_fields()), 41)
 
         self.assertEqual(Cookie.objects.count(), 2)
         cookies = Cookie.objects.order_by("name").values()
@@ -294,17 +274,15 @@ class FunctionalTest(BaseFunctionalTest):
     @override_settings(SOSSE_MAX_FILE_SIZE=1)
     def test_80_file_too_big(self):
         FILE_SIZE = settings.SOSSE_MAX_FILE_SIZE * 1024
-        page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}")
+        page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}", self.collection)
         self.assertEqual(len(page.content), FILE_SIZE)
 
         with self.assertRaises(SkipIndexing):
-            self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE + 1}")
+            self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE + 1}", self.collection)
 
     def test_100_remove_nav_no(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Remove Nav No Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
@@ -314,7 +292,7 @@ class FunctionalTest(BaseFunctionalTest):
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", collection, None)
 
         html_open = mock.mock_open()
         browser_open = mock.mock_open()
@@ -333,10 +311,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_110_remove_nav_from_index(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Remove Nav From Index Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
@@ -346,7 +322,7 @@ class FunctionalTest(BaseFunctionalTest):
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", collection, None)
 
         html_open = mock.mock_open()
         with mock.patch("se.html_cache.open", html_open):
@@ -361,10 +337,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_120_remove_nav_from_screenshot(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Remove Nav From Screenshot Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
@@ -374,7 +348,7 @@ class FunctionalTest(BaseFunctionalTest):
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", collection, None)
 
         html_open = mock.mock_open()
         with mock.patch("se.html_cache.open", html_open):
@@ -389,10 +363,8 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_130_remove_nav_from_all(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Remove Nav From All Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
@@ -402,7 +374,7 @@ class FunctionalTest(BaseFunctionalTest):
             screenshot_format=Document.SCREENSHOT_PNG,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/nav_elements.html", collection, None)
 
         html_open = mock.mock_open()
         with mock.patch("se.html_cache.open", html_open):
@@ -427,11 +399,8 @@ class FunctionalTest(BaseFunctionalTest):
 
     def _test_bin_file_download(self, filename, mimetype, checksum):
         bin_url = TEST_SERVER_URL + "static/pages/" + filename
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            mimetype_regex=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Binary File Download Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
@@ -439,7 +408,7 @@ class FunctionalTest(BaseFunctionalTest):
             take_screenshots=False,
         )
 
-        Document.queue(bin_url, None, None)
+        Document.queue(bin_url, collection, None)
 
         html_open = mock.mock_open()
         with mock.patch("se.html_cache.open", html_open):
@@ -477,10 +446,8 @@ class BrowserBasedFunctionalTest:
 
         makedirs.side_effect = None
 
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Test Screenshot Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=self.BROWSE_MODE,
             snapshot_html=True,
@@ -488,7 +455,7 @@ class BrowserBasedFunctionalTest:
             take_screenshots=False,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/css_in_js.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/css_in_js.html", collection, None)
 
         mock_open = mock.mock_open()
         with mock.patch("se.html_cache.open", mock_open):
@@ -517,7 +484,7 @@ class BrowserBasedFunctionalTest:
             secure=False,
         )
         FILE_SIZE = 1024
-        page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}")
+        page = self.BROWSER_CLASS.get(f"{TEST_SERVER_URL}download/?filesize={FILE_SIZE}", self.collection)
         self.assertEqual(len(page.content), FILE_SIZE, page.content)
 
     def test_150_script_updating_doc(self):
@@ -531,7 +498,7 @@ class BrowserBasedFunctionalTest:
         """
         collection.save()
 
-        Document.queue(TEST_SERVER_URL, None, None)
+        Document.queue(TEST_SERVER_URL, collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -552,7 +519,7 @@ class BrowserBasedFunctionalTest:
         """
         collection.save()
 
-        Document.queue(TEST_SERVER_URL, None, None)
+        Document.queue(TEST_SERVER_URL, collection, None)
         with self.assertRaises(SkipIndexing) as e:
             self._crawl()
 
@@ -583,10 +550,8 @@ class FirefoxFunctionalTest(FunctionalTest, FirefoxTest, BrowserBasedFunctionalT
 
 class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
     def test_10_detect_browser(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Detect Browser Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=Domain.BROWSE_DETECT,
             snapshot_html=False,
@@ -594,7 +559,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
             take_screenshots=False,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/browser_detect_js.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/browser_detect_js.html", collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -608,10 +573,8 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self.assertEqual(domain.browse_mode, Domain.BROWSE_CHROMIUM)
 
     def test_20_detect_browser(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Detect Browser Collection 2",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=Domain.BROWSE_DETECT,
             snapshot_html=False,
@@ -619,7 +582,7 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
             take_screenshots=False,
         )
 
-        Document.queue(TEST_SERVER_URL + "static/pages/browser_detect_no_js.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/browser_detect_no_js.html", collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -633,17 +596,15 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self.assertEqual(domain.browse_mode, Domain.BROWSE_REQUESTS)
 
     def test_30_counter_test(self):
-        Collection.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=Collection.CRAWL_NEVER,
+        collection = Collection.objects.create(
+            name="Counter Test Collection",
             recrawl_freq=Collection.RECRAWL_FREQ_NONE,
             default_browse_mode=Domain.BROWSE_CHROMIUM,
             snapshot_html=False,
             thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
-        Document.queue(TEST_SERVER_URL + "static/pages/stable_test.html", None, None)
+        Document.queue(TEST_SERVER_URL + "static/pages/stable_test.html", collection, None)
         self._crawl()
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().first()
@@ -652,4 +613,4 @@ class BrowserDetectFunctionalTest(BaseFunctionalTest, TransactionTestCase):
         self.assertEqual(Domain.objects.count(), 1)
         domain = Domain.objects.first()
         self.assertEqual(domain.domain, TEST_SERVER_DOMAIN)
-        self.assertEqual(domain.browse_mode, Domain.BROWSE_CHROMIUM)
+        self.assertEqual(domain.browse_mode, Domain.BROWSE_DETECT)

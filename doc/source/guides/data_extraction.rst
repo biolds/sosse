@@ -19,8 +19,8 @@ Collections define how Sosse interacts with targeted web pages. In this scenario
 
 - **Navigate to Collections**: Go to the :doc:`../crawl/collections` page from the admin menu.
 
-- **Create a New Policy**:
-  - In the `⚡ Crawl` tab, set an ``URL regex`` that targets the public offer detail pages on TED::
+- **Create a Collection**:
+  - In the `⚡ Crawl` tab, set an ``Unlimited depth URL regex`` that targets the public offer detail pages on TED::
 
      ^https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*
 
@@ -65,7 +65,7 @@ Searching for Public Offers and Queuing URLs
 
   - Copy the URLs of the offer detail pages you wish to crawl.
   - Go to the :doc:`Crawl a new URL <../crawl/new_url>` page in Sosse and paste the URLs.
-  - Click ``Confirm`` to queue the crawl jobs.
+  - Click ``Add to Crawl Queue`` to queue the crawl jobs.
 
 .. note::
    By default, this will crawl the offers and regularly check for new ones as defined in the ⚡ Collection.

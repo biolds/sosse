@@ -18,9 +18,8 @@
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/img-meta.png
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Element Should Be Visible | xpath=//b[text()='Index only this URL']
-|  | Click Element | xpath=//input[@value='Confirm']
+|  | Select From List By Label | id=id_collection | Default
+|  | Click Element | xpath=//input[@value='Add to Crawl Queue']
 |  | Sosse Wait Until Page Contains | Crawl queue
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/

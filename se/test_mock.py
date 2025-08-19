@@ -20,6 +20,7 @@ from mimetypes import guess_type
 from requests import HTTPError
 
 from .browser import PageTooBig
+from .collection import Collection
 from .page import Page
 
 PNG64 = """
@@ -62,7 +63,10 @@ class BrowserMock:
         }
         self.web.update(web)
 
-    def __call__(self, url, check_status=False, **kwargs):
+    def __call__(self, url, collection, check_status=False, **kwargs):
+        if collection is not None and not isinstance(collection, Collection):
+            raise ValueError("Collection must be None or an integer")
+
         content = self.web[url]
         if isinstance(content, Exception):
             raise content

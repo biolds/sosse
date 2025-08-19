@@ -29,19 +29,21 @@ from .page import Page
 from .utils import http_date_format, http_date_parser
 from .www import WWWView
 
+TEST_URL = "http://test/"
+
 LINKS = (
     {
         "descr": "regular link",
-        "link": "http://test.com/",
+        "link": TEST_URL,
     },
     {
         "descr": "percent-encoded utf8 link",
-        "link": "http://test.com/%F0%9F%90%88/",
+        "link": f"{TEST_URL}%F0%9F%90%88/",
     },
     {
         "descr": "utf8 link",
-        "link": "http://test.com/🐈/",
-        "expected_output": "http://test.com/%F0%9F%90%88/",
+        "link": f"{TEST_URL}🐈/",
+        "expected_output": f"{TEST_URL}%F0%9F%90%88/",
     },
     {
         "descr": "utf8 domain",
@@ -54,82 +56,82 @@ LINKS = (
     },
     {
         "descr": "percent-encode ascii link",
-        "link": "http://test.com/%61%62%63/",
-        "expected_output": "http://test.com/%61%62%63/",
+        "link": f"{TEST_URL}%61%62%63/",
+        "expected_output": f"{TEST_URL}%61%62%63/",
     },
     {
         "descr": "relative link",
-        "link": "http://test.com/test/../abc/",
-        "expected_output": "http://test.com/abc/",
+        "link": f"{TEST_URL}test/../abc/",
+        "expected_output": f"{TEST_URL}abc/",
     },
     {
         "descr": "percent-encoded relative link",
-        "link": "http://test.com/test/%2e%2e/abc/",
-        "expected_output": "http://test.com/test/%2e%2e/abc/",
+        "link": f"{TEST_URL}test/%2e%2e/abc/",
+        "expected_output": f"{TEST_URL}test/%2e%2e/abc/",
     },
     {
         "descr": "space link",
-        "link": "http://test.com/test/a b c/",
-        "expected_output": "http://test.com/test/a%20b%20c/",
+        "link": f"{TEST_URL}test/a b c/",
+        "expected_output": f"{TEST_URL}test/a%20b%20c/",
     },
     {
         "descr": "percent-encoded space link",
-        "link": "http://test.com/test/a%20b%20c/",
+        "link": f"{TEST_URL}test/a%20b%20c/",
     },
     {
         "descr": "reserved characters link",
-        "link": "http://test.com/, &/",
-        "expected_output": "http://test.com/,%20&/",
+        "link": f"{TEST_URL}, &/",
+        "expected_output": f"{TEST_URL},%20&/",
     },
     {
         "descr": "percent-encoded slash link",
-        "link": "http://test.com/test/a%2fb/",
-        "expected_output": "http://test.com/test/a%2fb/",
+        "link": f"{TEST_URL}test/a%2fb/",
+        "expected_output": f"{TEST_URL}test/a%2fb/",
     },
     {
         "descr": "url parameters",
-        "link": "http://test.com/?a=b",
+        "link": f"{TEST_URL}?a=b",
     },
     {
         "descr": "url parameters with space",
-        "link": "http://test.com/?a=a b",
-        "expected_output": "http://test.com/?a=a+b",
+        "link": f"{TEST_URL}?a=a b",
+        "expected_output": f"{TEST_URL}?a=a+b",
     },
     {
         "descr": "url parameters with plus",
-        "link": "http://test.com/?a=a+b",
+        "link": f"{TEST_URL}?a=a+b",
     },
     {
         "descr": "url parameters with percents",
-        "link": "http://test.com/?a=a%20b",
-        "expected_output": "http://test.com/?a=a+b",
+        "link": f"{TEST_URL}?a=a%20b",
+        "expected_output": f"{TEST_URL}?a=a+b",
     },
     {
         "descr": "url parameters with slash",
-        "link": "http://test.com/?a=a/b",
-        "expected_output": "http://test.com/?a=a%2Fb",
+        "link": f"{TEST_URL}?a=a/b",
+        "expected_output": f"{TEST_URL}?a=a%2Fb",
     },
     {
         "descr": "url with sharp",
-        "link": "http://test.com/test#test/",
-        "expected_output": "http://test.com/test",
+        "link": f"{TEST_URL}test#test/",
+        "expected_output": f"{TEST_URL}test",
     },
     {
         "descr": "no trailing slash hostname",
-        "link": "http://test.com",
-        "expected_output": "http://test.com/",
+        "link": TEST_URL.rstrip("/"),
+        "expected_output": TEST_URL,
     },
     {
         "descr": "trailing slash hostname",
-        "link": "http://test.com/",
+        "link": TEST_URL,
     },
     {
         "descr": "no trailing slash path",
-        "link": "http://test.com/test",
+        "link": f"{TEST_URL}test",
     },
     {
         "descr": "trailing slash path",
-        "link": "http://test.com/test/",
+        "link": f"{TEST_URL}test/",
     },
 )
 
@@ -145,59 +147,59 @@ FAKE_PAGE = f"""
 """.encode()
 
 
-ATOM_FEED = b"""
+ATOM_FEED = f"""
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Feed title</title>
   <description>Feed description</description>
-  <link href="http://192.168.120.5/"/>
+  <link href="{TEST_URL}/other"/>
   <updated>2023-08-29T10:13:27.161859+00:00</updated>
   <id>urn:uuid:02439bf8-bb91-83a1-12e2-f71bb60a0b73</id>
-  <icon>http://192.168.120.5/static/logo.svg</icon>
+  <icon>{TEST_URL}static/logo.svg</icon>
   <entry>
     <title>Entry one</title>
-    <link href="http://192.168.120.5/entry-one"/>
+    <link href="{TEST_URL}entry-one"/>
     <id>urn:uuid:029c6cf9-f277-f085-f2e0-f670aab4f7d0</id>
     <updated>2023-08-29T10:13:27.161859+00:00</updated>
     <summary>Summary one</summary>
   </entry>
   <entry>
     <title>Entry two</title>
-    <link href="http://192.168.120.5/entry-two"/>
+    <link href="{TEST_URL}entry-two"/>
     <id>urn:uuid:ad96514e-0246-0892-8e07-0b3d84ced537</id>
     <updated>2023-08-29T10:09:08.250034+00:00</updated>
     <summary>Summary two</summary>
   </entry>
 </feed>
-"""
+""".encode()
 
 
 ATOM_FEED_WITH_HEADER = b'<?xml version="1.0" encoding="UTF-8"?>\n' + ATOM_FEED
 
 
-RSS_FEED = b"""
+RSS_FEED = f"""
 <rss version="2.0">
   <channel>
     <title>Feed title</title>
-    <link>http://192.168.120.5/</link>
+    <link>{TEST_URL}/other</link>
     <description>Feed description</description>
     <language>en</language>
     <item>
       <title>Entry one</title>
-      <link>http://192.168.120.5/entry-one</link>
+      <link>{TEST_URL}entry-one</link>
       <description>Summary one</description>
       <author>test@exemple.org</author>
       <pubDate>Wed, 29 Aug 2023 10:13:27 GMT</pubDate>
     </item>
     <item>
       <title>Entry two</title>
-      <link>http://192.168.120.5/entry-two</link>
+      <link>{TEST_URL}entry-two</link>
       <description>Summary two</description>
       <author>test@exemple.org</author>
       <pubDate>Wed, 29 Aug 2023 10:09:08 GMT</pubDate>
     </item>
   </channel>
 </rss>
-"""
+""".encode()
 
 
 class PageTest(TransactionTestCase):
@@ -209,12 +211,12 @@ class PageTest(TransactionTestCase):
     def setUp(self):
         super().setUp()
         self.collection = Collection.create_default()
+        self.collection.unlimited_regex = TEST_URL
         self.collection.snapshot_html = False
-        self.collection.recursion = Collection.CRAWL_ALL
         self.collection.save()
 
     def test_10_beautifulsoup(self):
-        page = Page("http://127.0.0.1/", FAKE_PAGE, None)
+        page = Page(TEST_URL, FAKE_PAGE, None)
         links = list(page.get_links(True))
 
         self.assertEqual(len(links), len(LINKS))
@@ -224,9 +226,9 @@ class PageTest(TransactionTestCase):
 
     NAV_HTML = b'<html><body><header>header</header><nav>nav<a href="link">link</a></nav>text<footer>footer</footer></body></html>'
 
-    def test_20_no_nav_element(self):
-        page = Page("http://test/", self.NAV_HTML, None)
-        doc = Document.objects.wo_content().create(url=page.url)
+    def test_20_remove_nav_from_index(self):
+        page = Page(TEST_URL, self.NAV_HTML, None)
+        doc = Document.objects.wo_content().create(url=page.url, collection=self.collection)
         doc.index(page, self.collection)
         self.assertEqual(doc.content, "text")
         links = Link.objects.order_by("id")
@@ -237,11 +239,11 @@ class PageTest(TransactionTestCase):
         view.doc = doc
         view.request = None
         www_content = view._get_content()
-        self.assertEqual(www_content, ' <a href="/words/http://test/link">link</a>text<br/>')
+        self.assertEqual(www_content, f' <a href="/words/{self.collection.id}/{TEST_URL}link">link</a>text<br/>')
 
-    def test_30_nav_element(self):
-        page = Page("http://test/", self.NAV_HTML, None)
-        doc = Document.objects.wo_content().create(url=page.url)
+    def test_30_remove_nav_no(self):
+        page = Page(TEST_URL, self.NAV_HTML, None)
+        doc = Document.objects.wo_content().create(url=page.url, collection=self.collection)
         self.collection.remove_nav_elements = Collection.REMOVE_NAV_NO
         doc.index(page, self.collection)
         self.assertEqual(doc.content, "header nav link text footer")
@@ -255,7 +257,7 @@ class PageTest(TransactionTestCase):
         www_content = view._get_content()
         self.assertEqual(
             www_content,
-            'header nav  <a href="/words/http://test/link">link</a> text footer<br/>',
+            f'header nav  <a href="/words/{self.collection.id}/{TEST_URL}link">link</a> text footer<br/>',
         )
 
     DATES = (
@@ -278,15 +280,15 @@ class PageTest(TransactionTestCase):
             self.assertEqual(s, http_date_format(d))
 
     def test_60_no_comment(self):
-        page = Page("http://test/", b"<html><body><!-- nothing -->text</body></html>", None)
-        doc = Document.objects.create(url=page.url)
+        page = Page(TEST_URL, b"<html><body><!-- nothing -->text</body></html>", None)
+        doc = Document.objects.create(url=page.url, collection=self.collection)
         doc.index(page, self.collection)
         self.assertEqual(doc.content, "text")
 
     def test_70_feeds(self):
         for feed in (ATOM_FEED, ATOM_FEED_WITH_HEADER, RSS_FEED):
-            page = Page("http://test/", feed, None)
-            doc = Document.objects.wo_content().create(url=page.url)
+            page = Page(TEST_URL, feed, None)
+            doc = Document.objects.wo_content().create(url=page.url, collection=self.collection)
             doc.index(page, self.collection)
 
             self.assertEqual(Document.objects.count(), 4)
@@ -302,10 +304,10 @@ class PageTest(TransactionTestCase):
             self.assertEqual(links.count(), 3)
 
             self.assertEqual(links[0].text, "Feed title")
-            self.assertEqual(links[0].doc_to.url, "http://192.168.120.5/")
+            self.assertEqual(links[0].doc_to.url, f"{TEST_URL}other")
             self.assertEqual(links[1].text, "Entry one")
-            self.assertEqual(links[1].doc_to.url, "http://192.168.120.5/entry-one")
+            self.assertEqual(links[1].doc_to.url, f"{TEST_URL}entry-one")
             self.assertEqual(links[2].text, "Entry two")
-            self.assertEqual(links[2].doc_to.url, "http://192.168.120.5/entry-two")
+            self.assertEqual(links[2].doc_to.url, f"{TEST_URL}entry-two")
 
             Document.objects.wo_content().all().delete()

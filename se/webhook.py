@@ -160,6 +160,13 @@ class Webhook(models.Model):
         help_text="Run the webhook on documents with all these tags, their children, or all if none are specified",
         verbose_name="Tags",
     )
+    url_re = models.TextField(
+        blank=True,
+        default=".*",
+        help_text="Run the webhook on pages with URL matching this regex (one per line; lines starting with # are ignored)",
+        verbose_name="URL regex",
+        validators=[validate_multiline_re],
+    )
     mimetype_re = models.CharField(
         blank=True,
         default=".*",
@@ -211,6 +218,9 @@ class Webhook(models.Model):
                 if not has_all_tags:
                     continue
 
+            url_re = build_multiline_re(webhook.url_re)
+            if not re.match(url_re, doc.url):
+                continue
             mimetype_re = build_multiline_re(webhook.mimetype_re)
             if not re.match(mimetype_re, doc.mimetype):
                 continue

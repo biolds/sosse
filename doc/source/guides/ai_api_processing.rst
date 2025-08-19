@@ -24,14 +24,12 @@ First, define a Collection to handle the web pages you want to analyze. See the 
 details.
 
 - **Navigate to** ``⚡ Collections`` in the admin panel.
-- **Create a New Policy**:
+- **Create a Collection**:
 
-  - Use an URL pattern that matches URLs of interest, ensuring that only relevant pages are processed for tag
-    generation::
+  - Set the ``Unlimited depth URL regex`` to match URLs of interest, ensuring that only relevant pages are processed for
+    tag generation::
 
       ^https://(www\.)?(example-shop|forum|blog)\.com/.*/(promo|deal|product).*
-
-  - Set ``Recursion`` to ``Never Crawl`` to limit recursion, we'll process only manually queued URLs.
   - Under the ``🌍 Browser`` tab, choose ``Firefox``, or ``Chromium`` as the browser.
   - In the ``Script`` field, add a script to extract the HTML description of the product and save it in the document's
     ``metadata`` field. For example, for a Spree product page, you might use::
@@ -133,7 +131,7 @@ Page Crawling and Webhook Results
 ---------------------------------
 
 - Navigate to the :doc:`Crawl a new URL <../crawl/new_url>` page and paste the product pages you want to index.
-- Click **Confirm** to queue the crawl jobs.
+- Click **Add to Crawl Queue** to queue the crawl jobs.
 - After the crawl jobs are completed, review the results on the :doc:`../documents` page.
 - Access the full webhook response under the ``📡 Webhooks`` tab.
 

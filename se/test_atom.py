@@ -40,6 +40,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
             mimetype="text/html",
             crawl_first=now,
             crawl_last=now,
+            collection=self.collection,
         )
         Document.objects.wo_content().create(
             url="http://127.0.0.1/bin",
@@ -48,6 +49,7 @@ class AtomTest(ViewsTestMixin, TransactionTestCase):
             mimetype="application/octet-stream",
             crawl_first=yesterday,
             crawl_last=now,
+            collection=self.collection,
         )
         HTMLAsset.objects.create(url="http://127.0.0.1/bin", filename="bin")
 

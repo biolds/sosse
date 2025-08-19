@@ -1,6 +1,7 @@
 | *Settings* |
 | Library | SeleniumLibrary
 | Resource | ../tests/common.robot
+| Resource | ../tests/documents.robot
 | Resource | ../tests/tags.robot
 
 | *Test Cases* |
@@ -13,7 +14,8 @@
 
 | Crawl a new URL
 |  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
-|  | Input Text | id=id_url_regex | http://127.0.0.1/screenshots/website/.*
+|  | Input Text | id=id_name | Website Collection
+|  | Input Text | id=id_unlimited_regex | http://127.0.0.1/screenshots/website/.*
 |  | Click Link | 🌍 Browser
 |  | Select From List By Label | id=id_default_browse_mode | Chromium
 |  | Select Checkbox | id=id_take_screenshots
@@ -22,10 +24,9 @@
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Sosse Wait Until Page Contains | Create a new policy
+|  | Select From List By Label | id=id_collection | Website Collection
 |  | Sosse Capture Page Screenshot | crawl_new_url.png
-|  | Click Element | xpath=//input[@value='Confirm']
+|  | Click Element | xpath=//input[@value='Add to Crawl Queue']
 |  | Wait Until Element Is Visible | xpath=//h3[text()='Crawl queue']
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
@@ -42,9 +43,7 @@
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/static/Cat%20photos.zip
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Sosse Wait Until Page Contains | Create a new policy
-|  | Click Element | xpath=//input[@value='Confirm']
+|  | Click Element | xpath=//input[@value='Add to Crawl Queue']
 |  | Wait Until Element Is Visible | xpath=//h3[text()='Crawl queue']
 |  | ${loc}= | Get Location
 |  | Should Be Equal | ${loc} | http://127.0.0.1/admin/se/document/crawl_queue/
@@ -52,7 +51,7 @@
 |  | Scroll To Bottom
 
 | Analytics
-|  | Run Command | ${SOSSE_ADMIN} | loaddata | ${CURDIR}/../../document-ja.json | shell=True
+|  | Load Data With Collection | ${CURDIR}/../../document-ja.json
 |  | Run Command | ${SOSSE_ADMIN} | shell | -c | from se.models import CrawlerStats ; from django.utils.timezone import now ; CrawlerStats.create(now()) | shell=True
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/analytics/
 |  | Wait Until Page Does Not Contain | xpath=//*[@class='loader'] | timeout=5 min
@@ -66,20 +65,8 @@
 |  | Sosse Capture Page Screenshot | collection_list.png
 |  | Hilight | class=actions
 |  | Sosse Capture Page Screenshot | collection_actions.png
-|  | Click Element | xpath=//table[@id='result_list']//a[.='(default)']
-# The default policy is read-only so the help text is hidden
-|  | Page should not contain | URL regular expressions for this policy
-|  | ${recursion} | Get Selected List Label | id=id_recursion
-|  | Should Be Equal As Strings | ${recursion} | Depending on depth
-|  | Sosse Capture Page Screenshot | collection_decision_no_hilight.png
-|  | Scroll To Elem | id=tabs
-|  | Sosse Capture Page Screenshot | collection_decision.png
-
-# Non default policy should show the help
-|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
-|  | Page should contain | URL regular expressions for this policy
-|  | ${recursion} | Get Selected List Label | id=id_recursion
-|  | Should Be Equal As Strings | ${recursion} | Crawl all pages
+|  | Click Link | Default
+|  | Sosse Capture Page Screenshot | collection_detail.png
 
 |  | Reload Page
 |  | Scroll To Elem | id=tabs
@@ -100,23 +87,6 @@
 |  | Scroll To Elem | id=tabs
 |  | Click Link | 🔒 Authentication
 |  | Sosse Capture Page Screenshot | collection_auth.png
-
-| Crawl on depth
-|  | Reload Page
-|  | Select From List By Label | id=id_recursion | Depending on depth
-|  | Capture Element Screenshot | //fieldset[1] | policy_on_depth.png
-|  | Click Element | xpath=//input[@value="Save"]
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
-|  | Wait Until Element Is Visible | id=id_urls
-|  | Input Text | id=id_urls | http://127.0.0.1/screenshots/website/index.html
-|  | Click Element | xpath=//input[@value='Check and queue']
-|  | Sosse Capture Page Screenshot | crawl_on_depth_add.png
-
-|  | Sosse Go To | http://127.0.0.1/admin/se/collection/add/
-|  | Wait Until Element Is Visible | id=id_url_regex
-|  | Input Text | id=id_url_regex | https://en.wikipedia.org/.*
-|  | Input Text | id=id_recursion_depth | 2
-|  | Capture Element Screenshot | //fieldset[1] | policy_all.png
 
 | Documents
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/

@@ -17,6 +17,7 @@ import os
 
 from django.test import TransactionTestCase, override_settings
 
+from .collection import Collection
 from .document import Document
 from .mime_handler import MimeHandler
 from .page import Page
@@ -26,7 +27,8 @@ TEST_CONTENT = "dumy data"
 
 class MimeHandlerTests(TransactionTestCase):
     def setUp(self):
-        self.doc = Document.objects.create(mimetype="application/pdf", content="", error="")
+        self.collection = Collection.create_default()
+        self.doc = Document.objects.create(mimetype="application/pdf", collection=self.collection, content="", error="")
         self.page = Page("http://127.0.0.1", TEST_CONTENT.encode("utf-8"), None)
 
     def test_json_doc_handler_execution(self):

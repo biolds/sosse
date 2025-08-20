@@ -12,7 +12,15 @@ ADD swagger-initializer.js .
 ADD README.md .
 ADD se/ se/
 ADD sosse/ sosse/
-RUN apt-get update && apt-get install -y postgresql && apt-get clean
+RUN apt-get update && apt-get install -y postgresql jq git make
+RUN cd /root && git clone https://gitlab.com/biolds1/sosse-plugins && \
+    cd /root/sosse-plugins && \
+    make install-all && \
+    apt-get clean
+RUN sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>$/<!--<policy domain="coder" rights="none" pattern="PDF" \/>-->/' /etc/ImageMagick-6/policy.xml
+RUN cd /root/sosse-plugins && \
+    make generate-plugins-json && \
+    mv plugins.json /root/sosse/sosse/mime_handlers.json
 RUN make install_js_deps
 RUN virtualenv /venv
 RUN /venv/bin/pip install ./ && /venv/bin/pip install uwsgi && /venv/bin/pip cache purge

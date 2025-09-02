@@ -250,8 +250,8 @@
         </template>
 
         <div id="adv_search" style="display: none">
-            <div>
-                Language
+            <div style="padding-left: 20px; padding-bottom: 15px;">
+                <span style="margin-right: 8px;">Language</span>
                 <select id="doc_lang" name="doc_lang">
                     <option value="">Any</option>
                     {% for key, val in sosse_langdetect_to_postgres.items %}
@@ -259,11 +259,13 @@
                     {% endfor %}
                 </select>
 
-                Sort {{ form.s }}
+                <span style="margin-left: 20px; margin-right: 8px;">Collection</span>{{ form.collection }}
+
+                <span style="margin-left: 20px; margin-right: 8px;">Sort</span>{{ form.s }}
 
                 {% if perms.se.can_change_document %}
-                    {{ form.i }}
-                    <label for="id_i">Include hidden documents</label>
+                    <span style="margin-left: 20px;">{{ form.i }}</span>
+                    <label for="id_i" style="margin-left: 8px;">Include hidden documents</label>
                 {% endif %}
             </div>
         </div>

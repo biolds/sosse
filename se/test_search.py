@@ -311,6 +311,28 @@ class SearchTest(TransactionTestCase):
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
 
+    def test_090_search_collection(self):
+        collection2 = Collection.objects.create(name="Collection2")
+        collection2_page = Document.objects.wo_content().create(
+            url="http://127.0.0.1/collection2",
+            normalized_url="http://127.0.0.1/collection2",
+            content="Collection2 page content",
+            normalized_content="Collection2 page content",
+            title="Collection2 Page",
+            normalized_title="Collection2 Page",
+            crawl_last=timezone.now(),
+            collection=collection2,
+        )
+
+        docs = self._search_docs(f"q=world&collection={self.collection.id}")
+        self.assertEqual(docs.count(), 2)
+        self.assertIn(self.root, docs)
+        self.assertIn(self.page, docs)
+
+        docs = self._search_docs(f"q=content&collection={collection2.id}")
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], collection2_page)
+
 
 class ShortcutTest(TransactionTestCase):
     def setUp(self):

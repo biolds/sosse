@@ -432,6 +432,12 @@ def clear_tags(modeladmin, request, queryset):
     Document.tags.through.objects.filter(document__in=queryset).delete()
 
 
+@admin.action(description="Move to collection", permissions=["change"])
+def move_to_collection(modeladmin, request, queryset):
+    request.session["documents_to_move"] = list(queryset.values_list("id", flat=True))
+    return redirect(reverse("admin:move_to_collection"))
+
+
 class DocumentForm(forms.ModelForm):
     collection = forms.ModelChoiceField(queryset=Collection.objects.all(), widget=forms.Select(), empty_label=None)
 
@@ -478,6 +484,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         clear_tags,
         switch_hidden,
         trigger_webhooks,
+        move_to_collection,
     ]
     if settings.DEBUG:
         actions += [crawl_later]
@@ -581,6 +588,11 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             path("analytics/", self.admin_site.admin_view(self.analytics), name="analytics"),
             path("queue/", self.admin_site.admin_view(self.add_to_queue), name="queue"),
             path(
+                "move_to_collection/",
+                self.admin_site.admin_view(self.move_to_collection_view),
+                name="move_to_collection",
+            ),
+            path(
                 "crawlers/",
                 self.admin_site.admin_view(self.crawlers),
                 name="crawlers",
@@ -630,6 +642,11 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
 
     def analytics(self, request):
         return AnalyticsView.as_view()(request)
+
+    def move_to_collection_view(self, request):
+        from .move_to_collection import MoveToCollectionView
+
+        return MoveToCollectionView.as_view(admin_site=self.admin_site)(request)
 
     @staticmethod
     @admin.display(ordering="crawl_next")

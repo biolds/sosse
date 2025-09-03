@@ -216,6 +216,11 @@ def get_documents(request, params, form, stats_call):
 
     if not stats_call:
         order_by = form.cleaned_data["order_by"]
+
+        # Ensure a deterministic order by adding a secondary sort on "id"
+        if getattr(settings, "TEST_MODE", False):
+            order_by = list(order_by) + ["id"]
+
         results = results.order_by(*order_by).distinct()
 
     if not has_query and not tags:

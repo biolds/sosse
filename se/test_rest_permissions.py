@@ -50,7 +50,7 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
         self.client.login(username="admin", password="admin")
         response = self.client.get("/api/document/")
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content).get("count"), 2)
+        self.assertEqual(json.loads(response.content).get("count"), 3)
 
         response = self.client.post("/api/search/", {"query": "content"})
         self.assertEqual(response.status_code, 200, response.content)

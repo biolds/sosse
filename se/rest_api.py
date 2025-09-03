@@ -35,6 +35,7 @@ from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
 
 from .browser import SkipIndexing
+from .collection import Collection
 from .document import Document, example_doc
 from .mime_handler import MimeHandler
 from .models import CrawlerStats
@@ -366,6 +367,7 @@ class SearchAdvancedQuery(serializers.Serializer):
             "Advanced search query",
             value={
                 "query": "big cats",
+                "collection": 1,
                 "adv_params": [
                     {
                         "field": "url",
@@ -388,6 +390,7 @@ class SearchQuery(serializers.Serializer):
         default=False,
         help_text='Include hidden documents, requires the permission "Can change documents"',
     )
+    collection = serializers.IntegerField(required=False, help_text="Filter by collection ID")
     adv_params = SearchAdvancedQuery(many=True, default=[], help_text="Advanced search parameters")
 
     def validate(self, data):
@@ -396,6 +399,14 @@ class SearchQuery(serializers.Serializer):
             raise serializers.ValidationError(
                 {api_settings.NON_FIELD_ERRORS_KEY: 'At least "query" or "adv_params" field must be provided.'}
             )
+
+        collection_id = data.get("collection")
+        if collection_id:
+            try:
+                Collection.objects.get(id=collection_id)
+            except Collection.DoesNotExist:
+                raise serializers.ValidationError({"collection": f"Collection with id {collection_id} does not exist."})
+
         return data
 
 
@@ -428,6 +439,7 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 "l": query.validated_data["lang"],
                 "s": query.validated_data["sort"],
                 "i": "on" if query.validated_data["include_hidden"] else "",
+                "collection": query.validated_data.get("collection", ""),
             }
         )
         f.is_valid()

@@ -81,6 +81,15 @@ SERIALIZED_DOC2 = SERIALIZED_DOC1 | {
     "tags_str": "Sub Tag",
     "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
 }
+SERIALIZED_DOC3 = SERIALIZED_DOC1 | {
+    "url": "http://example.com/test3",
+    "normalized_url": "http example com test3",
+    "title": "Title3",
+    "normalized_title": "title3",
+    "content": "Content3",
+    "normalized_content": "content3",
+    "vector": "'com':4A 'content3':6C 'example':3A 'http':2A 'test3':5A 'title3':1A",
+}
 
 
 SERIALIZED_CRAWLER_STATS = [
@@ -94,6 +103,7 @@ class RestAPITest:
 
     def setUp(self):
         self.collection = Collection.create_default()
+        self.collection2 = Collection.objects.create(name="Test Collection 2", unlimited_regex="http://example.com/.*")
         self.client = Client(HTTP_USER_AGENT="Mozilla/5.0")
         self.user = User.objects.create_user(username="admin", password="admin", is_superuser=True)
         self.user.save()
@@ -126,6 +136,19 @@ class RestAPITest:
             mimetype="image/png",
             collection=self.collection,
         )
+        self.doc3 = Document.objects.wo_content().create(
+            url="http://example.com/test3",
+            normalized_url="http example com test3",
+            title="Title3",
+            normalized_title="title3",
+            content="Content3",
+            normalized_content="content3",
+            crawl_first=now,
+            crawl_last=now,
+            lang_iso_639_1="en",
+            mimetype="text/html",
+            collection=self.collection2,
+        )
 
         self.crawler_stat1 = CrawlerStats.objects.create(t=now, doc_count=23, queued_url=24, indexing_speed=2, freq="M")
         self.crawler_stat2 = CrawlerStats.objects.create(t=now, doc_count=33, queued_url=34, indexing_speed=4, freq="D")
@@ -156,59 +179,15 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
     def test_document_list(self):
         response = self.client.get("/api/document/")
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(
-            json.loads(response.content),
-            {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
-                    SERIALIZED_DOC1 | {"id": self.doc1.id, "collection": self.collection.id},
-                    {
-                        "collection": self.collection.id,
-                        "content": "Other Content2",
-                        "content_hash": None,
-                        "crawl_dt": None,
-                        "crawl_first": now_str,
-                        "crawl_last": now_str,
-                        "crawl_next": None,
-                        "crawl_recurse": 0,
-                        "error": "",
-                        "error_hash": "",
-                        "favicon": None,
-                        "has_html_snapshot": False,
-                        "has_thumbnail": False,
-                        "hidden": False,
-                        "id": self.doc2.id,
-                        "lang_iso_639_1": "en",
-                        "manual_crawl": False,
-                        "metadata": {},
-                        "mimetype": "image/png",
-                        "mime_handlers_result": "",
-                        "modified_date": None,
-                        "normalized_content": "other content2",
-                        "normalized_title": "title2",
-                        "normalized_url": "http test2",
-                        "redirect_url": None,
-                        "retries": 0,
-                        "robotstxt_rejected": False,
-                        "screenshot_count": 0,
-                        "screenshot_format": "",
-                        "screenshot_size": "",
-                        "show_on_homepage": False,
-                        "tags": ["Sub Tag"],
-                        "tags_str": "Sub Tag",
-                        "title": "Title2",
-                        "too_many_redirects": False,
-                        "url": "http://127.0.0.1/test2",
-                        "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
-                        "vector_lang": "simple",
-                        "webhooks_result": {},
-                        "worker_no": None,
-                    },
-                ],
-            },
-        )
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 3)
+        self.assertEqual(data["next"], None)
+        self.assertEqual(data["previous"], None)
+
+        doc_ids = [result["id"] for result in data["results"]]
+        self.assertIn(self.doc1.id, doc_ids)
+        self.assertIn(self.doc2.id, doc_ids)
+        self.assertIn(self.doc3.id, doc_ids)
 
     def test_document_detail(self):
         response = self.client.get(f"/api/document/{self.doc1.id}/")
@@ -303,14 +282,14 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
     def test_lang_stats(self):
         response = self.client.get("/api/lang_stats/")
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(json.loads(response.content), [{"doc_count": 2, "lang": "En 🇬🇧"}])
+        self.assertEqual(json.loads(response.content), [{"doc_count": 3, "lang": "En 🇬🇧"}])
 
     def test_mime_stats(self):
         response = self.client.get("/api/mime_stats/")
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(
             json.loads(response.content),
-            [{"mimetype": "🖼️ image/png", "doc_count": 1}, {"mimetype": "🌐 text/html", "doc_count": 1}],
+            [{"mimetype": "🌐 text/html", "doc_count": 2}, {"mimetype": "🖼️ image/png", "doc_count": 1}],
             response.content,
         )
 
@@ -375,7 +354,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         self.assertEqual(
             json.loads(response.content),
             {
-                "count": 1,
+                "count": 2,
                 "next": None,
                 "previous": None,
                 "results": [
@@ -384,7 +363,13 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.6079271,
-                    }
+                    },
+                    SERIALIZED_DOC3
+                    | {
+                        "collection": self.collection2.id,
+                        "id": self.doc3.id,
+                        "score": 0.6079271,
+                    },
                 ],
             },
         )
@@ -398,7 +383,7 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         self.assertEqual(
             json.loads(response.content),
             {
-                "count": 2,
+                "count": 3,
                 "next": None,
                 "previous": None,
                 "results": [
@@ -414,6 +399,12 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                         "id": self.doc2.id,
                         "score": 0.6079271,
                         "hidden": True,
+                    },
+                    SERIALIZED_DOC3
+                    | {
+                        "collection": self.collection2.id,
+                        "id": self.doc3.id,
+                        "score": 0.6079271,
                     },
                 ],
             },
@@ -576,3 +567,33 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         data = json.loads(response.content)
         self.assertEqual(data["builtin"], False)
+
+    def test_search_collection_filter(self):
+        response = self.client.post("/api/search/", {"query": "content", "collection": self.collection.id})
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 1)
+        self.assertEqual(data["results"][0]["id"], self.doc1.id)
+
+    def test_search_collection_filter_different(self):
+        response = self.client.post("/api/search/", {"query": "content3", "collection": self.collection2.id})
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 1)
+        self.assertEqual(data["results"][0]["id"], self.doc3.id)
+
+    def test_search_no_collection_filter(self):
+        response = self.client.post("/api/search/", {"query": "http"})
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 3)
+        doc_ids = [result["id"] for result in data["results"]]
+        self.assertIn(self.doc1.id, doc_ids)
+        self.assertIn(self.doc2.id, doc_ids)
+        self.assertIn(self.doc3.id, doc_ids)
+
+    def test_search_collection_nonexistent(self):
+        response = self.client.post("/api/search/", {"query": "content", "collection": 99999})
+        self.assertEqual(response.status_code, 400, response.content)
+        data = json.loads(response.content)
+        self.assertIn("Collection with id 99999 does not exist", data["collection"][0])

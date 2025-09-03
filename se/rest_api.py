@@ -503,6 +503,26 @@ class WebhookViewSet(viewsets.ModelViewSet):
         return Response(result)
 
 
+class CollectionSerializer(serializers.ModelSerializer):
+    webhooks = serializers.PrimaryKeyRelatedField(many=True, queryset=Webhook.objects.all(), required=False)
+    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all(), required=False)
+
+    class Meta:
+        model = Collection
+        fields = "__all__"
+        read_only_fields = (
+            "unlimited_regex_pg",
+            "limited_regex_pg",
+            "excluded_regex_pg",
+        )
+
+
+class CollectionViewSet(viewsets.ModelViewSet):
+    queryset = Collection.objects.all()
+    serializer_class = CollectionSerializer
+    permission_classes = [DjangoModelPermissionsRW]
+
+
 router = routers.DefaultRouter()
 router.register("document", DocumentViewSet)
 router.register("tag", TagViewSet)
@@ -513,3 +533,4 @@ router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
 router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
 router.register("mime_handler", MimeHandlerViewSet)
 router.register("webhook", WebhookViewSet, basename="webhook")
+router.register("collection", CollectionViewSet)

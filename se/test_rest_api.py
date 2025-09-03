@@ -26,6 +26,7 @@ from .document import Document
 from .mime_handler import MimeHandler
 from .models import CrawlerStats
 from .tag import Tag
+from .webhook import Webhook
 
 now = timezone.now()
 now_str = now.isoformat().replace("+00:00", "Z")
@@ -156,6 +157,8 @@ class RestAPITest:
         self.tag = Tag.objects.create(name="Group")
         self.subtag = Tag.objects.create(name="Sub Tag", parent=self.tag)
         self.doc2.tags.set([self.subtag])
+
+        self.test_webhook = Webhook.objects.create(name="Test Webhook", url="http://test.com/webhook")
 
         self.mime_handler_builtin = MimeHandler.objects.create(
             name="Built-in Handler",
@@ -597,3 +600,79 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         data = json.loads(response.content)
         self.assertIn("Collection with id 99999 does not exist", data["collection"][0])
+
+    def test_collection_list(self):
+        response = self.client.get("/api/collection/")
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 2)
+
+        collection_names = [result["name"] for result in data["results"]]
+        self.assertEqual(len(collection_names), 2)
+        self.assertIn(self.collection.name, collection_names)
+        self.assertIn("Test Collection 2", collection_names)
+
+    def test_collection_detail(self):
+        response = self.client.get(f"/api/collection/{self.collection.id}/")
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["id"], self.collection.id)
+        self.assertEqual(data["name"], self.collection.name)
+
+    def test_collection_create(self):
+        response = self.client.post(
+            "/api/collection/",
+            {"name": "New Collection", "unlimited_regex": "http://test.com/.*"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["name"], "New Collection")
+        self.assertEqual(data["unlimited_regex"], "http://test.com/.*")
+        self.assertEqual(data["unlimited_regex_pg"], "http://test.com/.*")
+
+    def test_collection_update(self):
+        response = self.client.patch(
+            f"/api/collection/{self.collection2.id}/",
+            {"name": "Updated Collection", "unlimited_regex": "http://updated.com/.*\nhttp://other.com/.*"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["name"], "Updated Collection")
+        self.assertEqual(data["unlimited_regex"], "http://updated.com/.*\nhttp://other.com/.*")
+        self.assertEqual(data["unlimited_regex_pg"], "(http://updated.com/.*|http://other.com/.*)")
+
+    def test_collection_delete(self):
+        new_collection = Collection.objects.create(name="To Delete", unlimited_regex="http://delete.com/.*")
+        response = self.client.delete(f"/api/collection/{new_collection.id}/")
+        self.assertEqual(response.status_code, 204, response.content)
+        self.assertFalse(Collection.objects.filter(id=new_collection.id).exists())
+
+    def test_collection_create_with_tags_webhooks(self):
+        response = self.client.post(
+            "/api/collection/",
+            {
+                "name": "Collection with Relations",
+                "unlimited_regex": "http://test.com/.*",
+                "tags": [self.tag.id, self.subtag.id],
+                "webhooks": [self.test_webhook.id],
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["name"], "Collection with Relations")
+        self.assertEqual(sorted(data["tags"]), sorted([self.tag.id, self.subtag.id]))
+        self.assertEqual(data["webhooks"], [self.test_webhook.id])
+
+    def test_collection_update_tags_webhooks(self):
+        response = self.client.patch(
+            f"/api/collection/{self.collection2.id}/",
+            {"tags": [self.subtag.id], "webhooks": [self.test_webhook.id]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["tags"], [self.subtag.id])
+        self.assertEqual(data["webhooks"], [self.test_webhook.id])

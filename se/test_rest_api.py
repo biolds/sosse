@@ -676,3 +676,82 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         data = json.loads(response.content)
         self.assertEqual(data["tags"], [self.subtag.id])
         self.assertEqual(data["webhooks"], [self.test_webhook.id])
+
+    def test_queue_urls_basic(self):
+        initial_count = Document.objects.count()
+        response = self.client.post(
+            "/api/queue/",
+            {
+                "urls": ["http://newsite.com/page1", "http://newsite.com/page2"],
+                "collection": self.collection.id,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["message"], "2 URLs queued successfully")
+        self.assertEqual(len(data["queued_urls"]), 2)
+        self.assertIn("http://newsite.com/page1", data["queued_urls"])
+        self.assertIn("http://newsite.com/page2", data["queued_urls"])
+        self.assertEqual(data["collection"], self.collection.id)
+        self.assertEqual(Document.objects.count(), initial_count + 2)
+
+    def test_queue_urls_unlimited_scope(self):
+        response = self.client.post(
+            "/api/queue/",
+            {
+                "urls": ["http://newsite.com/page"],
+                "collection": self.collection.id,
+                "crawl_scope": "unlimited",
+                "show_on_homepage": False,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = json.loads(response.content)
+        self.assertEqual(data["crawl_scope"], "unlimited")
+        self.assertEqual(data["show_on_homepage"], False)
+
+        self.collection.refresh_from_db()
+        self.assertIn("^https?://newsite\\.com/.*", self.collection.unlimited_regex)
+
+    def test_queue_urls_limited_scope(self):
+        response = self.client.post(
+            "/api/queue/",
+            {
+                "urls": ["http://testsite.org/"],
+                "collection": self.collection.id,
+                "crawl_scope": "limited",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+
+        self.collection.refresh_from_db()
+        self.assertIn("^https?://testsite\\.org/.*", self.collection.limited_regex)
+
+    def test_queue_urls_invalid_url(self):
+        response = self.client.post(
+            "/api/queue/",
+            {
+                "urls": ["not-a-valid-url", "http://valid.com"],
+                "collection": self.collection.id,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400, response.content)
+        data = json.loads(response.content)
+        self.assertIn("urls", data)
+
+    def test_queue_urls_nonexistent_collection(self):
+        response = self.client.post(
+            "/api/queue/",
+            {
+                "urls": ["http://test.com"],
+                "collection": 99999,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400, response.content)
+        data = json.loads(response.content)
+        self.assertIn("collection", data)

@@ -34,15 +34,17 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
 
+from .add_to_queue import AddToQueueForm, queue_urls
 from .browser import SkipIndexing
 from .collection import Collection
 from .document import Document, example_doc
 from .mime_handler import MimeHandler
-from .models import CrawlerStats
+from .models import CrawlerStats, WorkerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
 from .tag import Tag
+from .url import sanitize_url, validate_url
 from .utils import mimetype_icon
 from .webhook import Webhook, webhook_html_status
 
@@ -534,3 +536,99 @@ router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
 router.register("mime_handler", MimeHandlerViewSet)
 router.register("webhook", WebhookViewSet, basename="webhook")
 router.register("collection", CollectionViewSet)
+
+
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            "Simple URLs queue",
+            value={
+                "urls": ["http://example.com", "https://test.com/page"],
+                "collection": 1,
+            },
+        ),
+        OpenApiExample(
+            "URLs with crawl scope",
+            value={
+                "urls": ["http://example.com"],
+                "collection": 1,
+                "crawl_scope": "unlimited",
+                "show_on_homepage": True,
+            },
+        ),
+    ]
+)
+class AddToQueueSerializer(serializers.Serializer):
+    urls = serializers.ListField(child=serializers.URLField(), help_text="URLs to queue for crawling")
+    collection = serializers.PrimaryKeyRelatedField(
+        queryset=Collection.objects.all(), help_text="Collection to crawl with"
+    )
+    crawl_scope = serializers.ChoiceField(
+        choices=AddToQueueForm.CRAWL_SCOPE_CHOICES,
+        default=AddToQueueForm.CRAWL_SCOPE_NO_CHANGE,
+        help_text="How to crawl the websites from these URLs",
+    )
+    show_on_homepage = serializers.BooleanField(default=True, help_text="Display the initial document on the homepage")
+
+    def validate_urls(self, value):
+        validated_urls = []
+        errors = []
+
+        for i, url in enumerate(value):
+            try:
+                sanitized_url = sanitize_url(url)
+                validate_url(sanitized_url)
+                validated_urls.append(sanitized_url)
+            except Exception as e:
+                errors.append(f"URL {i + 1}: {str(e)}")
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return validated_urls
+
+
+class AddToQueueViewSet(viewsets.ViewSet):
+    serializer_class = AddToQueueSerializer
+    permission_classes = [DjangoModelPermissionsRW]
+    queryset = Document.objects.wo_content()
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(*args, **kwargs)
+
+    @extend_schema(
+        request=AddToQueueSerializer,
+        description="Add URLs to crawl queue",
+        responses={
+            201: OpenApiTypes.OBJECT,
+        },
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        urls = serializer.validated_data["urls"]
+        collection = serializer.validated_data["collection"]
+        crawl_scope = serializer.validated_data["crawl_scope"]
+        show_on_homepage = serializer.validated_data["show_on_homepage"]
+
+        # Use the shared function from add_to_queue.py
+        queue_urls(urls, collection, show_on_homepage, crawl_scope)
+        WorkerStats.wake_up()
+
+        url_count = len(urls)
+        message = f"{url_count} URL{'s' if url_count > 1 else ''} queued successfully"
+
+        return Response(
+            {
+                "message": message,
+                "queued_urls": urls,
+                "collection": collection.id,
+                "crawl_scope": crawl_scope,
+                "show_on_homepage": show_on_homepage,
+            },
+            status=201,
+        )
+
+
+router.register("queue", AddToQueueViewSet, basename="queue")

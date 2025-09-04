@@ -644,8 +644,20 @@ class Document(models.Model):
 
         if not should_crawl:
             if parent:
+                # Check cross-collection queueing if enabled
+                if settings.SOSSE_CROSS_COLLECTION_CRAWL:
+                    from .collection import Collection
+
+                    matching_collection = Collection.get_from_url(url)
+                    if matching_collection and matching_collection != collection:
+                        crawl_logger.debug(
+                            f"cross-collection queueing {url} - found matching collection {matching_collection}"
+                        )
+                        return Document.queue(url, matching_collection, parent)
                 crawl_logger.debug(f"skipping {url} - does not match unlimited_regex or limited_regex")
                 return
+
+            # No parent means this is the seed URL, we always queue it
             crawl_recurse = collection.recursion_depth
 
         doc, _ = Document.objects.wo_content().get_or_create(

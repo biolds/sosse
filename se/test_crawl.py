@@ -845,3 +845,64 @@ class CrawlerTest(TransactionTestCase):
         already_crawled.refresh_from_db()
         self.assertEqual(already_crawled.crawl_last, self.fake_yesterday)
         self.assertEqual(already_crawled.crawl_next, self.fake_yesterday)
+
+    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", True)
+    def test_300_cross_collection_crawl_enabled(self):
+        # Create two collections with different regex patterns
+        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        coll2 = Collection.objects.create(name="Collection 2", unlimited_regex="http://site2.com/")
+
+        # Create a parent document in collection 1
+        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+
+        # Try to queue a URL that doesn't match coll1 but matches coll2
+        queued_doc = Document.queue("http://site2.com/child", coll1, parent_doc)
+
+        # Should be queued in collection 2, not collection 1
+        self.assertIsNotNone(queued_doc)
+        self.assertEqual(queued_doc.collection, coll2)
+        self.assertEqual(queued_doc.url, "http://site2.com/child")
+
+    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", False)
+    def test_310_cross_collection_crawl_disabled(self):
+        # Create two collections with different regex patterns
+        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        Collection.objects.create(name="Collection 2", unlimited_regex="http://site2.com/")
+
+        # Create a parent document in collection 1
+        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+
+        # Try to queue a URL that doesn't match coll1 but matches coll2
+        queued_doc = Document.queue("http://site2.com/child", coll1, parent_doc)
+
+        # Should return None (not queued) when cross-collection crawl is disabled
+        self.assertIsNone(queued_doc)
+
+    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", True)
+    def test_320_cross_collection_crawl_same_collection(self):
+        # Create a collection
+        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+
+        # Create a parent document
+        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+
+        # Try to queue a URL that matches the same collection
+        queued_doc = Document.queue("http://site1.com/child", coll1, parent_doc)
+
+        # Should be queued normally in the same collection
+        self.assertIsNotNone(queued_doc)
+        self.assertEqual(queued_doc.collection, coll1)
+
+    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", True)
+    def test_330_cross_collection_crawl_no_match(self):
+        # Create one collection
+        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+
+        # Create a parent document
+        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+
+        # Try to queue a URL that doesn't match any collection
+        queued_doc = Document.queue("http://nomatch.com/child", coll1, parent_doc)
+
+        # Should return None (not queued)
+        self.assertIsNone(queued_doc)

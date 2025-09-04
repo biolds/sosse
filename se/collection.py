@@ -123,6 +123,7 @@ class Collection(models.Model):
         help_text="URL regular expressions. Matching URLs will have limited crawling recursion depth (one per line; lines starting with # are ignored)",
     )
     limited_regex_pg = models.TextField(default="")
+    combined_regex_pg = models.TextField(default="")
     excluded_regex = models.TextField(
         blank=True,
         default="",
@@ -265,6 +266,17 @@ class Collection(models.Model):
         self.unlimited_regex_pg = build_multiline_re(self.unlimited_regex) if self.unlimited_regex else ""
         self.limited_regex_pg = build_multiline_re(self.limited_regex) if self.limited_regex else ""
         self.excluded_regex_pg = build_multiline_re(self.excluded_regex) if self.excluded_regex else ""
+
+        # Build combined regex for cross-collection matching
+        if self.unlimited_regex_pg and self.limited_regex_pg:
+            self.combined_regex_pg = f"{self.unlimited_regex_pg}|{self.limited_regex_pg}"
+        elif self.unlimited_regex_pg:
+            self.combined_regex_pg = self.unlimited_regex_pg
+        elif self.limited_regex_pg:
+            self.combined_regex_pg = self.limited_regex_pg
+        else:
+            self.combined_regex_pg = ""
+
         return super().save(*args, **kwargs)
 
     @staticmethod
@@ -278,18 +290,15 @@ class Collection(models.Model):
             return Collection.objects.create(name="Default")
 
     @staticmethod
-    def get_from_url(url, queryset=None):
-        if queryset is None:
-            queryset = Collection.objects.all()
-        queryset = queryset.exclude(unlimited_regex="(default)")
-        queryset = queryset.exclude(unlimited_regex_pg="")
+    def get_from_url(url):
+        queryset = Collection.objects.exclude(combined_regex_pg="")
 
         collection = (
             queryset.annotate(
                 match_len=models.functions.Length(
                     models.Func(
                         models.Value(url),
-                        models.F("unlimited_regex_pg"),
+                        models.F("combined_regex_pg"),
                         function="REGEXP_SUBSTR",
                         output_field=models.TextField(),
                     )
@@ -299,9 +308,6 @@ class Collection(models.Model):
             .order_by("-match_len")
             .first()
         )
-
-        if collection is None:
-            return Collection.create_default()
 
         return collection
 

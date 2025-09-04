@@ -102,6 +102,11 @@ class Migration(migrations.Migration):
             name="limited_regex_pg",
             field=models.TextField(default=""),
         ),
+        migrations.AddField(
+            model_name="collection",
+            name="combined_regex_pg",
+            field=models.TextField(default=""),
+        ),
         migrations.AlterField(
             model_name="collection",
             name="recursion_depth",

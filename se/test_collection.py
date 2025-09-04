@@ -53,7 +53,7 @@ class CollectionTest(TransactionTestCase):
     def test_040_no_match(self):
         Collection.get_from_url("# Empty")
         policy = Collection.get_from_url("http://127.0.0.2/")
-        self.assertEqual(policy, self.default_policy)
+        self.assertIsNone(policy)
 
     def test_050_longest_match(self):
         sub_policy = Collection.objects.create(name="Sub Policy Collection", unlimited_regex="http://127.0.0.1/abc/")
@@ -83,3 +83,46 @@ class CollectionTest(TransactionTestCase):
         with self.assertRaises(ValidationError):
             policy = Collection(name="Invalid Collection", unlimited_regex="(")
             policy.full_clean()
+
+    def test_080_combined_regex_pg(self):
+        # Test with unlimited_regex only
+        unlimited_only = Collection.objects.create(name="Unlimited Only", unlimited_regex="http://example.com/")
+        self.assertEqual(unlimited_only.combined_regex_pg, "http://example.com/")
+
+        # Test with limited_regex only
+        limited_only = Collection.objects.create(name="Limited Only", limited_regex="http://test.com/")
+        self.assertEqual(limited_only.combined_regex_pg, "http://test.com/")
+
+        # Test with both unlimited and limited
+        both = Collection.objects.create(
+            name="Both", unlimited_regex="http://example.com/", limited_regex="http://test.com/"
+        )
+        self.assertEqual(both.combined_regex_pg, "http://example.com/|http://test.com/")
+
+        # Test with empty regex
+        empty = Collection.objects.create(name="Empty", unlimited_regex="", limited_regex="")
+        self.assertEqual(empty.combined_regex_pg, "")
+
+    def test_090_get_from_url_with_combined_regex(self):
+        # Create collections with different regex patterns
+        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        coll2 = Collection.objects.create(name="Collection 2", limited_regex="http://site2.com/")
+        coll3 = Collection.objects.create(
+            name="Collection 3", unlimited_regex="http://site3.com/", limited_regex="http://site3.com/api/"
+        )
+
+        # Test matching with unlimited_regex only
+        policy = Collection.get_from_url("http://site1.com/page")
+        self.assertEqual(policy, coll1)
+
+        # Test matching with limited_regex only
+        policy = Collection.get_from_url("http://site2.com/page")
+        self.assertEqual(policy, coll2)
+
+        # Test matching with combined regex (should match longer match)
+        policy = Collection.get_from_url("http://site3.com/api/endpoint")
+        self.assertEqual(policy, coll3)
+
+        # Test no match
+        policy = Collection.get_from_url("http://nomatch.com/")
+        self.assertIsNone(policy)

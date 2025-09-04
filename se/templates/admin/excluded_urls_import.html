@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<form method="post" action="{% url 'admin:excluded_urls_import' %}">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <p>{{ form.urls.label_tag }}</p>
+    <p>{{ form.urls }}</p>
+    <p>{{ form.urls.errors }}</p>
+    <p>{{ form.comment.label_tag }}</p>
+    <p>{{ form.comment }}</p>
+    <p>{{ form.comment.errors }}</p>
+    {% if form.comment.help_text %}
+        <p class="help">{{ form.comment.help_text }}</p>
+    {% endif %}
+    <p>
+        {{ form.starting_with }}
+        <label class="vCheckboxLabel" for="id_starting_with">{{ form.starting_with.label }}</label>
+    </p>
+    <p><button type="submit">Import</button></p>
+</form>
+{% endblock %}

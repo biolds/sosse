@@ -1252,6 +1252,21 @@ class ExcludedUrlAdmin(admin.ModelAdmin):
     ordering = ("url",)
     form = ExcludedUrlForm
 
+    def get_urls(self):
+        urls = super().get_urls()
+        return [
+            path(
+                "import/",
+                self.admin_site.admin_view(self.excluded_urls_import),
+                name="excluded_urls_import",
+            ),
+        ] + urls
+
+    def excluded_urls_import(self, request):
+        from .excluded_urls_import import ExcludedUrlsImportView
+
+        return ExcludedUrlsImportView.as_view()(request)
+
 
 BaseTagForm = movenodeform_factory(Tag)
 

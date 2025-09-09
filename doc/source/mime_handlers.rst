@@ -56,16 +56,49 @@ handler should process. Examples:
 Script
 ------
 
-The shell script that processes the document. The script receives the file path
-as the first argument and can extract content, metadata, or perform
-transformations.
+The shell script that processes the document. The script receives a JSON file path
+as the first argument containing document metadata following the REST API format.
+This JSON includes a special ``content_file`` field pointing to the actual document
+file to process.
 
-For built-in handlers, this field is displayed as a read-only textarea when the
-handler is marked as builtin. Custom handlers allow full editing of the script
-content.
+The script should output JSON on stdout with fields to update the document (such as
+``title``, ``content``, ``lang_iso_639_1``). If the output includes a ``preview``
+field, it should specify the filename of a generated thumbnail image in the
+working directory.
 
-The script is automatically saved to the filesystem and made executable when
-the handler is saved.
+**Example script:**
+
+.. code-block:: bash
+
+    #!/bin/bash
+    set -e
+
+    # Read the input JSON file
+    INPUT_JSON="$1"
+    DOCUMENT_FILE="$(jq -r .content_file "$INPUT_JSON")"
+
+    # Extract title from document metadata or use URL as fallback
+    TITLE="$(jq -r .url "$INPUT_JSON")"
+
+    # Process the document file and extract content
+    CONTENT="$(cat "$DOCUMENT_FILE")"
+
+    # Generate a simple preview image (example)
+    echo "Preview" | convert -pointsize 20 label:@- preview.png
+
+    # Output JSON with extracted data
+    jq -n --arg title "$TITLE" --arg content "$CONTENT" '{
+        title: $title,
+        content: $content,
+        preview: "preview.png"
+    }'
+
+.. note::
+   The script is executed from a temporary directory that is automatically
+   cleaned up after execution. If your script generates a preview image,
+   store it in the current working directory (the temporary directory) so
+   it gets cleaned up properly. The preview file should be a full-size image
+   - Sosse will automatically resize it to create the appropriate thumbnail.
 
 Timeout
 -------

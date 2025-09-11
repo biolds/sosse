@@ -1,9 +1,3 @@
-sosse (1.14.0-1) trixie; urgency=medium
-
-  * Upstream release
-
- -- Laurent Defert <laurent_defert@yahoo.fr>  Mon, 15 Sep 2025 13:58:41 +0200
-
 sosse (1.13.3-1) bookworm; urgency=medium
 
   * Upstream release

@@ -1,29 +1,32 @@
-FROM biolds/sosse:debian-base
+FROM biolds/sosse:bookworm-debian-base
 ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
 RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
-RUN apt update
-RUN apt upgrade -y
-RUN apt install -y dpkg-dev curl gnupg jq sudo && \
-        apt-get clean autoclean && \
-        apt-get autoremove --yes && \
-        rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
-COPY sosse_1.14.0-1_amd64.deb /var/local-repo/
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y dpkg-dev curl gnupg jq sudo && \
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
+COPY sosse_1.13.3-1_amd64.deb /var/local-repo/
 RUN cd /var/local-repo && dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
 RUN echo 'deb [trusted=yes] file:///var/local-repo ./' > /etc/apt/sources.list.d/local.list
 RUN apt update
-RUN apt install -y sosse && \
+RUN apt-get install -y sosse && \
         apt-get clean autoclean && \
         apt-get autoremove --yes && \
         rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
 # Install plugin dependencies
-RUN jq -r '.[].dependencies[]?' /usr/lib/python3.13/dist-packages/sosse/mime_handlers.json | sort -u | xargs apt install -y && \
-        apt-get clean autoclean && \
-        apt-get autoremove --yes && \
-        rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
+RUN jq -r '.[].dependencies[]?' /usr/lib/python3.11/dist-packages/sosse/mime_handlers.json | sort -u | xargs apt install -y && \
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
 
-RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
+# Comment out ImageMagick PDF policy restriction
+RUN sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>$/<!--<policy domain="coder" rights="none" pattern="PDF" \/>-->/' /etc/ImageMagick-6/policy.xml
+
+RUN curl -L https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
 
 RUN sosse-admin default_conf > /etc/sosse/sosse.conf
 RUN chown -R root:www-data /etc/sosse && chmod 750 /etc/sosse/ && chmod 640 /etc/sosse/*
@@ -34,6 +37,7 @@ RUN ln -s /etc/nginx/sites-available/sosse.conf /etc/nginx/sites-enabled/
 
 WORKDIR /
 USER postgres
+RUN echo "listen_addresses='127.0.0.1'" >> /etc/postgresql/15/main/postgresql.conf
 RUN /etc/init.d/postgresql start && \
     psql --command "CREATE USER sosse WITH PASSWORD 'sosse';" && \
     createdb -O sosse sosse && \

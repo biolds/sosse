@@ -15,13 +15,14 @@ before_script:
   - echo 'sudo --preserve-env=PYTHONPATH,CI_NODE_TOTAL,CI_NODE_INDEX,COVERAGE_FILE -u www-data /opt/sosse-venv/bin/coverage run -a --source se,sosse $PWD/sosse/sosse_admin.py "$@"' > /tmp/sudo_sosse
   - chmod 755 /tmp/sudo_sosse
   - test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/proxy.conf)
+  - touch docker/local.mk # Create empty local.mk to prevent make from trying to build it
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 download_mime_handlers:
   stage: test
-  image: debian:bookworm
+  image: debian:trixie
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   artifacts:
@@ -74,8 +75,57 @@ unit_tests:
     - mv /tmp/coverage-* .
     - exit $failed
 
+unit_tests_bookworm:
+  image: biolds/sosse:bookworm-pip-test
+  parallel: 3
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  script:
+    - export PYTHONPATH="$CI_PROJECT_DIR"
+    - make _docker_unit_test_prepare
+    - failed=0
+    - /tmp/sudo_sosse test -v3 --failfast || failed=1
+    - mv /var/log/sosse log
+    - mv /tmp/coverage-* .
+    - exit $failed
+
 manage_cmd_tests:
   image: biolds/sosse:pip-test
+  needs:
+    - download_mime_handlers
+  artifacts:
+    when: always
+    paths:
+      - se/migrations/*.py
+      - log/*
+      - coverage-*
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  script:
+    - export PYTHONPATH="$CI_PROJECT_DIR"
+    - make _docker_unit_test_prepare
+    - failed=0
+    - /tmp/sudo_sosse migrate || failed=1
+    - /tmp/sudo_sosse load_se tests/opensearch.xml || failed=1
+    - /tmp/sudo_sosse update_se || failed=1
+    - /tmp/sudo_sosse update_mime || failed=1
+    - /tmp/sudo_sosse shell -c 'from django.contrib.auth.models import User; User.objects.all().delete()' || failed=1
+    - /tmp/sudo_sosse default_admin || failed=1
+    - /tmp/sudo_sosse generate_secret || failed=1
+    - /tmp/sudo_sosse extract_doc cli > /dev/null || failed=1
+    - /tmp/sudo_sosse extract_doc conf > /dev/null || failed=1
+    - /tmp/sudo_sosse extract_doc se > /dev/null || failed=1
+    - /tmp/sudo_sosse makemigrations || failed=1
+    - /tmp/sudo_sosse migrate se 0001 || failed=1
+    - /tmp/sudo_sosse convert_screens_to_jpeg || failed=1
+    - mv /var/log/sosse log
+    - mv /tmp/coverage-* .
+    - exit $failed
+
+manage_cmd_tests_bookworm:
+  image: biolds/sosse:bookworm-pip-test
   needs:
     - download_mime_handlers
   artifacts:
@@ -121,6 +171,12 @@ coverage_report:
     - functional_docs_chromium
     - functional_docs_firefox
     - functional_guides_chromium
+    - manage_cmd_tests_bookworm
+    - unit_tests_bookworm
+    - functional_tests_chromium_bookworm
+    - functional_tests_firefox_bookworm
+    - functional_docs_chromium_bookworm
+    - functional_docs_firefox_bookworm
   artifacts:
     when: always
     paths:
@@ -133,8 +189,10 @@ coverage_report:
     - 'echo "[paths]" > .coveragerc'
     - 'echo "se_package = $CI_PROJECT_DIR/se" >> .coveragerc'
     - 'echo "    /opt/sosse-venv/lib/python3.11/site-packages/se" >> .coveragerc'
+    - 'echo "    /opt/sosse-venv/lib/python3.13/site-packages/se" >> .coveragerc'
     - 'echo "sosse_package = $CI_PROJECT_DIR/sosse" >> .coveragerc'
     - 'echo "    /opt/sosse-venv/lib/python3.11/site-packages/sosse" >> .coveragerc'
+    - 'echo "    /opt/sosse-venv/lib/python3.13/site-packages/sosse" >> .coveragerc'
     - export COVERAGE_FILE=coverage
     - virtualenv -p python3 /venv
     - /venv/bin/pip install coverage
@@ -144,7 +202,6 @@ coverage_report:
     - /venv/bin/coverage xml --omit "*/se/deps/*"
 
 .functional_tests: &functional_tests
-  image: biolds/sosse:pip-test
   stage: test
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -172,33 +229,66 @@ coverage_report:
 
 functional_tests_chromium:
   <<: *functional_tests
+  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: tests
     BROWSER: chromium
 
 functional_tests_firefox:
   <<: *functional_tests
+  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: tests
     BROWSER: firefox
 
 functional_docs_chromium:
   <<: *functional_tests
+  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: docs
     BROWSER: chromium
 
 functional_docs_firefox:
   <<: *functional_tests
+  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: docs
     BROWSER: firefox
 
 functional_guides_chromium:
   <<: *functional_tests
+  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: guides
     BROWSER: chromium
+
+functional_tests_chromium_bookworm:
+  <<: *functional_tests
+  image: biolds/sosse:bookworm-pip-test
+  variables:
+    TEST_SUITE: tests
+    BROWSER: chromium
+
+functional_tests_firefox_bookworm:
+  <<: *functional_tests
+  image: biolds/sosse:bookworm-pip-test
+  variables:
+    TEST_SUITE: tests
+    BROWSER: firefox
+
+functional_docs_chromium_bookworm:
+  <<: *functional_tests
+  image: biolds/sosse:bookworm-pip-test
+  variables:
+    TEST_SUITE: docs
+    BROWSER: chromium
+
+functional_docs_firefox_bookworm:
+  <<: *functional_tests
+  image: biolds/sosse:bookworm-pip-test
+  variables:
+    TEST_SUITE: docs
+    BROWSER: firefox
 
 migrations:
   image: biolds/sosse:debian-test
@@ -358,6 +448,35 @@ debian_pkg:
     - make _deb
     - mv /deb .
 
+debian_pkg_bookworm:
+  image: biolds/sosse:bookworm-debian-pkg
+  #image: registry.gitlab.com/biolds1/sosse/debian-pkg:latest
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  needs:
+    - doc
+    - migrations
+    - manage_cmd_tests_bookworm
+    - unit_tests_bookworm
+    - functional_tests_chromium_bookworm
+    - functional_tests_firefox_bookworm
+    - functional_docs_chromium_bookworm
+    - functional_docs_firefox_bookworm
+    - static_checks
+    - download_mime_handlers
+  artifacts:
+    paths:
+      - deb/*.deb
+  script:
+    - cd "$CI_PROJECT_DIR"
+    - rm -rf htmlcov
+    - sed -e "s/^SOSSE_VERSION_TAG = .*/SOSSE_VERSION_TAG = '${CI_COMMIT_TAG/v/}'/" -i sosse/settings.py
+    - sed -e "s/^SOSSE_VERSION_COMMIT = .*/SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'/" -i sosse/settings.py
+    - mkdir /deb
+    - make _deb_bookworm
+    - mv /deb .
+
 changelog:
   image: biolds/sosse:debian-test
   stage: build
@@ -377,7 +496,7 @@ changelog:
     - cat /tmp/new CHANGELOG.md > new.md && mv new.md CHANGELOG.md
 
 doc_test_debian:
-  image: debian:bookworm
+  image: debian:trixie
   stage: build_check
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -391,7 +510,7 @@ doc_test_debian:
     - make _doc_test_debian
 
 doc_test_pip:
-  image: debian:bookworm
+  image: debian:trixie
   stage: build_check
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -405,7 +524,6 @@ doc_test_pip:
     - make _doc_test_pip
 
 .debian_pkg_check: &debian_pkg_check
-  image: biolds/sosse:debian-base
   stage: build_check
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -415,11 +533,8 @@ doc_test_pip:
       - tests/robotframework/screenshots/*
       - tests/robotframework/*.html
       - log/*
-  needs:
-    - doc_code_extract
-    - download_mime_handlers
-    - debian_pkg
   script:
+    - "grep ^12 -q /etc/debian_version && rm -rf debian && mv debian-bookworm debian ||:"
     - apt update
     - apt install -y jq make virtualenv
     - make _deb_pkg_functional_tests
@@ -429,27 +544,91 @@ doc_test_pip:
 
 debian_pkg_check_chromium_tests:
   <<: *debian_pkg_check
+  image: biolds/sosse:debian-base
   variables:
     TEST_SUITE: tests
     BROWSER: chromium
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg
 
 debian_pkg_check_firefox_tests:
   <<: *debian_pkg_check
+  image: biolds/sosse:debian-base
   variables:
     TEST_SUITE: tests
     BROWSER: firefox
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg
 
 debian_pkg_check_chromium_docs:
   <<: *debian_pkg_check
+  image: biolds/sosse:debian-base
   variables:
     TEST_SUITE: docs
     BROWSER: chromium
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg
 
 debian_pkg_check_firefox_docs:
   <<: *debian_pkg_check
+  image: biolds/sosse:debian-base
   variables:
     TEST_SUITE: docs
     BROWSER: firefox
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg
+
+debian_pkg_check_chromium_tests_bookworm:
+  <<: *debian_pkg_check
+  image: biolds/sosse:bookworm-debian-base
+  variables:
+    TEST_SUITE: tests
+    BROWSER: chromium
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg_bookworm
+
+debian_pkg_check_firefox_tests_bookworm:
+  <<: *debian_pkg_check
+  image: biolds/sosse:bookworm-debian-base
+  variables:
+    TEST_SUITE: tests
+    BROWSER: firefox
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg_bookworm
+
+debian_pkg_check_chromium_docs_bookworm:
+  <<: *debian_pkg_check
+  image: biolds/sosse:bookworm-debian-base
+  variables:
+    TEST_SUITE: docs
+    BROWSER: chromium
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg_bookworm
+
+debian_pkg_check_firefox_docs_bookworm:
+  <<: *debian_pkg_check
+  image: biolds/sosse:bookworm-debian-base
+  variables:
+    TEST_SUITE: docs
+    BROWSER: firefox
+  needs:
+    - doc_code_extract
+    - download_mime_handlers
+    - debian_pkg_bookworm
 
 .pip_pkg_check: &pip_pkg_check
   image: biolds/sosse:pip-test
@@ -498,7 +677,7 @@ pip_pkg_check_firefox_docs:
     BROWSER: firefox
 
 discord_tag_notif:
-  image: debian:bookworm
+  image: debian:trixie
   stage: notif
   allow_failure: true
   rules:
@@ -510,6 +689,10 @@ discord_tag_notif:
     - debian_pkg_check_firefox_tests
     - debian_pkg_check_chromium_docs
     - debian_pkg_check_firefox_docs
+    - debian_pkg_check_chromium_tests_bookworm
+    - debian_pkg_check_firefox_tests_bookworm
+    - debian_pkg_check_chromium_docs_bookworm
+    - debian_pkg_check_firefox_docs_bookworm
     - pip_pkg_check_chromium_tests
     - pip_pkg_check_firefox_tests
     - pip_pkg_check_chromium_docs
@@ -559,8 +742,8 @@ rebuild_docker:
     - mkdir -p ~/.docker
     - 'echo "{\"auths\":{\"registry.gitlab.com\":{\"auth\":\"$GITLAB_DOCKER_REGISTRY_KEY\"}}}" > ~/.docker/config.json'
     - "if (cat pkg_status/apt_list_upgradable | grep -v ^Listing | grep -q .) || (grep -q ^Would pkg_status/pip_upgrade) || (test $CI_PIPELINE_SOURCE != schedule); then NO_BUILD=0 ; else NO_BUILD=1 ; fi"
-    - "test $NO_BUILD -eq 0 || docker pull debian:bookworm"
-    - "test $NO_BUILD -eq 0 || docker tag debian:bookworm registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
+    - "test $NO_BUILD -eq 0 || docker pull debian:trixie"
+    - "test $NO_BUILD -eq 0 || docker tag debian:trixie registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
     - "test $NO_BUILD -eq 0 || docker push registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
     - "test $NO_BUILD -eq 0 || exit 0"
     - "docker rmi biolds/sosse:pip-release ||:"

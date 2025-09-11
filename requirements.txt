@@ -1,7 +1,7 @@
 bs4
 cssutils
 defusedxml
-django<4
+django<4.3
 django-filter
 django-treebeard
 django-uwsgi
@@ -17,5 +17,6 @@ psutil
 psycopg2-binary
 publicsuffix2
 python-magic
+pytz
 requests
-selenium<4.9
+selenium<4.25

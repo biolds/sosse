@@ -16,6 +16,7 @@ docker/pip-release/uwsgi.*
 docker/pip-compose/run.sh
 docker/pip-compose/sosse.conf
 docker/pip-compose/uwsgi.*
+docker/local.mk
 se/static/swagger/
 se/static/se/node_modules/
 

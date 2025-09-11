@@ -3,7 +3,7 @@ BROWSER ?= chromium
 current_dir = $(shell pwd)
 
 .PHONY: _pip_pkg pip_pkg _pip_pkg_push pip_pkg_push _deb \
-	deb docker_run docker_build docker_push _build_doc build_doc \
+	deb _deb_bookworm deb_bookworm docker_run docker_build docker_push _build_doc build_doc \
 	doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
 	pip_pkg_check _pip_pkg_check _pip_functional_tests _pip_pkg_functional_tests _deb_pkg_functional_tests \
 	_common_pip_functional_tests _rf_functional_tests _rf_functional_tests_deps functional_tests install_js_deps vrt
@@ -39,6 +39,16 @@ _deb: install_js_deps
 deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb biolds/sosse:debian-pkg bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
+
+_deb_bookworm: install_js_deps
+	mv debian debian-last
+	mv debian-bookworm debian
+	dpkg-buildpackage -us -uc
+	mv ../sosse*_amd64.deb /deb
+
+deb_bookworm:
+	mkdir $(current_dir)/deb-bookworm/ &>/dev/null ||:
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb-bookworm:/deb biolds/sosse:bookworm-debian-pkg bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb_bookworm'
 
 _link_check:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
@@ -80,31 +90,33 @@ docker_run:
 						--mount source=sosse_var,destination=/var/lib/sosse biolds/sosse:latest
 
 docker_release_build:
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	docker pull debian:trixie
+	$(MAKE) -C docker/pip-base build
+	$(MAKE) -C docker/pip-compose build
+	$(MAKE) -C docker/pip-release build
 
 # The test release build builds the git repo based package
 docker_release_build_test:
 	make _pip_pkg
 	cp dist/sosse-*.whl docker/pip-compose/
 	sed -e 's#^RUN /venv/bin/pip install sosse#ADD sosse-*.whl /tmp/\nRUN /venv/bin/pip install /tmp/sosse-*.whl#' -i docker/pip-compose/Dockerfile
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	docker pull debian:trixie
+	$(MAKE) -C docker/pip-base build
+	$(MAKE) -C docker/pip-compose build
+	$(MAKE) -C docker/pip-release build
 
 docker_git_build:
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	docker pull debian:trixie
+	$(MAKE) -C docker/pip-base build
+
+	test ! -e docker/local.mk || . docker/local.mk
 	docker build --build-arg APT_PROXY=$(APT_PROXY) --build-arg PIP_INDEX_URL=$(PIP_INDEX_URL) --build-arg PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST) -t biolds/sosse:git .
 
 docker_push:
 	$(MAKE) -C docker push
 
 docker_build:
-	$(MAKE) -C docker build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	$(MAKE) -C docker build
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
 	docker tag biolds/sosse:pip-release biolds/sosse:stable
 
@@ -115,7 +127,7 @@ _doc_test_debian:
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
 
 doc_test_debian:
-	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
+	docker run -v $(current_dir):/sosse:ro debian:trixie bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
 
 _doc_test_pip:
 	cp doc/code_blocks.json /tmp/code_blocks.json
@@ -127,7 +139,7 @@ _doc_test_pip:
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/pip
 
 doc_test_pip:
-	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'
+	docker run -v $(current_dir):/sosse:ro debian:trixie bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'
 
 _pip_pkg_check:
 	pip install twine

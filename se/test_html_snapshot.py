@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import sys
 from unittest import mock
 
 import cssutils
@@ -43,6 +44,30 @@ class HTMLSnapshotTest:
         self.collection.default_browse_mode = Domain.BROWSE_REQUESTS
         self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_NONE
         self.collection.save()
+
+    def _assert_mock_calls_equal(self, mock_obj, expected_calls):
+        """Assert mock calls are equal, accounting for Python 3.13+ having
+        additional close() calls."""
+        actual_calls = mock_obj.mock_calls
+
+        # Python 3.13+ adds call().close() calls, so we need to filter them out for comparison
+        if sys.version_info >= (3, 13):
+            # Remove call().close() calls from the actual calls for comparison
+            filtered_actual = [call for call in actual_calls if not str(call).endswith("call().close()")]
+            self.assertEqual(filtered_actual, expected_calls)
+        else:
+            self.assertEqual(actual_calls, expected_calls)
+
+    def _get_mock_calls_filtered(self, mock_obj):
+        """Get mock calls with call().close() filtered out for Python 3.13+
+        compatibility."""
+        actual_calls = mock_obj.mock_calls
+
+        if sys.version_info >= (3, 13):
+            # Remove call().close() calls from the actual calls
+            return [call for call in actual_calls if not str(call).endswith("call().close()")]
+        else:
+            return actual_calls
 
     def test_010_html_dump(self):
         HTML = b"<html><head></head><body>test</body></html>"
@@ -633,21 +658,18 @@ class HTMLSnapshotTest:
             BrowserRequest.call_args_list,
         )
 
-        self.assertTrue(
-            mock_open.mock_calls
-            == [
-                mock.call(
-                    settings.SOSSE_HTML_SNAPSHOT_DIR + "http,3A/127.0.0.1/toobig.png_89ad261c12.txt",
-                    "wb",
-                ),
-                mock.call().__enter__(),
-                mock.call().write(
-                    b"An error occured while downloading http://127.0.0.1/toobig.png:\nDocument size is too big (2.0kB > 1.0kB). You can increase the `max_file_size` and `max_html_asset_size` option in the configuration to index this file."
-                ),
-                mock.call().__exit__(None, None, None),
-            ],
-            mock_open.mock_calls,
-        )
+        expected_calls = [
+            mock.call(
+                settings.SOSSE_HTML_SNAPSHOT_DIR + "http,3A/127.0.0.1/toobig.png_89ad261c12.txt",
+                "wb",
+            ),
+            mock.call().__enter__(),
+            mock.call().write(
+                b"An error occured while downloading http://127.0.0.1/toobig.png:\nDocument size is too big (2.0kB > 1.0kB). You can increase the `max_file_size` and `max_html_asset_size` option in the configuration to index this file."
+            ),
+            mock.call().__exit__(None, None, None),
+        ]
+        self._assert_mock_calls_equal(mock_open, expected_calls)
 
         dump = page.dump_html()
         OUTPUT = f"""<html><head></head><body>
@@ -692,12 +714,13 @@ class HTMLSnapshotTest:
             BrowserRequest.call_args_list,
         )
 
+        mock_calls = self._get_mock_calls_filtered(mock_open)
         self.assertRegex(
-            mock_open.mock_calls[0].args[0],
+            mock_calls[0].args[0],
             "^" + settings.SOSSE_HTML_SNAPSHOT_DIR + "http,3A/127.0.0.1/exception.png_[^.]+.txt",
         )
-        self.assertIn(b"Traceback (most recent call last):", mock_open.mock_calls[2].args[0])
-        self.assertIn(b"Exception: Generic exception", mock_open.mock_calls[2].args[0])
+        self.assertIn(b"Traceback (most recent call last):", mock_calls[2].args[0])
+        self.assertIn(b"Exception: Generic exception", mock_calls[2].args[0])
 
         urls = snap.get_asset_urls()
         self.assertEqual(len(urls), 1)
@@ -1090,12 +1113,13 @@ class HTMLSnapshotTest:
             ):
                 Document.objects.wo_content().create(url=f"http://127.0.0.1/page{no}.html", collection=self.collection)
                 Document.crawl(0)
+                mock_calls = self._get_mock_calls_filtered(mock_open)
                 self.assertEqual(
-                    mock_open.mock_calls[0],
+                    mock_calls[0],
                     mock.call(settings.SOSSE_HTML_SNAPSHOT_DIR + PNG_URL, "wb"),
                 )
                 self.assertEqual(
-                    mock_open.mock_calls[4],
+                    mock_calls[4],
                     mock.call(
                         f"{settings.SOSSE_HTML_SNAPSHOT_DIR}http,3A/127.0.0.1/page{no}.html_3acae9ed94.html",
                         "wb",
@@ -1264,17 +1288,18 @@ class HTMLSnapshotTest:
             unlink.call_args_list,
         )
 
+        mock_calls = self._get_mock_calls_filtered(mock_open)
         self.assertEqual(
-            mock_open.mock_calls[0].args[0],
+            mock_calls[0].args[0],
             settings.SOSSE_HTML_SNAPSHOT_DIR + "http,3A/127.0.0.1/image.png_62d75f74b8.png",
         )
         self.assertRegex(
-            mock_open.mock_calls[4].args[0],
+            mock_calls[4].args[0],
             settings.SOSSE_HTML_SNAPSHOT_DIR + r"http,3A/127\.0\.0\.1/_[^.]+\.html",
         )
 
-        self.assertIn(b"Traceback (most recent call last):", mock_open.mock_calls[6].args[0])
-        self.assertIn(b"Exception: html_error_handling test", mock_open.mock_calls[6].args[0])
+        self.assertIn(b"Traceback (most recent call last):", mock_calls[6].args[0])
+        self.assertIn(b"Exception: html_error_handling test", mock_calls[6].args[0])
 
         self.assertEqual(HTMLAsset.objects.count(), 1)
         asset = HTMLAsset.objects.first()

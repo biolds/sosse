@@ -16,8 +16,9 @@ RUN apt-get update && apt-get install -y postgresql jq git make
 RUN cd /root && git clone https://gitlab.com/biolds1/sosse-plugins && \
     cd /root/sosse-plugins && \
     make install-all && \
-    apt-get clean
-RUN sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>$/<!--<policy domain="coder" rights="none" pattern="PDF" \/>-->/' /etc/ImageMagick-6/policy.xml
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
 RUN cd /root/sosse-plugins && \
     make generate-plugins-json && \
     mv plugins.json /root/sosse/sosse/mime_handlers.json
@@ -42,4 +43,16 @@ RUN /etc/init.d/postgresql start && \
     tar -c -p -C / -f /tmp/postgres_sosse.tar.gz /var/lib/postgresql
 
 USER root
+
+# PostgreSQL from Bookworm for upgrade steps
+ADD docker/pip-release/bookworm.sources /etc/apt/sources.list.d/
+RUN apt-get update && apt-get install -y postgresql-15 && \
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
+RUN mkdir -p /etc/postgresql/15/main/
+ADD docker/pip-release/postgresql.conf.bookworm /etc/postgresql/15/main/postgresql.conf
+RUN echo 'local   all             postgres                                peer' > /etc/postgresql/15/main/pg_hba.conf
+RUN echo 'auto' > /etc/postgresql/15/main/start.conf
+
 CMD ["/usr/bin/bash", "/pg_run.sh"]

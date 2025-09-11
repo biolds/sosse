@@ -1,4 +1,4 @@
-FROM biolds/sosse:debian
+FROM biolds/sosse:bookworm-debian
 ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
@@ -6,10 +6,7 @@ RUN test -z "$APT_PROXY" || (echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/
 RUN apt update
 RUN apt purge -y sosse
 # Remove python3-coverage after version 1.13 is released
-RUN apt install -y python3-coverage python3-virtualenv flake8 sudo jq make git rsync && \
-    apt-get clean autoclean && \
-    apt-get autoremove --yes && \
-    rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
+RUN apt install -y python3-coverage python3-virtualenv flake8 sudo jq make git rsync && apt-get clean
 RUN /etc/init.d/postgresql start && \
     su - postgres -c "psql --command 'ALTER USER sosse WITH SUPERUSER;'" && \
     /etc/init.d/postgresql stop
@@ -23,9 +20,7 @@ RUN mkdir -p /var/lib/sosse/screenshots && git clone --depth=1 https://github.co
 RUN cd /root && git clone https://gitlab.com/biolds1/sosse-plugins && \
     cd /root/sosse-plugins && \
     make install-all && mv mime/image-metadata/test/img-meta.png /var/lib/sosse/screenshots/img-meta.png && \
-    apt-get clean autoclean && \
-    apt-get autoremove --yes && \
-    rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
+    apt-get clean
 RUN test -z "$APT_PROXY" || rm /etc/apt/apt.conf.d/proxy.conf
 
 # Pre-commit installation

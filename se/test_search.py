@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from io import StringIO
+
 from django.contrib.auth.models import User
 from django.core.handlers.wsgi import WSGIRequest
 from django.test import TransactionTestCase, override_settings
@@ -99,7 +101,7 @@ class SearchTest(TransactionTestCase):
         self.page.delete()
 
     def _search_docs(self, params, user=None):
-        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": params, "wsgi.input": ""})
+        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": params, "wsgi.input": StringIO("")})
         request.user = user or self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid(), form.errors)
@@ -207,7 +209,7 @@ class SearchTest(TransactionTestCase):
         self.assertEqual(docs[0], self.page)
 
     def test_021_headline(self):
-        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": "q=tele", "wsgi.input": ""})
+        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": "q=tele", "wsgi.input": StringIO("")})
         request.user = self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())

@@ -13,10 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import sys
 from functools import partialmethod
 from hashlib import md5
 from unittest import expectedFailure, mock
 
+import magic
 from django.conf import settings
 from django.test import TransactionTestCase, override_settings
 
@@ -43,6 +45,12 @@ class BaseFunctionalTest:
     def tearDownClass(cls):
         BrowserChromium.destroy()
         BrowserFirefox.destroy()
+
+    def _assert_mock_calls_count(self, mock_obj, expected_base_count=4):
+        """Assert mock calls count, accounting for Python 3.13+ having one
+        additional call."""
+        expected_count = expected_base_count + 1 if sys.version_info >= (3, 13) else expected_base_count
+        self.assertEqual(len(mock_obj.mock_calls), expected_count, mock_obj.mock_calls)
 
     def _crawl(self):
         while Document.crawl(0):
@@ -307,7 +315,7 @@ class FunctionalTest(BaseFunctionalTest):
         if self.BROWSE_MODE != Domain.BROWSE_REQUESTS:
             self.assertEqual(Document.objects.w_content().get().screenshot_count, 2)
 
-        self.assertEqual(len(html_open.mock_calls), 4)
+        self._assert_mock_calls_count(html_open)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_110_remove_nav_from_index(self):
@@ -333,7 +341,7 @@ class FunctionalTest(BaseFunctionalTest):
         if self.BROWSE_MODE != Domain.BROWSE_REQUESTS:
             self.assertEqual(Document.objects.wo_content().get().screenshot_count, 2)
 
-        self.assertEqual(len(html_open.mock_calls), 4)
+        self._assert_mock_calls_count(html_open)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_120_remove_nav_from_screenshot(self):
@@ -359,7 +367,7 @@ class FunctionalTest(BaseFunctionalTest):
         if self.BROWSE_MODE != Domain.BROWSE_REQUESTS:
             self.assertEqual(Document.objects.wo_content().get().screenshot_count, 1)
 
-        self.assertEqual(len(html_open.mock_calls), 4)
+        self._assert_mock_calls_count(html_open)
         self.assertIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     def test_130_remove_nav_from_all(self):
@@ -385,7 +393,7 @@ class FunctionalTest(BaseFunctionalTest):
         if self.BROWSE_MODE != Domain.BROWSE_REQUESTS:
             self.assertEqual(Document.objects.wo_content().get().screenshot_count, 1)
 
-        self.assertEqual(len(html_open.mock_calls), 4)
+        self._assert_mock_calls_count(html_open)
         self.assertNotIn(b"</nav>", html_open.mock_calls[2].args[0])
 
     BIN_FILES = (
@@ -417,14 +425,22 @@ class FunctionalTest(BaseFunctionalTest):
         self.assertEqual(Document.objects.count(), 1)
         doc = Document.objects.w_content().get()
         self.assertEqual(doc.content, "")
-        self.assertEqual(doc.mimetype, mimetype)
+
+        # Adjust expected mimetype based on libmagic version for ZIP files
+        expected_mimetype = mimetype
+        if filename == "test.zip" and mimetype == "application/zip":
+            # libmagic 5.46 (on Trixie) detects ZIP files as application/octet-stream
+            if magic.version() >= 546:
+                expected_mimetype = "application/octet-stream"
+
+        self.assertEqual(doc.mimetype, expected_mimetype)
 
         self.assertEqual(HTMLAsset.objects.count(), 1)
         asset = HTMLAsset.objects.get()
         self.assertEqual(asset.url, bin_url)
         self.assertEqual(asset.ref_count, 1)
 
-        self.assertEqual(len(html_open.mock_calls), 4)
+        self._assert_mock_calls_count(html_open)
         content_hash = md5(html_open.mock_calls[2].args[0]).hexdigest()
         self.assertEqual(content_hash, checksum)
 

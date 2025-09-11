@@ -93,19 +93,21 @@ class BrowserFirefox(BrowserSelenium):
         selenium_ver = tuple(map(int, selenium.__version__.split(".")))
         if selenium_ver < (4, 9, 0):
             service = {"service_log_path": log_file}
-        else:
+        elif selenium_ver < (4, 24, 0):
             service = {"service": FirefoxService(log_output=log_file)}
+        else:
+            service = {"service": FirefoxService(log_output=log_file, executable_path="/usr/local/bin/geckodriver")}
         return webdriver.Firefox(options=options, **service)
 
     @classmethod
     def _driver_get(cls, url, force_reload=False):
         _url = json.dumps(url)
-        if cls.driver.execute_script(f"return window.location.href === {_url}") and not force_reload:
+        if cls.driver().execute_script(f"return window.location.href === {_url}") and not force_reload:
             return
         dl_dir_files = cls.page_change_wait_setup()
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
-        # When a download starts, the regular cls.driver.get call is stuck
-        cls.driver.execute_script(
+        # When a download starts, the regular cls.driver().get call is stuck
+        cls.driver().execute_script(
             f"""
             window.location.assign({_url});
         """

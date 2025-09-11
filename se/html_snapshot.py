@@ -433,7 +433,7 @@ class HTMLSnapshot:
 
     def build_style(self):
         # dynamically extract style
-        style_elems = self.page.browser.driver.execute_script(
+        style_elems = self.page.browser.driver().execute_script(
             r"""
             let styleElems = [];
             for (let ssNo = 0; ssNo < document.styleSheets.length; ssNo++) {

@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:trixie
 ARG APT_PROXY=
 ARG PIP_INDEX_URL=
 ARG PIP_TRUSTED_HOST=

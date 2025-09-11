@@ -59,11 +59,18 @@ the command:
 
 .. code-block:: shell
 
-   curl -L https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
+   curl -L https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
 
 .. note::
    A more recent Geckodriver may improve compatibily with the installed Firefox, though different versions have not been tested to work
    correctly with Sosse.
+
+.. note::
+   On Debian Bookworm, use Geckodriver v0.35.0 instead:
+
+   .. code-block:: shell
+
+      curl -L https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-linux64.tar.gz | tar -C /usr/local/bin -x -v -z -f -
 
 Configuration Updates
 ---------------------

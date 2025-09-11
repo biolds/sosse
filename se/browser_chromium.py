@@ -20,6 +20,7 @@ import os
 from django.conf import settings
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromiumOptions
+from selenium.webdriver.chrome.service import Service as ChromiumService
 
 from .browser_selenium import BrowserSelenium
 from .domain import user_agent
@@ -81,15 +82,16 @@ class BrowserChromium(BrowserSelenium):
 
     @classmethod
     def _get_driver(cls, options):
-        return webdriver.Chrome(options=options)
+        service = ChromiumService(executable_path="/usr/bin/chromedriver")
+        return webdriver.Chrome(options=options, service=service)
 
     @classmethod
     def _driver_get(cls, url, force_reload=False):
         _url = json.dumps(url)
-        if cls.driver.execute_script(f"return window.location.href === {_url}") and not force_reload:
+        if cls.driver().execute_script(f"return window.location.href === {_url}") and not force_reload:
             return
         dl_dir_files = cls.page_change_wait_setup()
-        cls.driver.get(url)
+        cls.driver().get(url)
         cls.page_change_wait(dl_dir_files)
 
     @classmethod

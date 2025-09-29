@@ -31,7 +31,7 @@ from .utils import build_multiline_re, validate_multiline_re
 crawl_logger = logging.getLogger("crawler")
 
 
-class MimeHandler(BuiltinModel):
+class MimePlugin(BuiltinModel):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     license = models.CharField(max_length=255, blank=True, help_text="License of the script, e.g. GPL-3.0")
@@ -47,7 +47,7 @@ class MimeHandler(BuiltinModel):
         """Returns the absolute path to the stored script file, based on PK."""
         scripts_dir = settings.SOSSE_SCRIPTS_DIR
         os.makedirs(scripts_dir, exist_ok=True)
-        return os.path.join(scripts_dir, f"handler_{self.pk}.sh")
+        return os.path.join(scripts_dir, f"plugin_{self.pk}.sh")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -137,7 +137,7 @@ class MimeHandler(BuiltinModel):
 
                     with tempfile.TemporaryDirectory() as temp_dir:
                         code, stdout, stderr = handler.execute(temp_json_path, temp_dir)
-                        doc.mime_handlers_result += f"{handler.name}:\n{stderr}\n\n"
+                        doc.mime_plugins_result += f"{handler.name}:\n{stderr}\n\n"
 
                         if code != 0:
                             doc.error = f"{doc.error or ''}\nExecution of {handler.name} failed with status {code}:\n{stderr}".strip()
@@ -179,7 +179,7 @@ class MimeHandler(BuiltinModel):
                                     doc.has_thumbnail = True
                         except Exception as e:
                             doc.error = f"{doc.error or ''}\n{handler.name} processing error: {e}".strip()
-                            doc.mime_handlers_result += f"{handler.name}:\n{stderr}\n\n"
+                            doc.mime_plugins_result += f"{handler.name}:\n{stderr}\n\n"
                             crawl_logger.error(f"Mime handler {handler.name} processing error on {doc.url}: {e}")
                             if getattr(settings, "TEST_MODE", False):
                                 raise

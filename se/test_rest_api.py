@@ -23,7 +23,7 @@ from django.utils import timezone
 
 from .collection import Collection
 from .document import Document
-from .mime_handler import MimeHandler
+from .mime_plugin import MimePlugin
 from .models import CrawlerStats
 from .tag import Tag
 from .webhook import Webhook
@@ -47,7 +47,7 @@ SERIALIZED_DOC1 = {
     "lang_iso_639_1": "en",
     "manual_crawl": False,
     "metadata": {},
-    "mime_handlers_result": "",
+    "mime_plugins_result": "",
     "mimetype": "text/html",
     "modified_date": None,
     "normalized_content": "content",
@@ -160,7 +160,7 @@ class RestAPITest:
 
         self.test_webhook = Webhook.objects.create(name="Test Webhook", url="http://test.com/webhook")
 
-        self.mime_handler_builtin = MimeHandler.objects.create(
+        self.mime_plugin_builtin = MimePlugin.objects.create(
             name="Built-in Handler",
             description="A built-in MIME handler",
             script="echo 'builtin'",
@@ -168,7 +168,7 @@ class RestAPITest:
             builtin=True,
             enabled=True,
         )
-        self.mime_handler_custom = MimeHandler.objects.create(
+        self.mime_plugin_custom = MimePlugin.objects.create(
             name="Custom Handler",
             description="A custom MIME handler",
             script="echo 'custom'",
@@ -493,24 +493,24 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         response = self.client.post("/api/document/", {"url": "http://127.0.0.1/"}, content_type="application/json")
         self.assertEqual(response.status_code, 405, response.content)
 
-    def test_mime_handler_list(self):
-        response = self.client.get("/api/mime_handler/")
+    def test_mime_plugin_list(self):
+        response = self.client.get("/api/mime_plugin/")
         self.assertEqual(response.status_code, 200, response.content)
         data = json.loads(response.content)
         self.assertEqual(data["count"], 2)
         self.assertTrue(any(handler["name"] == "Built-in Handler" for handler in data["results"]))
         self.assertTrue(any(handler["name"] == "Custom Handler" for handler in data["results"]))
 
-    def test_mime_handler_detail(self):
-        response = self.client.get(f"/api/mime_handler/{self.mime_handler_custom.id}/")
+    def test_mime_plugin_detail(self):
+        response = self.client.get(f"/api/mime_plugin/{self.mime_plugin_custom.id}/")
         self.assertEqual(response.status_code, 200, response.content)
         data = json.loads(response.content)
         self.assertEqual(data["name"], "Custom Handler")
         self.assertEqual(data["builtin"], False)
 
-    def test_mime_handler_create(self):
+    def test_mime_plugin_create(self):
         response = self.client.post(
-            "/api/mime_handler/",
+            "/api/mime_plugin/",
             {
                 "name": "New Handler",
                 "description": "A new handler",
@@ -525,9 +525,9 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         self.assertEqual(data["name"], "New Handler")
         self.assertEqual(data["builtin"], False)
 
-    def test_mime_handler_update_custom(self):
+    def test_mime_plugin_update_custom(self):
         response = self.client.patch(
-            f"/api/mime_handler/{self.mime_handler_custom.id}/",
+            f"/api/mime_plugin/{self.mime_plugin_custom.id}/",
             {"description": "Updated description"},
             content_type="application/json",
         )
@@ -535,9 +535,9 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         data = json.loads(response.content)
         self.assertEqual(data["description"], "Updated description")
 
-    def test_mime_handler_update_builtin_forbidden(self):
+    def test_mime_plugin_update_builtin_forbidden(self):
         response = self.client.patch(
-            f"/api/mime_handler/{self.mime_handler_builtin.id}/",
+            f"/api/mime_plugin/{self.mime_plugin_builtin.id}/",
             {"description": "Should not work"},
             content_type="application/json",
         )
@@ -545,19 +545,19 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
         data = json.loads(response.content)
         self.assertIn("for built-in MIME handlers", data["detail"])
 
-    def test_mime_handler_delete_custom(self):
-        response = self.client.delete(f"/api/mime_handler/{self.mime_handler_custom.id}/")
+    def test_mime_plugin_delete_custom(self):
+        response = self.client.delete(f"/api/mime_plugin/{self.mime_plugin_custom.id}/")
         self.assertEqual(response.status_code, 204, response.content)
 
-    def test_mime_handler_delete_builtin_forbidden(self):
-        response = self.client.delete(f"/api/mime_handler/{self.mime_handler_builtin.id}/")
+    def test_mime_plugin_delete_builtin_forbidden(self):
+        response = self.client.delete(f"/api/mime_plugin/{self.mime_plugin_builtin.id}/")
         self.assertEqual(response.status_code, 403, response.content)
         data = json.loads(response.content)
         self.assertIn("Cannot delete built-in MIME handlers", data["detail"])
 
-    def test_mime_handler_builtin_readonly(self):
+    def test_mime_plugin_builtin_readonly(self):
         response = self.client.post(
-            "/api/mime_handler/",
+            "/api/mime_plugin/",
             {
                 "name": "Test Handler",
                 "script": "echo 'test'",

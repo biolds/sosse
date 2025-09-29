@@ -17,7 +17,7 @@ Administration
    domains.rst
    cookies.rst
    webhooks.rst
-   mime_handlers.rst
+   mime_plugins.rst
    excluded_urls.rst
    search_engines.rst
    permissions.rst

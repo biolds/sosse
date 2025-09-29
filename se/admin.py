@@ -42,7 +42,7 @@ from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
 from .domain import Domain
 from .html_asset import HTMLAsset
-from .mime_handler import MimeHandler
+from .mime_plugin import MimePlugin
 from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
 from .tag import Tag
 from .tag_field import TagField
@@ -61,7 +61,7 @@ class SEAdminSite(admin.AdminSite):
         "Document": "🔤 ",
         "Domain": "🕸",
         "Webhook": "📡",
-        "MimeHandler": "🧩",
+        "MimePlugin": "🧩",
         "ExcludedUrl": "🔗",
         "SearchEngine": "🔍",
         "User": "👤",
@@ -79,7 +79,7 @@ class SEAdminSite(admin.AdminSite):
                     "Domain",
                     "Cookie",
                     "Webhook",
-                    "MimeHandler",
+                    "MimePlugin",
                     "ExcludedUrl",
                     "SearchEngine",
                     "HTMLAsset",
@@ -535,7 +535,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             {
                 "fields": (
                     "_mimetype2",
-                    "mime_handlers_result",
+                    "mime_plugins_result",
                 ),
             },
         ),
@@ -563,7 +563,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         "_lang_txt",
         "_content",
         "crawl_first",
-        "mime_handlers_result",
+        "mime_plugins_result",
         "modified_date",
         "_crawl_last_txt",
         "_crawl_next_txt",
@@ -807,12 +807,12 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         icon = mimetype_icon(obj.mimetype)
         value = format_html(f"{icon} {obj.mimetype}")
 
-        handlers = MimeHandler.objects.extra(where=["%s ~ mimetype_re"], params=[obj.mimetype])
-        if handlers.exists():
+        plugins = MimePlugin.objects.extra(where=["%s ~ mimetype_re"], params=[obj.mimetype])
+        if plugins.exists():
             value += format_html(
-                ' <a href="{}" style="margin-left: 10px">🧩 Handlers ({})</a>',
-                reverse("admin:se_mimehandler_changelist") + f"?q={obj.mimetype}",
-                handlers.count(),
+                ' <a href="{}" style="margin-left: 10px">🧩 Plugins ({})</a>',
+                reverse("admin:se_mimeplugin_changelist") + f"?q={obj.mimetype}",
+                plugins.count(),
             )
         return value
 
@@ -1438,8 +1438,8 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
     webhook_test.short_description = "Webhook test"
 
 
-@admin.register(MimeHandler)
-class MimeHandlerAdmin(BuiltinAdmin):
+@admin.register(MimePlugin)
+class MimePluginAdmin(BuiltinAdmin):
     list_display = (
         "name",
         "enabled",
@@ -1463,7 +1463,7 @@ class MimeHandlerAdmin(BuiltinAdmin):
     def get_search_results(self, request, queryset, search_term):
         queryset, _ = super().get_search_results(request, queryset, search_term)
         if search_term.strip():
-            queryset = MimeHandler.objects.extra(where=["%s ~ mimetype_re"], params=[search_term.strip()])
+            queryset = MimePlugin.objects.extra(where=["%s ~ mimetype_re"], params=[search_term.strip()])
         return queryset, False
 
     @staticmethod

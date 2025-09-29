@@ -9,7 +9,7 @@ RUN apt-get install -y jq postgresql-client && \
     rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
 RUN virtualenv /venv
 RUN /venv/bin/pip install sosse uwsgi && /venv/bin/pip cache purge
-RUN jq -r '.[].dependencies[]?' /venv/lib/python3.13/site-packages/sosse/mime_handlers.json | sort -u | xargs apt install -y && \
+RUN jq -r '.[].dependencies[]?' /venv/lib/python3.13/site-packages/sosse/mime_plugins.json | sort -u | xargs apt install -y && \
     apt-get clean autoclean && \
     apt-get autoremove --yes && \
     rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man

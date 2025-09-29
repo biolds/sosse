@@ -20,14 +20,14 @@ before_script:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-download_mime_handlers:
+download_mime_plugins:
   stage: test
   image: debian:trixie
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   artifacts:
     paths:
-      - sosse/mime_handlers.json
+      - sosse/mime_plugins.json
   script:
     - apt update && apt install -y curl jq unzip
     - |
@@ -40,7 +40,7 @@ download_mime_handlers:
       else
         PLUGINS_REF="main"
       fi
-      echo "Downloading mime handlers from sosse-plugins ref: $PLUGINS_REF"
+      echo "Downloading mime plugins from sosse-plugins ref: $PLUGINS_REF"
     - >
       curl -L
       "https://gitlab.com/biolds1/sosse-plugins/-/jobs/artifacts/$PLUGINS_REF/download?job=generate_plugins"
@@ -50,9 +50,9 @@ download_mime_handlers:
       "https://gitlab.com/biolds1/sosse-plugins/-/jobs/artifacts/main/download?job=generate_plugins"
       --output plugins_artifact.zip)
     - unzip plugins_artifact.zip
-    - mv plugins.json sosse/mime_handlers.json
-    - echo "Downloaded mime handlers:"
-    - head -n 20 sosse/mime_handlers.json
+    - mv plugins.json sosse/mime_plugins.json
+    - echo "Downloaded mime plugins:"
+    - head -n 20 sosse/mime_plugins.json
 
 unit_tests:
   image: biolds/sosse:pip-test
@@ -93,7 +93,7 @@ unit_tests_bookworm:
 manage_cmd_tests:
   image: biolds/sosse:pip-test
   needs:
-    - download_mime_handlers
+    - download_mime_plugins
   artifacts:
     when: always
     paths:
@@ -127,7 +127,7 @@ manage_cmd_tests:
 manage_cmd_tests_bookworm:
   image: biolds/sosse:bookworm-pip-test
   needs:
-    - download_mime_handlers
+    - download_mime_plugins
   artifacts:
     when: always
     paths:
@@ -207,7 +207,7 @@ coverage_report:
     - if: $CI_PIPELINE_SOURCE == "push"
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
   artifacts:
     when: always
     paths:
@@ -413,7 +413,7 @@ pip_pkg:
     - functional_docs_chromium
     - functional_docs_firefox
     - static_checks
-    - download_mime_handlers
+    - download_mime_plugins
   script:
     - sed -e "s/^SOSSE_VERSION_TAG = .*/SOSSE_VERSION_TAG = '${CI_COMMIT_TAG/v/}'/" -i sosse/settings.py
     - sed -e "s/^SOSSE_VERSION_COMMIT = .*/SOSSE_VERSION_COMMIT = '${CI_COMMIT_SHORT_SHA}'/" -i sosse/settings.py
@@ -435,7 +435,7 @@ debian_pkg:
     - functional_docs_chromium
     - functional_docs_firefox
     - static_checks
-    - download_mime_handlers
+    - download_mime_plugins
   artifacts:
     paths:
       - deb/*.deb
@@ -464,7 +464,7 @@ debian_pkg_bookworm:
     - functional_docs_chromium_bookworm
     - functional_docs_firefox_bookworm
     - static_checks
-    - download_mime_handlers
+    - download_mime_plugins
   artifacts:
     paths:
       - deb/*.deb
@@ -550,7 +550,7 @@ debian_pkg_check_chromium_tests:
     BROWSER: chromium
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg
 
 debian_pkg_check_firefox_tests:
@@ -561,7 +561,7 @@ debian_pkg_check_firefox_tests:
     BROWSER: firefox
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg
 
 debian_pkg_check_chromium_docs:
@@ -572,7 +572,7 @@ debian_pkg_check_chromium_docs:
     BROWSER: chromium
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg
 
 debian_pkg_check_firefox_docs:
@@ -583,7 +583,7 @@ debian_pkg_check_firefox_docs:
     BROWSER: firefox
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg
 
 debian_pkg_check_chromium_tests_bookworm:
@@ -594,7 +594,7 @@ debian_pkg_check_chromium_tests_bookworm:
     BROWSER: chromium
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg_bookworm
 
 debian_pkg_check_firefox_tests_bookworm:
@@ -605,7 +605,7 @@ debian_pkg_check_firefox_tests_bookworm:
     BROWSER: firefox
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg_bookworm
 
 debian_pkg_check_chromium_docs_bookworm:
@@ -616,7 +616,7 @@ debian_pkg_check_chromium_docs_bookworm:
     BROWSER: chromium
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg_bookworm
 
 debian_pkg_check_firefox_docs_bookworm:
@@ -627,7 +627,7 @@ debian_pkg_check_firefox_docs_bookworm:
     BROWSER: firefox
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - debian_pkg_bookworm
 
 .pip_pkg_check: &pip_pkg_check
@@ -643,7 +643,7 @@ debian_pkg_check_firefox_docs_bookworm:
       - log/*
   needs:
     - doc_code_extract
-    - download_mime_handlers
+    - download_mime_plugins
     - pip_pkg
   script:
     - make _pip_pkg_functional_tests
@@ -731,7 +731,7 @@ rebuild_docker:
   needs:
     - job: rebuild_upgrade_check
       artifacts: true
-    - job: download_mime_handlers
+    - job: download_mime_plugins
       artifacts: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "stable"
@@ -789,7 +789,7 @@ rebuild_unit_tests:
   image: "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
   needs:
     - job: rebuild_docker
-    - job: download_mime_handlers
+    - job: download_mime_plugins
       artifacts: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "stable"
@@ -807,7 +807,7 @@ rebuild_unit_tests:
     - "until pg_isready; do sleep 1; done"
     - apt-get update
     - apt-get install -y rsync git curl jq
-    - 'jq -r ".[].dependencies[]?" sosse/mime_handlers.json | sort -u | xargs apt install -y'
+    - 'jq -r ".[].dependencies[]?" sosse/mime_plugins.json | sort -u | xargs apt install -y'
     - /run.sh &
     - echo -e "#!/bin/bash\nexec /venv/bin/python3 -m sosse.sosse_admin \"\$@\"" > sosse-admin.sh
     - chmod 755 sosse-admin.sh

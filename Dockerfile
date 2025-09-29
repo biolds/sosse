@@ -21,7 +21,7 @@ RUN cd /root && git clone https://gitlab.com/biolds1/sosse-plugins && \
     rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
 RUN cd /root/sosse-plugins && \
     make generate-plugins-json && \
-    mv plugins.json /root/sosse/sosse/mime_handlers.json
+    mv plugins.json /root/sosse/sosse/mime_plugins.json
 RUN make install_js_deps
 RUN virtualenv /venv
 RUN /venv/bin/pip install ./ && /venv/bin/pip install uwsgi && /venv/bin/pip cache purge

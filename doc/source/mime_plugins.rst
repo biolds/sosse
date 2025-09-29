@@ -1,53 +1,53 @@
-🧩 Mime Handlers
-================
+🧩 Mime Plugins
+===============
 
-Mime handler settings can be reached from the :doc:`admin_ui`, by clicking on
-``Mime Handlers``.
+Mime plugin settings can be reached from the :doc:`admin_ui`, by clicking on
+``Mime Plugins``.
 
-.. image:: ../../tests/robotframework/screenshots/mime_handler_list.png
+.. image:: ../../tests/robotframework/screenshots/mime_plugin_list.png
    :class: sosse-screenshot
 
-Mime handlers are automatically executed during crawling when a document's MIME type
-matches the handler's regex pattern. Built-in handlers are provided for common
-document types, but custom handlers can also be created.
+Mime plugins are automatically executed during crawling when a document's MIME type
+matches the plugin's regex pattern. Built-in plugins are provided for common
+document types, but custom plugins can also be created.
 
-Mime handler detailed view
+Mime plugin detailed view
 """"""""""""""""""""""""""
 
-The mime handler detail page contains all configuration fields for the handler:
+The mime plugin detail page contains all configuration fields for the plugin:
 
-.. image:: ../../tests/robotframework/screenshots/mime_handler_detail.png
+.. image:: ../../tests/robotframework/screenshots/mime_plugin_detail.png
    :class: sosse-screenshot
 
 Name
 ----
 
-A unique descriptive name for the mime handler, used for identification within
+A unique descriptive name for the mime plugin, used for identification within
 the admin interface.
 
 Description
 -----------
 
-Optional text field to describe what the handler does. This is particularly
-useful for documenting custom handlers.
+Optional text field to describe what the plugin does. This is particularly
+useful for documenting custom plugins.
 
 License
 -------
 
 License information for the script, such as "GPL-3.0" or "MIT". This field is
-optional and mainly used for built-in handlers.
+optional and mainly used for built-in plugins.
 
 Enabled
 -------
 
-Controls whether this handler is active during crawling. Disabled handlers will
+Controls whether this plugin is active during crawling. Disabled plugins will
 be ignored even if their MIME type pattern matches.
 
 MIME Type Regex
 ---------------
 
 One or more regular expressions (one per line) that define which MIME types this
-handler should process. Examples:
+plugin should process. Examples:
 
 * ``^application/pdf$`` - Matches PDF documents only
 * ``^image/.*`` - Matches all image types

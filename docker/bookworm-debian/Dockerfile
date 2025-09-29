@@ -18,7 +18,7 @@ RUN apt-get install -y sosse && \
         apt-get autoremove --yes && \
         rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man
 # Install plugin dependencies
-RUN jq -r '.[].dependencies[]?' /usr/lib/python3.11/dist-packages/sosse/mime_handlers.json | sort -u | xargs apt install -y && \
+RUN jq -r '.[].dependencies[]?' /usr/lib/python3.11/dist-packages/sosse/mime_plugins.json | sort -u | xargs apt install -y && \
     apt-get clean autoclean && \
     apt-get autoremove --yes && \
     rm -rf /var/lib/cache /var/lib/log /usr/share/doc /usr/share/man

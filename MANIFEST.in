@@ -11,4 +11,4 @@ include se/templates/admin/*
 include se/templates/se/*
 include se/templates/se/components/*
 include sosse/search_engines.json
-include sosse/mime_handlers.json
+include sosse/mime_plugins.json

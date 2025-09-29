@@ -38,7 +38,7 @@ from .add_to_queue import AddToQueueForm, queue_urls
 from .browser import SkipIndexing
 from .collection import Collection
 from .document import Document, example_doc
-from .mime_handler import MimeHandler
+from .mime_plugin import MimePlugin
 from .models import CrawlerStats, WorkerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
@@ -195,16 +195,16 @@ class MimeStatsViewSet(viewsets.ViewSet):
         return Response(indexed_mimes)
 
 
-class MimeHandlerSerializer(serializers.ModelSerializer):
+class MimePluginSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MimeHandler
+        model = MimePlugin
         fields = "__all__"
         read_only_fields = ("builtin",)
 
 
-class MimeHandlerViewSet(viewsets.ModelViewSet):
-    queryset = MimeHandler.objects.all()
-    serializer_class = MimeHandlerSerializer
+class MimePluginViewSet(viewsets.ModelViewSet):
+    queryset = MimePlugin.objects.all()
+    serializer_class = MimePluginSerializer
     permission_classes = [DjangoModelPermissionsRW]
 
     def perform_create(self, serializer):
@@ -533,7 +533,7 @@ router.register("stats", CrawlerStatsViewSet)
 router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
 router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
 router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
-router.register("mime_handler", MimeHandlerViewSet)
+router.register("mime_plugin", MimePluginViewSet)
 router.register("webhook", WebhookViewSet, basename="webhook")
 router.register("collection", CollectionViewSet)
 

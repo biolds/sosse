@@ -52,7 +52,7 @@
 |  | Click Element | xpath=//input[@value='Move Documents']
 |  |
 |  | # Should be back on documents page with success message
-|  | Wait Until Page Contains | 2 documents were moved to collection 'Target Collection'
+|  | Wait Until Page Contains | 2 documents moved to collection 'Target Collection'
 |  |
 |  | # Verify documents are now showing Target Collection
 |  | Page Should Contain | Target Collection

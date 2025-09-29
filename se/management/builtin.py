@@ -62,7 +62,7 @@ class UpdateBuiltinModel(BaseCommand):
         # Remove 'enabled' field to preserve user's enable/disable choice
         fields.pop("enabled", None)
         # Use save() instead of update() to ensure overridden save method is called
-        # (e.g., MimeHandler needs to write the JSON configuration file to disk)
+        # (e.g., MimePlugin needs to write the JSON configuration file to disk)
         for field, value in fields.items():
             setattr(db_obj, field, value)
         db_obj.save()

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from ...mime_handler import MimeHandler
+from ...mime_plugin import MimePlugin
 from ..builtin import UpdateBuiltinModel
 
 
@@ -21,8 +21,8 @@ class Command(UpdateBuiltinModel):
     help = "Updates MIME handler definitions."
     doc = "This updates MIME handlers in the database based on their definition in the filesystem."
 
-    json_file = "sosse/mime_handlers.json"
-    model_class = MimeHandler
+    json_file = "sosse/mime_plugins.json"
+    model_class = MimePlugin
     lookup_field = "name"
     model_name = "MIME handlers"
     fields_to_remove = {"dependencies"}

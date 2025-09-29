@@ -39,7 +39,7 @@ from .document_meta import DocumentMeta
 from .domain import Domain
 from .html_cache import HTMLAsset, HTMLCache
 from .html_snapshot import HTMLSnapshot
-from .mime_handler import MimeHandler
+from .mime_plugin import MimePlugin
 from .tag import Tag
 from .url import url_beautify, validate_url
 from .utils import reverse_no_escape
@@ -158,7 +158,7 @@ class Document(models.Model):
     worker_no = models.PositiveIntegerField(blank=True, null=True)
     webhooks_result = models.JSONField(default=dict)
     metadata = models.JSONField(default=dict)
-    mime_handlers_result = models.TextField(blank=True, default="")
+    mime_plugins_result = models.TextField(blank=True, default="")
 
     tags = models.ManyToManyField(Tag, blank=True)
 
@@ -313,7 +313,7 @@ class Document(models.Model):
         self.normalized_title = ""
         self.mimetype = ""
         self.manual_crawl = False
-        self.mime_handlers_result = ""
+        self.mime_plugins_result = ""
 
     def _clear_dump_content(self):
         from .models import Link
@@ -514,7 +514,7 @@ class Document(models.Model):
             serializer = DocumentSerializer(self, data=page.script_result, partial=True)
             serializer.user_doc_update("Javascript")
 
-        MimeHandler.run_for_document(self, page)
+        MimePlugin.run_for_document(self, page)
         Webhook.trigger(self.collection.webhooks.filter(trigger_condition__in=webhook_trigger_cond), self)
 
         if not self.title:

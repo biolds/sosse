@@ -40,7 +40,7 @@
 |  | Sosse Capture Page Screenshot | clear_admin_cookie.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/webhook/
 |  | Sosse Capture Page Screenshot | clear_admin_webhook.png
-|  | Sosse Go To | http://127.0.0.1/admin/se/mimehandler/
+|  | Sosse Go To | http://127.0.0.1/admin/se/mimeplugin/
 |  | Sosse Capture Page Screenshot | clear_admin_mimehapdler.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/excludedurl/
 |  | Sosse Capture Page Screenshot | clear_admin_searchengine.png

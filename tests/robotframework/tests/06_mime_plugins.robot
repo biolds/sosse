@@ -14,7 +14,7 @@
 
 
 | *Test Cases* |
-| MIME Handler - Crawl PNG with metadata
+| MIME Plugin - Crawl PNG with metadata
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/queue/
 |  | Wait Until Element Is Visible | id=id_urls
 |  | Input Text | id=id_urls | http://127.0.0.1/screenshots/img-meta.png

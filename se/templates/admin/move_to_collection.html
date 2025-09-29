@@ -43,6 +43,15 @@
             {% endif %}
         </p>
 
+        <p>
+            <label for="id_conflict_resolution"><strong>{{ form.conflict_resolution.label }}:</strong></label><br>
+            {{ form.conflict_resolution.errors }}
+            {{ form.conflict_resolution }}
+            {% if form.conflict_resolution.help_text %}
+                <p class="help">{{ form.conflict_resolution.help_text|safe }}</p>
+            {% endif %}
+        </p>
+
         <div style="margin-top: 20px;">
             <input type="submit" value="Move Documents" class="default">
             <a href="{% url 'admin:se_document_changelist' %}" class="button cancel-link">Cancel</a>

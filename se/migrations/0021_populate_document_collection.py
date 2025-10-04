@@ -103,7 +103,7 @@ def populate_collection_names(apps, schema_editor):
     logic."""
     Collection = apps.get_model("se", "Collection")
 
-    for collection in Collection.objects.all():
+    for collection in Collection.objects.exclude(name="Default"):
         base_name = get_title_label(collection)
         unique_name = get_unique_name(Collection, base_name)
         collection.name = unique_name

@@ -8,13 +8,29 @@ Sosse can be installed using the official Debian repository. To do so, first imp
    apt update
    apt install -y curl gpg
    mkdir -p /etc/keyrings/
-   curl http://piggledy.org/repo/apt/debian/public.gpg.key | gpg --dearmor > /etc/keyrings/piggledy.gpg
+   curl https://piggledy.org/repo/apt/debian/public.gpg.key | gpg --dearmor > /etc/keyrings/piggledy.gpg
 
 Then setup the repository:
 
 .. code-block:: shell
 
-   echo 'deb [signed-by=/etc/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bookworm main' > /etc/apt/sources.list.d/piggledy.list
+   nano /etc/apt/sources.list.d/piggledy.sources
+
+.. code-block:: default
+
+   Types: deb
+   URIs: https://piggledy.org/repo/apt/debian
+   Suites: trixie
+   Components: main
+   Signed-By: /etc/keyrings/piggledy.gpg
+
+.. note::
+
+   On Debian Bookworm, you can configure the repository with:
+
+   .. code-block:: shell
+
+      echo 'deb [signed-by=/etc/keyrings/piggledy.gpg] http://piggledy.org/repo/apt/debian bookworm main' > /etc/apt/sources.list.d/piggledy.list
 
 The Sosse package can then be installed with its dependencies:
 

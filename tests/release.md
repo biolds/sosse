@@ -1,7 +1,7 @@
 - make docker_git_build
 - test (docker run -p 8005:80 -e SOSSE_CRAWLER_COUNT=1 biolds/sosse:git)
 - test upgrading the docker image
-- debian update: version + changelog : dch -i (available in the devscripts deb package)
+- debian update: changelog : dch -i (available in the devscripts deb package), same in debian-bookworm/changelog
 - doc version update in doc/source/conf.py
 - update the CHANGELOG.md using the last changelog build it the main branch
 - commit as "v1.10.1 release"
@@ -17,6 +17,7 @@
   - wget `<pkg url>`
   - cd /var/www/html/repo/apt/debian/
   - reprepro -V --keepunreferencedfiles includedeb bookworm `<path to the .deb>`
+  - reprepro -V --keepunreferencedfiles includedeb trixie `<path to the .deb>`
 - docker build:
   - docker system prune -a
   - make docker_build

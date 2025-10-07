@@ -40,3 +40,17 @@ class CommandsTest(TransactionTestCase):
         with self.assertRaises(SystemExit):
             call_command("delete_documents", "--dry-run", "http://test")
         self.assertEqual(Document.objects.count(), 1)
+
+    def test_delete_document_exclude(self):
+        # Create additional documents for exclusion test
+        Document.objects.wo_content().create(url="http://test/important.html", collection=self.collection)
+        Document.objects.wo_content().create(url="http://test/regular.html", collection=self.collection)
+        self.assertEqual(Document.objects.wo_content().count(), 3)
+
+        # Delete all test documents except those containing "important"
+        call_command("delete_documents", "http://test", "--exclude", "important")
+
+        # Should only have the important document left
+        self.assertEqual(Document.objects.wo_content().count(), 1)
+        remaining_doc = Document.objects.wo_content().first()
+        self.assertIn("important", remaining_doc.url)

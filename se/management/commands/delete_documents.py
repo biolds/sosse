@@ -39,12 +39,22 @@ class Command(BaseCommand):
             action="store_true",
             help="Case insensitive matching.",
         )
+        parser.add_argument(
+            "--exclude",
+            help="Regex pattern to exclude URLs from deletion.",
+        )
 
     def handle(self, *args, **options):
         if options["ignore_case"]:
             docs = Document.objects.wo_content().filter(url__regex=options["url regex"])
         else:
             docs = Document.objects.wo_content().filter(url__iregex=options["url regex"])
+
+        if options["exclude"]:
+            if options["ignore_case"]:
+                docs = docs.exclude(url__iregex=options["exclude"])
+            else:
+                docs = docs.exclude(url__regex=options["exclude"])
 
         count = docs.count()
         if options["dry_run"]:

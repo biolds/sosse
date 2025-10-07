@@ -397,7 +397,7 @@ def crawl_now(modeladmin, request, queryset):
     return redirect(reverse("admin:crawl_queue"))
 
 
-@admin.action(description="Remove from crawl queue", permissions=["change"])
+@admin.action(description="Stop recrawl", permissions=["change"])
 def remove_from_crawl_queue(modeladmin, request, queryset):
     queryset.update(crawl_next=None)
 

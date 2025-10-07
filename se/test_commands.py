@@ -54,3 +54,17 @@ class CommandsTest(TransactionTestCase):
         self.assertEqual(Document.objects.wo_content().count(), 1)
         remaining_doc = Document.objects.wo_content().first()
         self.assertIn("important", remaining_doc.url)
+
+    def test_delete_document_ignore_case(self):
+        # Create documents with different cases
+        Document.objects.wo_content().create(url="http://TEST/page.html", collection=self.collection)
+        Document.objects.wo_content().create(url="http://other/page.html", collection=self.collection)
+        self.assertEqual(Document.objects.wo_content().count(), 3)
+
+        # Delete with ignore case - should match both "test" and "TEST"
+        call_command("delete_documents", "test", "--ignore-case")
+
+        # Should only have the "other" document left
+        self.assertEqual(Document.objects.wo_content().count(), 1)
+        remaining_doc = Document.objects.wo_content().first()
+        self.assertIn("other", remaining_doc.url)

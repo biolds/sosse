@@ -3,18 +3,14 @@
   {% if collection.unlimited_regex_pg %}
     Unlimited recursion
   {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg %}
-    Unlimited recursion
+    No recursion
   {% endif %}
 
-  {% if collection.unlimited_regex_pg and collection.limited_regex_pg and collection.recursion_depth != 0 %}
-    /
-  {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg and collection.recursion_depth != 0 %}
+  {% if collection.unlimited_regex_pg and collection.limited_regex_pg %}
     /
   {% endif %}
 
-  {% if collection.limited_regex_pg and collection.recursion_depth != 0 %}
-    {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} recursion
-  {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg and collection.recursion_depth != 0 %}
+  {% if collection.limited_regex_pg %}
     {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} recursion
   {% endif %}
 </span>

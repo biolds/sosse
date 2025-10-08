@@ -382,11 +382,6 @@ The UA will be selected among the provided platform, specified as a comma-separa
             default=1,
             type=int,
         ),
-        "cross_collection_crawl": ConfOption(
-            comment="When an URL doesn't match the current Collection's regex patterns, check if it matches another Collection and queue it there.",
-            default=False,
-            type=bool,
-        ),
     },
 }
 

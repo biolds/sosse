@@ -38,6 +38,8 @@ class CrawlerTest(TransactionTestCase):
         ]
 
     def setUp(self):
+        Collection.objects.all().delete()
+
         self.collection = Collection.objects.create(
             name="Test Collection",
             unlimited_regex="http://127.0.0.1/",
@@ -846,27 +848,29 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(already_crawled.crawl_last, self.fake_yesterday)
         self.assertEqual(already_crawled.crawl_next, self.fake_yesterday)
 
-    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", True)
-    def test_300_cross_collection_crawl_enabled(self):
-        # Create two collections with different regex patterns
-        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
-        coll2 = Collection.objects.create(name="Collection 2", unlimited_regex="http://site2.com/")
+    def test_300_queue_to_any_collection_enabled(self):
+        # Create two collections with different regex patterns (avoiding conflicts with setUp)
+        coll1 = Collection.objects.create(
+            name="Collection 1", unlimited_regex="http://example1.com/", queue_to_any_collection=True
+        )
+        coll2 = Collection.objects.create(name="Collection 2", unlimited_regex="http://example2.com/")
 
         # Create a parent document in collection 1
-        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+        parent_doc = Document.queue("http://example1.com/parent", coll1, None)
 
         # Try to queue a URL that doesn't match coll1 but matches coll2
-        queued_doc = Document.queue("http://site2.com/child", coll1, parent_doc)
+        queued_doc = Document.queue("http://example2.com/child", coll1, parent_doc)
 
         # Should be queued in collection 2, not collection 1
         self.assertIsNotNone(queued_doc)
         self.assertEqual(queued_doc.collection, coll2)
-        self.assertEqual(queued_doc.url, "http://site2.com/child")
+        self.assertEqual(queued_doc.url, "http://example2.com/child")
 
-    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", False)
     def test_310_cross_collection_crawl_disabled(self):
         # Create two collections with different regex patterns
-        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        coll1 = Collection.objects.create(
+            name="Collection 1", unlimited_regex="http://site1.com/", queue_to_any_collection=False
+        )
         Collection.objects.create(name="Collection 2", unlimited_regex="http://site2.com/")
 
         # Create a parent document in collection 1
@@ -878,10 +882,11 @@ class CrawlerTest(TransactionTestCase):
         # Should return None (not queued) when cross-collection crawl is disabled
         self.assertIsNone(queued_doc)
 
-    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", True)
     def test_320_cross_collection_crawl_same_collection(self):
         # Create a collection
-        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        coll1 = Collection.objects.create(
+            name="Collection 1", unlimited_regex="http://site1.com/", queue_to_any_collection=True
+        )
 
         # Create a parent document
         parent_doc = Document.queue("http://site1.com/parent", coll1, None)
@@ -893,10 +898,11 @@ class CrawlerTest(TransactionTestCase):
         self.assertIsNotNone(queued_doc)
         self.assertEqual(queued_doc.collection, coll1)
 
-    @mock.patch("django.conf.settings.SOSSE_CROSS_COLLECTION_CRAWL", True)
     def test_330_cross_collection_crawl_no_match(self):
         # Create one collection
-        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        coll1 = Collection.objects.create(
+            name="Collection 1", unlimited_regex="http://site1.com/", queue_to_any_collection=True
+        )
 
         # Create a parent document
         parent_doc = Document.queue("http://site1.com/parent", coll1, None)
@@ -906,3 +912,50 @@ class CrawlerTest(TransactionTestCase):
 
         # Should return None (not queued)
         self.assertIsNone(queued_doc)
+
+    def test_340_cross_collection_crawl_selective(self):
+        # Create three collections with different regex patterns
+        coll1 = Collection.objects.create(name="Collection 1", unlimited_regex="http://site1.com/")
+        coll2 = Collection.objects.create(name="Collection 2", unlimited_regex="http://site2.com/")
+        Collection.objects.create(name="Collection 3", unlimited_regex="http://site3.com/")
+
+        # Configure coll1 to only crawl cross-collection to coll2 (not coll3)
+        coll1.queue_to_collections.add(coll2)
+
+        # Create a parent document in collection 1
+        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+
+        # Try to queue a URL that matches coll2 (should work)
+        queued_doc2 = Document.queue("http://site2.com/child", coll1, parent_doc)
+        self.assertIsNotNone(queued_doc2)
+        self.assertEqual(queued_doc2.collection, coll2)
+
+        # Try to queue a URL that matches coll3 (should NOT work since coll3 not in selective list)
+        queued_doc3 = Document.queue("http://site3.com/child", coll1, parent_doc)
+        self.assertIsNone(queued_doc3)
+
+    def test_350_queue_to_any_collection_priority_over_selective(self):
+        # Create three collections
+        coll1 = Collection.objects.create(
+            name="Collection 1",
+            unlimited_regex="http://site1.com/",
+            queue_to_any_collection=True,  # This takes priority over selective configuration
+        )
+        coll2 = Collection.objects.create(name="Collection 2", unlimited_regex="http://site2.com/")
+        coll3 = Collection.objects.create(name="Collection 3", unlimited_regex="http://site3.com/")
+
+        # Configure selective crawl (should be ignored when queue_to_any_collection=True)
+        coll1.queue_to_collections.add(coll2)
+
+        # Create a parent document in collection 1
+        parent_doc = Document.queue("http://site1.com/parent", coll1, None)
+
+        # Try to queue a URL that matches coll2 (should work - matches and all mode is on)
+        queued_doc2 = Document.queue("http://site2.com/child", coll1, parent_doc)
+        self.assertIsNotNone(queued_doc2)
+        self.assertEqual(queued_doc2.collection, coll2)
+
+        # Try to queue a URL that matches coll3 (should ALSO work since all mode takes priority)
+        queued_doc3 = Document.queue("http://site3.com/child", coll1, parent_doc)
+        self.assertIsNotNone(queued_doc3)
+        self.assertEqual(queued_doc3.collection, coll3)

@@ -97,6 +97,28 @@ Defines the source for pages thumbnails displayed in the search results and home
 .. note::
    To take screenshot as thumbnails, the ``Default browse mode`` needs to be ``Chromium`` or ``Firefox``.
 
+Queue to any collection
+"""""""""""""""""""""""
+
+When enabled, URLs that don't match this Collection's regex patterns will be checked against all other Collections.
+If a matching Collection is found, the URL will be queued there instead of being skipped.
+
+This allows automatic cross-collection crawling where pages discovered during crawling can be indexed in the most
+appropriate Collection based on their URL patterns.
+
+Queue to specific collections
+"""""""""""""""""""""""""""""
+
+When ``Queue to any collection`` is disabled, you can select specific Collections to check for URLs that don't match
+this Collection's patterns. This provides more granular control over cross-collection crawling.
+
+Only the selected Collections will be checked, and if a URL matches one of them, it will be queued there. If multiple
+Collections match, the first one (based on the longest regex match) will be used.
+
+.. note::
+   ``Queue to any collection`` takes priority over ``Queue to specific collections``. If both are configured,
+   only the "any collection" mode will be active.
+
 .. _collection_take_screenshot:
 
 🌍 Browser tab

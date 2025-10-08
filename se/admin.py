@@ -899,6 +899,12 @@ class CollectionForm(CharFieldForm):
         required=False,
     )
 
+    queue_to_collections = forms.ModelMultipleChoiceField(
+        queryset=Collection.objects.all(),
+        widget=admin.widgets.FilteredSelectMultiple("Collections", is_stacked=False),
+        required=False,
+    )
+
     class Meta:
         model = Collection
         exclude = tuple()
@@ -907,6 +913,10 @@ class CollectionForm(CharFieldForm):
         super().__init__(*args, **kwargs)
         instance = kwargs.get("instance")
         self.fields["tags"] = TagField(model=Collection, instance=instance)
+
+        # Exclude self from queue_to_collections choices
+        if instance and instance.pk:
+            self.fields["queue_to_collections"].queryset = Collection.objects.exclude(pk=instance.pk)
 
         for field in ("unlimited_regex", "limited_regex", "excluded_regex"):
             # Fields are empty when the form is readonly
@@ -1042,6 +1052,8 @@ class CollectionAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMixi
                     "hide_documents",
                     "remove_nav_elements",
                     "thumbnail_mode",
+                    "queue_to_any_collection",
+                    "queue_to_collections",
                 )
             },
         ),
@@ -1098,7 +1110,7 @@ class CollectionAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMixi
     actions = [collection_duplicate, update_doc_tags, clear_update_doc_tags]
 
     class Media:
-        js = ("se/tags.js",)
+        js = ("se/tags.js", "se/admin-collection.js")
 
     def changelist_view(self, request, extra_context=None):
         Collection.create_default()

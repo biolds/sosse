@@ -644,16 +644,43 @@ class Document(models.Model):
 
         if not should_crawl:
             if parent:
+                crawl_logger.debug(
+                    f"URL {url} doesn't match collection {collection.name} patterns - checking cross-collection crawl"
+                )
                 # Check cross-collection queueing if enabled
-                if settings.SOSSE_CROSS_COLLECTION_CRAWL:
+                matching_collection = None
+
+                crawl_logger.debug(
+                    f"Collection {collection.name} queue_to_any_collection: {collection.queue_to_any_collection}"
+                )
+                crawl_logger.debug(
+                    f"Collection {collection.name} queue_to_collections exists: {collection.queue_to_collections.exists()}"
+                )
+
+                if collection.queue_to_any_collection:
+                    # Check all collections
+                    crawl_logger.debug(f"Checking all collections for URL {url}")
                     from .collection import Collection
 
                     matching_collection = Collection.get_from_url(url)
-                    if matching_collection and matching_collection != collection:
-                        crawl_logger.debug(
-                            f"cross-collection queueing {url} - found matching collection {matching_collection}"
-                        )
-                        return Document.queue(url, matching_collection, parent)
+                    crawl_logger.debug(f"get_from_url returned: {matching_collection}")
+                elif collection.queue_to_collections.exists():
+                    # Check only selected collections
+                    crawl_logger.debug(f"Checking selected collections for URL {url}")
+                    from .collection import Collection
+
+                    target_collections = list(collection.queue_to_collections.all())
+                    crawl_logger.debug(f"Target collections: {[c.name for c in target_collections]}")
+                    matching_collection = Collection.get_from_url(url, target_collections)
+                    crawl_logger.debug(f"get_from_url with filter returned: {matching_collection}")
+
+                if matching_collection and matching_collection != collection:
+                    mode = "any" if collection.queue_to_any_collection else "specific"
+                    crawl_logger.debug(
+                        f"cross-collection queueing {url} - found matching collection {matching_collection} ({mode} mode)"
+                    )
+                    return Document.queue(url, matching_collection, parent)
+
                 crawl_logger.debug(f"skipping {url} - does not match unlimited_regex or limited_regex")
                 return
 

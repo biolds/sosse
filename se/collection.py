@@ -256,6 +256,20 @@ class Collection(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     webhooks = models.ManyToManyField(Webhook)
 
+    # Cross-collection crawl settings
+    queue_to_any_collection = models.BooleanField(
+        default=False,
+        verbose_name="Queue to any collection",
+        help_text="When a URL doesn't match this Collection's regex patterns, check all Collections and queue it in the first matching one.",
+    )
+    queue_to_collections = models.ManyToManyField(
+        "self",
+        blank=True,
+        symmetrical=False,
+        verbose_name="Queue to specific collections",
+        help_text="When a URL doesn't match this Collection's regex patterns, check only these Collections and queue it there.",
+    )
+
     class Meta:
         ordering = ["name"]
 
@@ -290,11 +304,10 @@ class Collection(models.Model):
             return Collection.objects.create(name="Default")
 
     @staticmethod
-    def get_from_url(url):
-        queryset = Collection.objects.exclude(combined_regex_pg="")
-
-        collection = (
-            queryset.annotate(
+    def get_from_url(url, collections_to_check=None):
+        crawl_logger.debug("collections", Collection.objects.values_list("name", "combined_regex_pg"))
+        collections = (
+            Collection.objects.annotate(
                 match_len=models.functions.Length(
                     models.Func(
                         models.Value(url),
@@ -306,10 +319,25 @@ class Collection(models.Model):
             )
             .filter(match_len__gt=0)
             .order_by("-match_len")
-            .first()
         )
 
-        return collection
+        # If specific collections are provided, filter to only those
+        if collections_to_check is not None:
+            collections_to_check_ids = {c.pk for c in collections_to_check}
+
+        for collection in collections:
+            # If we have a filter list, check if this collection is in it
+            if collections_to_check is not None and collection.pk not in collections_to_check_ids:
+                continue
+
+            if not collection.combined_regex_pg:
+                continue
+
+            if Document._url_matches_regex(url, collection.excluded_regex_pg):
+                continue
+            return collection
+
+        return None
 
     @staticmethod
     def _default_browser():

@@ -119,6 +119,8 @@ manage_cmd_tests:
     - /tmp/sudo_sosse makemigrations || failed=1
     - /tmp/sudo_sosse migrate se 0001 || failed=1
     - /tmp/sudo_sosse convert_screens_to_jpeg || failed=1
+    - /tmp/sudo_sosse queue_status || failed=1
+    - /tmp/sudo_sosse queue_status --format json > /dev/null || failed=1
     - mv /var/log/sosse log
     - mv /tmp/coverage-* .
     - exit $failed
@@ -153,6 +155,8 @@ manage_cmd_tests_bookworm:
     - /tmp/sudo_sosse makemigrations || failed=1
     - /tmp/sudo_sosse migrate se 0001 || failed=1
     - /tmp/sudo_sosse convert_screens_to_jpeg || failed=1
+    - /tmp/sudo_sosse queue_status || failed=1
+    - /tmp/sudo_sosse queue_status --format json > /dev/null || failed=1
     - mv /var/log/sosse log
     - mv /tmp/coverage-* .
     - exit $failed

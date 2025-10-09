@@ -1040,12 +1040,12 @@ class CollectionAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMixi
             {
                 "fields": (
                     "name",
+                    "related",
                     "unlimited_regex",
                     "limited_regex",
                     "recursion_depth",
                     "excluded_regex",
                     "tags",
-                    "related",
                     "mimetype_regex",
                     "keep_params",
                     "store_extern_links",

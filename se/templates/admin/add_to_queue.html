@@ -164,14 +164,16 @@
         <p>
             {{ form.crawl_scope.errors }}
             <label>{{ form.crawl_scope.label }}:</label>
-            {{ form.crawl_scope }}
-            {% if form.crawl_scope.help_text %}
-                <small><p class="help">{{ form.crawl_scope.help_text|safe }}</p></small>
-            {% endif %}
+            <div style="padding: 10px 0px 0px 15px;">
+              {{ form.crawl_scope }}
+              {% if form.crawl_scope.help_text %}
+                  <small><p class="help">{{ form.crawl_scope.help_text|safe }}</p></small>
+              {% endif %}
+            </div>
         </p>
 
         <p>
-            <label>Parameters:</label>
+            <label>Collection parameters:</label>
             {% for collection in collections %}
                 <div id="collection-desc-{{ collection.id }}" style="display: none">
                     {% include "admin/collection_desc.html" with add_to_queue=True label_tag="label_tag" %}

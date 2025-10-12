@@ -17,16 +17,16 @@
 
 <span class="{{ label_tag }}"{% if not add_to_queue %} title="Browser"{% endif %}>
     🌐 {% if add_to_queue %}with{% endif %}
-    {% if collection.default_browse_mode == DomainSetting.BROWSE_DETECT %}
+    {% if collection.default_browse_mode == Domain.BROWSE_DETECT %}
         {{ settings.SOSSE_DEFAULT_BROWSER|title }}
         {% if add_to_queue %}
             if necessary
         {% else %}
             / Request
         {% endif %}
-    {% elif collection.default_browse_mode == DomainSetting.BROWSE_CHROMIUM %}
+    {% elif collection.default_browse_mode == Domain.BROWSE_CHROMIUM %}
         Chromium
-    {% elif collection.default_browse_mode == DomainSetting.BROWSE_FIREFOX %}
+    {% elif collection.default_browse_mode == Domain.BROWSE_FIREFOX %}
         Firefox
     {% else %}
         Python Request

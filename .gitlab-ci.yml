@@ -743,7 +743,7 @@ rebuild_docker:
     - test "$CI_PIPELINE_SOURCE" = push || test -e pkg_status/apt_list_upgradable
     - test "$CI_PIPELINE_SOURCE" = push || test -e pkg_status/pip_upgrade
     - mkdir -p ~/.docker
-    - 'echo "{\"auths\":{\"registry.gitlab.com\":{\"auth\":\"$GITLAB_DOCKER_REGISTRY_KEY\"}}}" > ~/.docker/config.json'
+    - 'echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin'
     - "if (cat pkg_status/apt_list_upgradable | grep -v ^Listing | grep -q .) || (grep -q ^Would pkg_status/pip_upgrade) || (test $CI_PIPELINE_SOURCE != schedule); then NO_BUILD=0 ; else NO_BUILD=1 ; fi"
     - "test $NO_BUILD -eq 0 || docker pull debian:trixie"
     - "test $NO_BUILD -eq 0 || docker tag debian:trixie registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
@@ -867,7 +867,7 @@ rebuild_docker_push:
     - "if (cat pkg_status/apt_list_upgradable | grep -v ^Listing | grep -q .) || (grep -q ^Would pkg_status/pip_upgrade) ; then NO_BUILD=0 ; else NO_BUILD=1 ; fi"
     - "test $NO_BUILD -eq 0 || exit 0"
     - mkdir ~/.docker/
-    - 'echo "{\"auths\":{\"registry.gitlab.com\":{\"auth\":\"$GITLAB_DOCKER_REGISTRY_KEY\"}}}" > ~/.docker/config.json'
+    - 'echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin'
     - docker pull "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID"
     - docker tag "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID" biolds/sosse:latest
     - docker tag "registry.gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_PIPELINE_ID" biolds/sosse:stable

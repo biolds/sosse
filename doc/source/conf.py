@@ -28,7 +28,7 @@ from urllib.parse import quote
 project = "Sosse"
 copyright = "2022-2025, Laurent Defert"
 author = "Laurent Defert"
-release = "1.13"
+release = "1.14"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

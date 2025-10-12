@@ -1,3 +1,33 @@
+## 1.14.0 (2025-10-09)
+### Features (8 changes)
+- [add a "queue_status" management command](https://gitlab.com/biolds1/sosse/-/commit/d147ef270ae74749df30dee5980886520c87aede)
+- [add --exclude flag to the "delete_documents" management command](https://gitlab.com/biolds1/sosse/-/commit/f1e253ad47f521172f32def3d51f5312e59d0df2) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/186))
+- [Debian Trixie support](https://gitlab.com/biolds1/sosse/-/commit/4996015dc5b9da658a4aa13f8959ad3c9ccb9315) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/184))
+- [Excluded Urls mass import](https://gitlab.com/biolds1/sosse/-/commit/ca16ce681f2b4f72ef081332f7a51b366db7fbfd)
+- [URL queueing rest API](https://gitlab.com/biolds1/sosse/-/commit/340560f5cd901d4c70ebe05789c49c80800057c2)
+- [replace Crawl policies with Collections for improved usability](https://gitlab.com/biolds1/sosse/-/commit/4e6c50433158b77c2cc3daa717cd50651b75c7e2)
+- [add a few new search shortcuts](https://gitlab.com/biolds1/sosse/-/commit/be0d52b744cb1304966ab37f2e1e02852a0eadb3)
+- [mimetype handler scripts](https://gitlab.com/biolds1/sosse/-/commit/2f5c653c85db4890db4707d10f8b44d9d51e69e4) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/182))
+### Bug fixes (3 changes)
+- [fix case-sensitive filtering of URLs with delete_documents management command](https://gitlab.com/biolds1/sosse/-/commit/75b2ec9fb3ad1faf6b599f022c7cbbbb8d1a5a8b) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/186))
+- [avoid modifying the case of percent-encoded urls](https://gitlab.com/biolds1/sosse/-/commit/eb25ead0385207666dd53541a22cbbd0797fd6bc)
+- [set postgres to version 17 in docker-compose.yml to avoid breaking upgrades](https://gitlab.com/biolds1/sosse/-/commit/61d1a47d13c0af0978dda32fe5d9cef554c0c4f5)
+
+> ⚠ **Important**
+> This is a **major update**, and it is **recommended to back up your database and volumes** before upgrading, as it introduces **Debian Trixie** support and transitions from **Crawl Policies** to **Collections** — see details here: [https://sosse.io/blog/post/crawl-policies-to-collections/](https://sosse.io/blog/post/crawl-policies-to-collections/)
+
+## 1.13.5 (2025-07-05)
+### Bug fixes (1 change)
+- [documentation update: set postgres to version 17 in docker-compose.yml to avoid breaking upgrades](https://gitlab.com/biolds1/sosse/-/commit/61d1a47d13c0af0978dda32fe5d9cef554c0c4f5)
+
+> ⚠️ **Important**: Please update your `docker-compose.yml` file to set PostgreSQL to version 17. This will prevent issues during future upgrades. Refer to the [diff](https://gitlab.com/biolds1/sosse/-/commit/61d1a47d13c0af0978dda32fe5d9cef554c0c4f5) for more details.
+
+## 1.13.4 (2025-06-29)
+### Bug fixes (3 changes)
+- [fix duplicate elements in the home page history](https://gitlab.com/biolds1/sosse/-/commit/60d643604e270e490939a4a17d160925beb418e8) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))
+- [fix passing SOSSE_DB_HOST to Docker setup](https://gitlab.com/biolds1/sosse/-/commit/93dc9fc5f94707a9fb8a02786bf7e29c4ea680cc) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))
+- [fix screenshot archive links pointing to source pages](https://gitlab.com/biolds1/sosse/-/commit/16330cb26826bbe3ca82bb748fa1bee487c0029c) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/183))
+
 ## 1.13.3 (2025-06-15)
 ### Bug fixes (1 change)
 - [fix daily Docker image rebuild](https://gitlab.com/biolds1/sosse/-/commit/1baa0c80aabb83ccc5a8b897ac9152a725b1e055) ([merge request](https://gitlab.com/biolds1/sosse/-/merge_requests/181))

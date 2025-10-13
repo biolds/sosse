@@ -305,7 +305,6 @@ class Collection(models.Model):
 
     @staticmethod
     def get_from_url(url, collections_to_check=None):
-        crawl_logger.debug("collections", Collection.objects.values_list("name", "combined_regex_pg"))
         collections = (
             Collection.objects.annotate(
                 match_len=models.functions.Length(

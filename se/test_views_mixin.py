@@ -24,10 +24,12 @@ from django.test import RequestFactory
 from django.test.client import Client
 from django.views.generic import View
 
+from .collection import Collection
+
 
 class ViewsTestMixin:
     def setUp(self):
-        super().setUp()
+        self.collection = Collection.create_default()
         messages.success = lambda request, message: None
 
         self.admin_user = User.objects.create(username="admin", is_superuser=True, is_staff=True)
@@ -52,6 +54,7 @@ class ViewsTestMixin:
         self.assertTrue(self.simple_client.login(username="user", password="user"))
 
         self.anon_client = Client(HTTP_USER_AGENT="Mozilla/5.0")
+        super().setUp()
 
     def _request_from_factory(
         self, url: str, user: User, method: str = "get", params: dict | None = None

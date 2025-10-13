@@ -57,6 +57,9 @@
                   {% if model.name == 'Cookies' %}
                     <a href="{% url 'admin:cookies_import' %}" class="addlink">{% translate 'Import' %}</a>
                   {% endif %}
+                  {% if model.name == 'Excluded URLs' %}
+                    <a href="{% url 'admin:excluded_urls_import' %}" class="addlink">{% translate 'Import' %}</a>
+                  {% endif %}
                 </td>
               {% else %}
                 <td></td>

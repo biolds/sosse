@@ -50,6 +50,7 @@ def online_status(request):
         check_cache_count = settings.SOSSE_ONLINE_CHECK_CACHE
         BrowserRequest.get(
             settings.SOSSE_ONLINE_CHECK_URL,
+            None,
             timeout=settings.SOSSE_ONLINE_CHECK_TIMEOUT,
             check_status=True,
         )
@@ -62,7 +63,7 @@ def online_status(request):
 class OnlineCheckView(SosseLoginRequiredMixin, View):
     def get(self, request):
         try:
-            BrowserRequest.get(settings.SOSSE_ONLINE_CHECK_URL, check_status=True)
+            BrowserRequest.get(settings.SOSSE_ONLINE_CHECK_URL, None, check_status=True)
         except requests.exceptions.RequestException as e:
             return JsonResponse({"status": e.__doc__, "success": False})
 

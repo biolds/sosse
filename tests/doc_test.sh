@@ -24,6 +24,12 @@ block_no=0
 while [ "$block_no" -lt "$code_length" ]
 do
     code="$(code_no "$block_no")"
+    if echo "$code" | grep -q "bookworm"
+    then
+        block_no=$(($block_no + 1))
+        continue
+    fi
+
     if echo "$code" | grep -q "nano .*"
     then
         filename="$(echo "$code" | sed 's/^nano //')"

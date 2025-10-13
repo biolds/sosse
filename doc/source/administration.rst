@@ -10,14 +10,14 @@ Administration
    crawl/queue.rst
    crawl/crawlers.rst
    crawl/analytics.rst
-   crawl/policies.rst
-   crawl/recursion_depth.rst
+   crawl/collections.rst
    crawl/feeds.rst
    documents.rst
    tags.rst
-   domain_settings.rst
+   domains.rst
    cookies.rst
    webhooks.rst
+   mime_plugins.rst
    excluded_urls.rst
    search_engines.rst
    permissions.rst

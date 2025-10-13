@@ -17,9 +17,9 @@ from unittest import mock
 
 from django.test import TransactionTestCase
 
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .html_asset import HTMLAsset
 from .models import WorkerStats
 from .test_mock import BrowserMock
@@ -27,12 +27,12 @@ from .test_mock import BrowserMock
 
 class DocumentTest(TransactionTestCase):
     def setUp(self):
-        self.crawl_policy = CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
+        self.collection = Collection.objects.create(
+            name="Test Collection",
+            unlimited_regex="(default)",
+            unlimited_regex_pg=".*",
+            default_browse_mode=Domain.BROWSE_REQUESTS,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
         )
 
@@ -40,7 +40,7 @@ class DocumentTest(TransactionTestCase):
         # Force create the worker
         WorkerStats.get_worker(0)
 
-        Document.queue(url, None, None)
+        Document.queue(url, self.collection, None)
         while Document.crawl(0):
             pass
 

@@ -26,23 +26,21 @@ from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .tag import Tag
-from .utils import build_multiline_re, plural
+from .utils import build_multiline_re
 from .webhook import Webhook
 
 crawl_logger = logging.getLogger("crawler")
 BROWSER_MAP = {
-    DomainSetting.BROWSE_CHROMIUM: BrowserChromium,
-    DomainSetting.BROWSE_FIREFOX: BrowserFirefox,
-    DomainSetting.BROWSE_REQUESTS: BrowserRequest,
+    Domain.BROWSE_CHROMIUM: BrowserChromium,
+    Domain.BROWSE_FIREFOX: BrowserFirefox,
+    Domain.BROWSE_REQUESTS: BrowserRequest,
 }
 
 
 @transaction.atomic
 def validate_url_regexp(val):
-    if val == "(default)":
-        raise ValidationError('"(default)" policy is reserved')
     cursor = connection.cursor()
     for line_no, line in enumerate(val.splitlines()):
         line = line.strip()
@@ -60,7 +58,7 @@ def validate_url_regexp(val):
             raise ValidationError(error)
 
 
-class CrawlPolicy(models.Model):
+class Collection(models.Model):
     RECRAWL_FREQ_NONE = "none"
     RECRAWL_FREQ_CONSTANT = "constant"
     RECRAWL_FREQ_ADAPTIVE = "adaptive"
@@ -86,15 +84,6 @@ class CrawlPolicy(models.Model):
         (RECRAWL_COND_MANUAL, "On change or manual trigger"),
     ]
 
-    CRAWL_ALL = "always"
-    CRAWL_ON_DEPTH = "depth"
-    CRAWL_NEVER = "never"
-    CRAWL_CONDITION = [
-        (CRAWL_ALL, "Crawl all pages"),
-        (CRAWL_ON_DEPTH, "Depending on depth"),
-        (CRAWL_NEVER, "Never crawl"),
-    ]
-
     REMOVE_NAV_FROM_INDEX = "idx"
     REMOVE_NAV_FROM_SCREENSHOT = "scr"
     REMOVE_NAV_FROM_ALL = "yes"
@@ -116,16 +105,37 @@ class CrawlPolicy(models.Model):
         (THUMBNAIL_MODE_SCREENSHOT, "Take a screenshot"),
         (THUMBNAIL_MODE_NONE, "No thumbnail"),
     )
-    url_regex = models.TextField(
+
+    name = models.CharField(max_length=256, unique=True)
+    unlimited_regex = models.TextField(
+        blank=True,
+        default="",
         validators=[validate_url_regexp],
-        help_text="URL regular expressions for this policy. (one by line, lines starting with # are ignored)",
+        verbose_name="Unlimited depth URL regex",
+        help_text="URL regular expressions. Matching URLs will have unlimited crawling recursion depth (one per line; lines starting with # are ignored)",
     )
-    url_regex_pg = models.TextField()
-    enabled = models.BooleanField(default=True)
-    recursion = models.CharField(max_length=6, choices=CRAWL_CONDITION, default=CRAWL_ALL)
+    unlimited_regex_pg = models.TextField(default="")
+    limited_regex = models.TextField(
+        blank=True,
+        default="",
+        validators=[validate_url_regexp],
+        verbose_name="Limited depth URL regex",
+        help_text="URL regular expressions. Matching URLs will have limited crawling recursion depth (one per line; lines starting with # are ignored)",
+    )
+    limited_regex_pg = models.TextField(default="")
+    combined_regex_pg = models.TextField(default="")
+    excluded_regex = models.TextField(
+        blank=True,
+        default="",
+        validators=[validate_url_regexp],
+        verbose_name="Excluded URL regex",
+        help_text="URL regular expressions to exclude from this collection. (one by line, lines starting with # are ignored)",
+    )
+    excluded_regex_pg = models.TextField(default="")
     mimetype_regex = models.TextField(default=".*")
     recursion_depth = models.PositiveIntegerField(
-        default=0,
+        default=1,
+        verbose_name="Limited recursion depth",
         help_text="Level of external links (links that don't match the regex) to recurse into",
     )
     keep_params = models.BooleanField(
@@ -137,8 +147,8 @@ class CrawlPolicy(models.Model):
 
     default_browse_mode = models.CharField(
         max_length=8,
-        choices=DomainSetting.BROWSE_MODE,
-        default=DomainSetting.BROWSE_DETECT,
+        choices=Domain.BROWSE_MODE,
+        default=Domain.BROWSE_DETECT,
         help_text="Python Request is faster, but can't execute Javascript and may break pages",
     )
 
@@ -246,56 +256,62 @@ class CrawlPolicy(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     webhooks = models.ManyToManyField(Webhook)
 
+    # Cross-collection crawl settings
+    queue_to_any_collection = models.BooleanField(
+        default=False,
+        verbose_name="Queue to any collection",
+        help_text="When a URL doesn't match this Collection's regex patterns, check all Collections and queue it in the first matching one.",
+    )
+    queue_to_collections = models.ManyToManyField(
+        "self",
+        blank=True,
+        symmetrical=False,
+        verbose_name="Queue to specific collections",
+        help_text="When a URL doesn't match this Collection's regex patterns, check only these Collections and queue it there.",
+    )
+
     class Meta:
-        verbose_name = "Crawl Policy"
-        verbose_name_plural = "Crawl Policies"
+        ordering = ["name"]
 
     def __str__(self):
-        title = self.get_title_label()
-        return "「" + title + "」"
-
-    def get_title_label(self):
-        if self.url_regex:
-            url_regexs = [line.strip() for line in self.url_regex.splitlines()]
-            url_regexs = [line for line in url_regexs if not line.startswith("#") and line]
-            if len(url_regexs) == 1:
-                return f"{url_regexs[0]}"
-            elif len(url_regexs) > 1:
-                others = len(url_regexs) - 1
-                others = f"{others} other{plural(others)}"
-                return f"{url_regexs[0]} (and {others})"
-        return "<empty>"
+        return self.name
 
     def save(self, *args, **kwargs):
-        if self.url_regex == "(default)":
-            self.url_regex_pg = ".*"
-            self.enabled = True
+        self.unlimited_regex_pg = build_multiline_re(self.unlimited_regex) if self.unlimited_regex else ""
+        self.limited_regex_pg = build_multiline_re(self.limited_regex) if self.limited_regex else ""
+        self.excluded_regex_pg = build_multiline_re(self.excluded_regex) if self.excluded_regex else ""
+
+        # Build combined regex for cross-collection matching
+        if self.unlimited_regex_pg and self.limited_regex_pg:
+            self.combined_regex_pg = f"{self.unlimited_regex_pg}|{self.limited_regex_pg}"
+        elif self.unlimited_regex_pg:
+            self.combined_regex_pg = self.unlimited_regex_pg
+        elif self.limited_regex_pg:
+            self.combined_regex_pg = self.limited_regex_pg
         else:
-            self.url_regex_pg = build_multiline_re(self.url_regex)
+            self.combined_regex_pg = ""
+
         return super().save(*args, **kwargs)
 
     @staticmethod
     def create_default():
-        # mandatory default policy
-        policy, _ = CrawlPolicy.objects.get_or_create(
-            url_regex="(default)", defaults={"url_regex_pg": ".*", "recursion": CrawlPolicy.CRAWL_ON_DEPTH}
-        )
-        return policy
+        try:
+            return Collection.objects.get(name="Default")
+        except Collection.DoesNotExist:
+            existing = Collection.objects.first()
+            if existing:
+                return existing
+            return Collection.objects.create(name="Default")
 
     @staticmethod
-    def get_from_url(url, queryset=None):
-        if queryset is None:
-            queryset = CrawlPolicy.objects.all()
-        queryset = queryset.filter(enabled=True)
-        queryset = queryset.exclude(url_regex="(default)")
-        queryset = queryset.exclude(url_regex_pg="")
-
-        policy = (
-            queryset.annotate(
+    def get_from_url(url, collections_to_check=None):
+        crawl_logger.debug("collections", Collection.objects.values_list("name", "combined_regex_pg"))
+        collections = (
+            Collection.objects.annotate(
                 match_len=models.functions.Length(
                     models.Func(
                         models.Value(url),
-                        models.F("url_regex_pg"),
+                        models.F("combined_regex_pg"),
                         function="REGEXP_SUBSTR",
                         output_field=models.TextField(),
                     )
@@ -303,24 +319,36 @@ class CrawlPolicy(models.Model):
             )
             .filter(match_len__gt=0)
             .order_by("-match_len")
-            .first()
         )
 
-        if policy is None:
-            return CrawlPolicy.create_default()
+        # If specific collections are provided, filter to only those
+        if collections_to_check is not None:
+            collections_to_check_ids = {c.pk for c in collections_to_check}
 
-        return policy
+        for collection in collections:
+            # If we have a filter list, check if this collection is in it
+            if collections_to_check is not None and collection.pk not in collections_to_check_ids:
+                continue
+
+            if not collection.combined_regex_pg:
+                continue
+
+            if Document._url_matches_regex(url, collection.excluded_regex_pg):
+                continue
+            return collection
+
+        return None
 
     @staticmethod
     def _default_browser():
         if settings.SOSSE_DEFAULT_BROWSER == "chromium":
-            return DomainSetting.BROWSE_CHROMIUM
-        return DomainSetting.BROWSE_FIREFOX
+            return Domain.BROWSE_CHROMIUM
+        return Domain.BROWSE_FIREFOX
 
-    def url_get(self, url, domain_setting=None):
-        domain_setting = domain_setting or DomainSetting.get_from_url(url, self.default_browse_mode)
-        browser = self.get_browser(domain_setting=domain_setting, no_detection=False)
-        page = browser.get(url)
+    def url_get(self, url, domain=None):
+        domain = domain or Domain.get_from_url(url)
+        browser = self.get_browser(domain=domain, no_detection=False)
+        page = browser.get(url, self)
 
         if page.redirect_count:
             # The request was redirected, check if we need auth
@@ -332,7 +360,7 @@ class CrawlPolicy(models.Model):
 
                     if new_page.url != url:
                         crawl_logger.debug(f"reopening {url} after auth")
-                        page = browser.get(url)
+                        page = browser.get(url, self)
                     else:
                         page = new_page
             except Exception as e:
@@ -340,38 +368,38 @@ class CrawlPolicy(models.Model):
                     raise
                 raise Exception("Authentication failed")
 
-        if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
+        if self.default_browse_mode == Domain.BROWSE_DETECT and domain.browse_mode == Domain.BROWSE_DETECT:
             crawl_logger.debug(f"browser detection on {url}")
-            requests_page = BrowserRequest.get(url)
+            requests_page = BrowserRequest.get(url, self)
             browser_content = page.dom_walk(self, False, None)
             requests_content = requests_page.dom_walk(self, False, None)
 
             if browser_content["text"] != requests_content["text"]:
                 new_mode = self._default_browser()
             else:
-                new_mode = DomainSetting.BROWSE_REQUESTS
+                new_mode = Domain.BROWSE_REQUESTS
                 page = requests_page
             crawl_logger.debug(f"browser detected {new_mode} on {url}")
-            domain_setting.browse_mode = new_mode
-            domain_setting.save()
+            domain.browse_mode = new_mode
+            domain.save()
         return page
 
-    def get_browser(self, url=None, domain_setting=None, no_detection=True):
-        if url is None and domain_setting is None:
-            raise Exception("Either url or domain_setting must be provided")
-        if url is not None and domain_setting is not None:
-            raise Exception("Either url or domain_setting must be provided")
+    def get_browser(self, url=None, domain=None, no_detection=True):
+        if url is None and domain is None:
+            raise Exception("Either url or domain must be provided")
+        if url is not None and domain is not None:
+            raise Exception("Either url or domain must be provided")
 
         if url:
-            domain_setting = DomainSetting.get_from_url(url, self.default_browse_mode)
+            domain = Domain.get_from_url(url)
 
         browser_str = self.default_browse_mode
-        if self.default_browse_mode == DomainSetting.BROWSE_DETECT:
-            if domain_setting.browse_mode == DomainSetting.BROWSE_DETECT:
+        if self.default_browse_mode == Domain.BROWSE_DETECT:
+            if domain.browse_mode == Domain.BROWSE_DETECT:
                 if no_detection:
-                    raise Exception(f"browser mode is not yet known ({domain_setting})")
+                    raise Exception(f"browser mode is not yet known ({domain})")
                 browser_str = self._default_browser()
             else:
-                browser_str = domain_setting.browse_mode
+                browser_str = domain.browse_mode
 
         return BROWSER_MAP[browser_str]

@@ -17,6 +17,7 @@ from django import forms
 from django.conf import settings
 from django.http import QueryDict
 
+from .collection import Collection
 from .document import Document
 from .tag import Tag
 
@@ -68,10 +69,14 @@ class SearchForm(forms.Form):
         required=False,
     )
     i = forms.BooleanField(widget=forms.CheckboxInput, required=False)
+    collection = forms.ChoiceField(choices=[], required=False)
     tag = forms.MultipleChoiceField(widget=forms.MultipleHiddenInput, choices=[], required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["collection"].choices = [("", "Any")] + [
+            (str(a), b) for a, b in Collection.objects.values_list("id", "name")
+        ]
         self.fields["tag"].choices = [(str(a), b) for a, b in Tag.objects.values_list("id", "name")]
 
     def clean(self):

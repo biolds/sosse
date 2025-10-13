@@ -27,6 +27,7 @@ from django.http import QueryDict
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
+from .collection import Collection
 from .document import Document, extern_link_flags, remove_accent
 from .html_asset import HTMLAsset
 from .models import SearchEngine, SearchHistory
@@ -208,8 +209,18 @@ def get_documents(request, params, form, stats_call):
     if doc_lang:
         results = results.filter(lang_iso_639_1=doc_lang)
 
+    collection_id = form.cleaned_data.get("collection")
+    if collection_id:
+        collection = Collection.objects.get(id=collection_id)
+        results = results.filter(collection=collection)
+
     if not stats_call:
         order_by = form.cleaned_data["order_by"]
+
+        # Ensure a deterministic order by adding a secondary sort on "id"
+        if getattr(settings, "TEST_MODE", False):
+            order_by = list(order_by) + ["id"]
+
         results = results.order_by(*order_by).distinct()
 
     if not has_query and not tags:

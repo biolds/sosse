@@ -35,14 +35,14 @@ The interval before the next recrawl of the document.
 Recursion remaining
 -------------------
 
-The number of recursion level remaining, when the matching policy crawls
-:ref:`Depending on depth <recursion_depth_params>`.
+The number of recursion levels remaining for this document when it was discovered through limited depth crawling (URLs
+matching the :ref:`Limited depth URL regex <recursion_depth_params>`).
 
 Rejected by robots.txt
 ----------------------
 
 This indicates if the URL was not crawled due to a ``robots.txt`` rule. If necessary the ``robots.txt`` can be ignored
-in the :ref:`Domain settings <domain_ignore_robots>`.
+in the :ref:`Domain <domain_ignore_robots>`.
 
 Too many redirects
 ------------------
@@ -75,7 +75,7 @@ Metadata
 --------
 
 The Metadata tab shows associated metadata for the document. The metadata is stored in a JSON format and can be used to
-add custom fields to the document. The metadata can be set using :ref:`Javascript execution <crawl_policy_script>` in
+add custom fields to the document. The metadata can be set using :ref:`Javascript execution <collection_script>` in
 the browser context, or using the return value of the :doc:`webhooks`.
 
 .. image:: ../../tests/robotframework/screenshots/metadata.png

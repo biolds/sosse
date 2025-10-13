@@ -36,6 +36,7 @@ class CsvTest(ViewsTestMixin, TransactionTestCase):
             mimetype="text/html",
             crawl_first=timezone.now() - timedelta(days=1),
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
 
     def _csv_to_dict(self, csv_data):
@@ -92,6 +93,7 @@ class CsvTest(ViewsTestMixin, TransactionTestCase):
             crawl_first=timezone.now() - timedelta(days=1),
             crawl_last=timezone.now(),
             metadata={"key1": "value3", "key3": "plop"},
+            collection=self.collection,
         )
 
         request = self._request_from_factory("/csv/?ft1=inc&ff1=doc&fo1=contain&fv1=content", self.admin_user)

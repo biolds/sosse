@@ -50,7 +50,7 @@ def user_agent():
     return UA_STR
 
 
-class DomainSetting(models.Model):
+class Domain(models.Model):
     BROWSE_DETECT = "detect"
     BROWSE_CHROMIUM = "selenium"
     BROWSE_FIREFOX = "firefox"
@@ -172,7 +172,7 @@ class DomainSetting(models.Model):
         self.robots_allow = "\n".join([val for key, val in rules if key == self.ROBOTS_TXT_ALLOW])
         self.robots_disallow = "\n".join([val for key, val in rules if key == self.ROBOTS_TXT_DISALLOW])
 
-    def _load_robotstxt(self, url):
+    def _load_robotstxt(self, url, collection):
         from .browser_request import BrowserRequest
 
         self.robots_ua_hash = self.ua_hash()
@@ -181,24 +181,24 @@ class DomainSetting(models.Model):
         crawl_logger.debug(f"{self.domain}: downloading {robots_url}")
 
         try:
-            page = BrowserRequest.get(robots_url, check_status=True)
+            page = BrowserRequest.get(robots_url, collection, check_status=True)
             crawl_logger.debug(f"{self.domain}: loading {robots_url}")
             self._parse_robotstxt(page.content.decode("utf-8"))
         except (requests.HTTPError, TooManyRedirects):
-            self.robots_status = DomainSetting.ROBOTS_EMPTY
+            self.robots_status = Domain.ROBOTS_EMPTY
         else:
-            self.robots_status = DomainSetting.ROBOTS_LOADED
+            self.robots_status = Domain.ROBOTS_LOADED
         crawl_logger.debug(f"{self.domain}: robots.txt {self.robots_status}")
 
-    def robots_authorized(self, url):
+    def robots_authorized(self, url, collection):
         if self.ignore_robots:
             return True
 
-        if self.robots_status == DomainSetting.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:
-            self._load_robotstxt(url)
+        if self.robots_status == Domain.ROBOTS_UNKNOWN or self.ua_hash() != self.robots_ua_hash:
+            self._load_robotstxt(url, collection)
             self.save()
 
-        if self.robots_status == DomainSetting.ROBOTS_EMPTY:
+        if self.robots_status == Domain.ROBOTS_EMPTY:
             crawl_logger.debug(f"{self.domain}: robots.txt is empty")
             return True
 
@@ -228,13 +228,6 @@ class DomainSetting(models.Model):
         return False
 
     @classmethod
-    def get_from_url(cls, url, default_browse_mode=None):
-        from .crawl_policy import CrawlPolicy
-
+    def get_from_url(cls, url):
         domain = urlparse(url).netloc
-
-        if not default_browse_mode:
-            crawl_policy = CrawlPolicy.get_from_url(url)
-            default_browse_mode = crawl_policy.default_browse_mode
-
-        return DomainSetting.objects.get_or_create(domain=domain, defaults={"browse_mode": default_browse_mode})[0]
+        return Domain.objects.get_or_create(domain=domain)[0]

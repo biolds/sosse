@@ -52,7 +52,6 @@ class BrowserSelenium(Browser):
     CONTENT_HANDLERS = tuple()
 
     @classmethod
-    @property
     def driver(cls):
         cls.init()
         return cls._driver
@@ -117,9 +116,9 @@ class BrowserSelenium(Browser):
 
     @classmethod
     def _current_url(cls):
-        if cls.driver.current_url.startswith("data:"):
+        if cls.driver().current_url.startswith("data:"):
             return ""
-        return sanitize_url(cls.driver.current_url)
+        return sanitize_url(cls.driver().current_url)
 
     @classmethod
     def _driver_get(cls, url, force_reload=False):
@@ -132,12 +131,12 @@ class BrowserSelenium(Browser):
         )
         redirect_count = 0
 
+        retry = settings.SOSSE_JS_STABLE_RETRY
         while redirect_count <= settings.SOSSE_MAX_REDIRECTS:
             # Wait for page being ready
-            retry = settings.SOSSE_JS_STABLE_RETRY
             while retry > 0 and cls._current_url() == url:
                 retry -= 1
-                if cls.driver.execute_script('return document.readyState === "complete";'):
+                if cls.driver().execute_script('return document.readyState === "complete";'):
                     break
                 sleep(settings.SOSSE_JS_STABLE_TIME)
 
@@ -149,20 +148,40 @@ class BrowserSelenium(Browser):
                 continue
 
             crawl_logger.debug(f"js stabilization start {url}")
-            # Wait for page content to be stable
-            retry = settings.SOSSE_JS_STABLE_RETRY
-            previous_content = None
-            content = None
+
+            # Inject DOM observer to track changes
+            cls.driver().execute_script("""
+                document.sosseReady = true;
+                document.sosseObserver = new MutationObserver(() => {
+                    document.sosseReady = false;
+                });
+                document.sosseObserver.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    characterData: true
+                });
+            """)
 
             while retry > 0 and cls._current_url() == url:
-                retry -= 1
-                content = cls.driver.page_source
-
-                if content == previous_content:
-                    break
-                previous_content = content
                 sleep(settings.SOSSE_JS_STABLE_TIME)
-                crawl_logger.debug(f"js changed {url}")
+                retry -= 1
+
+                is_ready = cls.driver().execute_script("return document.sosseReady;")
+                if is_ready:
+                    break
+                else:
+                    cls.driver().execute_script("document.sosseReady = true;")
+                    crawl_logger.debug(f"js changed {url}")
+
+            # Clean up observer
+            cls.driver().execute_script("""
+                if (document.sosseObserver) {
+                    document.sosseObserver.disconnect();
+                    delete document.sosseObserver;
+                    delete document.sosseReady;
+                }
+            """)
 
             if cls._current_url() != url:
                 redirect_count += 1
@@ -180,7 +199,7 @@ class BrowserSelenium(Browser):
     @classmethod
     def remove_nav_elements(cls):
         nav_elements = json.dumps(NAV_ELEMENTS)
-        cls.driver.execute_script(
+        cls.driver().execute_script(
             f"""
         const tags = {nav_elements};
         tags.map((tag) => {{
@@ -199,35 +218,32 @@ class BrowserSelenium(Browser):
             m = re.match(content_re, content)
             if m:
                 content_url = m.group("url").decode("utf-8")
-                page = BrowserRequest.get(content_url)
+                page = BrowserRequest.get(content_url, None)
                 return page.content
         return content
 
     @classmethod
-    def _get_page(cls, url):
-        from .crawl_policy import CrawlPolicy
-
+    def _get_page(cls, url, collection):
         redirect_count = cls._wait_for_ready(url)
 
-        current_url = cls.driver.current_url
-        crawl_policy = CrawlPolicy.get_from_url(current_url)
+        current_url = cls.driver().current_url
         script_result = None
-        if crawl_policy and crawl_policy.script:
-            script_result = cls.driver.execute_script(crawl_policy.script)
+        if collection and collection.script:
+            script_result = cls.driver().execute_script(collection.script)
             cls._wait_for_ready(url)
 
-        content = cls.driver.page_source.encode("utf-8")
+        content = cls.driver().page_source.encode("utf-8")
         content = cls._escape_content_handler(content)
         page = Page(current_url, content, cls, script_result=script_result)
-        page.title = cls.driver.title
+        page.title = cls.driver().title
         page.redirect_count = redirect_count
         return page
 
     @classmethod
     def _save_cookies(cls, url):
         _cookies = []
-        crawl_logger.debug(f"got cookies {cls.driver.get_cookies()}")
-        for cookie in cls.driver.get_cookies():
+        crawl_logger.debug(f"got cookies {cls.driver().get_cookies()}")
+        for cookie in cls.driver().get_cookies():
             c = {
                 "name": cookie["name"],
                 "value": cookie["value"],
@@ -240,7 +256,12 @@ class BrowserSelenium(Browser):
                 c["expires"] = datetime.fromtimestamp(expires, pytz.utc)
 
             if cookie.get("sameSite"):
-                c["same_site"] = cookie["sameSite"]
+                if cookie["sameSite"] == "None":
+                    # Firefox returns "None" since v140, when SameSite is not set
+                    # We force to "Lax" to align with Chromium
+                    c["same_site"] = "Lax"
+                else:
+                    c["same_site"] = cookie["sameSite"]
 
             if cookie.get("httpOnly"):
                 c["http_only"] = cookie["httpOnly"]
@@ -279,12 +300,12 @@ class BrowserSelenium(Browser):
             # and then loads a download url, it'll stay on about:blank
             # which does not accept cookie loading
             crawl_logger.debug(
-                f"could not go to {target_url.netloc} to load cookies, nav is stuck on {current_url} ({cls.driver.current_url})",
+                f"could not go to {target_url.netloc} to load cookies, nav is stuck on {current_url} ({cls.driver().current_url})",
             )
             return
 
         crawl_logger.debug("clearing cookies")
-        cls.driver.delete_all_cookies()
+        cls.driver().delete_all_cookies()
         for c in cookies:
             cookie = {
                 "name": c.name,
@@ -300,15 +321,15 @@ class BrowserSelenium(Browser):
             if c.http_only:
                 cookie["httpOnly"] = c.http_only
             try:
-                cls.driver.add_cookie(cookie)
+                cls.driver().add_cookie(cookie)
                 crawl_logger.debug(f"loaded cookie {cookie}")
             except:  # noqa
-                raise Exception(f"{cookie}\n{cls.driver.current_url}")
+                raise Exception(f"{cookie}\n{cls.driver().current_url}")
 
     @classmethod
     @retry
-    def get(cls, url):
-        current_url = cls.driver.current_url
+    def get(cls, url, collection):
+        current_url = cls.driver().current_url
         crawl_logger.debug(f"get on {url}, current {current_url}")
 
         # Clear the download dir
@@ -330,17 +351,17 @@ class BrowserSelenium(Browser):
 
         if (
             (
-                current_url != url and cls.driver.current_url == current_url
+                current_url != url and cls.driver().current_url == current_url
             )  # If we got redirected to the url that was previously set in the browser
-            or cls.driver.current_url == "data:,"
+            or cls.driver().current_url == "data:,"
         ):  # The url can be "data:," during a few milliseconds when the download starts
-            crawl_logger.debug(f"download starting ({cls.driver.current_url})")
+            crawl_logger.debug(f"download starting ({cls.driver().current_url})")
             page = cls._handle_download(url)
             if page:
                 return page
 
         crawl_logger.debug("page get")
-        page = cls._get_page(url)
+        page = cls._get_page(url, collection)
         crawl_logger.debug("save cookies")
         cls._save_cookies(url)
         return page
@@ -423,8 +444,8 @@ class BrowserSelenium(Browser):
     @classmethod
     @retry
     def create_thumbnail(cls, url, image_name):
-        cls.driver.set_window_rect(0, 0, *cls.screen_size())
-        cls.driver.execute_script('document.body.style.overflow = "hidden"')
+        cls.driver().set_window_rect(0, 0, *cls.screen_size())
+        cls.driver().execute_script('document.body.style.overflow = "hidden"')
 
         base_name = os.path.join(settings.SOSSE_THUMBNAILS_DIR, image_name)
         dir_name = os.path.dirname(base_name)
@@ -433,7 +454,7 @@ class BrowserSelenium(Browser):
         thumb_jpg = base_name + ".jpg"
 
         try:
-            cls.driver.get_screenshot_as_file(thumb_png)
+            cls.driver().get_screenshot_as_file(thumb_png)
             with Image.open(thumb_png) as img:
                 img = img.convert("RGB")  # Remove alpha channel from the png
                 img.thumbnail((160, 100))
@@ -444,13 +465,12 @@ class BrowserSelenium(Browser):
 
     @classmethod
     @retry
-    def take_screenshots(cls, url, image_name):
-        from .crawl_policy import CrawlPolicy
+    def take_screenshots(cls, collection, image_name):
+        from .collection import Collection
 
-        crawl_policy = CrawlPolicy.get_from_url(url)
-        if crawl_policy and crawl_policy.remove_nav_elements in (
-            CrawlPolicy.REMOVE_NAV_FROM_SCREENSHOT,
-            CrawlPolicy.REMOVE_NAV_FROM_ALL,
+        if collection and collection.remove_nav_elements in (
+            Collection.REMOVE_NAV_FROM_SCREENSHOT,
+            Collection.REMOVE_NAV_FROM_ALL,
         ):
             cls.remove_nav_elements()
 
@@ -459,9 +479,9 @@ class BrowserSelenium(Browser):
         os.makedirs(dir_name, exist_ok=True)
 
         screen_width, screen_height = cls.screen_size()
-        cls.driver.set_window_rect(0, 0, screen_width, screen_height)
-        cls.driver.execute_script('document.body.style.overflow = "hidden"')
-        doc_height = cls.driver.execute_script(
+        cls.driver().set_window_rect(0, 0, screen_width, screen_height)
+        cls.driver().execute_script('document.body.style.overflow = "hidden"')
+        doc_height = cls.driver().execute_script(
             """
             window.scroll(0, 0);
             const body = document.body;
@@ -478,7 +498,7 @@ class BrowserSelenium(Browser):
             missing_height = cls.scroll_to_page(top_offset)
             crawl_logger.debug(f"Scrolling to {top_offset} (missing {missing_height} / {remainging_height})")
             screenshot_file = f"{base_name}_{img_no}.png"
-            screenshot = cls.driver.get_screenshot_as_png()
+            screenshot = cls.driver().get_screenshot_as_png()
 
             # Compute the height of the image, this is required because
             # the size of the viewport is different from the size of the window
@@ -503,7 +523,7 @@ class BrowserSelenium(Browser):
     @classmethod
     def scroll_to_page(cls, height):
         return int(
-            cls.driver.execute_script(
+            cls.driver().execute_script(
                 f"""
             // scroll the main window
             window.scroll(0, {height});
@@ -519,7 +539,7 @@ class BrowserSelenium(Browser):
 
     @classmethod
     def get_link_pos_abs(cls, selector):
-        return cls.driver.execute_script(
+        return cls.driver().execute_script(
             f"""
             const e = document.evaluate('{selector}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
 
@@ -560,24 +580,24 @@ class BrowserSelenium(Browser):
 
     @classmethod
     @retry
-    def try_auth(cls, page, url, crawl_policy):
-        form = cls._find_elements_by_selector(cls.driver, crawl_policy.auth_form_selector)
+    def try_auth(cls, page, url, collection):
+        form = cls._find_elements_by_selector(cls.driver(), collection.auth_form_selector)
 
         if len(form) == 0:
             raise AuthElemFailed(
                 page,
-                f"Could not find auth element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Could not find auth element with CSS selector: {collection.auth_form_selector}",
             )
 
         if len(form) > 1:
             raise AuthElemFailed(
                 page,
-                f"Found multiple auth element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Found multiple auth element with CSS selector: {collection.auth_form_selector}",
             )
 
         crawl_logger.debug("form found")
         form = form[0]
-        for f in crawl_policy.authfield_set.values("key", "value"):
+        for f in collection.authfield_set.values("key", "value"):
             elem = cls._find_elements_by_selector(form, f'input[name="{f["key"]}"]')
             if len(elem) != 1:
                 raise Exception(f"Found {len(elem)} input element when trying to set auth field {f['key']}")
@@ -594,9 +614,9 @@ class BrowserSelenium(Browser):
         cls._save_cookies(current_url)
 
         if current_url != url:
-            return cls.get(url)
+            return cls.get(url, collection)
 
-        return cls._get_page(url)
+        return cls._get_page(url, collection)
 
     @classmethod
     def page_change_wait_setup(cls):
@@ -604,8 +624,8 @@ class BrowserSelenium(Browser):
         crawl_logger.debug(f"dl_dir state: {dl_dir_files}")
 
         # Work-around to https://github.com/SeleniumHQ/selenium/issues/4769
-        # When a download starts, the regular cls.driver.get call is stuck
-        cls.driver.execute_script(
+        # When a download starts, the regular cls.driver().get call is stuck
+        cls.driver().execute_script(
             """
             window.sosseUrlChanging = true;
             addEventListener('readystatechange', () => {
@@ -619,9 +639,9 @@ class BrowserSelenium(Browser):
     def page_change_wait(cls, dl_dir_files):
         retry = settings.SOSSE_JS_STABLE_RETRY
         while (
-            cls.driver.current_url == "about:blank" or cls.driver.execute_script("return window.sosseUrlChanging")
+            cls.driver().current_url == "about:blank" or cls.driver().execute_script("return window.sosseUrlChanging")
         ) and retry > 0:
-            crawl_logger.debug(f"driver get not done: {cls.driver.current_url}")
+            crawl_logger.debug(f"driver get not done: {cls.driver().current_url}")
             if dl_dir_files != sorted(os.listdir(cls._get_download_dir())):
                 return
             sleep(settings.SOSSE_JS_STABLE_TIME)

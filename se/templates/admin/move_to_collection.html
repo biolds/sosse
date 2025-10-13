@@ -1,0 +1,60 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block breadcrumbs %}
+    <a href="{% url 'admin:index' %}">Admin</a> &gt;
+    <a href="{% url 'admin:se_document_changelist' %}">Documents</a> &gt;
+    <span class="current">Move to Collection</span>
+{% endblock %}
+
+{% block title %}
+    {{ block.super }} - Move to Collection
+{% endblock %}
+
+{% block content_title %}
+    {{ block.super }} - Move to Collection
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="{% url 'admin:move_to_collection' %}">
+        {% csrf_token %}
+
+        <h3>Move {{ document_count }} document{{ document_count|pluralize }} to collection</h3>
+
+        <div style="margin-bottom: 20px;">
+            <h4>Documents to move:</h4>
+            <ul>
+            {% for document in documents %}
+                {% if forloop.counter <= 10 %}
+                    <li><a href="{% url 'admin:se_document_change' document.id %}" target="_blank">{{ document.get_title_label }}</a> ({{ document.url }})</li>
+                {% elif forloop.counter == 11 %}
+                    <li><em>... and {{ document_count|add:"-10" }} more document{{ document_count|add:"-10"|pluralize }}</em></li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+
+        <p>
+            <label for="id_collection"><strong>{{ form.collection.label }}:</strong></label><br>
+            {{ form.collection.errors }}
+            {{ form.collection }}
+            {% if form.collection.help_text %}
+                <p class="help">{{ form.collection.help_text|safe }}</p>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="id_conflict_resolution"><strong>{{ form.conflict_resolution.label }}:</strong></label><br>
+            {{ form.conflict_resolution.errors }}
+            {{ form.conflict_resolution }}
+            {% if form.conflict_resolution.help_text %}
+                <p class="help">{{ form.conflict_resolution.help_text|safe }}</p>
+            {% endif %}
+        </p>
+
+        <div style="margin-top: 20px;">
+            <input type="submit" value="Move Documents" class="default">
+            <a href="{% url 'admin:se_document_changelist' %}" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+{% endblock %}

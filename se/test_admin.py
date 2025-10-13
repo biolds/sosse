@@ -16,21 +16,25 @@
 from django.test import TransactionTestCase
 
 from .admin import DocumentOrphanFilter
+from .collection import Collection
 from .document import Document
 from .models import Link
 
 
 class TestAdmin(TransactionTestCase):
+    def setUp(self):
+        self.collection = Collection.create_default()
+
     def test_document_orphan_filter(self):
-        orphan = Document.objects.wo_content().create(url="http://orphan")
-        parent = Document.objects.wo_content().create(url="http://parent")
-        child = Document.objects.wo_content().create(url="http://child")
+        orphan = Document.objects.wo_content().create(url="http://orphan", collection=self.collection)
+        parent = Document.objects.wo_content().create(url="http://parent", collection=self.collection)
+        child = Document.objects.wo_content().create(url="http://child", collection=self.collection)
         Link.objects.create(doc_from=parent, doc_to=child, pos=0, link_no=0)
 
         redirect_src = Document.objects.wo_content().create(
-            url="http://redirect_src", redirect_url="http://redirect_dst"
+            url="http://redirect_src", redirect_url="http://redirect_dst", collection=self.collection
         )
-        redirect_dst = Document.objects.wo_content().create(url="http://redirect_dst")
+        redirect_dst = Document.objects.wo_content().create(url="http://redirect_dst", collection=self.collection)
 
         doc_filter = DocumentOrphanFilter(None, {"orphan": "full"}, Document, None)
         orphaned = doc_filter.queryset(None, Document.objects.wo_content().all())

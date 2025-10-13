@@ -11,7 +11,7 @@ By default, archived pages can be accessed via the ``archive`` link in the searc
 ---------------
 
 By default, the crawlers store HTML pages and the files they depend on (such as images and stylesheets). This behavior
-can be controlled in the :ref:`⚡ Crawl policy <policy_archive>`.
+can be controlled in the :ref:`⚡ Collection <collection_archive>`.
 
 It is also possible to use a browser to take the snapshot, in which case the snapshot is taken after the page is
 rendered (following JavaScript execution).
@@ -22,7 +22,7 @@ All HTML archived pages can be cleared with the :ref:`clear_html_archive <cli_cl
 ----------------------
 
 The crawlers can take screenshots of the pages they browse. Pages saved this way also store link information and can be
-browsed offline. Screenshots can be enabled in the :ref:`⚡ Crawl policy <policy_take_screenshot>`.
+browsed offline. Screenshots can be enabled in the :ref:`⚡ Collection <collection_take_screenshot>`.
 
 ✏ Text Archive
 --------------

@@ -17,15 +17,18 @@
 import logging
 
 import requests
+import urllib3.util.url
 from django.conf import settings
 from requests.adapters import HTTPAdapter
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
+from .browser_request_hack import _encode_invalid_chars
 from .cookie import Cookie
-from .domain_setting import user_agent
+from .domain import user_agent
 from .page import Page
 from .url import absolutize_url, url_remove_fragment
 
+urllib3.util.url._encode_invalid_chars = _encode_invalid_chars
 crawl_logger = logging.getLogger("crawler")
 
 
@@ -165,13 +168,19 @@ class BrowserRequest(Browser):
     def get(
         cls,
         url,
+        collection,
         check_status=False,
         max_file_size=None,
         **kwargs,
     ) -> Page:
+        from .collection import Collection
+
         REDIRECT_CODE = (301, 302, 307, 308)
         page = None
         redirect_count = 0
+
+        if collection is not None and not isinstance(collection, Collection):
+            raise Exception("Collection must be None or an instance of Collection")
 
         if max_file_size is None:
             # max_file_size cannot be set as a kwargs paramater, as it prevents
@@ -230,20 +239,20 @@ class BrowserRequest(Browser):
         return page
 
     @classmethod
-    def try_auth(cls, page, url, crawl_policy):
+    def try_auth(cls, page, url, collection):
         parsed = page.get_soup()
-        form = parsed.select(crawl_policy.auth_form_selector)
+        form = parsed.select(collection.auth_form_selector)
 
         if len(form) == 0:
             raise AuthElemFailed(
                 page,
-                f"Could not find element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Could not find element with CSS selector: {collection.auth_form_selector}",
             )
 
         if len(form) > 1:
             raise AuthElemFailed(
                 page,
-                f"Found multiple element with CSS selector: {crawl_policy.auth_form_selector}",
+                f"Found multiple element with CSS selector: {collection.auth_form_selector}",
             )
 
         form = form[0]
@@ -252,7 +261,7 @@ class BrowserRequest(Browser):
             if elem.get("name"):
                 payload[elem.get("name")] = elem.get("value")
 
-        for f in crawl_policy.authfield_set.values("key", "value"):
+        for f in collection.authfield_set.values("key", "value"):
             payload[f["key"]] = f["value"]
 
         post_url = form.get("action")
@@ -275,4 +284,4 @@ class BrowserRequest(Browser):
         location = absolutize_url(r.url, location)
         location = url_remove_fragment(location)
         crawl_logger.debug(f"got redirected to {location} after authentication")
-        return cls.get(location)
+        return cls.get(location, collection)

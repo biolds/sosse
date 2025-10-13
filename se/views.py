@@ -107,4 +107,5 @@ class UserView(BaseView):
                     "page_last": format_url(self.request, f"p={paginated.paginator.num_pages}"),
                 }
             )
+
         return context

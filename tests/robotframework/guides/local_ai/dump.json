@@ -1,46 +1,11 @@
 [
   {
-    "model": "se.crawlpolicy",
-    "pk": 39,
-    "fields": {
-      "url_regex": "(default)",
-      "url_regex_pg": ".*",
-      "enabled": true,
-      "recursion": "depth",
-      "mimetype_regex": ".*",
-      "recursion_depth": 0,
-      "keep_params": true,
-      "hide_documents": false,
-      "default_browse_mode": "detect",
-      "snapshot_html": true,
-      "snapshot_exclude_url_re": "",
-      "snapshot_exclude_mime_re": "",
-      "snapshot_exclude_element_re": "",
-      "thumbnail_mode": "preview",
-      "take_screenshots": false,
-      "screenshot_format": "jpg",
-      "remove_nav_elements": "idx",
-      "script": "",
-      "store_extern_links": false,
-      "recrawl_freq": "adaptive",
-      "recrawl_dt_min": "1 00:00:00",
-      "recrawl_dt_max": "365 00:00:00",
-      "hash_mode": "no_numbers",
-      "recrawl_condition": "manual",
-      "auth_login_url_re": "",
-      "auth_form_selector": "",
-      "tags": [],
-      "webhooks": []
-    }
-  },
-  {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 45,
     "fields": {
-      "url_regex": "^https://segment\\.com/blog/rss\\.xml$",
-      "url_regex_pg": "^https://segment\\.com/blog/rss\\.xml$",
-      "enabled": true,
-      "recursion": "always",
+      "name": "Segment Blog",
+      "unlimited_regex": "^https://segment\\.com/blog/rss\\.xml$\r\n^https://segment\\.com/blog/",
+      "unlimited_regex_pg": "^https://segment\\.com/blog/rss\\.xml$",
       "mimetype_regex": ".*",
       "recursion_depth": 1,
       "keep_params": true,
@@ -65,42 +30,6 @@
       "auth_form_selector": "",
       "tags": [],
       "webhooks": []
-    }
-  },
-  {
-    "model": "se.crawlpolicy",
-    "pk": 46,
-    "fields": {
-      "url_regex": "^https://segment\\.com/blog/",
-      "url_regex_pg": "^https://segment\\.com/blog/",
-      "enabled": true,
-      "recursion": "depth",
-      "mimetype_regex": ".*",
-      "recursion_depth": 0,
-      "keep_params": true,
-      "hide_documents": false,
-      "default_browse_mode": "detect",
-      "snapshot_html": true,
-      "snapshot_exclude_url_re": "",
-      "snapshot_exclude_mime_re": "",
-      "snapshot_exclude_element_re": "",
-      "thumbnail_mode": "preview",
-      "take_screenshots": false,
-      "screenshot_format": "jpg",
-      "remove_nav_elements": "idx",
-      "script": "",
-      "store_extern_links": false,
-      "recrawl_freq": "none",
-      "recrawl_dt_min": null,
-      "recrawl_dt_max": null,
-      "hash_mode": "no_numbers",
-      "recrawl_condition": "manual",
-      "auth_login_url_re": "",
-      "auth_form_selector": "",
-      "tags": [],
-      "webhooks": [
-        11
-      ]
     }
   },
   {

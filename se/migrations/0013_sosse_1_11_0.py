@@ -47,8 +47,8 @@ def reverse_url_regex_pg(apps, schema_editor):
             policy.url_regex = ".*"
         else:
             regexs = policy.url_regex.splitlines()
-            regexs = [regex for regex in regexs if regex and not regex.startsiwth("#")]
-            policy.url_regex = regexs[0]
+            regexs = [regex for regex in regexs if regex and not regex.startswith("#")]
+            policy.url_regex = regexs[0] if regexs else ""
 
         policy.save()
 
@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
             name="url_regex",
             field=models.TextField(
                 help_text="URL regular expressions for this policy. (one by line, lines starting with # are ignored)",
-                validators=[se.crawl_policy.validate_url_regexp],
+                validators=[se.collection.validate_url_regexp],
             ),
         ),
         migrations.RunPython(url_regex_pg, reverse_url_regex_pg),

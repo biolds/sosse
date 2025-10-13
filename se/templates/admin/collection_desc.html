@@ -1,0 +1,81 @@
+<span {% if add_to_queue %}class="{{ label_tag }}"{% else %}title="Collection"{% endif %}>
+  ⚡
+  {% if collection.unlimited_regex_pg %}
+    Unlimited recursion
+  {% elif not collection.unlimited_regex_pg and not collection.limited_regex_pg %}
+    No recursion
+  {% endif %}
+
+  {% if collection.unlimited_regex_pg and collection.limited_regex_pg %}
+    /
+  {% endif %}
+
+  {% if collection.limited_regex_pg %}
+    {{ collection.recursion_depth }} level{{ collection.recursion_depth|pluralize }} recursion
+  {% endif %}
+</span>
+
+<span class="{{ label_tag }}"{% if not add_to_queue %} title="Browser"{% endif %}>
+    🌐 {% if add_to_queue %}with{% endif %}
+    {% if collection.default_browse_mode == Domain.BROWSE_DETECT %}
+        {{ settings.SOSSE_DEFAULT_BROWSER|title }}
+        {% if add_to_queue %}
+            if necessary
+        {% else %}
+            / Request
+        {% endif %}
+    {% elif collection.default_browse_mode == Domain.BROWSE_CHROMIUM %}
+        Chromium
+    {% elif collection.default_browse_mode == Domain.BROWSE_FIREFOX %}
+        Firefox
+    {% else %}
+        Python Request
+    {% endif %}
+</span>
+
+<span class="{{ label_tag }}"{% if not add_to_queue %} title="Recurrence"{% endif %}>
+    🕑
+    {% if collection.recrawl_freq == Collection.RECRAWL_FREQ_NONE %}
+        only once
+    {% elif collection.recrawl_freq == Collection.RECRAWL_FREQ_CONSTANT %}
+        {% if add_to_queue %}
+            every {{ recrawl_every }}
+        {% else %}
+            constant
+        {% endif %}
+    {% else %}
+        {% if add_to_queue %}
+            from every {{ recrawl_min }} to every {{ recrawl_max }}
+        {% else %}
+            adaptive
+        {% endif %}
+    {% endif %}
+</span>
+
+{% if collection.take_screenshots %}
+    <span class="{{ label_tag }}">
+        {% if add_to_queue %}
+            📷 take screenshots
+        {% else %}
+            📷 screenshots
+        {% endif %}
+    </span>
+{% endif %}
+
+{% if collection.snapshot_html %}
+    <span class="{{ label_tag }}">
+        {% if add_to_queue %}
+            🔖 HTML archive
+        {% else %}
+            🔖 archive
+        {% endif %}
+    </span>
+{% endif %}
+
+{% with webhooks_count=collection.webhooks.count %}
+    {% if webhooks_count %}
+        <span class="{{ label_tag }}">
+          📡 {{ webhooks_count }} webhook{{ webhooks_count|pluralize }}
+        </span>
+    {% endif %}
+{% endwith %}

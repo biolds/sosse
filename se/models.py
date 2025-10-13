@@ -31,6 +31,8 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from .browser_request import BrowserRequest
+from .builtin import BuiltinModel
+from .crawl_policy_backup import AuthFieldBackup, CrawlPolicyBackup  # noqa: F401
 from .document import Document
 from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
@@ -107,7 +109,7 @@ class Link(models.Model):
 class AuthField(models.Model):
     key = models.CharField(max_length=256, verbose_name="<input> name attribute")
     value = models.CharField(max_length=256)
-    crawl_policy = models.ForeignKey("CrawlPolicy", on_delete=models.CASCADE)
+    collection = models.ForeignKey("Collection", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "authentication field"
@@ -233,14 +235,12 @@ def validate_search_url(value):
         )
 
 
-class SearchEngine(models.Model):
+class SearchEngine(BuiltinModel):
     short_name = models.CharField(unique=True, max_length=32, blank=True, default="")
     long_name = models.CharField(max_length=48, blank=True, default="")
     description = models.CharField(max_length=1024, blank=True, default="")
     html_template = models.CharField(max_length=2048, validators=[validate_search_url])
     shortcut = models.CharField(max_length=16, blank=True)
-    builtin = models.BooleanField(default=False, verbose_name="Built-in")
-    enabled = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Search Engine"
@@ -408,7 +408,7 @@ class FavIcon(models.Model):
                 favicon.content = data
                 favicon.missing = False
             else:
-                page = BrowserRequest.get(url, check_status=True)
+                page = BrowserRequest.get(url, doc.collection, check_status=True)
                 from magic import from_buffer as magic_from_buffer
 
                 favicon.mimetype = magic_from_buffer(page.content, mime=True)

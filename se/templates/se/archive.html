@@ -15,6 +15,13 @@
     <p style="color: #081; font-size: 13px">
         {{ beautified_url }}
     </p>
+    <p style="color: #666; font-size: 12px">
+        Collection: <strong>{{ doc.collection.name }}</strong>
+        {% if other_collections_docs %}
+            <br/>
+            Also in: {% for other_doc in other_collections_docs %}<a href="{{ other_doc.get_absolute_url }}" title="View in {{ other_doc.collection.name }}">{{ other_doc.collection.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+        {% endif %}
+    </p>
     <p>
         {% include "se/components/tags_list.html" with id="document_tags" %}
     </p>

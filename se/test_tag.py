@@ -55,11 +55,11 @@ class TagTest(ViewsTestMixin, TransactionTestCase):
         tag3 = Tag.objects.create(name="Tag 3")
         tag4 = Tag.objects.create(name="Tag 4", parent=tag3)
 
-        doc1 = Document.objects.create(url="http://example.com/doc1")
+        doc1 = Document.objects.create(url="http://example.com/doc1", collection=self.collection)
         doc1.tags.add(tag1)
-        doc2 = Document.objects.create(url="http://example.com/doc2")
+        doc2 = Document.objects.create(url="http://example.com/doc2", collection=self.collection)
         doc2.tags.add(tag2)
-        doc3 = Document.objects.create(url="http://example.com/doc3")
+        doc3 = Document.objects.create(url="http://example.com/doc3", collection=self.collection)
         doc3.tags.set([tag3, tag4])
 
         doc_counts = Tag.tree_doc_counts()

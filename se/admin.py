@@ -33,15 +33,16 @@ from django.utils.timezone import now
 from treebeard.admin import TreeAdmin
 from treebeard.forms import movenodeform_factory
 
-from .add_to_queue import AddToQueueConfirmationView, AddToQueueView
+from .add_to_queue import AddToQueueView
 from .analytics import AnalyticsView
+from .collection import Collection
 from .cookie import Cookie
-from .crawl_policy import CrawlPolicy
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .html_asset import HTMLAsset
+from .mime_plugin import MimePlugin
 from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
 from .tag import Tag
 from .tag_field import TagField
@@ -55,11 +56,12 @@ class SEAdminSite(admin.AdminSite):
 
     MODEL_ICONS = {
         "Cookie": "🍪 ",
-        "CrawlPolicy": "⚡",
+        "Collection": "⚡",
         "Tag": "⭐",
         "Document": "🔤 ",
-        "DomainSetting": "🕸",
+        "Domain": "🕸",
         "Webhook": "📡",
+        "MimePlugin": "🧩",
         "ExcludedUrl": "🔗",
         "SearchEngine": "🔍",
         "User": "👤",
@@ -71,12 +73,13 @@ class SEAdminSite(admin.AdminSite):
             (
                 "se",
                 (
-                    "CrawlPolicy",
+                    "Collection",
                     "Tag",
                     "Document",
-                    "DomainSetting",
+                    "Domain",
                     "Cookie",
                     "Webhook",
+                    "MimePlugin",
                     "ExcludedUrl",
                     "SearchEngine",
                     "HTMLAsset",
@@ -233,8 +236,22 @@ def search_engine_enable_disable(modeladmin, request, queryset):
     )
 
 
+class BuiltinAdmin(admin.ModelAdmin):
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.builtin:
+            fields = copy(self.get_fields(request))
+            fields.remove("enabled")
+            return fields
+        return super().get_readonly_fields(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.builtin:
+            return False
+        return super().has_delete_permission(request, obj)
+
+
 @admin.register(SearchEngine)
-class SearchEngineAdmin(admin.ModelAdmin):
+class SearchEngineAdmin(BuiltinAdmin):
     list_display = ("short_name", "enabled", "shortcut", "builtin")
     search_fields = ("short_name", "shortcut")
     readonly_fields = ("builtin",)
@@ -316,30 +333,6 @@ class DocumentQueueFilter(admin.SimpleListFilter):
         return queryset
 
 
-class DocumentCrawlPolicyFilter(admin.SimpleListFilter):
-    title = "⚡ Crawl Policy"
-    parameter_name = "crawl_policy"
-
-    def lookups(self, request, model_admin):
-        # Récupère toutes les valeurs de CrawlPolicy et les retourne comme tuples
-        return [
-            (policy.id, policy.get_title_label())
-            for policy in CrawlPolicy.objects.order_by("url_regex")
-            if not policy.url_regex == "(default)"
-        ]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            try:
-                # Récupère la politique de crawl sélectionnée
-                policy = CrawlPolicy.objects.get(id=self.value())
-                # Filtre les documents dont l'URL correspond à l'expression régulière
-                return queryset.filter(url__regex=policy.url_regex_pg)
-            except CrawlPolicy.DoesNotExist:
-                return queryset.none()
-        return queryset
-
-
 class DocumentOrphanFilter(admin.SimpleListFilter):
     title = "orphan"
     parameter_name = "orphan"
@@ -384,26 +377,29 @@ class TagsFilter(admin.SimpleListFilter):
         return queryset
 
 
+class CollectionFilter(admin.SimpleListFilter):
+    title = "⚡ Collection"
+    parameter_name = "collection"
+
+    def lookups(self, request, model_admin):
+        return [(collection.id, collection.name) for collection in Collection.objects.all()]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(collection__id=self.value())
+        return queryset
+
+
 @admin.action(description="Crawl now", permissions=["change"])
 def crawl_now(modeladmin, request, queryset):
-    queryset.update(crawl_next=now(), manual_crawl=True)
+    queryset.update(crawl_next=now(), manual_crawl=True, retries=0)
     WorkerStats.wake_up()
     return redirect(reverse("admin:crawl_queue"))
 
 
-@admin.action(description="Remove from crawl queue", permissions=["change"])
+@admin.action(description="Stop recrawl", permissions=["change"])
 def remove_from_crawl_queue(modeladmin, request, queryset):
     queryset.update(crawl_next=None)
-
-
-@admin.action(description="Convert screens to jpeg", permissions=["change"])
-def convert_to_jpg(modeladmin, request, queryset):
-    for doc in queryset.all():
-        if doc.screenshot_format == Document.SCREENSHOT_JPG or doc.screenshot_count == 0:
-            continue
-        doc.convert_to_jpg()
-        doc.screenshot_format = Document.SCREENSHOT_JPG
-        doc.save()
 
 
 @admin.action(description="Crawl later", permissions=["change"])
@@ -425,8 +421,8 @@ def switch_hidden(modeladmin, request, queryset):
 @admin.action(description="Trigger webhooks", permissions=["change"])
 def trigger_webhooks(modeladmin, request, queryset):
     for doc in queryset.all():
-        crawl_policy = CrawlPolicy.get_from_url(doc.url)
-        webhooks = crawl_policy.webhooks.all()
+        collection = doc.collection
+        webhooks = collection.webhooks.all()
         Webhook.trigger(webhooks, doc)
         doc.save()
 
@@ -436,7 +432,15 @@ def clear_tags(modeladmin, request, queryset):
     Document.tags.through.objects.filter(document__in=queryset).delete()
 
 
+@admin.action(description="Move to collection", permissions=["change"])
+def move_to_collection(modeladmin, request, queryset):
+    request.session["documents_to_move"] = list(queryset.values_list("id", flat=True))
+    return redirect(reverse("admin:move_to_collection"))
+
+
 class DocumentForm(forms.ModelForm):
+    collection = forms.ModelChoiceField(queryset=Collection.objects.all(), widget=forms.Select(), empty_label=None)
+
     class Meta:
         model = Document
         fields = "__all__"
@@ -452,6 +456,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     form = DocumentForm
     list_display = (
         "_url",
+        "collection",
         "status",
         "_title",
         "active_tags",
@@ -464,7 +469,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     list_filter = (
         DocumentQueueFilter,
         DocumentStateFilter,
-        DocumentCrawlPolicyFilter,
+        CollectionFilter,
         "show_on_homepage",
         TagsFilter,
         "hidden",
@@ -473,7 +478,14 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)
-    actions = [crawl_now, remove_from_crawl_queue, clear_tags, convert_to_jpg, switch_hidden, trigger_webhooks]
+    actions = [
+        crawl_now,
+        remove_from_crawl_queue,
+        clear_tags,
+        switch_hidden,
+        trigger_webhooks,
+        move_to_collection,
+    ]
     if settings.DEBUG:
         actions += [crawl_later]
     list_per_page = settings.SOSSE_ADMIN_PAGE_SIZE
@@ -484,6 +496,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             {
                 "fields": (
                     "_title",
+                    "collection",
                     "tags",
                     "related",
                     "show_on_homepage",
@@ -518,6 +531,15 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             },
         ),
         (
+            "🧩 Mime Handlers",
+            {
+                "fields": (
+                    "_mimetype2",
+                    "mime_plugins_result",
+                ),
+            },
+        ),
+        (
             "📡 Webhooks",
             {
                 "fields": ("_webhooks_result",),
@@ -537,9 +559,11 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         "_robotstxt_rejected",
         "too_many_redirects",
         "_mimetype",
+        "_mimetype2",
         "_lang_txt",
         "_content",
         "crawl_first",
+        "mime_plugins_result",
         "modified_date",
         "_crawl_last_txt",
         "_crawl_next_txt",
@@ -564,9 +588,9 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
             path("analytics/", self.admin_site.admin_view(self.analytics), name="analytics"),
             path("queue/", self.admin_site.admin_view(self.add_to_queue), name="queue"),
             path(
-                "queue_confirm/",
-                self.admin_site.admin_view(self.add_to_queue_confirm),
-                name="queue_confirm",
+                "move_to_collection/",
+                self.admin_site.admin_view(self.move_to_collection_view),
+                name="move_to_collection",
             ),
             path(
                 "crawlers/",
@@ -604,9 +628,6 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     def add_to_queue(self, request):
         return AddToQueueView.as_view(admin_site=self.admin_site)(request)
 
-    def add_to_queue_confirm(self, request):
-        return AddToQueueConfirmationView.as_view(admin_site=self.admin_site)(request)
-
     def crawlers(self, request):
         return CrawlersView.as_view(admin_site=self.admin_site)(request)
 
@@ -621,6 +642,11 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
 
     def analytics(self, request):
         return AnalyticsView.as_view()(request)
+
+    def move_to_collection_view(self, request):
+        from .move_to_collection import MoveToCollectionView
+
+        return MoveToCollectionView.as_view(admin_site=self.admin_site)(request)
 
     @staticmethod
     @admin.display(ordering="crawl_next")
@@ -696,28 +722,28 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     @staticmethod
     def related(obj):
         try:
-            crawl_policy = CrawlPolicy.get_from_url(obj.url)
+            collection = obj.collection
             policy = format_html(
-                '⚡&nbsp<a href="{}">Crawl&nbspPolicy&nbsp{}</a>',
-                reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
-                crawl_policy,
+                '⚡&nbsp<a href="{}">Collection&nbsp{}</a>',
+                reverse("admin:se_collection_change", args=(collection.id,)),
+                collection,
             )
 
             tags_count = obj.tags.count()
-            tags_url = reverse("admin:se_tag_changelist") + f"?document__id={obj.id}"
+            tags_url = reverse("admin:se_tag_changelist") + f"?document={obj.id}"
             tags = format_html('⭐&nbsp<a href="{}">Tags ({})</a>', tags_url, tags_count)
 
-            domain_setting = DomainSetting.get_from_url(obj.url, crawl_policy.default_browse_mode)
-            domain = format_html(
+            domain = Domain.get_from_url(obj.url)
+            domain_link = format_html(
                 '🕸&nbsp<a href="{}">Domain {}</a>',
-                reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
-                domain_setting.domain,
+                reverse("admin:se_domain_change", args=(domain.id,)),
+                domain.domain,
             )
 
             cookies = format_html(
                 '🍪&nbsp<a href="{}">Cookies ({})</a>',
                 reverse("admin:se_cookie_changelist") + "?q=" + quote_plus(obj.url),
-                Cookie.objects.filter(domain=domain_setting.domain).count(),
+                Cookie.objects.filter(domain=domain.domain).count(),
             )
 
             source = obj.get_source_link()
@@ -736,7 +762,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
                 '<p><span>{}</span><span class="label_tag">{}</span><span class="label_tag">{}</span></p>',
                 archive,
                 policy,
-                domain,
+                domain_link,
                 tags,
                 cookies,
                 links_to_here,
@@ -761,25 +787,37 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     @staticmethod
     @admin.display(description="Robots.txt status")
     def _robotstxt_rejected(obj):
-        domain_setting = DomainSetting.get_from_url(obj.url)
+        domain = Domain.get_from_url(obj.url)
         if obj.robotstxt_rejected:
             return format_html(
                 '<img src="{}" alt="Rejected" title="Rejected" /> 🤖 Rejected by robots.txt file, see corresponding 🕸 <a href="{}">Domain</a>',
                 f"{settings.STATIC_URL}admin/img/icon-no.svg",
-                reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+                reverse("admin:se_domain_change", args=(domain.id,)),
             )
 
         return format_html(
             '<img src="{}" alt="Accepted" /> Accepted, see corresponding 🕸 <a href="{}">Domain</a>',
             f"{settings.STATIC_URL}admin/img/icon-yes.svg",
-            reverse("admin:se_domainsetting_change", args=(domain_setting.id,)),
+            reverse("admin:se_domain_change", args=(domain.id,)),
         )
 
     @staticmethod
     @admin.display(description="Mimetype")
     def _mimetype(obj):
         icon = mimetype_icon(obj.mimetype)
-        return f"{icon} {obj.mimetype}"
+        value = format_html(f"{icon} {obj.mimetype}")
+
+        plugins = MimePlugin.objects.extra(where=["%s ~ mimetype_re"], params=[obj.mimetype])
+        if plugins.exists():
+            value += format_html(
+                ' <a href="{}" style="margin-left: 10px">🧩 Plugins ({})</a>',
+                reverse("admin:se_mimeplugin_changelist") + f"?q={obj.mimetype}",
+                plugins.count(),
+            )
+        return value
+
+    # Duplicate field since django won't accept referencing it twice
+    _mimetype2 = _mimetype
 
     @staticmethod
     @admin.display(description="Language")
@@ -800,12 +838,12 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
     def _webhooks_result(obj):
         status = []
         if obj.webhooks_result == {}:
-            crawl_policy = CrawlPolicy.get_from_url(obj.url)
-            if crawl_policy.webhooks.count() == 0:
+            collection = obj.collection
+            if collection.webhooks.count() == 0:
                 return format_html(
-                    "Matching ⚡ Crawl Policy <a href={}>{}</a> has no 📡 Webhooks.",
-                    reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
-                    crawl_policy,
+                    "Matching ⚡ Collection <a href={}>{}</a> has no 📡 Webhooks.",
+                    reverse("admin:se_collection_change", args=(collection.id,)),
+                    collection,
                 )
             return "No webhook was triggered yet."
 
@@ -852,8 +890,8 @@ class InlineAuthField(admin.TabularInline):
     model = AuthField
 
 
-class CrawlPolicyForm(CharFieldForm):
-    TEXT_FIELDS = ("url_regex", "script")
+class CollectionForm(CharFieldForm):
+    TEXT_FIELDS = ("unlimited_regex", "limited_regex", "excluded_regex", "script")
 
     webhooks = forms.ModelMultipleChoiceField(
         queryset=Webhook.objects.all(),
@@ -861,25 +899,37 @@ class CrawlPolicyForm(CharFieldForm):
         required=False,
     )
 
+    queue_to_collections = forms.ModelMultipleChoiceField(
+        queryset=Collection.objects.all(),
+        widget=admin.widgets.FilteredSelectMultiple("Collections", is_stacked=False),
+        required=False,
+    )
+
     class Meta:
-        model = CrawlPolicy
+        model = Collection
         exclude = tuple()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = kwargs.get("instance")
-        if instance and instance.url_regex == "(default)":
-            self._meta.help_texts = {"url_regex": None}
+        self.fields["tags"] = TagField(model=Collection, instance=instance)
 
-        self.fields["tags"] = TagField(model=CrawlPolicy, instance=instance)
+        # Exclude self from queue_to_collections choices
+        if instance and instance.pk:
+            self.fields["queue_to_collections"].queryset = Collection.objects.exclude(pk=instance.pk)
+
+        for field in ("unlimited_regex", "limited_regex", "excluded_regex"):
+            # Fields are empty when the form is readonly
+            if field in self.fields:
+                self.fields[field].widget.attrs["rows"] = 5
 
     def clean(self):
         cleaned_data = super().clean()
 
         keys_required = {
             "recrawl_dt_min": cleaned_data["recrawl_freq"]
-            in (CrawlPolicy.RECRAWL_FREQ_ADAPTIVE, CrawlPolicy.RECRAWL_FREQ_CONSTANT),
-            "recrawl_dt_max": cleaned_data["recrawl_freq"] in (CrawlPolicy.RECRAWL_FREQ_ADAPTIVE,),
+            in (Collection.RECRAWL_FREQ_ADAPTIVE, Collection.RECRAWL_FREQ_CONSTANT),
+            "recrawl_dt_max": cleaned_data["recrawl_freq"] in (Collection.RECRAWL_FREQ_ADAPTIVE,),
         }
 
         for key, required in keys_required.items():
@@ -890,12 +940,12 @@ class CrawlPolicyForm(CharFieldForm):
                 self.add_error(key, "This field must be null when using this recrawl mode")
 
         if cleaned_data["default_browse_mode"] not in (
-            DomainSetting.BROWSE_CHROMIUM,
-            DomainSetting.BROWSE_FIREFOX,
+            Domain.BROWSE_CHROMIUM,
+            Domain.BROWSE_FIREFOX,
         ):
             if cleaned_data["thumbnail_mode"] in (
-                CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
-                CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
+                Collection.THUMBNAIL_MODE_SCREENSHOT,
+                Collection.THUMBNAIL_MODE_PREV_OR_SCREEN,
             ):
                 self.add_error(
                     "default_browse_mode",
@@ -926,30 +976,20 @@ class CrawlPolicyForm(CharFieldForm):
         return cleaned_data
 
 
-@admin.action(description="Enable/Disable", permissions=["change"])
-def crawl_policy_enable_disable(modeladmin, request, queryset):
-    queryset.exclude(url_regex="(default)").update(
-        enabled=models.Case(
-            models.When(enabled=True, then=models.Value(False)),
-            models.When(enabled=False, then=models.Value(True)),
-        )
-    )
-
-
 @admin.action(description="Duplicate", permissions=["change"])
-def crawl_policy_duplicate(modeladmin, request, queryset):
-    for crawl_policy in queryset.all():
-        tags = list(crawl_policy.tags.all())
-        webhooks = list(crawl_policy.webhooks.all())
-        crawl_policy.id = None
-        crawl_policy.url_regex = f"Copy of {crawl_policy.url_regex}"
-        crawl_policy.save()
-        crawl_policy.tags.set(tags)
-        crawl_policy.webhooks.set(webhooks)
+def collection_duplicate(modeladmin, request, queryset):
+    for collection in queryset.all():
+        tags = list(collection.tags.all())
+        webhooks = list(collection.webhooks.all())
+        collection.id = None
+        collection.name = f"Copy of {collection.name}"
+        collection.save()
+        collection.tags.set(tags)
+        collection.webhooks.set(webhooks)
         msg = format_html(
-            "Crawl policy <a href='{}'>{}</a> created.",
-            reverse("admin:se_crawlpolicy_change", args=(crawl_policy.id,)),
-            crawl_policy,
+            "Collection <a href='{}'>{}</a> created.",
+            reverse("admin:se_collection_change", args=(collection.id,)),
+            collection,
         )
         messages.success(request, msg)
 
@@ -957,7 +997,7 @@ def crawl_policy_duplicate(modeladmin, request, queryset):
 @admin.action(description="Update doc tags", permissions=["document_change"])
 def update_doc_tags(modeladmin, request, queryset, clear_first=False):
     for obj in queryset:
-        documents = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg)
+        documents = Document.objects.wo_content().filter(url__regex=obj.unlimited_regex_pg)
 
         if clear_first:
             Document.tags.through.objects.filter(document__in=documents).delete()
@@ -978,37 +1018,42 @@ def clear_update_doc_tags(modeladmin, request, queryset):
     update_doc_tags(modeladmin, request, queryset, True)
 
 
-@admin.register(CrawlPolicy)
-class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMixin):
+@admin.register(Collection)
+class CollectionAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMixin):
     inlines = [InlineAuthField]
-    form = CrawlPolicyForm
+    form = CollectionForm
     list_display = (
-        "url_regex",
-        "enabled",
+        "name",
         "active_tags",
         "docs",
-        "crawl_policy_desc",
+        "collection_desc",
     )
-    list_filter = ("enabled", TagsFilter)
-    search_fields = ("url_regex",)
+    list_filter = (TagsFilter,)
+    search_fields = (
+        "name",
+        "unlimited_regex",
+    )
     readonly_fields = ("related", "webhooks_link")
     fieldsets = (
         (
             "⚡ Crawl",
             {
                 "fields": (
-                    "url_regex",
-                    "enabled",
-                    "tags",
+                    "name",
                     "related",
-                    "recursion",
+                    "unlimited_regex",
+                    "limited_regex",
                     "recursion_depth",
+                    "excluded_regex",
+                    "tags",
                     "mimetype_regex",
                     "keep_params",
                     "store_extern_links",
                     "hide_documents",
                     "remove_nav_elements",
                     "thumbnail_mode",
+                    "queue_to_any_collection",
+                    "queue_to_collections",
                 )
             },
         ),
@@ -1062,26 +1107,14 @@ class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMix
             },
         ),
     )
-    actions = [crawl_policy_enable_disable, crawl_policy_duplicate, update_doc_tags, clear_update_doc_tags]
+    actions = [collection_duplicate, update_doc_tags, clear_update_doc_tags]
 
     class Media:
-        js = ("se/tags.js",)
+        js = ("se/tags.js", "se/admin-collection.js")
 
-    def get_queryset(self, request):
-        # Keep the (default) policy at the top
-        return CrawlPolicy.objects.order_by(
-            models.Case(
-                models.When(url_regex_pg=".*", then=models.Value(0)),
-                default=models.Value(1),
-                output_field=models.IntegerField(),
-            ),
-            "url_regex_pg",
-        )
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj and obj.url_regex == "(default)":
-            return self.readonly_fields + ("url_regex", "enabled")
-        return self.readonly_fields
+    def changelist_view(self, request, extra_context=None):
+        Collection.create_default()
+        return super().changelist_view(request, extra_context)
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
@@ -1090,26 +1123,22 @@ class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMix
             fieldsets[0][1]["fields"] = tuple(filter(lambda x: x != "documents", fieldsets[0][1]["fields"]))
         return fieldsets
 
-    def has_delete_permission(self, request, obj=None):
-        if obj and obj.url_regex == "(default)":
-            return False
-        return super().has_delete_permission(request, obj)
-
     def has_document_change_permission(self, request, obj=None):
         return request.user.has_perm("se.document_change")
 
     @staticmethod
     def related(obj):
-        doc_count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
-        params = urlencode({"q": obj.url_regex_pg})
+        doc_count = Document.objects.wo_content().filter(collection=obj).count()
         docs = format_html(
-            '<a href="{}">🔤&nbspDocuments ({})</a>', reverse("admin:se_document_changelist") + "?" + params, doc_count
+            '<a href="{}">🔤&nbspDocuments ({})</a>',
+            reverse("admin:se_document_changelist") + f"?collection={obj.id}",
+            doc_count,
         )
 
         tag_count = obj.tags.count()
         tags = format_html(
             '<a href="{}">⭐&nbspTags ({})</a>',
-            reverse("admin:se_tag_changelist") + f"?crawlpolicy__id={obj.id}",
+            reverse("admin:se_tag_changelist") + f"?collection={obj.id}",
             tag_count,
         )
         return format_html(
@@ -1118,23 +1147,22 @@ class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMix
 
     @staticmethod
     def docs(obj):
-        count = Document.objects.wo_content().filter(url__regex=obj.url_regex_pg).count()
-        params = urlencode({"q": obj.url_regex_pg})
+        doc_count = Document.objects.wo_content().filter(collection=obj).count()
         return format_html(
             '🔤 <a href="{}">{}</a>',
-            reverse("admin:se_document_changelist") + "?" + params,
-            count,
+            reverse("admin:se_document_changelist") + f"?collection={obj.id}",
+            doc_count,
         )
 
     @staticmethod
     @admin.display(description="Policy")
-    def crawl_policy_desc(obj):
+    def collection_desc(obj):
         return render_to_string(
-            "admin/crawl_policy_desc.html",
+            "admin/collection_desc.html",
             {
-                "crawl_policy": obj,
-                "CrawlPolicy": CrawlPolicy,
-                "DomainSetting": DomainSetting,
+                "collection": obj,
+                "Collection": Collection,
+                "Domain": Domain,
                 "label_tag": "label_tag_inline",
                 "settings": settings,
             },
@@ -1148,19 +1176,12 @@ class CrawlPolicyAdmin(ReturnUrlAdminMixin, InlineActionModelAdmin, ActiveTagMix
         elif not obj or not obj.webhooks.count():
             return format_html('<a href="{}">Edit Webhooks</a>', reverse("admin:se_webhook_changelist"))
 
-        webhooks = reverse("admin:se_webhook_changelist") + f"?crawlpolicy__id={obj.id}"
+        webhooks = reverse("admin:se_webhook_changelist") + f"?collection={obj.id}"
         return format_html('<a href="{}">Edit Webhooks</a>', webhooks)
 
-    def get_search_results(self, request, queryset, search_term):
-        if search_term.startswith("http://") or search_term.startswith("https://"):
-            policy = CrawlPolicy.get_from_url(search_term, queryset)
-            policies = CrawlPolicy.objects.filter(id=policy.id)
-            return policies, False
-        return super().get_search_results(request, queryset, search_term)
 
-
-@admin.register(DomainSetting)
-class DomainSettingAdmin(admin.ModelAdmin):
+@admin.register(Domain)
+class DomainAdmin(admin.ModelAdmin):
     list_display = ("domain", "ignore_robots", "robots_status", "browse_mode")
     search_fields = ("domain",)
     fields = (
@@ -1243,6 +1264,21 @@ class ExcludedUrlAdmin(admin.ModelAdmin):
     ordering = ("url",)
     form = ExcludedUrlForm
 
+    def get_urls(self):
+        urls = super().get_urls()
+        return [
+            path(
+                "import/",
+                self.admin_site.admin_view(self.excluded_urls_import),
+                name="excluded_urls_import",
+            ),
+        ] + urls
+
+    def excluded_urls_import(self, request):
+        from .excluded_urls_import import ExcludedUrlsImportView
+
+        return ExcludedUrlsImportView.as_view()(request)
+
 
 BaseTagForm = movenodeform_factory(Tag)
 
@@ -1259,8 +1295,8 @@ class TagForm(BaseTagForm):
 class TagAdmin(ReturnUrlAdminMixin, TreeAdmin):
     form = TagForm
     list_display = ("_name", "docs", "policies", "webhooks_count")
-    fields = ("name", "_ref_node_id", "documents", "crawl_policies", "webhooks", "_position")
-    readonly_fields = ("documents", "crawl_policies", "webhooks")
+    fields = ("name", "_ref_node_id", "documents", "collections", "webhooks", "_position")
+    readonly_fields = ("documents", "collections", "webhooks")
     search_fields = ("name",)
 
     @staticmethod
@@ -1288,24 +1324,24 @@ class TagAdmin(ReturnUrlAdminMixin, TreeAdmin):
         )
 
     @staticmethod
-    @admin.display(description="Crawl Policies")
-    def crawl_policies(obj):
+    @admin.display(description="Collections")
+    def collections(obj):
         if not obj or not obj.id:
             return ""
-        count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
+        count = Collection.objects.filter(tags__id=obj.id).count()
         return format_html(
-            '<a href="{}">Used in ⚡ Crawl Policies ({})</a>',
-            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            '<a href="{}">Used in ⚡ Collections ({})</a>',
+            reverse("admin:se_collection_changelist") + f"?tags={obj.id}",
             count,
         )
 
     @staticmethod
-    @admin.display(description="Crawl Policies")
+    @admin.display(description="Collections")
     def policies(obj):
-        count = CrawlPolicy.objects.filter(tags__id=obj.id).count()
+        count = Collection.objects.filter(tags__id=obj.id).count()
         return format_html(
             '⚡ <a href="{}">{}</a>',
-            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            reverse("admin:se_collection_changelist") + f"?tags={obj.id}",
             count,
         )
 
@@ -1317,7 +1353,7 @@ class TagAdmin(ReturnUrlAdminMixin, TreeAdmin):
         count = Webhook.objects.filter(tags__id=obj.id).count()
         return format_html(
             '<a href="{}">Used in 📡 Webhooks ({})</a>',
-            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            reverse("admin:se_collection_changelist") + f"?tags={obj.id}",
             count,
         )
 
@@ -1327,7 +1363,7 @@ class TagAdmin(ReturnUrlAdminMixin, TreeAdmin):
         count = Webhook.objects.filter(tags__id=obj.id).count()
         return format_html(
             '📡 <a href="{}">{}</a>',
-            reverse("admin:se_crawlpolicy_changelist") + f"?tags={obj.id}",
+            reverse("admin:se_collection_changelist") + f"?tags={obj.id}",
             count,
         )
 
@@ -1350,13 +1386,13 @@ class WebhookForm(forms.ModelForm):
 
 @admin.register(Webhook)
 class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
-    list_display = ("name", "enabled", "crawl_policies_count", "active_tags", "url", "trigger_condition")
+    list_display = ("name", "enabled", "collections_count", "active_tags", "url", "trigger_condition")
     list_filter = ("enabled",)
     search_fields = ("name", "url", "trigger_condition")
     ordering = ("name",)
     fields = (
         "name",
-        "crawl_policies_link",
+        "collections_link",
         "enabled",
         "tags",
         "trigger_condition",
@@ -1369,13 +1405,14 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
         "headers",
         "username",
         "password",
+        "url_re",
         "mimetype_re",
         "title_re",
         "content_re",
         "webhook_test",
     )
     readonly_fields = (
-        "crawl_policies_link",
+        "collections_link",
         "webhook_test",
     )
     form = WebhookForm
@@ -1384,26 +1421,26 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
         js = ("se/admin-webhooks.js", "se/tags.js")
 
     @staticmethod
-    @admin.display(description="Crawl Policies")
-    def crawl_policies_count(obj):
-        crawl_policies_count = obj.crawlpolicy_set.count()
-        webhooks = reverse("admin:se_crawlpolicy_changelist") + f"?webhooks__id={obj.id}"
-        return format_html('⚡ <a href="{}">{}</a>', webhooks, crawl_policies_count)
+    @admin.display(description="Collections")
+    def collections_count(obj):
+        collections_count = obj.collection_set.count()
+        webhooks = reverse("admin:se_collection_changelist") + f"?webhooks={obj.id}"
+        return format_html('⚡ <a href="{}">{}</a>', webhooks, collections_count)
 
     @staticmethod
-    @admin.display(description="Crawl Policies")
-    def crawl_policies_link(obj):
-        crawl_policies_count = 0
+    @admin.display(description="Collections")
+    def collections_link(obj):
+        collections_count = 0
         if obj and obj.id:
-            crawl_policies_count = obj.crawlpolicy_set.count()
+            collections_count = obj.collection_set.count()
 
-        if not crawl_policies_count:
+        if not collections_count:
             return format_html(
-                '<a href="{}">No Crawl Policies use this Webhook</a>', reverse("admin:se_crawlpolicy_changelist")
+                '<a href="{}">No Collections use this Webhook</a>', reverse("admin:se_collection_changelist")
             )
 
-        webhooks = reverse("admin:se_crawlpolicy_changelist") + f"?webhooks__id={obj.id}"
-        return format_html('<a href="{}">Edit Crawl Policies ({})</a>', webhooks, crawl_policies_count)
+        webhooks = reverse("admin:se_collection_changelist") + f"?webhooks={obj.id}"
+        return format_html('<a href="{}">Edit Collections ({})</a>', webhooks, collections_count)
 
     def webhook_test(self, obj):
         return format_html(
@@ -1411,6 +1448,53 @@ class WebhookAdmin(admin.ModelAdmin, ActiveTagMixin):
         )
 
     webhook_test.short_description = "Webhook test"
+
+
+@admin.register(MimePlugin)
+class MimePluginAdmin(BuiltinAdmin):
+    list_display = (
+        "name",
+        "enabled",
+        "docs",
+        "mimetype_re",
+    )
+    list_filter = ("enabled",)
+    search_fields = (
+        "name",
+        "mimetype_re",
+        "script",
+    )
+    fieldsets = (
+        (
+            None,
+            {"fields": ("name", "enabled", "related", "mimetype_re", "script", "timeout")},
+        ),
+    )
+    readonly_fields = ("related",)
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, _ = super().get_search_results(request, queryset, search_term)
+        if search_term.strip():
+            queryset = MimePlugin.objects.extra(where=["%s ~ mimetype_re"], params=[search_term.strip()])
+        return queryset, False
+
+    @staticmethod
+    def related(obj):
+        doc_count = Document.objects.wo_content().filter(mimetype__regex=obj.mimetype_re).count()
+        params = urlencode({"mimetype__regex": obj.mimetype_re})
+        return format_html(
+            '<a href="{}">🔤&nbspDocuments ({})</a>', reverse("admin:se_document_changelist") + "?" + params, doc_count
+        )
+
+    @staticmethod
+    def docs(obj):
+        count = Document.objects.wo_content().filter(mimetype__regex=obj.mimetype_re).count()
+        params = urlencode({"mimetype__regex": obj.mimetype_re})
+        return format_html(
+            '<a href="{}">🔤 {}</a>',
+            reverse("admin:se_document_changelist") + "?" + params,
+            count,
+        )
 
 
 if settings.DEBUG:

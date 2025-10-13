@@ -1,0 +1,20 @@
+[Unit]
+Description=Sosse uWSGI server
+After=syslog.target network.target postgresql.service
+
+[Service]
+ExecStartPre=-+mkdir -p /run/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html /var/lib/sosse/browser_config /var/www/.mozilla /var/www/.cache /var/log/sosse
+ExecStartPre=-+touch /var/log/sosse/crawler.log /var/log/sosse/debug.log /var/log/sosse/main.log /var/log/sosse/webserver.log /var/log/sosse/webhooks.log
+ExecStartPre=-+chown www-data:www-data /run/sosse /var/lib/sosse/downloads /var/lib/sosse/screenshots /var/lib/sosse/html /var/lib/sosse/browser_config /var/www/.mozilla /var/www/.cache
+ExecStartPre=-+chown www-data:www-data -R /var/log/sosse/
+ExecStart=/usr/bin/uwsgi --uid www-data --gid www-data --plugin python3 --ini /etc/sosse/uwsgi.ini \
+           --logto /var/log/uwsgi/sosse.log
+
+RuntimeDirectory=
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

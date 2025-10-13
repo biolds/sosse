@@ -1,0 +1,13 @@
+Source: sosse
+Section: admin
+Priority: optional
+Maintainer: Laurent DEFERT <laurent_defert@yahoo.fr>
+Build-Depends: debhelper (>=10), dh-python, python3, python3-setuptools
+Standards-Version: 4.0.0
+Homepage: https://gitlab.com/biolds1/sosse
+
+Package: sosse
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, postgresql, nginx, uwsgi, uwsgi-plugin-python3, python3-cssutils, python3-django, python3-django-filters, python3-django-treebeard, python3-djangorestframework, python3-djangorestframework-spectacular, python3-requests, python3-bs4, python3-html5lib, python3-psycopg2, python3-django-uwsgi, python3-feedparser, python3-langdetect, python3-pil, python3-publicsuffix2, python3-psutil, python3-lxml, python3-magic, python3-defusedxml, python3-selenium, libjs-jquery, firefox-esr, chromium, chromium-driver, fonts-noto, unifont
+Description: Open Source Search Engine
+ Open Source Search Engine

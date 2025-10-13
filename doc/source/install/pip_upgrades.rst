@@ -16,3 +16,4 @@ When the upgrade is done, the following commands need to be run to update the da
    sosse-admin collectstatic --noinput --clear
    sosse-admin migrate
    sosse-admin update_se
+   sosse-admin update_mime

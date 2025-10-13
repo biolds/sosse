@@ -21,6 +21,10 @@ The initial database data can be injected with the following commands:
 
    |sosse-admin| migrate
    |sosse-admin| update_se
+   sudo -u www-data |sosse-admin| update_mime
+
+.. warning::
+   The ``update_mime`` must be run as the ``www-data`` user, as it needs to write in the Sosse directories.
 
 A default ``admin`` user with password ``admin`` can be created with:
 

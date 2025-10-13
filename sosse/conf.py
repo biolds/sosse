@@ -101,7 +101,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             type=float,
         ),
         "online_check_cache": ConfOption(
-            comment="Online check is done once every ``online_check_cache`` request. The special value ``once`` can be used to run the check only once, when the first request is done. ``0`` can be used to disable caching.\n\n.. note::\n   The cache is effective on a uwSGI worker basis, and as long as the uWSGI worker is alive. So even with a value of ``once`` a new request will be done everytime a new worker is spawned.",
+            comment="Online check is done once every ``online_check_cache`` request. The special value ``once`` can be used to run the check only once, when the first request is done. ``0`` can be used to disable caching.\n\n.. note::\n   The cache is effective on a uWSGI worker basis, and as long as the uWSGI worker is alive. So even with a value of ``once`` a new request will be done everytime a new worker is spawned.",
             default="10",
         ),
         "sosse_shortcut": ConfOption(
@@ -116,6 +116,7 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
         "static_root": ConfOption(var="STATIC_ROOT", default="/var/lib/sosse/static/"),
         "screenshots_url": ConfOption(default="/screenshots/"),
         "screenshots_dir": ConfOption(default="/var/lib/sosse/screenshots/"),
+        "scripts_dir": ConfOption(default="/var/lib/sosse/scripts/"),
         "html_snapshot_url": ConfOption(
             comment="Url path to HTML snapshot\n\n.. danger::\n   This value is hardcoded inside stored HTML snapshot. If you modify it, any HTML page previously stored as a snapshot will need to be crawled again in order to update internal links.",
             default="/snap/",
@@ -344,7 +345,7 @@ The UA will be selected among the provided platform, specified as a comma-separa
         ),
         "max_file_size": ConfOption(
             comment="Maximum file size to index (in kB).",
-            default=5000,
+            default=1000000,
             type=int,
         ),
         "max_html_asset_size": ConfOption(
@@ -375,6 +376,11 @@ The UA will be selected among the provided platform, specified as a comma-separa
         "css_parser": ConfOption(
             comment="Choose which CSS parser implementation to use. May be one of ``internal`` or ``cssutils``:\nYou may want to change this option when HTML snapshots have broken styles.",
             default="internal",
+        ),
+        "worker_crash_retry": ConfOption(
+            comment="Retry ``worker_crash_retry`` times to index the page on worker crashes.",
+            default=1,
+            type=int,
         ),
     },
 }
@@ -641,6 +647,7 @@ class Conf:
             "static_root",
             "screenshots_url",
             "screenshots_dir",
+            "scripts_dir",
             "html_snapshot_url",
             "html_snapshot_dir",
         ):
@@ -648,8 +655,10 @@ class Conf:
             if not val.endswith("/"):
                 settings["SOSSE_" + opt.upper()] = val + "/"
 
-        settings["SOSSE_THUMBNAILS_DIR"] = settings["SOSSE_SCREENSHOTS_DIR"] + "thumb/"
-        settings["SOSSE_THUMBNAILS_URL"] = settings["SOSSE_SCREENSHOTS_URL"] + "thumb/"
+        settings |= {
+            "SOSSE_THUMBNAILS_DIR": settings["SOSSE_SCREENSHOTS_DIR"] + "thumb/",
+            "SOSSE_THUMBNAILS_URL": settings["SOSSE_SCREENSHOTS_URL"] + "thumb/",
+        }
         return settings
 
     @classmethod

@@ -1,48 +1,11 @@
 [
   {
-    "model": "se.crawlpolicy",
-    "pk": 39,
-    "fields": {
-      "url_regex": "(default)",
-      "url_regex_pg": ".*",
-      "enabled": true,
-      "recursion": "depth",
-      "mimetype_regex": ".*",
-      "recursion_depth": 0,
-      "keep_params": true,
-      "hide_documents": false,
-      "default_browse_mode": "detect",
-      "snapshot_html": true,
-      "snapshot_exclude_url_re": "",
-      "snapshot_exclude_mime_re": "",
-      "snapshot_exclude_element_re": "",
-      "thumbnail_mode": "preview",
-      "take_screenshots": false,
-      "screenshot_format": "jpg",
-      "remove_nav_elements": "idx",
-      "script": "",
-      "store_extern_links": false,
-      "recrawl_freq": "adaptive",
-      "recrawl_dt_min": "1 00:00:00",
-      "recrawl_dt_max": "365 00:00:00",
-      "hash_mode": "no_numbers",
-      "recrawl_condition": "manual",
-      "auth_login_url_re": "",
-      "auth_form_selector": "",
-      "tags": [],
-      "webhooks": [
-        9
-      ]
-    }
-  },
-  {
-    "model": "se.crawlpolicy",
+    "model": "se.collection",
     "pk": 40,
     "fields": {
-      "url_regex": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",
-      "url_regex_pg": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",
-      "enabled": true,
-      "recursion": "always",
+      "name": "TED - Tenders Electronic Daily",
+      "unlimited_regex": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",
+      "unlimited_regex_pg": "https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*",
       "mimetype_regex": ".*",
       "recursion_depth": 0,
       "keep_params": true,
@@ -398,9 +361,7 @@
       "mimetype_re": ".*",
       "title_re": ".*",
       "content_re": ".*",
-      "tags": [
-        438
-      ]
+      "tags": [438]
     }
   },
   {

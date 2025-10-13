@@ -1,686 +1,930 @@
 [
   {
-    "model": "se.searchengine",
-    "pk": 1,
-    "fields": {
-      "short_name": "DuckDuckGo",
-      "long_name": "DuckDuckGo Search",
-      "description": "Search DuckDuckGo",
-      "html_template": "https://duckduckgo.com/?q={searchTerms}",
-      "shortcut": "",
-      "builtin": true
-    }
+    "short_name": "DuckDuckGo",
+    "long_name": "DuckDuckGo Search",
+    "description": "Search DuckDuckGo",
+    "html_template": "https://duckduckgo.com/?q={searchTerms}",
+    "shortcut": "",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 2,
-    "fields": {
-      "short_name": "Bing",
-      "long_name": "Bing",
-      "description": "Bing",
-      "html_template": "http://www.bing.com/search?q={searchTerms}",
-      "shortcut": "bi",
-      "builtin": true
-    }
+    "short_name": "Bing",
+    "long_name": "Bing",
+    "description": "Bing",
+    "html_template": "http://www.bing.com/search?q={searchTerms}",
+    "shortcut": "bi",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 3,
-    "fields": {
-      "short_name": "Google",
-      "long_name": "Google",
-      "description": "Google",
-      "html_template": "https://www.google.com/search?q={searchTerms}",
-      "shortcut": "g",
-      "builtin": true
-    }
+    "short_name": "Google",
+    "long_name": "Google",
+    "description": "Google",
+    "html_template": "https://www.google.com/search?q={searchTerms}",
+    "shortcut": "g",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 4,
-    "fields": {
-      "short_name": "GitHub",
-      "long_name": "Search GitHub",
-      "description": "GitHub",
-      "html_template": "https://github.com/search/?q={searchTerms}",
-      "shortcut": "gh",
-      "builtin": true
-    }
+    "short_name": "GitHub",
+    "long_name": "Search GitHub",
+    "description": "GitHub",
+    "html_template": "https://github.com/search/?q={searchTerms}",
+    "shortcut": "gh",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 5,
-    "fields": {
-      "short_name": "Google Image",
-      "long_name": "Google Image",
-      "description": "Google Image",
-      "html_template": "https://www.google.com/search?tbm=isch&tbs=imgo:1&q={searchTerms}",
-      "shortcut": "gi",
-      "builtin": true
-    }
+    "short_name": "Google Image",
+    "long_name": "Google Image",
+    "description": "Google Image",
+    "html_template": "https://www.google.com/search?tbm=isch&tbs=imgo:1&q={searchTerms}",
+    "shortcut": "gi",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 6,
-    "fields": {
-      "short_name": "YouTube",
-      "long_name": "YouTube",
-      "description": "YouTube",
-      "html_template": "https://www.youtube.com/results?search_query={searchTerms}",
-      "shortcut": "yt",
-      "builtin": true
-    }
+    "short_name": "YouTube",
+    "long_name": "YouTube",
+    "description": "YouTube",
+    "html_template": "https://www.youtube.com/results?search_query={searchTerms}",
+    "shortcut": "yt",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 7,
-    "fields": {
-      "short_name": "Jisho",
-      "long_name": "Jisho",
-      "description": "Jisho - Japanese Dictionary",
-      "html_template": "https://jisho.org/search/{searchTerms}",
-      "shortcut": "j",
-      "builtin": true
-    }
+    "short_name": "Jisho",
+    "long_name": "Jisho",
+    "description": "Jisho - Japanese Dictionary",
+    "html_template": "https://jisho.org/search/{searchTerms}",
+    "shortcut": "j",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 8,
-    "fields": {
-      "short_name": "Wiktionary (en)",
-      "long_name": "Wiktionary (en)",
-      "description": "Wiktionary (en)",
-      "html_template": "https://en.wiktionary.org/w/index.php?title=Special:Search&search={searchTerms}",
-      "shortcut": "wt",
-      "builtin": true
-    }
+    "short_name": "Wiktionary (en)",
+    "long_name": "Wiktionary (en)",
+    "description": "Wiktionary (en)",
+    "html_template": "https://en.wiktionary.org/w/index.php?title=Special:Search&search={searchTerms}",
+    "shortcut": "wt",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 9,
-    "fields": {
-      "short_name": "Wiktionnaire (fr)",
-      "long_name": "Wiktionnaire (fr)",
-      "description": "Wiktionnaire (fr)",
-      "html_template": "https://fr.wiktionary.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
-      "shortcut": "wtfr",
-      "builtin": true
-    }
+    "short_name": "Wiktionnaire (fr)",
+    "long_name": "Wiktionnaire (fr)",
+    "description": "Wiktionnaire (fr)",
+    "html_template": "https://fr.wiktionary.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
+    "shortcut": "wtfr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 10,
-    "fields": {
-      "short_name": "Wikipedia (en)",
-      "long_name": "Wikipedia (en)",
-      "description": "Wikipedia (en)",
-      "html_template": "https://en.wikipedia.org/w/index.php?title=Special:Search&search={searchTerms}",
-      "shortcut": "w",
-      "builtin": true
-    }
+    "short_name": "Wikipedia (en)",
+    "long_name": "Wikipedia (en)",
+    "description": "Wikipedia (en)",
+    "html_template": "https://en.wikipedia.org/w/index.php?title=Special:Search&search={searchTerms}",
+    "shortcut": "w",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 11,
-    "fields": {
-      "short_name": "Wikipédia (fr)",
-      "long_name": "Wikipédia (fr)",
-      "description": "Wikipédia (fr)",
-      "html_template": "https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
-      "shortcut": "wfr",
-      "builtin": true
-    }
+    "short_name": "Wikipédia (fr)",
+    "long_name": "Wikipédia (fr)",
+    "description": "Wikipédia (fr)",
+    "html_template": "https://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
+    "shortcut": "wfr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 12,
-    "fields": {
-      "short_name": "Google FR",
-      "long_name": "Google FR",
-      "description": "Google FR",
-      "html_template": "https://www.google.fr/search?q={searchTerms}",
-      "shortcut": "gfr",
-      "builtin": true
-    }
+    "short_name": "Google FR",
+    "long_name": "Google FR",
+    "description": "Google FR",
+    "html_template": "https://www.google.fr/search?q={searchTerms}",
+    "shortcut": "gfr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 13,
-    "fields": {
-      "short_name": "Google Maps",
-      "long_name": "Google Maps",
-      "description": "Google Maps",
-      "html_template": "https://www.google.fr/maps?q={searchTerms}",
-      "shortcut": "gm",
-      "builtin": true
-    }
+    "short_name": "Google Maps",
+    "long_name": "Google Maps",
+    "description": "Google Maps",
+    "html_template": "https://www.google.fr/maps?q={searchTerms}",
+    "shortcut": "gm",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 14,
-    "fields": {
-      "short_name": "Qwant",
-      "long_name": "",
-      "description": "",
-      "html_template": "https://www.qwant.com/?q={searchTerms}",
-      "shortcut": "q",
-      "builtin": true
-    }
+    "short_name": "Qwant",
+    "long_name": "",
+    "description": "",
+    "html_template": "https://www.qwant.com/?q={searchTerms}",
+    "shortcut": "q",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 15,
-    "fields": {
-      "short_name": "Brave",
-      "long_name": "Brave",
-      "description": "Brave Search: private, independent, open",
-      "html_template": "https://search.brave.com/search?q={searchTerms}",
-      "shortcut": "b",
-      "builtin": true
-    }
+    "short_name": "Brave",
+    "long_name": "Brave",
+    "description": "Brave Search: private, independent, open",
+    "html_template": "https://search.brave.com/search?q={searchTerms}",
+    "shortcut": "b",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 16,
-    "fields": {
-      "short_name": "OpenStreetMap",
-      "long_name": "OpenStreetMap Search",
-      "description": "Search for a place in OpenStreetMap",
-      "html_template": "https://www.openstreetmap.org/search?query={searchTerms}",
-      "shortcut": "map",
-      "builtin": true
-    }
+    "short_name": "OpenStreetMap",
+    "long_name": "OpenStreetMap Search",
+    "description": "Search for a place in OpenStreetMap",
+    "html_template": "https://www.openstreetmap.org/search?query={searchTerms}",
+    "shortcut": "map",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 17,
-    "fields": {
-      "short_name": "Yahoo!",
-      "long_name": "",
-      "description": "",
-      "html_template": "https://search.yahoo.com/search?p={searchTerms}",
-      "shortcut": "y",
-      "builtin": true
-    }
+    "short_name": "Yahoo!",
+    "long_name": "",
+    "description": "",
+    "html_template": "https://search.yahoo.com/search?p={searchTerms}",
+    "shortcut": "y",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 18,
-    "fields": {
-      "short_name": "Amazon",
-      "long_name": "",
-      "description": "",
-      "html_template": "https://www.amazon.com/s?k={searchTerms}",
-      "shortcut": "amazon",
-      "builtin": true
-    }
+    "short_name": "Amazon",
+    "long_name": "",
+    "description": "",
+    "html_template": "https://www.amazon.com/s?k={searchTerms}",
+    "shortcut": "amazon",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 19,
-    "fields": {
-      "short_name": "MDN Web Docs",
-      "long_name": "MDN Web Docs",
-      "description": "Search the MDN Web Docs",
-      "html_template": "https://developer.mozilla.org/search?q={searchTerms}",
-      "shortcut": "mdn",
-      "builtin": true
-    }
+    "short_name": "MDN Web Docs",
+    "long_name": "MDN Web Docs",
+    "description": "Search the MDN Web Docs",
+    "html_template": "https://developer.mozilla.org/search?q={searchTerms}",
+    "shortcut": "mdn",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 20,
-    "fields": {
-      "short_name": "عربي - إنجليزي",
-      "long_name": "عربي - إنجليزي",
-      "description": "قاموس WordReference.com  عربي - إنجليزي",
-      "html_template": "https://www.wordreference.com/aren/{searchTerms}",
-      "shortcut": "عربي",
-      "builtin": true
-    }
+    "short_name": "عربي - إنجليزي",
+    "long_name": "عربي - إنجليزي",
+    "description": "قاموس WordReference.com  عربي - إنجليزي",
+    "html_template": "https://www.wordreference.com/aren/{searchTerms}",
+    "shortcut": "عربي",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 22,
-    "fields": {
-      "short_name": "WR Czech-English",
-      "long_name": "WR Czech-English",
-      "description": "WordReference.com Anglicko-český slovník",
-      "html_template": "https://www.wordreference.com/czen/{searchTerms}",
-      "shortcut": "wrczen",
-      "builtin": true
-    }
+    "short_name": "WR Czech-English",
+    "long_name": "WR Czech-English",
+    "description": "WordReference.com Anglicko-český slovník",
+    "html_template": "https://www.wordreference.com/czen/{searchTerms}",
+    "shortcut": "wrczen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 23,
-    "fields": {
-      "short_name": "WR German-English",
-      "long_name": "WR German-English",
-      "description": "Wörterbuch Deutsch-Englisch - WordReference.com",
-      "html_template": "https://www.wordreference.com/deen/{searchTerms}",
-      "shortcut": "wrdeen",
-      "builtin": true
-    }
+    "short_name": "WR German-English",
+    "long_name": "WR German-English",
+    "description": "Wörterbuch Deutsch-Englisch - WordReference.com",
+    "html_template": "https://www.wordreference.com/deen/{searchTerms}",
+    "shortcut": "wrdeen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 24,
-    "fields": {
-      "short_name": "إنجليزي - عربي",
-      "long_name": "إنجليزي - عربي",
-      "description": "قاموس WordReference.com إنجليزي - عربي",
-      "html_template": "https://www.wordreference.com/enar/{searchTerms}",
-      "shortcut": "إنجليزي",
-      "builtin": true
-    }
+    "short_name": "إنجليزي - عربي",
+    "long_name": "إنجليزي - عربي",
+    "description": "قاموس WordReference.com إنجليزي - عربي",
+    "html_template": "https://www.wordreference.com/enar/{searchTerms}",
+    "shortcut": "إنجليزي",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 25,
-    "fields": {
-      "short_name": "WR Anglicko-český",
-      "long_name": "WR Anglicko-český",
-      "description": "WordReference.com Anglicko-český slovník",
-      "html_template": "https://www.wordreference.com/encz/{searchTerms}",
-      "shortcut": "wrencz",
-      "builtin": true
-    }
+    "short_name": "WR Anglicko-český",
+    "long_name": "WR Anglicko-český",
+    "description": "WordReference.com Anglicko-český slovník",
+    "html_template": "https://www.wordreference.com/encz/{searchTerms}",
+    "shortcut": "wrencz",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 26,
-    "fields": {
-      "short_name": "WR English-German",
-      "long_name": "WR English-German",
-      "description": "Wörterbuch Englisch-Deutsch - WordReference.com",
-      "html_template": "https://www.wordreference.com/ende/{searchTerms}",
-      "shortcut": "wrende",
-      "builtin": true
-    }
+    "short_name": "WR English-German",
+    "long_name": "WR English-German",
+    "description": "Wörterbuch Englisch-Deutsch - WordReference.com",
+    "html_template": "https://www.wordreference.com/ende/{searchTerms}",
+    "shortcut": "wrende",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 27,
-    "fields": {
-      "short_name": "WR English-Spanish",
-      "long_name": "WR English-Spanish",
-      "description": "English-Spanish Dictionary - WordReference.com",
-      "html_template": "https://www.wordreference.com/enes/{searchTerms}",
-      "shortcut": "wrenes",
-      "builtin": true
-    }
+    "short_name": "WR English-Spanish",
+    "long_name": "WR English-Spanish",
+    "description": "English-Spanish Dictionary - WordReference.com",
+    "html_template": "https://www.wordreference.com/enes/{searchTerms}",
+    "shortcut": "wrenes",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 28,
-    "fields": {
-      "short_name": "WR English-French",
-      "long_name": "WR English-French",
-      "description": "English-French Dictionary WordReference.com",
-      "html_template": "https://www.wordreference.com/enfr/{searchTerms}",
-      "shortcut": "wref",
-      "builtin": true
-    }
+    "short_name": "WR English-French",
+    "long_name": "WR English-French",
+    "description": "English-French Dictionary WordReference.com",
+    "html_template": "https://www.wordreference.com/enfr/{searchTerms}",
+    "shortcut": "wref",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 29,
-    "fields": {
-      "short_name": "WR English-Greek",
-      "long_name": "WR English-Greek",
-      "description": "Αγγλοελληνικό Λεξικό WordReference.com",
-      "html_template": "https://www.wordreference.com/engr/{searchTerms}",
-      "shortcut": "wrengr",
-      "builtin": true
-    }
+    "short_name": "WR English-Greek",
+    "long_name": "WR English-Greek",
+    "description": "Αγγλοελληνικό Λεξικό WordReference.com",
+    "html_template": "https://www.wordreference.com/engr/{searchTerms}",
+    "shortcut": "wrengr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 31,
-    "fields": {
-      "short_name": "WR English-Italian",
-      "long_name": "WR English-Italian",
-      "description": "Dizionario inglese-italiano WordReference",
-      "html_template": "https://www.wordreference.com/enit/{searchTerms}",
-      "shortcut": "wrenit",
-      "builtin": true
-    }
+    "short_name": "WR English-Italian",
+    "long_name": "WR English-Italian",
+    "description": "Dizionario inglese-italiano WordReference",
+    "html_template": "https://www.wordreference.com/enit/{searchTerms}",
+    "shortcut": "wrenit",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 32,
-    "fields": {
-      "short_name": "WR English-Japanese",
-      "long_name": "WR English-Japanese",
-      "description": "WordReference 英和辞書",
-      "html_template": "https://www.wordreference.com/enja/{searchTerms}",
-      "shortcut": "wrenja",
-      "builtin": true
-    }
+    "short_name": "WR English-Japanese",
+    "long_name": "WR English-Japanese",
+    "description": "WordReference 英和辞書",
+    "html_template": "https://www.wordreference.com/enja/{searchTerms}",
+    "shortcut": "wrenja",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 33,
-    "fields": {
-      "short_name": "WR English-Korean",
-      "long_name": "WR English-Korean",
-      "description": "WordReference 영-한 사전",
-      "html_template": "https://www.wordreference.com/enko/{searchTerms}",
-      "shortcut": "wrenko",
-      "builtin": true
-    }
+    "short_name": "WR English-Korean",
+    "long_name": "WR English-Korean",
+    "description": "WordReference 영-한 사전",
+    "html_template": "https://www.wordreference.com/enko/{searchTerms}",
+    "shortcut": "wrenko",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 34,
-    "fields": {
-      "short_name": "WR English-Polish",
-      "long_name": "WR English-Polish",
-      "description": "WordReference Słownik angielsko-polski",
-      "html_template": "https://www.wordreference.com/enpl/{searchTerms}",
-      "shortcut": "wrenpl",
-      "builtin": true
-    }
+    "short_name": "WR English-Polish",
+    "long_name": "WR English-Polish",
+    "description": "WordReference Słownik angielsko-polski",
+    "html_template": "https://www.wordreference.com/enpl/{searchTerms}",
+    "shortcut": "wrenpl",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 35,
-    "fields": {
-      "short_name": "WR inglês-português",
-      "long_name": "WR inglês-português",
-      "description": "Dicionário Inglês-Português (Brasil) WordReference.com",
-      "html_template": "https://www.wordreference.com/enpt/{searchTerms}",
-      "shortcut": "wrenpt",
-      "builtin": true
-    }
+    "short_name": "WR inglês-português",
+    "long_name": "WR inglês-português",
+    "description": "Dicionário Inglês-Português (Brasil) WordReference.com",
+    "html_template": "https://www.wordreference.com/enpt/{searchTerms}",
+    "shortcut": "wrenpt",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 36,
-    "fields": {
-      "short_name": "WR English-Romanian",
-      "long_name": "WR English-Romanian",
-      "description": "WordReference Dicţionar englez-român",
-      "html_template": "https://www.wordreference.com/enro/{searchTerms}",
-      "shortcut": "wrenro",
-      "builtin": true
-    }
+    "short_name": "WR English-Romanian",
+    "long_name": "WR English-Romanian",
+    "description": "WordReference Dicţionar englez-român",
+    "html_template": "https://www.wordreference.com/enro/{searchTerms}",
+    "shortcut": "wrenro",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 37,
-    "fields": {
-      "short_name": "WR English-Russian",
-      "long_name": "WR English-Russian",
-      "description": "Англо-русский словарь на WordReference.com",
-      "html_template": "https://www.wordreference.com/enru/{searchTerms}",
-      "shortcut": "wrenru",
-      "builtin": true
-    }
+    "short_name": "WR English-Russian",
+    "long_name": "WR English-Russian",
+    "description": "Англо-русский словарь на WordReference.com",
+    "html_template": "https://www.wordreference.com/enru/{searchTerms}",
+    "shortcut": "wrenru",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 39,
-    "fields": {
-      "short_name": "WR İngilizce-Türkçe",
-      "long_name": "WR İngilizce-Türkçe",
-      "description": "WordReference.com İngilizce-Türkçe Sözlük",
-      "html_template": "https://www.wordreference.com/entr/{searchTerms}",
-      "shortcut": "wrentr",
-      "builtin": true
-    }
+    "short_name": "WR İngilizce-Türkçe",
+    "long_name": "WR İngilizce-Türkçe",
+    "description": "WordReference.com İngilizce-Türkçe Sözlük",
+    "html_template": "https://www.wordreference.com/entr/{searchTerms}",
+    "shortcut": "wrentr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 41,
-    "fields": {
-      "short_name": "WordReference 英-汉词典",
-      "long_name": "WordReference 英-汉词典",
-      "description": "WordReference.com 英汉词典",
-      "html_template": "https://www.wordreference.com/enzh/{searchTerms}",
-      "shortcut": "wrenzh",
-      "builtin": true
-    }
+    "short_name": "WordReference 英-汉词典",
+    "long_name": "WordReference 英-汉词典",
+    "description": "WordReference.com 英汉词典",
+    "html_template": "https://www.wordreference.com/enzh/{searchTerms}",
+    "shortcut": "wrenzh",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 42,
-    "fields": {
-      "short_name": "WR Spanish-English",
-      "long_name": "WR Spanish-English",
-      "description": "Diccionario Inglés-Español WordReference.com",
-      "html_template": "https://www.wordreference.com/esen/{searchTerms}",
-      "shortcut": "wresen",
-      "builtin": true
-    }
+    "short_name": "WR Spanish-English",
+    "long_name": "WR Spanish-English",
+    "description": "Diccionario Inglés-Español WordReference.com",
+    "html_template": "https://www.wordreference.com/esen/{searchTerms}",
+    "shortcut": "wresen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 44,
-    "fields": {
-      "short_name": "WR español-francés",
-      "long_name": "WR español-francés",
-      "description": "Diccionario Español-Francés WordReference.com",
-      "html_template": "https://www.wordreference.com/esfr/{searchTerms}",
-      "shortcut": "wresfr",
-      "builtin": true
-    }
+    "short_name": "WR español-francés",
+    "long_name": "WR español-francés",
+    "description": "Diccionario Español-Francés WordReference.com",
+    "html_template": "https://www.wordreference.com/esfr/{searchTerms}",
+    "shortcut": "wresfr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 45,
-    "fields": {
-      "short_name": "WR español-portugûes",
-      "long_name": "WR español-portugûes",
-      "description": "Diccionario Español-Portugués WordReference.com",
-      "html_template": "https://www.wordreference.com/espt/{searchTerms}",
-      "shortcut": "wrespt",
-      "builtin": true
-    }
+    "short_name": "WR español-portugûes",
+    "long_name": "WR español-portugûes",
+    "description": "Diccionario Español-Portugués WordReference.com",
+    "html_template": "https://www.wordreference.com/espt/{searchTerms}",
+    "shortcut": "wrespt",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 47,
-    "fields": {
-      "short_name": "WR French-English",
-      "long_name": "WR French-English",
-      "description": "traduction - Dictionnaire Français-Anglais WordReference.com",
-      "html_template": "https://www.wordreference.com/fren/{searchTerms}",
-      "shortcut": "wrfe",
-      "builtin": true
-    }
+    "short_name": "WR French-English",
+    "long_name": "WR French-English",
+    "description": "traduction - Dictionnaire Français-Anglais WordReference.com",
+    "html_template": "https://www.wordreference.com/fren/{searchTerms}",
+    "shortcut": "wrfe",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 48,
-    "fields": {
-      "short_name": "WR francés-español",
-      "long_name": "WR francés-español",
-      "description": "Dictionnaire Français-Espagnol WordReference.com",
-      "html_template": "https://www.wordreference.com/fres/{searchTerms}",
-      "shortcut": "wrfres",
-      "builtin": true
-    }
+    "short_name": "WR francés-español",
+    "long_name": "WR francés-español",
+    "description": "Dictionnaire Français-Espagnol WordReference.com",
+    "html_template": "https://www.wordreference.com/fres/{searchTerms}",
+    "shortcut": "wrfres",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 49,
-    "fields": {
-      "short_name": "WR Greek-English",
-      "long_name": "WR Greek-English",
-      "description": "Ελληνοαγγλικό Λεξικό WordReference.com",
-      "html_template": "https://www.wordreference.com/gren/{searchTerms}",
-      "shortcut": "wrgren",
-      "builtin": true
-    }
+    "short_name": "WR Greek-English",
+    "long_name": "WR Greek-English",
+    "description": "Ελληνοαγγλικό Λεξικό WordReference.com",
+    "html_template": "https://www.wordreference.com/gren/{searchTerms}",
+    "shortcut": "wrgren",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 50,
-    "fields": {
-      "short_name": "WR Italian-English",
-      "long_name": "WR Italian-English",
-      "description": "Dizionario italiano-inglese WordReference",
-      "html_template": "https://www.wordreference.com/iten/{searchTerms}",
-      "shortcut": "writen",
-      "builtin": true
-    }
+    "short_name": "WR Italian-English",
+    "long_name": "WR Italian-English",
+    "description": "Dizionario italiano-inglese WordReference",
+    "html_template": "https://www.wordreference.com/iten/{searchTerms}",
+    "shortcut": "writen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 52,
-    "fields": {
-      "short_name": "WR Japanese-English",
-      "long_name": "WR Japanese-English",
-      "description": "WordReference 和英辞書",
-      "html_template": "https://www.wordreference.com/jaen/{searchTerms}",
-      "shortcut": "wrjaen",
-      "builtin": true
-    }
+    "short_name": "WR Japanese-English",
+    "long_name": "WR Japanese-English",
+    "description": "WordReference 和英辞書",
+    "html_template": "https://www.wordreference.com/jaen/{searchTerms}",
+    "shortcut": "wrjaen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 53,
-    "fields": {
-      "short_name": "WR Korean-English",
-      "long_name": "WR Korean-English",
-      "description": "WordReference 한-영 사전",
-      "html_template": "https://www.wordreference.com/koen/{searchTerms}",
-      "shortcut": "wrkoen",
-      "builtin": true
-    }
+    "short_name": "WR Korean-English",
+    "long_name": "WR Korean-English",
+    "description": "WordReference 한-영 사전",
+    "html_template": "https://www.wordreference.com/koen/{searchTerms}",
+    "shortcut": "wrkoen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 54,
-    "fields": {
-      "short_name": "WR Polish-English",
-      "long_name": "WR Polish-English",
-      "description": "WordReference Słownik polsko-angielski",
-      "html_template": "https://www.wordreference.com/plen/{searchTerms}",
-      "shortcut": "wrplen",
-      "builtin": true
-    }
+    "short_name": "WR Polish-English",
+    "long_name": "WR Polish-English",
+    "description": "WordReference Słownik polsko-angielski",
+    "html_template": "https://www.wordreference.com/plen/{searchTerms}",
+    "shortcut": "wrplen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 55,
-    "fields": {
-      "short_name": "WR português-inglês",
-      "long_name": "WR português-inglês",
-      "description": "Dicionário Português-Inglês WordReference.com",
-      "html_template": "https://www.wordreference.com/pten/{searchTerms}",
-      "shortcut": "wrpten",
-      "builtin": true
-    }
+    "short_name": "WR português-inglês",
+    "long_name": "WR português-inglês",
+    "description": "Dicionário Português-Inglês WordReference.com",
+    "html_template": "https://www.wordreference.com/pten/{searchTerms}",
+    "shortcut": "wrpten",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 56,
-    "fields": {
-      "short_name": "WR portugûes-español",
-      "long_name": "WR portugûes-español",
-      "description": "Dicionário Português-Espanhol WordReference.com",
-      "html_template": "https://www.wordreference.com/ptes/{searchTerms}",
-      "shortcut": "wrptes",
-      "builtin": true
-    }
+    "short_name": "WR portugûes-español",
+    "long_name": "WR portugûes-español",
+    "description": "Dicionário Português-Espanhol WordReference.com",
+    "html_template": "https://www.wordreference.com/ptes/{searchTerms}",
+    "shortcut": "wrptes",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 57,
-    "fields": {
-      "short_name": "WR Romanian-English",
-      "long_name": "WR Romanian-English",
-      "description": "WordReference Dicţionar român-englez",
-      "html_template": "https://www.wordreference.com/roen/{searchTerms}",
-      "shortcut": "wrroen",
-      "builtin": true
-    }
+    "short_name": "WR Romanian-English",
+    "long_name": "WR Romanian-English",
+    "description": "WordReference Dicţionar român-englez",
+    "html_template": "https://www.wordreference.com/roen/{searchTerms}",
+    "shortcut": "wrroen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 58,
-    "fields": {
-      "short_name": "WR Russian-English",
-      "long_name": "WR Russian-English",
-      "description": "Русско-английский словарь на WordReference.com",
-      "html_template": "https://www.wordreference.com/ruen/{searchTerms}",
-      "shortcut": "wrruen",
-      "builtin": true
-    }
+    "short_name": "WR Russian-English",
+    "long_name": "WR Russian-English",
+    "description": "Русско-английский словарь на WordReference.com",
+    "html_template": "https://www.wordreference.com/ruen/{searchTerms}",
+    "shortcut": "wrruen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 59,
-    "fields": {
-      "short_name": "WR Türkçe-İngilizce",
-      "long_name": "WR Türkçe-İngilizce",
-      "description": "WordReference.com Türkçe-İngilizce Sözlük",
-      "html_template": "https://www.wordreference.com/tren/{searchTerms}",
-      "shortcut": "wrtren",
-      "builtin": true
-    }
+    "short_name": "WR Türkçe-İngilizce",
+    "long_name": "WR Türkçe-İngilizce",
+    "description": "WordReference.com Türkçe-İngilizce Sözlük",
+    "html_template": "https://www.wordreference.com/tren/{searchTerms}",
+    "shortcut": "wrtren",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 60,
-    "fields": {
-      "short_name": "WR Chinese-English",
-      "long_name": "WR Chinese-English",
-      "description": "WordReference 汉-英词典",
-      "html_template": "https://www.wordreference.com/zhen/{searchTerms}",
-      "shortcut": "wrzhen",
-      "builtin": true
-    }
+    "short_name": "WR Chinese-English",
+    "long_name": "WR Chinese-English",
+    "description": "WordReference 汉-英词典",
+    "html_template": "https://www.wordreference.com/zhen/{searchTerms}",
+    "shortcut": "wrzhen",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 61,
-    "fields": {
-      "short_name": "Wiktionnaire (fr)",
-      "long_name": "Wiktionnaire (fr)",
-      "description": "Wiktionnaire (fr)",
-      "html_template": "https://fr.wiktionary.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
-      "shortcut": "wtfr",
-      "builtin": true
-    }
+    "short_name": "Wiktionnaire (fr)",
+    "long_name": "Wiktionnaire (fr)",
+    "description": "Wiktionnaire (fr)",
+    "html_template": "https://fr.wiktionary.org/w/index.php?title=Sp%C3%A9cial:Recherche&search={searchTerms}",
+    "shortcut": "wtfr",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 62,
-    "fields": {
-      "short_name": "Twitch",
-      "long_name": "",
-      "description": "",
-      "html_template": "https://www.twitch.tv/search?term={searchTerms}",
-      "shortcut": "tw",
-      "builtin": true
-    }
+    "short_name": "Twitch",
+    "long_name": "",
+    "description": "",
+    "html_template": "https://www.twitch.tv/search?term={searchTerms}",
+    "shortcut": "tw",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 64,
-    "fields": {
-      "short_name": "WolframAlpha",
-      "long_name": "",
-      "description": "",
-      "html_template": "https://www.wolframalpha.com/input/?i={searchTerms}",
-      "shortcut": "wa",
-      "builtin": true
-    }
+    "short_name": "WolframAlpha",
+    "long_name": "",
+    "description": "",
+    "html_template": "https://www.wolframalpha.com/input/?i={searchTerms}",
+    "shortcut": "wa",
+    "builtin": true
   },
   {
-    "model": "se.searchengine",
-    "pk": 65,
-    "fields": {
-      "short_name": "Jotoba",
-      "long_name": "Jotoba",
-      "description": "Japanese dictionary search",
-      "html_template": "https://jotoba.de/search/0/{searchTerms}",
-      "shortcut": "jotoba",
-      "builtin": true
-    }
+    "short_name": "Jotoba",
+    "long_name": "Jotoba",
+    "description": "Japanese dictionary search",
+    "html_template": "https://jotoba.de/search/0/{searchTerms}",
+    "shortcut": "jotoba",
+    "builtin": true
+  },
+  {
+    "short_name": "Reddit",
+    "long_name": "Reddit Search",
+    "description": "Search Reddit",
+    "html_template": "https://www.reddit.com/search/?q={searchTerms}",
+    "shortcut": "r",
+    "builtin": true
+  },
+  {
+    "short_name": "Stack Overflow",
+    "long_name": "Stack Overflow",
+    "description": "Search Stack Overflow",
+    "html_template": "https://stackoverflow.com/search?q={searchTerms}",
+    "shortcut": "so",
+    "builtin": true
+  },
+  {
+    "short_name": "LinkedIn",
+    "long_name": "LinkedIn Search",
+    "description": "Search LinkedIn",
+    "html_template": "https://www.linkedin.com/search/results/all/?keywords={searchTerms}",
+    "shortcut": "li",
+    "builtin": true
+  },
+  {
+    "short_name": "X (Twitter)",
+    "long_name": "X (formerly Twitter)",
+    "description": "Search X",
+    "html_template": "https://x.com/search?q={searchTerms}",
+    "shortcut": "x",
+    "builtin": true
+  },
+  {
+    "short_name": "Pinterest",
+    "long_name": "Pinterest",
+    "description": "Search Pinterest",
+    "html_template": "https://www.pinterest.com/search/pins/?q={searchTerms}",
+    "shortcut": "p",
+    "builtin": true
+  },
+  {
+    "short_name": "Spotify",
+    "long_name": "Spotify Search",
+    "description": "Search Spotify",
+    "html_template": "https://open.spotify.com/search/{searchTerms}",
+    "shortcut": "sp",
+    "builtin": true
+  },
+  {
+    "short_name": "IMDB",
+    "long_name": "Internet Movie Database",
+    "description": "Search IMDB",
+    "html_template": "https://www.imdb.com/find?q={searchTerms}",
+    "shortcut": "imdb",
+    "builtin": true
+  },
+  {
+    "short_name": "Steam",
+    "long_name": "Steam Store",
+    "description": "Search Steam games",
+    "html_template": "https://store.steampowered.com/search/?term={searchTerms}",
+    "shortcut": "steam",
+    "builtin": true
+  },
+  {
+    "short_name": "eBay",
+    "long_name": "eBay",
+    "description": "Search eBay",
+    "html_template": "https://www.ebay.com/sch/i.html?_nkw={searchTerms}",
+    "shortcut": "ebay",
+    "builtin": true
+  },
+  {
+    "short_name": "AliExpress",
+    "long_name": "AliExpress",
+    "description": "Search AliExpress",
+    "html_template": "https://www.aliexpress.com/wholesale?SearchText={searchTerms}",
+    "shortcut": "ali",
+    "builtin": true
+  },
+  {
+    "short_name": "Google Scholar",
+    "long_name": "Google Scholar",
+    "description": "Search academic papers",
+    "html_template": "https://scholar.google.com/scholar?q={searchTerms}",
+    "shortcut": "gs",
+    "builtin": true
+  },
+  {
+    "short_name": "PubMed",
+    "long_name": "PubMed",
+    "description": "Search medical literature",
+    "html_template": "https://pubmed.ncbi.nlm.nih.gov/?term={searchTerms}",
+    "shortcut": "pm",
+    "builtin": true
+  },
+  {
+    "short_name": "arXiv",
+    "long_name": "arXiv.org",
+    "description": "Search scientific papers",
+    "html_template": "https://arxiv.org/search/?query={searchTerms}",
+    "shortcut": "arxiv",
+    "builtin": true
+  },
+  {
+    "short_name": "npm",
+    "long_name": "npm Registry",
+    "description": "Search npm packages",
+    "html_template": "https://www.npmjs.com/search?q={searchTerms}",
+    "shortcut": "npm",
+    "builtin": true
+  },
+  {
+    "short_name": "PyPI",
+    "long_name": "Python Package Index",
+    "description": "Search Python packages",
+    "html_template": "https://pypi.org/search/?q={searchTerms}",
+    "shortcut": "pypi",
+    "builtin": true
+  },
+  {
+    "short_name": "Docker Hub",
+    "long_name": "Docker Hub",
+    "description": "Search Docker images",
+    "html_template": "https://hub.docker.com/search?q={searchTerms}",
+    "shortcut": "dh",
+    "builtin": true
+  },
+  {
+    "short_name": "GitLab",
+    "long_name": "GitLab",
+    "description": "Search GitLab",
+    "html_template": "https://gitlab.com/search?search={searchTerms}",
+    "shortcut": "gl",
+    "builtin": true
+  },
+  {
+    "short_name": "Ecosia",
+    "long_name": "Ecosia",
+    "description": "The search engine that plants trees",
+    "html_template": "https://www.ecosia.org/search?q={searchTerms}",
+    "shortcut": "eco",
+    "builtin": true
+  },
+  {
+    "short_name": "Startpage",
+    "long_name": "Startpage",
+    "description": "Private search engine",
+    "html_template": "https://www.startpage.com/do/search?q={searchTerms}",
+    "shortcut": "s",
+    "builtin": true
+  },
+  {
+    "short_name": "Google Translate",
+    "long_name": "Google Translate",
+    "description": "Translate with Google",
+    "html_template": "https://translate.google.com/?text={searchTerms}",
+    "shortcut": "gt",
+    "builtin": true
+  },
+  {
+    "short_name": "Urban Dictionary",
+    "long_name": "Urban Dictionary",
+    "description": "Search slang definitions",
+    "html_template": "https://www.urbandictionary.com/define.php?term={searchTerms}",
+    "shortcut": "ud",
+    "builtin": true
+  },
+  {
+    "short_name": "Archive.org",
+    "long_name": "Internet Archive",
+    "description": "Search Internet Archive",
+    "html_template": "https://archive.org/search?query={searchTerms}",
+    "shortcut": "ia",
+    "builtin": true
+  },
+  {
+    "short_name": "Wayback Machine",
+    "long_name": "Wayback Machine",
+    "description": "Search archived websites",
+    "html_template": "https://web.archive.org/web/*/{searchTerms}",
+    "shortcut": "wb",
+    "builtin": true
+  },
+  {
+    "short_name": "Goodreads",
+    "long_name": "Goodreads",
+    "description": "Search books on Goodreads",
+    "html_template": "https://www.goodreads.com/search?q={searchTerms}",
+    "shortcut": "gr",
+    "builtin": true
+  },
+  {
+    "short_name": "Genius",
+    "long_name": "Genius Lyrics",
+    "description": "Search song lyrics",
+    "html_template": "https://genius.com/search?q={searchTerms}",
+    "shortcut": "genius",
+    "builtin": true
+  },
+  {
+    "short_name": "SoundCloud",
+    "long_name": "SoundCloud",
+    "description": "Search SoundCloud",
+    "html_template": "https://soundcloud.com/search?q={searchTerms}",
+    "shortcut": "sc",
+    "builtin": true
+  },
+  {
+    "short_name": "Bandcamp",
+    "long_name": "Bandcamp",
+    "description": "Search music on Bandcamp",
+    "html_template": "https://bandcamp.com/search?q={searchTerms}",
+    "shortcut": "bc",
+    "builtin": true
+  },
+  {
+    "short_name": "MyAnimeList",
+    "long_name": "MyAnimeList",
+    "description": "Search anime and manga",
+    "html_template": "https://myanimelist.net/search/all?q={searchTerms}",
+    "shortcut": "mal",
+    "builtin": true
+  },
+  {
+    "short_name": "TMDB",
+    "long_name": "The Movie Database",
+    "description": "Search movies and TV shows",
+    "html_template": "https://www.themoviedb.org/search?query={searchTerms}",
+    "shortcut": "tmdb",
+    "builtin": true
+  },
+  {
+    "short_name": "Letterboxd",
+    "long_name": "Letterboxd",
+    "description": "Search films on Letterboxd",
+    "html_template": "https://letterboxd.com/search/{searchTerms}/",
+    "shortcut": "lb",
+    "builtin": true
+  },
+  {
+    "short_name": "TikTok",
+    "long_name": "TikTok",
+    "description": "Search TikTok",
+    "html_template": "https://www.tiktok.com/search?q={searchTerms}",
+    "shortcut": "tt",
+    "builtin": true
+  },
+  {
+    "short_name": "Perplexity",
+    "long_name": "Perplexity AI",
+    "description": "AI-powered search",
+    "html_template": "https://www.perplexity.ai/search?q={searchTerms}",
+    "shortcut": "ppl",
+    "builtin": true
+  },
+  {
+    "short_name": "Phind",
+    "long_name": "Phind",
+    "description": "Developer-focused AI search",
+    "html_template": "https://www.phind.com/search?q={searchTerms}",
+    "shortcut": "ph",
+    "builtin": true
+  },
+  {
+    "short_name": "Yandex",
+    "long_name": "Yandex",
+    "description": "Russian search engine",
+    "html_template": "https://yandex.com/search/?text={searchTerms}",
+    "shortcut": "ya",
+    "builtin": true
+  },
+  {
+    "short_name": "Baidu",
+    "long_name": "Baidu",
+    "description": "Chinese search engine",
+    "html_template": "https://www.baidu.com/s?wd={searchTerms}",
+    "shortcut": "bd",
+    "builtin": true
+  },
+  {
+    "short_name": "Naver",
+    "long_name": "Naver",
+    "description": "Korean search engine",
+    "html_template": "https://search.naver.com/search.naver?query={searchTerms}",
+    "shortcut": "nv",
+    "builtin": true
+  },
+  {
+    "short_name": "Booking.com",
+    "long_name": "Booking.com",
+    "description": "Search accommodations",
+    "html_template": "https://www.booking.com/search.html?ss={searchTerms}",
+    "shortcut": "bk",
+    "builtin": true
+  },
+  {
+    "short_name": "Airbnb",
+    "long_name": "Airbnb",
+    "description": "Search Airbnb",
+    "html_template": "https://www.airbnb.com/s/{searchTerms}/homes",
+    "shortcut": "airbnb",
+    "builtin": true
+  },
+  {
+    "short_name": "TripAdvisor",
+    "long_name": "TripAdvisor",
+    "description": "Search travel destinations",
+    "html_template": "https://www.tripadvisor.com/Search?q={searchTerms}",
+    "shortcut": "ta",
+    "builtin": true
+  },
+  {
+    "short_name": "Metacritic",
+    "long_name": "Metacritic",
+    "description": "Search game and movie reviews",
+    "html_template": "https://www.metacritic.com/search/{searchTerms}/",
+    "shortcut": "mc",
+    "builtin": true
+  },
+  {
+    "short_name": "Rotten Tomatoes",
+    "long_name": "Rotten Tomatoes",
+    "description": "Search movie reviews",
+    "html_template": "https://www.rottentomatoes.com/search?search={searchTerms}",
+    "shortcut": "rt",
+    "builtin": true
+  },
+  {
+    "short_name": "Etsy",
+    "long_name": "Etsy",
+    "description": "Search handmade items",
+    "html_template": "https://www.etsy.com/search?q={searchTerms}",
+    "shortcut": "etsy",
+    "builtin": true
+  },
+  {
+    "short_name": "Apple Music",
+    "long_name": "Apple Music",
+    "description": "Search Apple Music",
+    "html_template": "https://music.apple.com/search?term={searchTerms}",
+    "shortcut": "am",
+    "builtin": true
+  },
+  {
+    "short_name": "Discogs",
+    "long_name": "Discogs",
+    "description": "Search music database",
+    "html_template": "https://www.discogs.com/search/?q={searchTerms}",
+    "shortcut": "dc",
+    "builtin": true
+  },
+  {
+    "short_name": "Last.fm",
+    "long_name": "Last.fm",
+    "description": "Search music on Last.fm",
+    "html_template": "https://www.last.fm/search?q={searchTerms}",
+    "shortcut": "lf",
+    "builtin": true
+  },
+  {
+    "short_name": "AllMusic",
+    "long_name": "AllMusic",
+    "description": "Search music database",
+    "html_template": "https://www.allmusic.com/search/all/{searchTerms}",
+    "shortcut": "allmusic",
+    "builtin": true
+  },
+  {
+    "short_name": "AniList",
+    "long_name": "AniList",
+    "description": "Search anime and manga",
+    "html_template": "https://anilist.co/search/anime?search={searchTerms}",
+    "shortcut": "al",
+    "builtin": true
+  },
+  {
+    "short_name": "Crunchyroll",
+    "long_name": "Crunchyroll",
+    "description": "Search anime on Crunchyroll",
+    "html_template": "https://www.crunchyroll.com/search?q={searchTerms}",
+    "shortcut": "cr",
+    "builtin": true
+  },
+  {
+    "short_name": "Cambridge Dictionary",
+    "long_name": "Cambridge Dictionary",
+    "description": "English dictionary",
+    "html_template": "https://dictionary.cambridge.org/search/english/direct/?q={searchTerms}",
+    "shortcut": "cd",
+    "builtin": true
+  },
+  {
+    "short_name": "Merriam-Webster",
+    "long_name": "Merriam-Webster Dictionary",
+    "description": "American English dictionary",
+    "html_template": "https://www.merriam-webster.com/dictionary/{searchTerms}",
+    "shortcut": "mw",
+    "builtin": true
+  },
+  {
+    "short_name": "Oxford Dictionary",
+    "long_name": "Oxford Learner's Dictionary",
+    "description": "Oxford English dictionary",
+    "html_template": "https://www.oxfordlearnersdictionaries.com/search/english/?q={searchTerms}",
+    "shortcut": "ox",
+    "builtin": true
+  },
+  {
+    "short_name": "Reverso",
+    "long_name": "Reverso Context",
+    "description": "Translation in context",
+    "html_template": "https://context.reverso.net/translation/english-french/{searchTerms}",
+    "shortcut": "rv",
+    "builtin": true
+  },
+  {
+    "short_name": "Semantic Scholar",
+    "long_name": "Semantic Scholar",
+    "description": "AI-powered research tool",
+    "html_template": "https://www.semanticscholar.org/search?q={searchTerms}",
+    "shortcut": "ss",
+    "builtin": true
+  },
+  {
+    "short_name": "ResearchGate",
+    "long_name": "ResearchGate",
+    "description": "Scientific publications",
+    "html_template": "https://www.researchgate.net/search?q={searchTerms}",
+    "shortcut": "rg",
+    "builtin": true
+  },
+  {
+    "short_name": "GOG",
+    "long_name": "GOG.com",
+    "description": "DRM-free games",
+    "html_template": "https://www.gog.com/games?query={searchTerms}",
+    "shortcut": "gog",
+    "builtin": true
+  },
+  {
+    "short_name": "Epic Games",
+    "long_name": "Epic Games Store",
+    "description": "Search Epic Games Store",
+    "html_template": "https://store.epicgames.com/en-US/browse?q={searchTerms}",
+    "shortcut": "epic",
+    "builtin": true
+  },
+  {
+    "short_name": "You.com",
+    "long_name": "You.com",
+    "description": "AI search engine",
+    "html_template": "https://you.com/search?q={searchTerms}",
+    "shortcut": "you",
+    "builtin": true
+  },
+  {
+    "short_name": "AZLyrics",
+    "long_name": "AZLyrics",
+    "description": "Song lyrics database",
+    "html_template": "https://www.azlyrics.com/search/?q={searchTerms}",
+    "shortcut": "az",
+    "builtin": true
+  },
+  {
+    "short_name": "Trakt",
+    "long_name": "Trakt.tv",
+    "description": "Track TV shows and movies",
+    "html_template": "https://trakt.tv/search?query={searchTerms}",
+    "shortcut": "trakt",
+    "builtin": true
   }
 ]

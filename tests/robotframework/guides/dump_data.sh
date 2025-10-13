@@ -25,7 +25,7 @@ mkdir -p "${DUMP_DIR}"
 # Generate the Django data dump
 echo "Generating Django data dump..."
 sosse-admin dumpdata_sosse --indent 2 \
-  se.crawlpolicy \
+  se.collection \
   se.favicon \
   se.link \
   se.tag \

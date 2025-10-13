@@ -29,11 +29,10 @@ from .atom import AtomView
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .cookies_import import CookiesImportView
-from .crawl_policy import CrawlPolicy
 from .crawl_queue import CrawlQueueContentView, CrawlQueueView
 from .crawlers import CrawlersContentView, CrawlersView
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .download import DownloadView
 from .history import HistoryView
 from .html import HTMLExcludedView, HTMLView
@@ -59,13 +58,12 @@ CRAWL_URL = "http://127.0.0.1:8000/cookies"
 class ViewsTest:
     def setUp(self):
         super().setUp()
-        self.crawl_policy = CrawlPolicy.create_default()
-        self.crawl_policy.default_browse_mode = self.BROWSER
-        self.crawl_policy.take_screenshots = True
-        self.crawl_policy.screenshot_format = Document.SCREENSHOT_PNG
-        self.crawl_policy.save()
+        self.collection.default_browse_mode = self.BROWSER
+        self.collection.take_screenshots = True
+        self.collection.screenshot_format = Document.SCREENSHOT_PNG
+        self.collection.save()
         self.tag = Tag.objects.create(name="tag")
-        self.doc = Document.objects.wo_content().create(url=CRAWL_URL)
+        self.doc = Document.objects.wo_content().create(url=CRAWL_URL, collection=self.collection)
         Document.crawl(0)
         CrawlerStats.create(timezone.now())
 
@@ -104,16 +102,16 @@ class ViewsTest:
             ("/screenshot_full/" + CRAWL_URL, ScreenshotFullView, {}),
             ("/online_check/" + CRAWL_URL, OnlineCheckView, {}),
             (
-                f"/html_excluded/{self.crawl_policy.id}/url",
+                f"/html_excluded/{self.collection.id}/url",
                 HTMLExcludedView,
-                {"crawl_policy": self.crawl_policy.id, "method": "url"},
+                {"collection": self.collection.id, "method": "url"},
             ),
             ("/search_tags/", SearchTagsView, {}),
             (f"/admin_tags/document/{self.doc.id}/", AdminTagsView, {"model": "document", "pk": self.doc.id}),
             (
-                f"/admin_tags/crawlpolicy/{self.crawl_policy.id}/",
+                f"/admin_tags/collection/{self.collection.id}/",
                 AdminTagsView,
-                {"model": "crawlpolicy", "pk": self.crawl_policy.id},
+                {"model": "collection", "pk": self.collection.id},
             ),
             (f"/archive_tags/{self.doc.id}/", ArchiveTagsView, {"pk": self.doc.id}),
             (
@@ -127,9 +125,9 @@ class ViewsTest:
                 {"model": "document", "pk": self.doc.id},
             ),
             (
-                f"/tags_list/crawlpolicy/{self.crawl_policy.id}/?tag={self.tag.id}&link=admin",
+                f"/tags_list/collection/{self.collection.id}/?tag={self.tag.id}&link=admin",
                 TagsListView,
-                {"model": "crawlpolicy", "pk": self.crawl_policy.id},
+                {"model": "collection", "pk": self.collection.id},
             ),
             ("/online_check/" + CRAWL_URL, OnlineCheckView, {}),
             ("/csv/?q=cookie", SearchView, {}),
@@ -178,7 +176,7 @@ class ViewsTest:
         request = self._request_from_factory("/archive/" + CRAWL_URL, self.admin_user)
         response = ArchiveRedirectView.as_view()(request)
         self.assertEqual(response.status_code, 302, response)
-        self.assertEqual(response.url, "/screenshot/" + CRAWL_URL, response)
+        self.assertEqual(response.url, f"/screenshot/{self.doc.collection.id}/" + CRAWL_URL, response)
 
     def test_admin_views(self):
         for url, view_cls in (
@@ -188,8 +186,8 @@ class ViewsTest:
             ("/admin/se/document/crawl_queue_content/", CrawlQueueContentView),
             ("/admin/se/document/crawlers/", CrawlersView),
             ("/admin/se/document/crawlers_content/", CrawlersContentView),
-            ("/admin/se/crawlpolicy/", None),
-            (f"/admin/se/crawlpolicy/{self.crawl_policy.id}/change/", None),
+            ("/admin/se/collection/", None),
+            (f"/admin/se/collection/{self.collection.id}/change/", None),
             ("/admin/se/document/", None),
             ("/admin/se/document/?queued=new", None),
             ("/admin/se/document/?queued=pending", None),
@@ -198,8 +196,8 @@ class ViewsTest:
             ("/admin/se/document/?has_error=no", None),
             (f"/admin/se/document/{self.doc.id}/change/", None),
             ("/admin/se/document/analytics/", AnalyticsView),
-            ("/admin/se/domainsetting/", None),
-            (f"/admin/se/domainsetting/{DomainSetting.get_from_url(CRAWL_URL).id}/change/", None),
+            ("/admin/se/domain/", None),
+            (f"/admin/se/domain/{Domain.get_from_url(CRAWL_URL).id}/change/", None),
             ("/admin/se/cookie/", None),
             (f"/admin/se/cookie/?q={quote(CRAWL_URL)}", None),
             ("/admin/se/cookie/import/", CookiesImportView),
@@ -242,7 +240,7 @@ class ViewsTest:
             self.assertEqual(response.status_code, 200, f"{url} / {response}")
 
     def test_admin_doc_actions(self):
-        for action in ("remove_from_crawl_queue", "convert_to_jpg"):
+        for action in ("remove_from_crawl_queue",):
             response = self.admin_client.post(f"/admin/se/document/{self.doc.id}/do_action/", {"action": action})
             self.assertEqual(response.status_code, 302, f"{action} / {response}")
             self.assertEqual(
@@ -296,8 +294,8 @@ class ViewsTest:
 
 
 class ChromiumViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):
-    BROWSER = DomainSetting.BROWSE_CHROMIUM
+    BROWSER = Domain.BROWSE_CHROMIUM
 
 
 class FirefoxViewTest(ViewsTestMixin, ViewsTest, TransactionTestCase):
-    BROWSER = DomainSetting.BROWSE_FIREFOX
+    BROWSER = Domain.BROWSE_FIREFOX

@@ -1,7 +1,13 @@
 DOCKER_NAME=$(shell pwd | sed -e s_^.*/__)
-#APT_PROXY=http://192.168.3.2:3142/
-#PIP_INDEX_URL=http://192.168.3.3:5000/index/
-#PIP_TRUSTED_HOST=192.168.3.3
+GIT_ROOT := $(shell git rev-parse --show-toplevel)
+
+# Include optional local configuration
+-include $(GIT_ROOT)/docker/local.mk
+
+# Default values if not defined in local.mk
+APT_PROXY ?=
+PIP_INDEX_URL ?=
+PIP_TRUSTED_HOST ?=
 
 .PHONY: _build push
 
@@ -12,4 +18,4 @@ _build:
 	docker build --build-arg APT_PROXY=$(APT_PROXY) --build-arg PIP_INDEX_URL=$(PIP_INDEX_URL) --build-arg PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST) -t biolds/sosse:$(DOCKER_NAME) .
 
 %:
-	$(MAKE) -f ../Makefile.common _$@
+	$(MAKE) -f $(GIT_ROOT)/docker/Makefile.common _$@

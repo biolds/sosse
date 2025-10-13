@@ -10,17 +10,17 @@ offer pages using JavaScript, covering setup, crawling, and export.
    :alt: Screenshot of public offers search on ted.europa.eu
    :class: sosse-screenshot
 
-Setting up a Crawl Policy for Metadata Extraction
+Setting up a Collection for Metadata Extraction
 -------------------------------------------------
 
-Crawl policies define how Sosse interacts with targeted web pages. In this scenario, we want to extract structured data
+Collections define how Sosse interacts with targeted web pages. In this scenario, we want to extract structured data
 (such as offer title, deadline, country, etc.) from public offer listings using JavaScript. For more background, see the
-:doc:`../crawl/policies` documentation.
+:doc:`../crawl/collections` documentation.
 
-- **Navigate to Crawl Policies**: Go to the :doc:`../crawl/policies` page from the admin menu.
+- **Navigate to Collections**: Go to the :doc:`../crawl/collections` page from the admin menu.
 
-- **Create a New Policy**:
-  - In the `⚡ Crawl` tab, set an ``URL regex`` that targets the public offer detail pages on TED::
+- **Create a Collection**:
+  - In the `⚡ Crawl` tab, set an ``Unlimited depth URL regex`` that targets the public offer detail pages on TED::
 
      ^https://ted.europa.eu/en/notice/-/detail/[0-9]*-.*
 
@@ -30,7 +30,7 @@ Crawl policies define how Sosse interacts with targeted web pages. In this scena
 
   - In the same tab, in the ``Script`` field, provide a script that will run in the browser context of each page.
     Any data returned by the script is used to update the data of the crawled URL. Content-specific metadata can be
-    stored in the `metadata` field (see :ref:`Crawl Policy Script<crawl_policy_script>`).
+    stored in the `metadata` field (see :ref:`Collection Script<collection_script>`).
 
     You can write your own script or use AI tools such as GitHub Copilot or ChatGPT to generate a script. To get started,
     visit an example offer page, such as
@@ -46,7 +46,7 @@ Crawl policies define how Sosse interacts with targeted web pages. In this scena
 
   - Under the ``🕑 Recurrence`` tab, set ``Crawl frequency`` to ``Once`` to avoid re-crawling the same articles.
 
-.. image:: ../../../tests/robotframework/screenshots/guide_data_extract_crawl_policy.png
+.. image:: ../../../tests/robotframework/screenshots/guide_data_extract_collection.png
    :class: sosse-screenshot
 
 Searching for Public Offers and Queuing URLs
@@ -65,11 +65,11 @@ Searching for Public Offers and Queuing URLs
 
   - Copy the URLs of the offer detail pages you wish to crawl.
   - Go to the :doc:`Crawl a new URL <../crawl/new_url>` page in Sosse and paste the URLs.
-  - Click ``Confirm`` to queue the crawl jobs.
+  - Click ``Add to Crawl Queue`` to queue the crawl jobs.
 
 .. note::
-   By default, this will crawl the offers and regularly check for new ones as defined in the ⚡ Crawl Policy.
-   See :ref:`crawl_policy_recurrence`.
+   By default, this will crawl the offers and regularly check for new ones as defined in the ⚡ Collection.
+   See :ref:`collection_recurrence`.
 
 Reviewing Extracted Results
 ---------------------------

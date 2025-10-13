@@ -1,12 +1,12 @@
 - make docker_git_build
 - test (docker run -p 8005:80 -e SOSSE_CRAWLER_COUNT=1 biolds/sosse:git)
 - test upgrading the docker image
-- debian update: version + changelog : dch -i (available in the devscripts deb package)
+- debian update: changelog : dch -i (available in the devscripts deb package), same in debian-bookworm/changelog
 - doc version update in doc/source/conf.py
 - update the CHANGELOG.md using the last changelog build it the main branch
 - commit as "v1.10.1 release"
 - MR
-- create tag "vX.X.X"
+- create tag "vX.X.X" in sosse-plugins project first, then in sosse project
 - update the `stable` branch for the release (to update the `stable` version of readthedoc)
 - check RTD as the doc build can fail if Gitlab has concurrent builds running
 - pip release (this needs to be done before the docker step below)
@@ -17,6 +17,7 @@
   - wget `<pkg url>`
   - cd /var/www/html/repo/apt/debian/
   - reprepro -V --keepunreferencedfiles includedeb bookworm `<path to the .deb>`
+  - reprepro -V --keepunreferencedfiles includedeb trixie `<path to the .deb>`
 - docker build:
   - docker system prune -a
   - make docker_build

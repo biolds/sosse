@@ -86,7 +86,7 @@ urlpatterns = [
     re_path(r"^archive_tags/(?P<pk>[0-9]+)/", ArchiveTagsView.as_view(), name="archive_tags"),
     re_path(r"^tags_list/(?P<model>[a-z]+)/(?P<pk>[0-9]+)/", TagsListView.as_view(), name="tags_list"),
     re_path(
-        r"^html_excluded/(?P<crawl_policy>[0-9]+)/(?P<method>url|mime|element)$",
+        r"^html_excluded/(?P<collection>[0-9]+)/(?P<method>url|mime|element)$",
         HTMLExcludedView.as_view(),
         name="html_excluded",
     ),

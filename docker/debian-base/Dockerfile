@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:trixie
 ADD control /
 RUN apt-get update && \
     grep ^Depends: /control | sed -e "s/.*},//" -e "s/,//g" | xargs apt-get install -y && \

@@ -20,6 +20,7 @@ from django.conf import settings
 from django.test import TransactionTestCase
 from django.utils import timezone
 
+from .collection import Collection
 from .html_asset import HTMLAsset
 from .html_cache import CacheHit, CacheMiss, HTMLCache
 from .page import Page
@@ -30,6 +31,9 @@ from .utils import http_date_format
 
 
 class HTMLCacheTest(TransactionTestCase):
+    def setUp(self):
+        self.collection = Collection.create_default()
+
     def test_010_html_filenames(self):
         for url, fn in (
             ("http://127.0.0.1/test.html", "http,3A/127.0.0.1/test.html_~~~.html"),
@@ -52,11 +56,11 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(assets_count, 0)
 
         with self.assertRaises(CacheMiss):
-            HTMLCache._cache_check("http://127.0.0.1/image.png", "http://127.0.0.1/", 0)
+            HTMLCache._cache_check("http://127.0.0.1/image.png", self.collection, "http://127.0.0.1/", 0)
 
     def _download_miss(self, BrowserRequest):
         page = HTMLCache.download(
-            "http://127.0.0.1/to_cache.png", "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE
+            "http://127.0.0.1/to_cache.png", self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE
         )
         HTMLCache.write_asset(page.url, page.content, page, mimetype=page.mimetype)
 
@@ -65,6 +69,7 @@ class HTMLCacheTest(TransactionTestCase):
             == [
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS,
@@ -83,7 +88,12 @@ class HTMLCacheTest(TransactionTestCase):
 
     def _download_hit(self, BrowserRequest):
         with self.assertRaises(CacheHit) as cm:
-            HTMLCache.download("http://127.0.0.1/to_cache.png", "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)
+            HTMLCache.download(
+                "http://127.0.0.1/to_cache.png",
+                self.collection,
+                "http://127.0.0.1/",
+                settings.SOSSE_MAX_HTML_ASSET_SIZE,
+            )
 
         self.assertTrue(BrowserRequest.call_args_list == [], BrowserRequest.call_args_list)
         BrowserRequest.reset_mock()
@@ -91,13 +101,19 @@ class HTMLCacheTest(TransactionTestCase):
 
     def _download_not_modified(self, BrowserRequest, modified_since):
         with self.assertRaises(CacheHit) as cm:
-            HTMLCache.download("http://127.0.0.1/to_cache.png", "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)
+            HTMLCache.download(
+                "http://127.0.0.1/to_cache.png",
+                self.collection,
+                "http://127.0.0.1/",
+                settings.SOSSE_MAX_HTML_ASSET_SIZE,
+            )
 
         self.assertTrue(
             BrowserRequest.call_args_list
             == [
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=GET_EXPECTED_HEADERS | {"If-Modified-Since": modified_since},
@@ -110,7 +126,7 @@ class HTMLCacheTest(TransactionTestCase):
 
     def _download_refresh(self, BrowserRequest, headers):
         page = HTMLCache.download(
-            "http://127.0.0.1/to_cache.png", "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE
+            "http://127.0.0.1/to_cache.png", self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE
         )
         self.assertTrue(isinstance(page, Page))
         headers.update(GET_EXPECTED_HEADERS)
@@ -119,6 +135,7 @@ class HTMLCacheTest(TransactionTestCase):
             == [
                 mock.call(
                     "http://127.0.0.1/to_cache.png",
+                    self.collection,
                     check_status=True,
                     max_file_size=settings.SOSSE_MAX_HTML_ASSET_SIZE,
                     headers=headers,
@@ -227,7 +244,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list
-            == [mock.call(asset, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
+            == [mock.call(asset, self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
             _max_age_check.call_args_list,
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
@@ -265,7 +282,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list
-            == [mock.call(asset, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
+            == [mock.call(asset, self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
             _max_age_check.call_args_list,
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
@@ -303,7 +320,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list
-            == [mock.call(asset, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
+            == [mock.call(asset, self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
             _max_age_check.call_args_list,
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
@@ -354,7 +371,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(asset, _asset)
         self.assertTrue(
             _max_age_check.call_args_list
-            == [mock.call(asset, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
+            == [mock.call(asset, self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
             _max_age_check.call_args_list,
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
@@ -406,7 +423,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(page.content, b"PNG2")
         self.assertTrue(
             _max_age_check.call_args_list
-            == [mock.call(asset, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
+            == [mock.call(asset, self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
             _max_age_check.call_args_list,
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)
@@ -461,7 +478,7 @@ class HTMLCacheTest(TransactionTestCase):
         self.assertEqual(page.content, b"PNG2")
         self.assertTrue(
             _max_age_check.call_args_list
-            == [mock.call(asset, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
+            == [mock.call(asset, self.collection, "http://127.0.0.1/", settings.SOSSE_MAX_HTML_ASSET_SIZE)],
             _max_age_check.call_args_list,
         )
         self.assertTrue(_heuristic_check.call_args_list == [], _heuristic_check.call_args_list)

@@ -15,5 +15,12 @@
       </a>
     </li>
     {% endif %}
+      {% if cl.opts.verbose_name == 'Excluded URL' %}
+    <li>
+      <a href="{% url 'admin:excluded_urls_import' %}" class="addlink">
+        Import excluded URLs
+      </a>
+    </li>
+    {% endif %}
   {% endif %}
 {% endblock %}

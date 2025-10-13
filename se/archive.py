@@ -21,7 +21,7 @@ from django.shortcuts import redirect, render, reverse
 from django.utils.html import format_html
 from django.views.generic import View
 
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document, extern_link_flags
 from .login import SosseLoginRequiredMixin
 from .online import online_status
@@ -34,9 +34,30 @@ from .views import RedirectException, RedirectMixin
 class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
     view_name = None
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.collection_id = None
+        self.collection = None
+
     def _url_from_request(self):
         # Keep the url with parameters
         url = self.request.META["REQUEST_URI"].split("/", 2)[-1]
+
+        # Check if the URL starts with a collection ID
+        # Format: <collection_id>/<url> where collection_id is a numeric ID
+        parts = url.split("/", 1)
+        if len(parts) >= 2 and parts[0].isdigit():
+            # Extract collection ID and remove it from the URL
+            collection_id = int(parts[0])
+            url = parts[1]
+            self.collection_id = collection_id
+            try:
+                self.collection = Collection.objects.get(id=collection_id)
+            except Collection.DoesNotExist:
+                self.collection = None
+        else:
+            self.collection_id = None
+            self.collection = None
 
         # re-establish double //
         scheme, url = url.split("/", 1)
@@ -62,11 +83,18 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
 
     def _get_document(self):
         url = self._url_from_request()
-        return Document.objects.w_content().filter(url=url).first()
+        queryset = Document.objects.w_content().filter(url=url)
+
+        # Filter by collection if specified in URL
+        if self.collection is not None:
+            queryset = queryset.filter(collection=self.collection)
+
+        # Order by id to get the first document
+        return queryset.order_by("id").first()
 
     def get_context_data(self):
         context = super().get_context_data()
-        crawl_policy = CrawlPolicy.get_from_url(self.doc.url)
+        collection = self.doc.collection
         beautified_url = url_beautify(self.doc.url)
         title = self.doc.title or beautified_url
         page_title = None
@@ -82,7 +110,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             page_title = title
 
         other_links = []
-        if self.doc.mimetype and self.doc.mimetype.startswith("text/"):
+        if self.doc.content:
             other_links = [
                 {
                     "href": reverse_no_escape("www", args=[self.doc.url]),
@@ -134,8 +162,17 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             tag.href = reverse("search_redirect") + f"?tag={tag.id}"
             model_tags.append(tag)
 
+        # Find other documents with the same URL in different collections
+        other_collections_docs = (
+            Document.objects.w_content()
+            .filter(url=self.doc.url)
+            .exclude(collection=self.doc.collection)
+            .select_related("collection")
+            .order_by("collection__name")
+        )
+
         return context | {
-            "crawl_policy": crawl_policy,
+            "collection": collection,
             "doc": self.doc,
             "www_redirect_url": self.doc.redirect_url and reverse_no_escape("archive", args=[self.doc.redirect_url]),
             "head_title": title,
@@ -151,6 +188,7 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             "tags_edit_title": f"⭐ Tags of {self.doc.get_title_label()}",
             "tags_edit_onclick": f"show_tags('/archive_tags/{self.doc.id}/')",
             "model_tags": model_tags,
+            "other_collections_docs": other_collections_docs,
         }
 
     def _unknown_url_view(self):
@@ -160,7 +198,6 @@ class ArchiveMixin(RedirectMixin, SosseLoginRequiredMixin):
             "url": url,
             "title": beautified_url,
             "beautified_url": beautified_url,
-            "crawl_policy": CrawlPolicy.get_from_url(url),
             "extern_link_flags": extern_link_flags,
             "search_form": SearchForm({}),
             "online_status": online_status(self.request),

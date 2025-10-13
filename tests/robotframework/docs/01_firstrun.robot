@@ -28,11 +28,23 @@
 |  | Sosse Capture Page Screenshot | clear_admin_crawlers.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/document/analytics/
 |  | Sosse Capture Page Screenshot | clear_admin_analytics.png
-|  | Sosse Go To | http://127.0.0.1/admin/se/crawlpolicy/
-|  | Sosse Capture Page Screenshot | clear_admin_crawlpolicy.png
-|  | Sosse Go To | http://127.0.0.1/admin/se/document/
-|  | Sosse Capture Page Screenshot | clear_admin_document.png
-|  | Sosse Go To | http://127.0.0.1/admin/se/webhook/
-|  | Sosse Capture Page Screenshot | clear_admin_webhook.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/collection/
+|  | Sosse Capture Page Screenshot | clear_admin_collection.png
 |  | Sosse Go To | http://127.0.0.1/admin/se/tag/
 |  | Sosse Capture Page Screenshot | clear_admin_tag.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/document/
+|  | Sosse Capture Page Screenshot | clear_admin_document.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/domain/
+|  | Sosse Capture Page Screenshot | clear_admin_domain.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/cookie/
+|  | Sosse Capture Page Screenshot | clear_admin_cookie.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/webhook/
+|  | Sosse Capture Page Screenshot | clear_admin_webhook.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/mimeplugin/
+|  | Sosse Capture Page Screenshot | clear_admin_mimehapdler.png
+|  | Sosse Go To | http://127.0.0.1/admin/se/excludedurl/
+|  | Sosse Capture Page Screenshot | clear_admin_searchengine.png
+|  | Sosse Go To | http://127.0.0.1/admin/auth/group/
+|  | Sosse Capture Page Screenshot | clear_admin_auth_group.png
+|  | Sosse Go To | http://127.0.0.1/admin/auth/user/
+|  | Sosse Capture Page Screenshot | clear_admin_auth_user.png

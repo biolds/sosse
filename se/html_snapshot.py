@@ -186,9 +186,9 @@ class CSSUtilsParser:
 
 
 class HTMLSnapshot:
-    def __init__(self, page, crawl_policy):
+    def __init__(self, page, collection):
         self.page = page
-        self.crawl_policy = crawl_policy
+        self.collection = collection
         self.assets = set()
         self.assets = set()
         self.asset_urls = set()
@@ -310,13 +310,13 @@ class HTMLSnapshot:
                         or url.startswith("about:")
                         or url.startswith("data:")
                     ):
-                        if self.crawl_policy.snapshot_exclude_element_re and re.match(
-                            self.crawl_policy.snapshot_exclude_element_re, elem.name
+                        if self.collection.snapshot_exclude_element_re and re.match(
+                            self.collection.snapshot_exclude_element_re, elem.name
                         ):
                             logger.debug(
                                 f"download_asset {url} excluded because it matches the element ({elem.name}) exclude regexp"
                             )
-                            url = reverse("html_excluded", args=(self.crawl_policy.id, "element"))
+                            url = reverse("html_excluded", args=(self.collection.id, "element"))
                         else:
                             url = absolutize_url(self.base_url, url)
                             url = self.download_asset(url, self.base_url)
@@ -346,13 +346,13 @@ class HTMLSnapshot:
                 else:
                     if url == self.page.url:
                         continue
-                    if self.crawl_policy.snapshot_exclude_element_re and re.match(
-                        self.crawl_policy.snapshot_exclude_element_re, elem.name
+                    if self.collection.snapshot_exclude_element_re and re.match(
+                        self.collection.snapshot_exclude_element_re, elem.name
                     ):
                         logger.debug(
                             f"download_asset {url} excluded because it matches the element ({elem.name}) exclude regexp"
                         )
-                        filename_url = reverse("html_excluded", args=(self.crawl_policy.id, "element"))
+                        filename_url = reverse("html_excluded", args=(self.collection.id, "element"))
                     else:
                         force_mime = None
                         if elem.name == "link" and (
@@ -369,9 +369,9 @@ class HTMLSnapshot:
         if getattr(settings, "TEST_HTML_ERROR_HANDLING", False) and url == "http://127.0.0.1/test-exception":
             raise Exception("html_error_handling test")
 
-        if self.crawl_policy.snapshot_exclude_url_re and re.match(self.crawl_policy.snapshot_exclude_url_re, url):
+        if self.collection.snapshot_exclude_url_re and re.match(self.collection.snapshot_exclude_url_re, url):
             logger.debug(f"download_asset {url} excluded because it matches the url exclude regexp")
-            return reverse("html_excluded", args=(self.crawl_policy.id, "url"))
+            return reverse("html_excluded", args=(self.collection.id, "url"))
 
         if url in self.asset_urls:
             for asset in self.assets:
@@ -385,20 +385,20 @@ class HTMLSnapshot:
         page = None
 
         try:
-            page = HTMLCache.download(url, referer, settings.SOSSE_MAX_HTML_ASSET_SIZE)
+            page = HTMLCache.download(url, self.collection, referer, settings.SOSSE_MAX_HTML_ASSET_SIZE)
             content = page.content
             mimetype = force_mime or page.mimetype
 
             if mimetype == "text/html":
                 return "/html/" + url
 
-            if self.crawl_policy.snapshot_exclude_mime_re and re.match(
-                self.crawl_policy.snapshot_exclude_mime_re, mimetype
+            if self.collection.snapshot_exclude_mime_re and re.match(
+                self.collection.snapshot_exclude_mime_re, mimetype
             ):
                 logger.debug(
                     f"download_asset {url} excluded because it matched the mimetype ({mimetype}) exclude regexp"
                 )
-                return reverse("html_excluded", args=(self.crawl_policy.id, "mime"))
+                return reverse("html_excluded", args=(self.collection.id, "mime"))
 
             if mimetype == "text/css":
                 logger.debug(f"handle_css of {url} due to mimetype")
@@ -433,7 +433,7 @@ class HTMLSnapshot:
 
     def build_style(self):
         # dynamically extract style
-        style_elems = self.page.browser.driver.execute_script(
+        style_elems = self.page.browser.driver().execute_script(
             r"""
             let styleElems = [];
             for (let ssNo = 0; ssNo < document.styleSheets.length; ssNo++) {

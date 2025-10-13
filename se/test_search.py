@@ -13,11 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from io import StringIO
+
 from django.contrib.auth.models import User
 from django.core.handlers.wsgi import WSGIRequest
 from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
 
+from .collection import Collection
 from .document import Document
 from .models import Link, SearchEngine
 from .search import add_headlines, get_documents_from_request
@@ -27,6 +30,7 @@ from .tag import Tag
 
 class SearchTest(TransactionTestCase):
     def setUp(self):
+        self.collection = Collection.create_default()
         self.root = Document.objects.wo_content().create(
             url="http://127.0.0.1/",
             normalized_url="http://127.0.0.1/",
@@ -35,6 +39,7 @@ class SearchTest(TransactionTestCase):
             title="Root",
             normalized_title="Root",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.page = Document.objects.wo_content().create(
             url="http://127.0.0.1/page1",
@@ -44,6 +49,7 @@ class SearchTest(TransactionTestCase):
             title="Page1",
             normalized_title="Page1",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.link = Link.objects.create(doc_from=self.root, doc_to=self.page, text="link text", pos=0, link_no=0)
 
@@ -66,6 +72,7 @@ class SearchTest(TransactionTestCase):
             title="Tagged",
             normalized_title="Tagged",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.tagged_page.tags.set([self.tag1, self.tag2])
 
@@ -77,6 +84,7 @@ class SearchTest(TransactionTestCase):
             title="Tagged2",
             normalized_title="Tagged2",
             crawl_last=timezone.now(),
+            collection=self.collection,
         )
         self.tagged_page2.tags.set([self.tag1])
 
@@ -93,7 +101,7 @@ class SearchTest(TransactionTestCase):
         self.page.delete()
 
     def _search_docs(self, params, user=None):
-        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": params, "wsgi.input": ""})
+        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": params, "wsgi.input": StringIO("")})
         request.user = user or self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid(), form.errors)
@@ -201,7 +209,7 @@ class SearchTest(TransactionTestCase):
         self.assertEqual(docs[0], self.page)
 
     def test_021_headline(self):
-        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": "q=tele", "wsgi.input": ""})
+        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": "q=tele", "wsgi.input": StringIO("")})
         request.user = self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())
@@ -304,6 +312,28 @@ class SearchTest(TransactionTestCase):
         docs = self._search_docs(f"ft1=inc&ff1=tag&fo1=contain&fv1={subtag.name}")
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
+
+    def test_090_search_collection(self):
+        collection2 = Collection.objects.create(name="Collection2")
+        collection2_page = Document.objects.wo_content().create(
+            url="http://127.0.0.1/collection2",
+            normalized_url="http://127.0.0.1/collection2",
+            content="Collection2 page content",
+            normalized_content="Collection2 page content",
+            title="Collection2 Page",
+            normalized_title="Collection2 Page",
+            crawl_last=timezone.now(),
+            collection=collection2,
+        )
+
+        docs = self._search_docs(f"q=world&collection={self.collection.id}")
+        self.assertEqual(docs.count(), 2)
+        self.assertIn(self.root, docs)
+        self.assertIn(self.page, docs)
+
+        docs = self._search_docs(f"q=content&collection={collection2.id}")
+        self.assertEqual(docs.count(), 1)
+        self.assertEqual(docs[0], collection2_page)
 
 
 class ShortcutTest(TransactionTestCase):

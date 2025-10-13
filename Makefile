@@ -3,7 +3,7 @@ BROWSER ?= chromium
 current_dir = $(shell pwd)
 
 .PHONY: _pip_pkg pip_pkg _pip_pkg_push pip_pkg_push _deb \
-	deb docker_run docker_build docker_push _build_doc build_doc \
+	deb _deb_bookworm deb_bookworm docker_run docker_build docker_push _build_doc build_doc \
 	doc_test_debian _doc_test_debian doc_test_pip _doc_test_pip \
 	pip_pkg_check _pip_pkg_check _pip_functional_tests _pip_pkg_functional_tests _deb_pkg_functional_tests \
 	_common_pip_functional_tests _rf_functional_tests _rf_functional_tests_deps functional_tests install_js_deps vrt
@@ -40,6 +40,26 @@ deb:
 	mkdir $(current_dir)/deb/ &>/dev/null ||:
 	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb:/deb biolds/sosse:debian-pkg bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb'
 
+_deb_bookworm: install_js_deps
+	mv debian debian-last
+	mv debian-bookworm debian
+	dpkg-buildpackage -us -uc
+	mv ../sosse*_amd64.deb /deb
+
+deb_bookworm:
+	mkdir $(current_dir)/deb-bookworm/ &>/dev/null ||:
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/deb-bookworm:/deb biolds/sosse:bookworm-debian-pkg bash -c 'cp -x -r /sosse /sosse-deb && make -C /sosse-deb _deb_bookworm'
+
+_link_check:
+	./doc/build_changelog.sh > doc/source/CHANGELOG.md
+	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
+	sed -e 's#|sosse-admin|#/opt/sosse-venv/bin/sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_pip_generated.rst
+	. /opt/sosse-doc/bin/activate ; make -C doc linkcheck SPHINXOPTS="-W"
+
+link_check:
+	mkdir -p doc/build/
+	docker run --rm -v $(current_dir):/sosse:ro -v $(current_dir)/doc:/sosse/doc biolds/sosse:doc bash -c 'cd /sosse && make _link_check'
+
 _build_doc:
 	./doc/build_changelog.sh > doc/source/CHANGELOG.md
 	sed -e 's#|sosse-admin|#sosse-admin#' doc/source/install/database.rst.template > doc/source/install/database_debian_generated.rst
@@ -70,51 +90,56 @@ docker_run:
 						--mount source=sosse_var,destination=/var/lib/sosse biolds/sosse:latest
 
 docker_release_build:
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	docker pull debian:trixie
+	$(MAKE) -C docker/pip-base build
+	$(MAKE) -C docker/pip-compose build
+	$(MAKE) -C docker/pip-release build
 
 # The test release build builds the git repo based package
 docker_release_build_test:
 	make _pip_pkg
 	cp dist/sosse-*.whl docker/pip-compose/
 	sed -e 's#^RUN /venv/bin/pip install sosse#ADD sosse-*.whl /tmp/\nRUN /venv/bin/pip install /tmp/sosse-*.whl#' -i docker/pip-compose/Dockerfile
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-compose build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
-	$(MAKE) -C docker/pip-release build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	docker pull debian:trixie
+	$(MAKE) -C docker/pip-base build
+	$(MAKE) -C docker/pip-compose build
+	$(MAKE) -C docker/pip-release build
 
 docker_git_build:
-	docker pull debian:bookworm
-	$(MAKE) -C docker/pip-base build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	docker pull debian:trixie
+	$(MAKE) -C docker/pip-base build
+
+	test ! -e docker/local.mk || . docker/local.mk
 	docker build --build-arg APT_PROXY=$(APT_PROXY) --build-arg PIP_INDEX_URL=$(PIP_INDEX_URL) --build-arg PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST) -t biolds/sosse:git .
 
 docker_push:
 	$(MAKE) -C docker push
 
 docker_build:
-	$(MAKE) -C docker build APT_PROXY=$(APT_PROXY) PIP_INDEX_URL=$(PIP_INDEX_URL) PIP_TRUSTED_HOST=$(PIP_TRUSTED_HOST)
+	$(MAKE) -C docker build
 	docker tag biolds/sosse:pip-release biolds/sosse:latest
 	docker tag biolds/sosse:pip-release biolds/sosse:stable
 
 _doc_test_debian:
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'apt install -y sosse' /tmp/code_blocks.json
-	sed -e 's#apt install -y sosse#apt install -y sosse; /etc/init.d/nginx start \& /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
+	sed -e 's#apt install -y sosse#apt install -y sosse ; dpkg -i /tmp/sosse*.deb ; /etc/init.d/nginx start \& /etc/init.d/postgresql start \& bash ./tests/wait_for_pg.sh#' -i /tmp/code_blocks.json
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/debian
 
 doc_test_debian:
-	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
+	docker run -v $(current_dir):/sosse:ro debian:trixie bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_debian'
 
 _doc_test_pip:
+	cp doc/code_blocks.json /tmp/code_blocks.json
+	grep -q 'pip install sosse' /tmp/code_blocks.json
+	sed -e 's#pip install sosse#pip install /tmp/*.whl#' -i /tmp/code_blocks.json
 	apt install -y chromium chromium-driver postgresql libpq-dev nginx python3-dev python3-pip virtualenv libmagic1
 	/etc/init.d/postgresql start &
 	bash ./tests/wait_for_pg.sh
-	bash ./tests/doc_test.sh doc/code_blocks.json install/pip
+	bash ./tests/doc_test.sh /tmp/code_blocks.json install/pip
 
 doc_test_pip:
-	docker run -v $(current_dir):/sosse:ro debian:bookworm bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'
+	docker run -v $(current_dir):/sosse:ro debian:trixie bash -c 'cd /sosse && apt-get update && apt-get install -y make jq && make _doc_test_pip'
 
 _pip_pkg_check:
 	pip install twine
@@ -140,6 +165,7 @@ _pip_pkg_functional_tests:
 	bash ./tests/doc_test.sh /tmp/code_blocks.json install/pip
 
 _common_pip_functional_tests:
+	jq -r ".[].dependencies[]?" sosse/mime_plugins.json | sort -u | xargs apt install -y
 	cp doc/code_blocks.json /tmp/code_blocks.json
 	grep -q 'sosse-admin default_conf' /tmp/code_blocks.json
 	sed -e 's#sosse-admin default_conf#sosse-admin default_conf | sed -e \\"s/^.chromium_options=.*/chromium_options=--enable-precise-memory-info --disable-default-apps --headless --no-sandbox --disable-dev-shm-usage/\\" -e \\"s/^.browser_crash_retry=.*/browser_crash_retry=3/\\" -e \\"s/^.crawler_count=.*/crawler_count=1/\\" -e \\"s/^.debug=.*/debug=true/\\"#' -e \\"s/^.default_browser=.*/default_browser=$(BROWSER)/\\" -i /tmp/code_blocks.json # add --no-sandbox --disable-dev-shm-usage to chromium's command line
@@ -147,6 +173,7 @@ _common_pip_functional_tests:
 
 _deb_pkg_functional_tests:
 	grep ^Depends: debian/control | sed -e "s/.*},//" -e "s/,//g" | xargs apt install -y
+	jq -r '.[].dependencies[]?' sosse/mime_plugins.json | sort -u | xargs apt install -y
 	grep '^ExecStartPre=' debian/sosse-uwsgi.service | sed -e 's/^ExecStartPre=-\?+\?//' -e 's/^/---- /'
 	bash -c "`grep '^ExecStartPre=' debian/sosse-uwsgi.service | sed -e 's/^ExecStartPre=-\?+\?//'`"
 	cp doc/code_blocks.json /tmp/code_blocks.json

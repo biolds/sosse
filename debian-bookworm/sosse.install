@@ -1,0 +1,6 @@
+sosse usr/lib/python3.11/dist-packages
+se usr/lib/python3.11/dist-packages
+sosse-admin usr/bin
+debian/uwsgi.ini etc/sosse/
+debian/uwsgi.params etc/sosse/
+debian/sosse.conf etc/nginx/sites-available

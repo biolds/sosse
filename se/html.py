@@ -19,7 +19,7 @@ from django.conf import settings
 from django.views.generic import TemplateView
 
 from .archive import ArchiveMixin
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .html_asset import HTMLAsset
 from .views import RedirectException, UserView
 
@@ -29,7 +29,7 @@ class HTMLView(ArchiveMixin, TemplateView):
     view_name = "html"
 
     def get_context_data(self, *args, **kwargs):
-        if not self.doc.mimetype or not self.doc.mimetype.startswith("text/"):
+        if not self.doc.content:
             raise RedirectException(self.doc.get_absolute_url())
 
         url = self._url_from_request()
@@ -48,11 +48,11 @@ class HTMLView(ArchiveMixin, TemplateView):
 class HTMLExcludedView(UserView):
     template_name = "se/html_excluded.html"
 
-    def get_context_data(self, crawl_policy, method, *args, **kwargs):
+    def get_context_data(self, collection, method, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         if method == "mime":
             method = "mimetype"
         elif method == "element":
             method = "target element"
-        crawl_policy = CrawlPolicy.objects.filter(id=crawl_policy).first()
-        return context | {"crawl_policy": crawl_policy, "method": method}
+        collection = Collection.objects.filter(id=collection).first()
+        return context | {"collection": collection, "method": method}

@@ -18,6 +18,7 @@ import os
 import signal
 import threading
 from datetime import timedelta
+from hashlib import md5
 from multiprocessing import Process, cpu_count
 from time import sleep
 from traceback import format_exc
@@ -29,7 +30,7 @@ from django.utils.timezone import now
 
 from ...browser_chromium import BrowserChromium
 from ...browser_firefox import BrowserFirefox
-from ...crawl_policy import CrawlPolicy
+from ...collection import Collection
 from ...document import Document
 from ...models import MINUTELY, CrawlerStats, WorkerStats
 
@@ -50,6 +51,11 @@ class Command(BaseCommand):
             "--one-shot",
             action="store_true",
             help="Quit when the queue is empty.",
+        )
+        parser.add_argument(
+            "--collection",
+            type=int,
+            help="Collection ID to use for URLs added to the queue.",
         )
         parser.add_argument(
             "urls",
@@ -167,11 +173,30 @@ class Command(BaseCommand):
                 sleep(5)
 
     def handle(self, *args, **options):
+        # Validate that urls and collection parameters are both provided or both omitted
+        if options["urls"] and not options["collection"]:
+            self.stderr.write("Error: --collection parameter is required when URLs are provided.")
+            return
+        if options["collection"] and not options["urls"]:
+            self.stderr.write("Error: URLs must be provided when --collection parameter is used.")
+            return
+
         Document.objects.wo_content().exclude(worker_no=None).update(worker_no=None)
-        CrawlPolicy.create_default()
+        error_msg = "Worker was killed"
+        error_hash = md5(error_msg.encode("utf-8"), usedforsecurity=False).hexdigest()
+        Document.objects.wo_content().filter(retries__gt=settings.SOSSE_WORKER_CRASH_RETRY).update(
+            error=error_msg, error_hash=error_hash
+        )
+
+        Collection.create_default()
 
         for url in options["urls"]:
-            Document.manual_queue(url, False, None)
+            try:
+                collection = Collection.objects.get(id=options["collection"])
+            except Collection.DoesNotExist:
+                self.stderr.write(f"Collection with ID {options['collection']} does not exist.")
+                return
+            Document.manual_queue(url, collection, False)
 
         worker_count = settings.SOSSE_CRAWLER_COUNT
         if worker_count is None:

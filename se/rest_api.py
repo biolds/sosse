@@ -29,18 +29,22 @@ from drf_spectacular.utils import (
 )
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
 
+from .add_to_queue import AddToQueueForm, queue_urls
 from .browser import SkipIndexing
+from .collection import Collection
 from .document import Document, example_doc
-from .models import CrawlerStats
+from .mime_plugin import MimePlugin
+from .models import CrawlerStats, WorkerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
 from .tag import Tag
+from .url import sanitize_url, validate_url
 from .utils import mimetype_icon
 from .webhook import Webhook, webhook_html_status
 
@@ -191,6 +195,56 @@ class MimeStatsViewSet(viewsets.ViewSet):
         return Response(indexed_mimes)
 
 
+class MimePluginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MimePlugin
+        fields = "__all__"
+        read_only_fields = ("builtin",)
+
+
+class MimePluginViewSet(viewsets.ModelViewSet):
+    queryset = MimePlugin.objects.all()
+    serializer_class = MimePluginSerializer
+    permission_classes = [DjangoModelPermissionsRW]
+
+    def perform_create(self, serializer):
+        serializer.save(builtin=False)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.builtin:
+            # For builtin handlers, only allow modification of 'enabled' field
+            allowed_fields = {"enabled"}
+            request_fields = set(request.data.keys())
+            if not request_fields.issubset(allowed_fields):
+                forbidden_fields = request_fields - allowed_fields
+                forbidden_fields = ", ".join(forbidden_fields)
+                raise PermissionDenied(
+                    f"Cannot modify fields {forbidden_fields} for built-in MIME handlers. Only 'enabled' can be modified."
+                )
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.builtin:
+            # For builtin handlers, only allow modification of 'enabled' field
+            allowed_fields = {"enabled"}
+            request_fields = set(request.data.keys())
+            if not request_fields.issubset(allowed_fields):
+                forbidden_fields = request_fields - allowed_fields
+                forbidden_fields = ", ".join(forbidden_fields)
+                raise PermissionDenied(
+                    f"Cannot modify fields {forbidden_fields} for built-in MIME handlers. Only 'enabled' can be modified."
+                )
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.builtin:
+            raise PermissionDenied("Cannot delete built-in MIME handlers")
+        return super().destroy(request, *args, **kwargs)
+
+
 class TagSlugRelatedField(serializers.SlugRelatedField):
     def to_internal_value(self, data):
         if isinstance(data, int):
@@ -315,6 +369,7 @@ class SearchAdvancedQuery(serializers.Serializer):
             "Advanced search query",
             value={
                 "query": "big cats",
+                "collection": 1,
                 "adv_params": [
                     {
                         "field": "url",
@@ -337,6 +392,7 @@ class SearchQuery(serializers.Serializer):
         default=False,
         help_text='Include hidden documents, requires the permission "Can change documents"',
     )
+    collection = serializers.IntegerField(required=False, help_text="Filter by collection ID")
     adv_params = SearchAdvancedQuery(many=True, default=[], help_text="Advanced search parameters")
 
     def validate(self, data):
@@ -345,6 +401,14 @@ class SearchQuery(serializers.Serializer):
             raise serializers.ValidationError(
                 {api_settings.NON_FIELD_ERRORS_KEY: 'At least "query" or "adv_params" field must be provided.'}
             )
+
+        collection_id = data.get("collection")
+        if collection_id:
+            try:
+                Collection.objects.get(id=collection_id)
+            except Collection.DoesNotExist:
+                raise serializers.ValidationError({"collection": f"Collection with id {collection_id} does not exist."})
+
         return data
 
 
@@ -377,6 +441,7 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 "l": query.validated_data["lang"],
                 "s": query.validated_data["sort"],
                 "i": "on" if query.validated_data["include_hidden"] else "",
+                "collection": query.validated_data.get("collection", ""),
             }
         )
         f.is_valid()
@@ -440,6 +505,26 @@ class WebhookViewSet(viewsets.ModelViewSet):
         return Response(result)
 
 
+class CollectionSerializer(serializers.ModelSerializer):
+    webhooks = serializers.PrimaryKeyRelatedField(many=True, queryset=Webhook.objects.all(), required=False)
+    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all(), required=False)
+
+    class Meta:
+        model = Collection
+        fields = "__all__"
+        read_only_fields = (
+            "unlimited_regex_pg",
+            "limited_regex_pg",
+            "excluded_regex_pg",
+        )
+
+
+class CollectionViewSet(viewsets.ModelViewSet):
+    queryset = Collection.objects.all()
+    serializer_class = CollectionSerializer
+    permission_classes = [DjangoModelPermissionsRW]
+
+
 router = routers.DefaultRouter()
 router.register("document", DocumentViewSet)
 router.register("tag", TagViewSet)
@@ -448,4 +533,102 @@ router.register("stats", CrawlerStatsViewSet)
 router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
 router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
 router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
+router.register("mime_plugin", MimePluginViewSet)
 router.register("webhook", WebhookViewSet, basename="webhook")
+router.register("collection", CollectionViewSet)
+
+
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            "Simple URLs queue",
+            value={
+                "urls": ["http://example.com", "https://test.com/page"],
+                "collection": 1,
+            },
+        ),
+        OpenApiExample(
+            "URLs with crawl scope",
+            value={
+                "urls": ["http://example.com"],
+                "collection": 1,
+                "crawl_scope": "unlimited",
+                "show_on_homepage": True,
+            },
+        ),
+    ]
+)
+class AddToQueueSerializer(serializers.Serializer):
+    urls = serializers.ListField(child=serializers.URLField(), help_text="URLs to queue for crawling")
+    collection = serializers.PrimaryKeyRelatedField(
+        queryset=Collection.objects.all(), help_text="Collection to crawl with"
+    )
+    crawl_scope = serializers.ChoiceField(
+        choices=AddToQueueForm.CRAWL_SCOPE_CHOICES,
+        default=AddToQueueForm.CRAWL_SCOPE_NO_CHANGE,
+        help_text="How to crawl the websites from these URLs",
+    )
+    show_on_homepage = serializers.BooleanField(default=True, help_text="Display the initial document on the homepage")
+
+    def validate_urls(self, value):
+        validated_urls = []
+        errors = []
+
+        for i, url in enumerate(value):
+            try:
+                sanitized_url = sanitize_url(url)
+                validate_url(sanitized_url)
+                validated_urls.append(sanitized_url)
+            except Exception as e:
+                errors.append(f"URL {i + 1}: {str(e)}")
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return validated_urls
+
+
+class AddToQueueViewSet(viewsets.ViewSet):
+    serializer_class = AddToQueueSerializer
+    permission_classes = [DjangoModelPermissionsRW]
+    queryset = Document.objects.wo_content()
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(*args, **kwargs)
+
+    @extend_schema(
+        request=AddToQueueSerializer,
+        description="Add URLs to crawl queue",
+        responses={
+            201: OpenApiTypes.OBJECT,
+        },
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        urls = serializer.validated_data["urls"]
+        collection = serializer.validated_data["collection"]
+        crawl_scope = serializer.validated_data["crawl_scope"]
+        show_on_homepage = serializer.validated_data["show_on_homepage"]
+
+        # Use the shared function from add_to_queue.py
+        queue_urls(urls, collection, show_on_homepage, crawl_scope)
+        WorkerStats.wake_up()
+
+        url_count = len(urls)
+        message = f"{url_count} URL{'s' if url_count > 1 else ''} queued successfully"
+
+        return Response(
+            {
+                "message": message,
+                "queued_urls": urls,
+                "collection": collection.id,
+                "crawl_scope": crawl_scope,
+                "show_on_homepage": show_on_homepage,
+            },
+            status=201,
+        )
+
+
+router.register("queue", AddToQueueViewSet, basename="queue")

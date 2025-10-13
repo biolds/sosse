@@ -23,9 +23,9 @@ from PIL import Image
 from .browser_chromium import BrowserChromium
 from .browser_firefox import BrowserFirefox
 from .browser_request import BrowserRequest
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 
 TEST_SERVER_DOMAIN = "127.0.0.1:8000"
 TEST_SERVER_URL = f"http://{TEST_SERVER_DOMAIN}/"
@@ -54,6 +54,16 @@ class BaseFunctionalTest:
 
     def setUp(self):
         self.assertEqual(Document.objects.count(), 0)
+        self.collection = Collection.objects.create(
+            name="Test Collection",
+            unlimited_regex="",
+            unlimited_regex_pg="",
+            recrawl_freq=Collection.RECRAWL_FREQ_NONE,
+            default_browse_mode=self.BROWSE_MODE,
+            snapshot_html=False,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_PREVIEW,
+            take_screenshots=False,
+        )
 
     def tearDown(self):
         for f in (TEST_SERVER_THUMBNAIL_FILE, TEST_SERVER_OGP_THUMBNAIL_FILE):
@@ -87,31 +97,15 @@ class FunctionalTest(BaseFunctionalTest):
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, color)
 
     def test_10_thumbnail_preview(self):
-        CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
-            take_screenshots=False,
-        )
-        Document.queue(TEST_SERVER_OGP_URL, None, None)
+        self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_PREVIEW
+        self.collection.save()
+        Document.queue(TEST_SERVER_OGP_URL, self.collection, None)
         self._test_preview()
 
     def test_20_thumbnail_preview_missing(self):
-        CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREVIEW,
-            take_screenshots=False,
-        )
-        Document.queue(TEST_SERVER_URL, None, None)
+        self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_PREVIEW
+        self.collection.save()
+        Document.queue(TEST_SERVER_URL, self.collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -124,18 +118,10 @@ class FunctionalTest(BaseFunctionalTest):
 
 class BrowserBasedFunctionalTest(BaseFunctionalTest):
     def test_10_thumbnail_screenshot(self):
-        CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_SCREENSHOT,
-            take_screenshots=False,
-        )
+        self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_SCREENSHOT
+        self.collection.save()
 
-        Document.queue(TEST_SERVER_OGP_URL, None, None)
+        Document.queue(TEST_SERVER_OGP_URL, self.collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -147,31 +133,15 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
         self._assertCornerColorEqual(TEST_SERVER_OGP_THUMBNAIL_FILE, (255, 255, 255))
 
     def test_20_thumbnail_fallback_preview(self):
-        CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
-            take_screenshots=False,
-        )
-        Document.queue(TEST_SERVER_OGP_URL, None, None)
+        self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_PREV_OR_SCREEN
+        self.collection.save()
+        Document.queue(TEST_SERVER_OGP_URL, self.collection, None)
         self._test_preview()
 
     def test_30_thumbnail_fallback_screenshot(self):
-        CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            recrawl_freq=CrawlPolicy.RECRAWL_FREQ_NONE,
-            default_browse_mode=self.BROWSE_MODE,
-            snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_PREV_OR_SCREEN,
-            take_screenshots=False,
-        )
-        Document.queue(TEST_SERVER_URL, None, None)
+        self.collection.thumbnail_mode = Collection.THUMBNAIL_MODE_PREV_OR_SCREEN
+        self.collection.save()
+        Document.queue(TEST_SERVER_URL, self.collection, None)
         self._crawl()
 
         self.assertEqual(Document.objects.count(), 1)
@@ -184,15 +154,15 @@ class BrowserBasedFunctionalTest(BaseFunctionalTest):
 
 
 class RequestsFunctionalTest(FunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_REQUESTS
+    BROWSE_MODE = Domain.BROWSE_REQUESTS
     BROWSER_CLASS = BrowserRequest
 
 
 class ChromiumFunctionalTest(FunctionalTest, BrowserBasedFunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_CHROMIUM
+    BROWSE_MODE = Domain.BROWSE_CHROMIUM
     BROWSER_CLASS = BrowserChromium
 
 
 class FirefoxFunctionalTest(FunctionalTest, BrowserBasedFunctionalTest, TransactionTestCase):
-    BROWSE_MODE = DomainSetting.BROWSE_FIREFOX
+    BROWSE_MODE = Domain.BROWSE_FIREFOX
     BROWSER_CLASS = BrowserFirefox

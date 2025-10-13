@@ -15,8 +15,9 @@
 
 from django.test import TransactionTestCase, override_settings
 
+from .collection import Collection
 from .document import Document
-from .domain_setting import DomainSetting
+from .domain import Domain
 
 ROBOTS_TXT = """
 # Test robots.txt
@@ -27,23 +28,27 @@ disallow: /disallow/*
 
 
 class MiscTest(TransactionTestCase):
+    def setUp(self):
+        self.collection = Collection.create_default()
+
     def test_robots_txt(self):
-        domain = DomainSetting.objects.create(domain="127.0.0.1")
+        domain = Domain.objects.create(domain="127.0.0.1")
         domain._parse_robotstxt(ROBOTS_TXT)
         self.assertEqual(domain.robots_allow, "/allow/.*")
         self.assertEqual(domain.robots_disallow, "/disallow/.*")
 
-        domain.robots_ua_hash = DomainSetting.ua_hash()
-        domain.robots_status = DomainSetting.ROBOTS_LOADED
+        domain.robots_ua_hash = Domain.ua_hash()
+        domain.robots_status = Domain.ROBOTS_LOADED
         domain.save()
 
-        self.assertTrue(domain.robots_authorized("http://127.0.0.1/allow/aa"))
-        self.assertFalse(domain.robots_authorized("http://127.0.0.1/disallow/aa"))
+        collection = Collection.create_default()
+        self.assertTrue(domain.robots_authorized("http://127.0.0.1/allow/aa", collection))
+        self.assertFalse(domain.robots_authorized("http://127.0.0.1/disallow/aa", collection))
 
     @override_settings(SOSSE_LINKS_NO_REFERRER=True)
     @override_settings(SOSSE_LINKS_NEW_TAB=True)
     def test_external_link(self):
-        doc = Document(url="http://test/")
+        doc = Document(url="http://test/", collection=self.collection)
         self.assertEqual(
             doc.get_source_link(),
             '🌍&nbsp<a href="http://test/" rel="noreferrer" target="_blank">Source</a>',
@@ -52,5 +57,5 @@ class MiscTest(TransactionTestCase):
     @override_settings(SOSSE_LINKS_NO_REFERRER=False)
     @override_settings(SOSSE_LINKS_NEW_TAB=False)
     def test_external_link_no_opt(self):
-        doc = Document(url="http://test/")
+        doc = Document(url="http://test/", collection=self.collection)
         self.assertEqual(doc.get_source_link(), '🌍&nbsp<a href="http://test/">Source</a>')

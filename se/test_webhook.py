@@ -23,9 +23,9 @@ from django.utils.timezone import now
 from sosse.conf import DEFAULT_USER_AGENT
 
 from .browser import SkipIndexing
-from .crawl_policy import CrawlPolicy
+from .collection import Collection
 from .document import Document, example_doc
-from .domain_setting import DomainSetting
+from .domain import Domain
 from .models import WorkerStats
 from .tag import Tag
 from .test_functionals import TEST_SERVER_URL
@@ -37,6 +37,13 @@ class WebhookTest(TransactionTestCase):
     maxDiff = None
 
     def setUp(self):
+        self.collection = Collection.objects.create(
+            name="Test Collection",
+            default_browse_mode=Domain.BROWSE_REQUESTS,
+            snapshot_html=False,
+            thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
+            take_screenshots=False,
+        )
         self.webhook = Webhook.objects.create(
             name="Test Webhook",
             url=f"{TEST_SERVER_URL}post",
@@ -45,21 +52,13 @@ class WebhookTest(TransactionTestCase):
             body_template='{"content": "${content}", "title": "${title}"}',
         )
         self.document = example_doc()
+        self.document.collection = self.collection
         self.document.metadata = {"key": "value"}
         self.document.save()
-        self.crawl_policy = CrawlPolicy.objects.create(
-            url_regex="(default)",
-            url_regex_pg=".*",
-            recursion=CrawlPolicy.CRAWL_NEVER,
-            default_browse_mode=DomainSetting.BROWSE_REQUESTS,
-            snapshot_html=False,
-            thumbnail_mode=CrawlPolicy.THUMBNAIL_MODE_NONE,
-            take_screenshots=False,
-        )
-        self.crawl_policy.webhooks.add(self.webhook)
+        self.collection.webhooks.add(self.webhook)
         self.tag = Tag.objects.create(name="Test")
         self.tag_child = Tag.objects.create(name="Test Child", parent=self.tag)
-        self.crawl_policy.tags.add(self.tag_child)
+        self.collection.tags.add(self.tag_child)
 
     def _check_render(self, doc, expected):
         body = self.webhook._render_template(doc, self.webhook.body_template)
@@ -133,7 +132,7 @@ class WebhookTest(TransactionTestCase):
             if self.document:
                 self.document.delete()
                 self.document = None
-            Document.queue("http://127.0.0.1/full_page.html", None, None)
+            Document.queue("http://127.0.0.1/full_page.html", self.collection, None)
             Document.crawl(0)
             self.assertEqual(Document.objects.count(), 1)
             doc = Document.objects.w_content().first()
@@ -177,79 +176,79 @@ class WebhookTest(TransactionTestCase):
             },
         )
 
-    def _test_trigger(self, crawl_policy_cond, webhook_cond, expected_webhook_call_count, change_content=False):
+    def _test_trigger(self, collection_cond, webhook_cond, expected_webhook_call_count, change_content=False):
         with mock.patch("se.webhook.requests.post") as post:
             post.side_effect = lambda *args, **kwargs: mock.Mock(status_code=200, reason="OK", text="{}")
-            self.crawl_policy.recrawl_condition = crawl_policy_cond
-            self.crawl_policy.save()
+            self.collection.recrawl_condition = collection_cond
+            self.collection.save()
             self.webhook.trigger_condition = webhook_cond
             self.webhook.save()
             self._crawl(change_content)
             self.assertEqual(
-                post.call_count, expected_webhook_call_count, f"failed with crawl_policy_cond {crawl_policy_cond}"
+                post.call_count, expected_webhook_call_count, f"failed with collection_cond {collection_cond}"
             )
 
             # Set crawl_next to force recrawl on next call
             Document.objects.update(crawl_next=now() - timedelta(seconds=1))
 
     def test_100_trigger_webhook_condition_discovery(self):
-        for crawl_policy_cond in CrawlPolicy.RECRAWL_CONDITION:
+        for collection_cond in Collection.RECRAWL_CONDITION:
             Document.objects.wo_content().delete()
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_DISCOVERY, 1)
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_DISCOVERY, 0)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_DISCOVERY, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_DISCOVERY, 0)
 
     def test_110_trigger_webhook_condition_on_change__no_change(self):
-        for crawl_policy_cond in CrawlPolicy.RECRAWL_CONDITION:
+        for collection_cond in Collection.RECRAWL_CONDITION:
             Document.objects.wo_content().delete()
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 1)
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 0)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 0)
 
     def test_120_trigger_webhook_condition_on_change__with_change(self):
-        for crawl_policy_cond in CrawlPolicy.RECRAWL_CONDITION:
+        for collection_cond in Collection.RECRAWL_CONDITION:
             Document.objects.wo_content().delete()
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 1)
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 1, change_content=True)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_ON_CHANGE, 1, change_content=True)
 
     def test_130_trigger_webhook_condition_always(self):
-        for crawl_policy_cond in CrawlPolicy.RECRAWL_CONDITION:
+        for collection_cond in Collection.RECRAWL_CONDITION:
             Document.objects.wo_content().delete()
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_ALWAYS, 1)
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_ALWAYS, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_ALWAYS, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_ALWAYS, 1)
 
     def test_140_trigger_webhook_condition_manual(self):
-        for crawl_policy_cond in CrawlPolicy.RECRAWL_CONDITION:
+        for collection_cond in Collection.RECRAWL_CONDITION:
             Document.objects.wo_content().delete()
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_MANUAL, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_MANUAL, 1)
 
             # No trigger on no change
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_MANUAL, 0)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_MANUAL, 0)
 
             # Trigger when manual
             Document.objects.wo_content().update(manual_crawl=True)
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_MANUAL, 1)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_MANUAL, 1)
 
             # Tiggers on change
-            self._test_trigger(crawl_policy_cond[0], Webhook.TRIGGER_COND_MANUAL, 1, True)
+            self._test_trigger(collection_cond[0], Webhook.TRIGGER_COND_MANUAL, 1, True)
 
     def test_150_trigger_webhook_no_regexp_match(self):
         self.webhook.content_re = "No match"
-        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 0)
+        self._test_trigger(Collection.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 0)
 
         self.webhook.content_re = "Content"
-        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
+        self._test_trigger(Collection.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
 
     def test_160_trigger_webhook_tag_match(self):
         self.webhook.tags.add(self.tag)
-        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
+        self._test_trigger(Collection.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
 
     def test_170_trigger_webhook_child_tag_match(self):
         self.webhook.tags.add(self.tag)
-        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
+        self._test_trigger(Collection.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 1)
 
     def test_180_trigger_webhook_no_tag_match(self):
-        self.crawl_policy.tags.clear()
+        self.collection.tags.clear()
         self.webhook.tags.add(self.tag)
-        self._test_trigger(CrawlPolicy.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 0)
+        self._test_trigger(Collection.RECRAWL_COND_ALWAYS, Webhook.TRIGGER_COND_ALWAYS, 0)
 
     def test_190_update_document(self):
         self.webhook.updates_doc = True

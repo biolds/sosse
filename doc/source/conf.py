@@ -28,7 +28,7 @@ from urllib.parse import quote
 project = "Sosse"
 copyright = "2022-2025, Laurent Defert"
 author = "Laurent Defert"
-release = "1.13"
+release = "1.14"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -39,9 +39,7 @@ test_code_output = "code_blocks.json"
 
 linkcheck_ignore = [
     r"http://192\.168\.0\.1:8080/",
-    r"https://github\.com/.*",
     r"http://127\.0\.0\.1:8005/",
-    r"https://www\.gnu\.org/",
 ]
 linkcheck_retries = 3
 linkcheck_timeout = 60
@@ -62,6 +60,7 @@ html_static_path = ["_static"]
 html_logo = "../../se/static/se/logo.svg"
 html_favicon = "../../se/static/se/logo.svg"
 html_css_files = ["style.css"]
+
 html_context = {
     "uma_script": '<script defer src="https://uma.sosse.io/script.js" data-website-id="7650cdb0-7390-41fd-a023-2f9d5c480b6e"></script>',
     # Edit the doc button

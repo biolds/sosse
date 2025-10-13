@@ -22,6 +22,17 @@ class SEConfig(AppConfig):
     verbose_name = "Crawling"
     default_auto_field = "django.db.models.AutoField"
 
+    def ready(self):
+        from django.db import DatabaseError, transaction
+
+        from .collection import Collection
+
+        try:
+            with transaction.atomic():
+                Collection.create_default()
+        except DatabaseError:
+            pass
+
 
 class SEAdminConfig(AdminConfig):
     default_site = "se.admin.get_admin"

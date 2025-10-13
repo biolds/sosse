@@ -621,7 +621,7 @@ class Document(models.Model):
         # Check if URL should be crawled (unlimited_regex for unlimited recursion, limited_regex for depth-based)
         should_crawl = False
 
-        crawl_recurse = 0
+        crawl_recurse = collection.recursion_depth
         should_crawl = Document._url_matches_regex(url, collection.unlimited_regex_pg)
         if should_crawl:
             crawl_logger.debug(f"queueing {url} - matches unlimited_regex")
@@ -629,21 +629,15 @@ class Document(models.Model):
             crawl_logger.debug(f"queueing {url} - did not match unlimited_regex")
 
         if not should_crawl and collection.limited_regex_pg and parent:
-            if Document._url_matches_regex(url, collection.limited_regex_pg):
+            if Document._url_matches_regex(url, collection.limited_regex_pg) and parent.crawl_recurse > 0:
                 # The url matches limited_regex, so we check if there is still depth to crawl
-                if Document._url_matches_regex(parent.url, collection.unlimited_regex_pg):
-                    crawl_recurse = collection.recursion_depth - 1
-                    should_crawl = True
-                    crawl_logger.debug(f"queueing {url} - matches limited_regex with full depth")
-
-                elif parent.crawl_recurse > 0:
-                    if Document._url_matches_regex(parent.url, collection.limited_regex_pg):
-                        crawl_recurse = parent.crawl_recurse - 1
-                        should_crawl = True
-                        crawl_logger.debug(f"queueing {url} - matches limited_regex with depth {crawl_recurse}")
+                crawl_recurse = parent.crawl_recurse - 1
+                should_crawl = True
+                crawl_logger.debug(f"queueing {url} - matches limited_regex with full depth")
 
         if not should_crawl:
-            if parent:
+            # Check cross-collection queueing only if the parent document is in the same collection (otherwise we already did it)
+            if parent and parent.collection == collection:
                 crawl_logger.debug(
                     f"URL {url} doesn't match collection {collection.name} patterns - checking cross-collection crawl"
                 )
@@ -687,11 +681,13 @@ class Document(models.Model):
             # No parent means this is the seed URL, we always queue it
             crawl_recurse = collection.recursion_depth
 
-        doc, _ = Document.objects.wo_content().get_or_create(
+        doc, created = Document.objects.wo_content().get_or_create(
             url=url,
             collection=collection,
             defaults={"hidden": collection.hide_documents, "crawl_recurse": crawl_recurse},
         )
+        if not created:
+            doc.crawl_recurse = max(doc.crawl_recurse, crawl_recurse)
         return doc
 
     def _schedule_next(self, changed):

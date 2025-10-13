@@ -259,14 +259,14 @@ class Collection(models.Model):
     # Cross-collection crawl settings
     queue_to_any_collection = models.BooleanField(
         default=False,
-        verbose_name="Queue to any collection",
+        verbose_name="Queue links to any collection",
         help_text="When a URL doesn't match this Collection's regex patterns, check all Collections and queue it in the first matching one.",
     )
     queue_to_collections = models.ManyToManyField(
         "self",
         blank=True,
         symmetrical=False,
-        verbose_name="Queue to specific collections",
+        verbose_name="Queue links to specific collections",
         help_text="When a URL doesn't match this Collection's regex patterns, check only these Collections and queue it there.",
     )
 

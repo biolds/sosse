@@ -45,32 +45,7 @@ class CrawlQueueContentView(AdminView):
             .count()
         )
 
-        QUEUE_SIZE = 10
-
-        # In progress
-        queue = list(Document.objects.wo_content().filter(worker_no__isnull=False).order_by("id")[:QUEUE_SIZE])
-
-        if len(queue) < QUEUE_SIZE:
-            queue = queue + list(
-                Document.crawl_queue(Document.objects.wo_content().exclude(id__in=[q.pk for q in queue]))[
-                    : QUEUE_SIZE - len(queue)
-                ]
-            )
-
-        for doc in queue:
-            doc.pending = True
-
-        queue.reverse()
-
-        history = list(
-            Document.objects.wo_content()
-            .filter(models.Q(crawl_next__isnull=True) | models.Q(crawl_next__gt=now()), crawl_last__isnull=False)
-            .order_by("-crawl_last")[:QUEUE_SIZE]
-        )
-
-        for doc in history:
-            doc.in_history = True
-        queue = queue + history
+        queue = Document.crawl_queue(True)
 
         for doc in queue:
             if doc.crawl_next:

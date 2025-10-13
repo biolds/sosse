@@ -110,6 +110,7 @@ class Document(models.Model):
         (SCREENSHOT_PNG, SCREENSHOT_PNG),
         (SCREENSHOT_JPG, SCREENSHOT_JPG),
     )
+    DISPLAY_QUEUE_SIZE = 10
 
     # Document info
     url = models.TextField(validators=[validate_url])
@@ -629,6 +630,8 @@ class Document(models.Model):
             crawl_logger.debug(f"queueing {url} - did not match unlimited_regex")
 
         if not should_crawl and collection.limited_regex_pg and parent:
+            crawl_logger.debug(f"queueing {url} - attempting limited_regex")
+
             if Document._url_matches_regex(url, collection.limited_regex_pg) and parent.crawl_recurse > 0:
                 # The url matches limited_regex, so we check if there is still depth to crawl
                 crawl_recurse = parent.crawl_recurse - 1
@@ -834,24 +837,79 @@ class Document(models.Model):
         return True
 
     @staticmethod
-    def crawl_queue(queryset=None):
-        if queryset is None:
-            queryset = Document.objects.wo_content()
-        return queryset.filter(
-            models.Q(crawl_last__isnull=True) | models.Q(crawl_last__isnull=False, crawl_next__lte=now()),
-            retries__lte=settings.SOSSE_WORKER_CRASH_RETRY,
-            worker_no__isnull=True,
-        ).order_by(
-            "-manual_crawl",  # to prioritize manual crawls
-            "-crawl_last",  # to prioritize documents with no crawl_last
-            "crawl_next",
-            "id",
+    def crawl_queue(full_queue):
+        current_now = now()
+
+        # Returns only pending, ready to be processed documents if with_pending is False
+        queue = (
+            Document.objects.wo_content()
+            .filter(
+                models.Q(crawl_last__isnull=True) | models.Q(crawl_last__isnull=False, crawl_next__lte=current_now),
+                retries__lte=settings.SOSSE_WORKER_CRASH_RETRY,
+                worker_no__isnull=True,
+            )
+            .order_by(
+                "-manual_crawl",  # to prioritize manual crawls
+                "-crawl_last",  # to prioritize documents with no crawl_last
+                "crawl_next",
+                "id",
+            )
         )
+
+        if not full_queue:
+            return queue
+
+        queue = list(queue[: Document.DISPLAY_QUEUE_SIZE])
+
+        # Pending not ready
+        if len(queue) < Document.DISPLAY_QUEUE_SIZE:
+            queue = queue + list(
+                Document.objects.wo_content()
+                .filter(
+                    models.Q(crawl_last__isnull=False, crawl_next__gt=current_now),
+                    retries__lte=settings.SOSSE_WORKER_CRASH_RETRY,
+                    worker_no__isnull=True,
+                )
+                .exclude(
+                    id__in=[d.id for d in queue],
+                )
+                .order_by(
+                    "-crawl_next",
+                    "-id",
+                )[: Document.DISPLAY_QUEUE_SIZE - len(queue)]
+            )
+
+        queue.reverse()
+
+        # In progress
+        queue += list(
+            Document.objects.wo_content()
+            .filter(worker_no__isnull=False)
+            .exclude(id__in=[d.id for d in queue])
+            .order_by("id")
+        )
+        for doc in queue:
+            doc.pending = True
+
+        # Last crawled
+        history = list(
+            Document.objects.wo_content()
+            .filter(
+                models.Q(crawl_next__isnull=True) | models.Q(crawl_next__gt=now()),
+                crawl_last__isnull=False,
+            )
+            .exclude(id__in=[d.id for d in queue])
+            .order_by("-crawl_last")[: Document.DISPLAY_QUEUE_SIZE]
+        )
+
+        for doc in history:
+            doc.in_history = True
+        return queue + history
 
     @staticmethod
     def pick_queued(worker_no):
         while True:
-            doc = Document.crawl_queue().first()
+            doc = Document.crawl_queue(False).first()
             if doc is None:
                 return None
 

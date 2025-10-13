@@ -6,9 +6,12 @@
 - update the CHANGELOG.md using the last changelog build it the main branch
 - commit as "v1.10.1 release"
 - MR
-- create tag "vX.X.X" in sosse-plugins project first, then in sosse project
+- create tag "vX.X.X" in sosse-plugins, wait for the pipeline to be done
+- create tag "vX.X.X" in sosse
+- disable daily builds
+- update the `stable` branch for the plugins
 - update the `stable` branch for the release (to update the `stable` version of readthedoc)
-- check RTD as the doc build can fail if Gitlab has concurrent builds running
+- check RTD as the doc build can fail if Gitlab has concurrent builds running - manual build required (?)
 - pip release (this needs to be done before the docker step below)
   - clear `dist/`
   - download the artifacts of the `pip_pkg` step and unzip it in the root (it creates `dist/` with packages)
@@ -29,3 +32,4 @@
   - docker push biolds/sosse:latest
 - in case the README.md file was modified, update the description at https://hub.docker.com/repository/docker/biolds/sosse/general
 - main / stable merge
+- reenable daily builds

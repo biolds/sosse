@@ -47,6 +47,7 @@ class CrawlerTest(TransactionTestCase):
             snapshot_html=False,
             thumbnail_mode=Collection.THUMBNAIL_MODE_NONE,
             take_screenshots=False,
+            recursion_depth=0,
         )
         self.fake_now = datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.fake_yesterday = self.fake_now - timedelta(days=1)
@@ -160,11 +161,11 @@ class CrawlerTest(TransactionTestCase):
         self.assertEqual(docs[0].url, "http://127.0.0.1/")
         self.assertEqual(docs[0].collection, self.collection)
         self.assertEqual(docs[0].content, "Root Link1")
-        self.assertEqual(docs[0].crawl_recurse, 0)
+        self.assertEqual(docs[0].crawl_recurse, 2)
         self.assertEqual(docs[1].url, "http://127.0.0.1/page1/")
         self.assertEqual(docs[1].collection, self.collection)
         self.assertEqual(docs[1].content, "Page1 Link1 Link3")
-        self.assertEqual(docs[1].crawl_recurse, 0)
+        self.assertEqual(docs[1].crawl_recurse, 2)
         self.assertEqual(docs[2].url, "http://127.0.0.2/")
         self.assertEqual(docs[2].collection, self.collection)
         self.assertEqual(docs[2].content, "No 2 No 2 Link1 Link3")

@@ -1,3 +1,9 @@
+sosse (1.14.1-1+trixie) trixie; urgency=medium
+
+  * Upstream release
+
+ -- Laurent Defert <laurent_defert@yahoo.fr>  Tue, 14 Oct 2025 15:47:05 +0200
+
 sosse (1.14.0-1+trixie) trixie; urgency=medium
 
   * Upstream release

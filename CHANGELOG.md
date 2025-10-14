@@ -1,3 +1,7 @@
+## 1.14.1 (2025-10-14)
+### Bug fixes (1 change)
+- [fix cross-Collection limited recursion](https://gitlab.com/biolds1/sosse/-/commit/9b84778640f990bb7849c1208e14b97595244a6c)
+
 ## 1.14.0 (2025-10-09)
 ### Features (8 changes)
 - [add a "queue_status" management command](https://gitlab.com/biolds1/sosse/-/commit/d147ef270ae74749df30dee5980886520c87aede)

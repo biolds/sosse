@@ -1,3 +1,8 @@
+## 1.14.2 (2025-10-15)
+### Bug fixes (2 changes)
+- [fix recurrent crawling of limited recursion URLs](https://gitlab.com/biolds1/sosse/-/commit/26e097a69f8e4cd3021558c1504d5ee29d2ba0e3)
+- PDF parsing fix
+
 ## 1.14.1 (2025-10-14)
 ### Bug fixes (1 change)
 - [fix cross-Collection limited recursion](https://gitlab.com/biolds1/sosse/-/commit/9b84778640f990bb7849c1208e14b97595244a6c)

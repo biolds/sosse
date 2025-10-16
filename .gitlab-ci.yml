@@ -177,10 +177,6 @@ coverage_report:
     - functional_guides_chromium
     - manage_cmd_tests_bookworm
     - unit_tests_bookworm
-    - functional_tests_chromium_bookworm
-    - functional_tests_firefox_bookworm
-    - functional_docs_chromium_bookworm
-    - functional_docs_firefox_bookworm
   artifacts:
     when: always
     paths:
@@ -206,6 +202,7 @@ coverage_report:
     - /venv/bin/coverage xml --omit "*/se/deps/*"
 
 .functional_tests: &functional_tests
+  image: biolds/sosse:pip-test
   stage: test
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -233,66 +230,33 @@ coverage_report:
 
 functional_tests_chromium:
   <<: *functional_tests
-  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: tests
     BROWSER: chromium
 
 functional_tests_firefox:
   <<: *functional_tests
-  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: tests
     BROWSER: firefox
 
 functional_docs_chromium:
   <<: *functional_tests
-  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: docs
     BROWSER: chromium
 
 functional_docs_firefox:
   <<: *functional_tests
-  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: docs
     BROWSER: firefox
 
 functional_guides_chromium:
   <<: *functional_tests
-  image: biolds/sosse:pip-test
   variables:
     TEST_SUITE: guides
     BROWSER: chromium
-
-functional_tests_chromium_bookworm:
-  <<: *functional_tests
-  image: biolds/sosse:bookworm-pip-test
-  variables:
-    TEST_SUITE: tests
-    BROWSER: chromium
-
-functional_tests_firefox_bookworm:
-  <<: *functional_tests
-  image: biolds/sosse:bookworm-pip-test
-  variables:
-    TEST_SUITE: tests
-    BROWSER: firefox
-
-functional_docs_chromium_bookworm:
-  <<: *functional_tests
-  image: biolds/sosse:bookworm-pip-test
-  variables:
-    TEST_SUITE: docs
-    BROWSER: chromium
-
-functional_docs_firefox_bookworm:
-  <<: *functional_tests
-  image: biolds/sosse:bookworm-pip-test
-  variables:
-    TEST_SUITE: docs
-    BROWSER: firefox
 
 migrations:
   image: biolds/sosse:debian-test
@@ -463,10 +427,6 @@ debian_pkg_bookworm:
     - migrations
     - manage_cmd_tests_bookworm
     - unit_tests_bookworm
-    - functional_tests_chromium_bookworm
-    - functional_tests_firefox_bookworm
-    - functional_docs_chromium_bookworm
-    - functional_docs_firefox_bookworm
     - static_checks
     - download_mime_plugins
   artifacts:
@@ -656,23 +616,11 @@ debian_pkg_check_firefox_docs_bookworm:
     - mv /var/log/sosse log
     - test "$(cat /tmp/ret_code)" -eq 0
 
-pip_pkg_check_chromium_tests:
-  <<: *pip_pkg_check
-  variables:
-    TEST_SUITE: tests
-    BROWSER: chromium
-
 pip_pkg_check_firefox_tests:
   <<: *pip_pkg_check
   variables:
     TEST_SUITE: tests
     BROWSER: firefox
-
-pip_pkg_check_chromium_docs:
-  <<: *pip_pkg_check
-  variables:
-    TEST_SUITE: docs
-    BROWSER: chromium
 
 pip_pkg_check_firefox_docs:
   <<: *pip_pkg_check
@@ -697,9 +645,7 @@ discord_tag_notif:
     - debian_pkg_check_firefox_tests_bookworm
     - debian_pkg_check_chromium_docs_bookworm
     - debian_pkg_check_firefox_docs_bookworm
-    - pip_pkg_check_chromium_tests
     - pip_pkg_check_firefox_tests
-    - pip_pkg_check_chromium_docs
     - pip_pkg_check_firefox_docs
   script: |
     test -n "$DISCORD_TAG_NOTIF_URL"

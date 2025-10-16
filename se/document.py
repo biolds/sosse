@@ -696,15 +696,7 @@ class Document(models.Model):
     def _schedule_next(self, changed):
         from .collection import Collection
 
-        stop = False
-        # In new model, stop crawling if no more depth remaining for recursive documents
-        if self.crawl_recurse == 0:
-            # Check if this URL matches unlimited_regex (should always recrawl) or only limited_regex
-
-            if not Document._url_matches_regex(self.url, self.collection.unlimited_regex_pg):
-                stop = True
-
-        if self.collection.recrawl_freq == Collection.RECRAWL_FREQ_NONE or stop:
+        if self.collection.recrawl_freq == Collection.RECRAWL_FREQ_NONE:
             self.crawl_next = None
             self.crawl_dt = None
         elif self.collection.recrawl_freq == Collection.RECRAWL_FREQ_CONSTANT:

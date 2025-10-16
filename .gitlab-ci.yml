@@ -23,6 +23,7 @@ download_mime_plugins:
   stage: test
   image: debian:trixie
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "stable"
     - if: $CI_PIPELINE_SOURCE == "push"
   artifacts:
     paths:

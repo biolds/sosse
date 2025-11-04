@@ -32,6 +32,7 @@ from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from se.about import AboutView
 from se.archive import ArchiveRedirectView
@@ -71,6 +72,8 @@ urlpatterns = [
     path("opensearch.xml", OpensearchView.as_view(), name="opensearch"),
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include(router.urls)),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     re_path(r"^favicon/(?P<favicon_id>[0-9]+)", FavIconView.as_view(), name="favicon"),

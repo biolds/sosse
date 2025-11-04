@@ -37,15 +37,15 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
 
         # Document API requires authentication and view_document permission
         response = self.client.get("/api/document/")
-        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.status_code, 401, response.content)
 
     @override_settings(SOSSE_ANONYMOUS_SEARCH=False)
     def test_search_anonymous_forbidden(self):
         response = self.client.get("/api/document/")
-        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.status_code, 401, response.content)
 
         response = self.client.post("/api/search/", {"query": "content"})
-        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.status_code, 401, response.content)
 
         self.client.login(username="admin", password="admin")
         response = self.client.get("/api/document/")
@@ -59,7 +59,7 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
     @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_crawler_stats_permission(self):
         response = self.client.get("/api/stats/")
-        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.status_code, 401, response.content)
 
         self.client.login(username="user", password="user")
         response = self.client.get("/api/stats/")
@@ -74,7 +74,7 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
     @override_settings(SOSSE_ANONYMOUS_SEARCH=True)
     def test_hdd_stats_permission(self):
         response = self.client.get("/api/hdd_stats/")
-        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.status_code, 401, response.content)
 
         self.client.login(username="user", password="user")
         response = self.client.get("/api/hdd_stats/")
@@ -97,7 +97,7 @@ class RestAPIAuthTest(RestAPITest, TransactionTestCase):
         response = self.client.patch(
             f"/api/document/{doc.id}/", {"title": "New title"}, content_type="application/json"
         )
-        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.status_code, 401, response.content)
 
         self.client.login(username="user", password="user")
         response = self.client.patch(

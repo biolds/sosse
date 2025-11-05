@@ -58,3 +58,12 @@ repos:
     rev: v1.5.0
     hooks:
       - id: yesqa
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.39.1
+    hooks:
+      - id: eslint
+        files: sosse-ui/.*\.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
+        types: [file]
+        args:
+          - --config=sosse-ui/eslint.config.mjs

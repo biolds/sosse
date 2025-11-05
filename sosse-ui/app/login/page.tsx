@@ -6,7 +6,7 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 const { Title } = Typography;
 
 export default function LoginPage() {
-  const onFinish = (values: any) => {
+  const onFinish = (values: Record<string, unknown>) => {
     console.log("Login:", values);
   };
 

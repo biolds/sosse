@@ -292,6 +292,7 @@ pre_commit:
   script:
     - /pre-commit-venv/bin/pre-commit autoupdate
     - git diff --exit-code
+    - mv /opt/sosse-ui-deps/node_modules sosse-ui/
     - /pre-commit-venv/bin/pre-commit run -a
 
 doc_gen:

@@ -11,7 +11,7 @@ export default function TagsPage() {
       title: "Tag",
       dataIndex: "tag",
       key: "tag",
-      render: (text: string, record: any) => <Tag color={record.color}>{text}</Tag>,
+      render: (text: string, record: { color?: string }) => <Tag color={record.color}>{text}</Tag>,
     },
     {
       title: "Description",

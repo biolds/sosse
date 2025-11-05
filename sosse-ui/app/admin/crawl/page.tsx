@@ -6,7 +6,7 @@ const { Title } = Typography;
 const { TextArea } = Input;
 
 export default function CrawlPage() {
-  const onFinish = (values: any) => {
+  const onFinish = (values: Record<string, unknown>) => {
     console.log("Crawl triggered:", values);
   };
 

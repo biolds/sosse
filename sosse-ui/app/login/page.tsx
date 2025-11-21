@@ -1,13 +1,33 @@
 "use client";
 
-import { Form, Input, Button, Card, Typography } from "antd";
+import { useState } from "react";
+import { Form, Input, Button, Card, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAppStore } from "../useAppStore";
 
 const { Title } = Typography;
 
 export default function LoginPage() {
-  const onFinish = (values: Record<string, unknown>) => {
-    console.log("Login:", values);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/";
+  const { login } = useAppStore();
+
+  const onFinish = async (values: { username: string; password: string }) => {
+    setLoading(true);
+
+    const success = await login(values.username, values.password);
+
+    if (success) {
+      message.success("Login successful");
+      router.push(returnTo);
+    } else {
+      message.error("Invalid credentials");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -35,7 +55,7 @@ export default function LoginPage() {
             <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block size="large">
+            <Button type="primary" htmlType="submit" block size="large" loading={loading}>
               Log In
             </Button>
           </Form.Item>

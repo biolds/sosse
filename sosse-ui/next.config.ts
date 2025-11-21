@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     if (process.env.NODE_ENV === 'development' && process.env.SOSSE_API_URL) {
       return [
         {
+          source: '/config.js',
+          destination: `${process.env.SOSSE_API_URL}/config.js`,
+        },
+        {
           source: '/api/:path*/',
           destination: `${process.env.SOSSE_API_URL}/api/:path*/`,
         },

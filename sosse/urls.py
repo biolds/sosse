@@ -37,6 +37,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from se.about import AboutView
 from se.archive import ArchiveRedirectView
 from se.atom import AtomView
+from se.config_js import ConfigJsView
 from se.csv import CsvView
 from se.download import DownloadView
 from se.favicon import FavIconView
@@ -70,6 +71,7 @@ urlpatterns = [
     path("login/", SELoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("opensearch.xml", OpensearchView.as_view(), name="opensearch"),
+    path("config.js", ConfigJsView.as_view(), name="config_js"),
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include(router.urls)),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),

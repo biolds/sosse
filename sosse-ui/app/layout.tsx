@@ -1,11 +1,12 @@
 "use client";
 
-import { Layout, Menu, Button, ConfigProvider, theme } from "antd";
+import { Layout, Menu, Button, ConfigProvider, theme, App } from "antd";
 import Link from "next/link";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useAppStore } from "./useAppStore";
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
-import ConfigLoader from "./ConfigLoader";
+import AuthGuard from "./AuthGuard";
+import "../lib/axios";
 
 const { Header, Footer, Content } = Layout;
 
@@ -18,6 +19,9 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <script src="/config.js" async></script>
+      </head>
       <body style={{ margin: 0 }}>
         <AntdRegistry>
           <ConfigProvider
@@ -25,7 +29,8 @@ export default function RootLayout({
               algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
             }}
           >
-            <ConfigLoader>
+            <App>
+              <AuthGuard>
               <Layout style={{ minHeight: "100vh" }}>
                 <Header style={{ display: "flex", alignItems: "center" }}>
                   <div style={{ color: "white", fontSize: "20px", marginRight: "40px", fontWeight: "bold" }}>
@@ -55,7 +60,8 @@ export default function RootLayout({
                   Sosse ©{new Date().getFullYear()} - Archive Search Platform
                 </Footer>
               </Layout>
-            </ConfigLoader>
+            </AuthGuard>
+            </App>
           </ConfigProvider>
         </AntdRegistry>
       </body>

@@ -41,12 +41,17 @@ class SearchTest(TransactionTestCase):
             crawl_last=timezone.now(),
             collection=self.collection,
         )
+
+        TEXT = "Page1, World Téléphone one three"
+        lang_iso_639_1, vector_lang = Document._get_lang(TEXT)
         self.page = Document.objects.wo_content().create(
             url="http://127.0.0.1/page1",
             normalized_url="http://127.0.0.1/page1",
-            content="Page1, World Télé one three",
-            normalized_content="Page1, World Tele one three",
+            content=TEXT,
+            normalized_content="Page1, World Telephone one three",
             title="Page1",
+            lang_iso_639_1=lang_iso_639_1,
+            vector_lang=vector_lang,
             normalized_title="Page1",
             crawl_last=timezone.now(),
             collection=self.collection,
@@ -209,7 +214,9 @@ class SearchTest(TransactionTestCase):
         self.assertEqual(docs[0], self.page)
 
     def test_021_headline(self):
-        request = WSGIRequest({"REQUEST_METHOD": "GET", "QUERY_STRING": "q=tele", "wsgi.input": StringIO("")})
+        request = WSGIRequest(
+            {"REQUEST_METHOD": "GET", "QUERY_STRING": "q=telephone&lang=fr", "wsgi.input": StringIO("")}
+        )
         request.user = self.admin
         form = SearchForm(request.GET)
         self.assertTrue(form.is_valid())
@@ -217,7 +224,7 @@ class SearchTest(TransactionTestCase):
         docs = add_headlines(docs, query)
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
-        self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Télé</span>')
+        self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Téléphone</span>')
 
     def test_030_hidden(self):
         self.root.hidden = True

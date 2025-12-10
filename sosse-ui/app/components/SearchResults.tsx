@@ -17,6 +17,7 @@ export interface SearchResult {
     id: number;
     missing: boolean;
   };
+  headline?: string;
 }
 
 interface SearchResultsProps {
@@ -109,13 +110,11 @@ export default function SearchResults({
                       )}
                     </Space>
 
-                    {item.content && (
-                      <Paragraph
-                        ellipsis={{ rows: 2, expandable: false }}
-                        style={{ marginBottom: "8px", marginTop: "8px" }}
-                      >
-                        {item.content.substring(0, 150)}...
-                      </Paragraph>
+                    {item.headline && (
+                      <div
+                        style={{ marginBottom: "8px", marginTop: "8px", fontSize: "13px" }}
+                        dangerouslySetInnerHTML={{ __html: item.headline }}
+                      />
                     )}
 
                     {item.tags && item.tags.length > 0 && (
@@ -191,13 +190,11 @@ export default function SearchResults({
               )}
             </Space>
 
-            {item.content && (
-              <Paragraph
-                ellipsis={{ rows: 2, expandable: false }}
+            {item.headline && (
+              <div
                 style={{ marginBottom: "8px" }}
-              >
-                {item.content.substring(0, 300)}...
-              </Paragraph>
+                dangerouslySetInnerHTML={{ __html: item.headline }}
+              />
             )}
 
             {item.tags && item.tags.length > 0 && (

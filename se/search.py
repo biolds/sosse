@@ -276,7 +276,7 @@ def add_headlines(paginated, query):
                 headline_idx += len(txt)
 
                 match, src = src.split("e" + rnd, 1)
-                dest += '<span class="res-highlight">'
+                dest += '<span class="search-highlight">'
                 dest += escape(res.content[headline_idx : headline_idx + len(match)])
                 headline_idx += len(match)
                 dest += "</span>"

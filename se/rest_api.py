@@ -42,7 +42,7 @@ from .html_asset import HTMLAsset
 from .mime_plugin import MimePlugin
 from .models import CrawlerStats, FavIcon, WorkerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
-from .search import get_documents
+from .search import add_headlines, get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
 from .tag import Tag
 from .url import sanitize_url, validate_url
@@ -439,10 +439,17 @@ class SearchResult(DocumentSerializer):
     score = serializers.SerializerMethodField(
         allow_null=True, help_text="Score of the document for provided search terms"
     )
+    headline = serializers.SerializerMethodField(
+        allow_null=True, help_text="Highlighted excerpt of the document content"
+    )
 
     @extend_schema_field(OpenApiTypes.FLOAT)
     def get_score(self, obj):
         return getattr(obj, "rank", 1.0)
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_headline(self, obj):
+        return getattr(obj, "headline", "")
 
 
 class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -466,8 +473,9 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             }
         )
         f.is_valid()
-        _, documents, _ = get_documents(request, query.validated_data["adv_params"], f, False)
+        _, documents, search_query = get_documents(request, query.validated_data["adv_params"], f, False)
         page = self.paginate_queryset(documents)
+        add_headlines(page, search_query)
         serializer = SearchResult(page, many=True)
         return self.get_paginated_response(serializer.data)
 

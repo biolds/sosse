@@ -17,10 +17,23 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+
+  .search-highlight {
+    background-color: #1e3a5f;
+    color: #90caf9;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.search-highlight {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  padding: 1px 3px;
+  border-radius: 2px;
+  font-weight: 500;
 }

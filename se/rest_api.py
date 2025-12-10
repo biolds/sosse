@@ -38,6 +38,7 @@ from .add_to_queue import AddToQueueForm, queue_urls
 from .browser import SkipIndexing
 from .collection import Collection
 from .document import Document, example_doc
+from .html_asset import HTMLAsset
 from .mime_plugin import MimePlugin
 from .models import CrawlerStats, WorkerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
@@ -292,12 +293,25 @@ class DocumentSerializer(serializers.ModelSerializer):
     )
 
     tags_str = serializers.SerializerMethodField()
+    preview = serializers.SerializerMethodField()
 
     def get_tags_str(self, obj):
         if obj.id:
             # Accessing obj.tags thru many-to-many relation requires the object to exist
             return ", ".join([tag.name for tag in obj.tags.order_by("name")])
         return ""
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_preview(self, obj):
+        if obj.has_thumbnail:
+            return f"{settings.SOSSE_THUMBNAILS_URL}{obj.image_name()}.jpg"
+        elif obj.screenshot_count:
+            return f"{settings.SOSSE_SCREENSHOTS_URL}{obj.image_name()}_0.{obj.screenshot_format}"
+        elif obj.mimetype and obj.mimetype.startswith("image/") and obj.has_html_snapshot:
+            asset = HTMLAsset.objects.filter(url=obj.url).first()
+            if asset:
+                return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
+        return None
 
     def user_doc_update(self, ctx_msg):
         try:

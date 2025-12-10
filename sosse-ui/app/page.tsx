@@ -17,6 +17,7 @@ interface SearchResult {
   crawl_last?: string;
   lang_iso_639_1?: string;
   tags?: Array<{ id: number; name: string }>;
+  preview?: string;
 }
 
 interface SearchResponse {
@@ -99,7 +100,19 @@ export default function HomePage() {
             size="large"
             dataSource={searchResults}
             renderItem={(item) => (
-              <List.Item key={item.id}>
+              <List.Item
+                key={item.id}
+                extra={
+                  item.preview && (
+                    <img
+                      width={200}
+                      alt="preview"
+                      src={item.preview}
+                      style={{ objectFit: "cover", borderRadius: "4px" }}
+                    />
+                  )
+                }
+              >
                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
                   <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "18px", fontWeight: "500" }}>
                     {item.title || "Untitled"}

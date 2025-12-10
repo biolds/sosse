@@ -13,6 +13,10 @@ export interface SearchResult {
   lang_iso_639_1?: string;
   tags?: Array<{ id: number; name: string }>;
   preview?: string;
+  favicon?: {
+    id: number;
+    missing: boolean;
+  };
 }
 
 interface SearchResultsProps {
@@ -25,7 +29,10 @@ const formatDate = (dateString?: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
-export default function SearchResults({ results, viewMode }: SearchResultsProps) {
+export default function SearchResults({
+  results,
+  viewMode,
+}: SearchResultsProps) {
   if (viewMode === "card") {
     return (
       <Row gutter={[16, 16]}>
@@ -57,18 +64,35 @@ export default function SearchResults({ results, viewMode }: SearchResultsProps)
             >
               <Card.Meta
                 title={
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: "16px" }}
-                  >
-                    {item.title || "Untitled"}
-                  </a>
+                  <Space size="small">
+                    {item.favicon && !item.favicon.missing && (
+                      <img
+                        src={`/favicon/${item.favicon.id}`}
+                        alt="icon"
+                        style={{ width: "16px", height: "16px" }}
+                      />
+                    )}
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: "16px" }}
+                    >
+                      {item.title || "Untitled"}
+                    </a>
+                  </Space>
                 }
                 description={
-                  <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                    <Text type="secondary" style={{ fontSize: "12px" }} ellipsis>
+                  <Space
+                    direction="vertical"
+                    size="small"
+                    style={{ width: "100%" }}
+                  >
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: "12px" }}
+                      ellipsis
+                    >
                       <LinkOutlined /> {item.url}
                     </Text>
 
@@ -133,14 +157,23 @@ export default function SearchResults({ results, viewMode }: SearchResultsProps)
           }
         >
           <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: "18px", fontWeight: "500" }}
-            >
-              {item.title || "Untitled"}
-            </a>
+            <Space size="small">
+              {item.favicon && !item.favicon.missing && (
+                <img
+                  src={`/favicon/${item.favicon.id}`}
+                  alt="icon"
+                  style={{ width: "16px", height: "16px" }}
+                />
+              )}
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: "18px", fontWeight: "500" }}
+              >
+                {item.title || "Untitled"}
+              </a>
+            </Space>
 
             <Space size="small" wrap>
               <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -159,7 +192,10 @@ export default function SearchResults({ results, viewMode }: SearchResultsProps)
             </Space>
 
             {item.content && (
-              <Paragraph ellipsis={{ rows: 2, expandable: false }} style={{ marginBottom: "8px" }}>
+              <Paragraph
+                ellipsis={{ rows: 2, expandable: false }}
+                style={{ marginBottom: "8px" }}
+              >
                 {item.content.substring(0, 300)}...
               </Paragraph>
             )}

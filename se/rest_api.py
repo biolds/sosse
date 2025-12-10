@@ -40,7 +40,7 @@ from .collection import Collection
 from .document import Document, example_doc
 from .html_asset import HTMLAsset
 from .mime_plugin import MimePlugin
-from .models import CrawlerStats, WorkerStats
+from .models import CrawlerStats, FavIcon, WorkerStats
 from .rest_permissions import DjangoModelPermissionsRW, IsSuperUserOrStaff
 from .search import get_documents
 from .search_form import FILTER_FIELDS, SORT, SearchForm
@@ -255,6 +255,12 @@ class TagSlugRelatedField(serializers.SlugRelatedField):
         return tag
 
 
+class FavIconSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FavIcon
+        fields = ("id", "missing")
+
+
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
@@ -292,6 +298,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         slug_field="name",
     )
 
+    favicon = FavIconSerializer(read_only=True)
     tags_str = serializers.SerializerMethodField()
     preview = serializers.SerializerMethodField()
 

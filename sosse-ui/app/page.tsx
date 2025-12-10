@@ -1,24 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Input, Button, List, Typography, Space, Tag, Spin, message } from "antd";
-import { SearchOutlined, LinkOutlined, CalendarOutlined } from "@ant-design/icons";
+import { Input, Button, Typography, Spin, message, Segmented } from "antd";
+import {
+  SearchOutlined,
+  AppstoreOutlined,
+  UnorderedListOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
+import SearchResults, { SearchResult } from "./components/SearchResults";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { Search } = Input;
-
-interface SearchResult {
-  id: number;
-  url: string;
-  title: string;
-  content?: string;
-  score?: number;
-  crawl_last?: string;
-  lang_iso_639_1?: string;
-  tags?: Array<{ id: number; name: string }>;
-  preview?: string;
-}
 
 interface SearchResponse {
   count: number;
@@ -32,6 +25,7 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const handleSearch = async (value: string) => {
     if (!value.trim()) {
@@ -62,20 +56,19 @@ export default function HomePage() {
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return null;
-    return new Date(dateString).toLocaleDateString();
-  };
-
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto", paddingTop: "40px" }}>
+    <div style={{ maxWidth: "1200px", margin: "0 auto", paddingTop: "40px" }}>
       <Title level={1} style={{ textAlign: "center", marginBottom: "40px" }}>
         Search Archived Pages
       </Title>
 
       <Search
         placeholder="Enter search query..."
-        enterButton={<Button type="primary" icon={<SearchOutlined />}>Search</Button>}
+        enterButton={
+          <Button type="primary" icon={<SearchOutlined />}>
+            Search
+          </Button>
+        }
         size="large"
         onSearch={handleSearch}
         loading={loading}
@@ -89,74 +82,45 @@ export default function HomePage() {
 
       {!loading && searchResults.length > 0 && (
         <>
-          <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+          <div
+            style={{
+              marginTop: "20px",
+              marginBottom: "20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Text type="secondary">
-              Found {totalResults} result{totalResults !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
+              Found {totalResults} result{totalResults !== 1 ? "s" : ""} for
+              &quot;{searchQuery}&quot;
             </Text>
+
+            <Segmented
+              value={viewMode}
+              onChange={(value) => setViewMode(value as "list" | "card")}
+              options={[
+                {
+                  value: "list",
+                  icon: <UnorderedListOutlined />,
+                },
+                {
+                  value: "card",
+                  icon: <AppstoreOutlined />,
+                },
+              ]}
+            />
           </div>
 
-          <List
-            itemLayout="vertical"
-            size="large"
-            dataSource={searchResults}
-            renderItem={(item) => (
-              <List.Item
-                key={item.id}
-                extra={
-                  item.preview && (
-                    <img
-                      width={200}
-                      alt="preview"
-                      src={item.preview}
-                      style={{ objectFit: "cover", borderRadius: "4px" }}
-                    />
-                  )
-                }
-              >
-                <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "18px", fontWeight: "500" }}>
-                    {item.title || "Untitled"}
-                  </a>
-
-                  <Space size="small" wrap>
-                    <Text type="secondary" style={{ fontSize: "12px" }}>
-                      <LinkOutlined /> {item.url}
-                    </Text>
-                    {item.crawl_last && (
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        <CalendarOutlined /> {formatDate(item.crawl_last)}
-                      </Text>
-                    )}
-                    {item.score && (
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        Score: {item.score.toFixed(2)}
-                      </Text>
-                    )}
-                  </Space>
-
-                  {item.content && (
-                    <Paragraph ellipsis={{ rows: 2, expandable: false }} style={{ marginBottom: "8px" }}>
-                      {item.content.substring(0, 300)}...
-                    </Paragraph>
-                  )}
-
-                  {item.tags && item.tags.length > 0 && (
-                    <Space size="small" wrap>
-                      {item.tags.map((tag) => (
-                        <Tag key={tag.id}>{tag.name}</Tag>
-                      ))}
-                    </Space>
-                  )}
-                </Space>
-              </List.Item>
-            )}
-          />
+          <SearchResults results={searchResults} viewMode={viewMode} />
         </>
       )}
 
       {!loading && searchQuery && searchResults.length === 0 && (
         <div style={{ textAlign: "center", marginTop: "60px" }}>
-          <Text type="secondary">No results found for &quot;{searchQuery}&quot;</Text>
+          <Text type="secondary">
+            No results found for &quot;{searchQuery}&quot;
+          </Text>
         </div>
       )}
     </div>

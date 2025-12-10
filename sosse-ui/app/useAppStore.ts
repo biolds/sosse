@@ -5,6 +5,10 @@ import axios from 'axios';
 interface AppState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  linkMode: "source" | "archive";
+  toggleLinkMode: () => void;
+  viewMode: "list" | "card";
+  setViewMode: (mode: "list" | "card") => void;
   accessToken: string | null;
   refreshToken: string | null;
   username: string | null;
@@ -18,6 +22,14 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       isDarkMode: false,
       toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+
+      linkMode: "source",
+      toggleLinkMode: () => set((state) => ({
+        linkMode: state.linkMode === "source" ? "archive" : "source"
+      })),
+
+      viewMode: "list",
+      setViewMode: (mode) => set({ viewMode: mode }),
 
       accessToken: null,
       refreshToken: null,
@@ -71,7 +83,11 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'sosse-app-storage',
-      partialize: (state) => ({ isDarkMode: state.isDarkMode }),
+      partialize: (state) => ({
+        isDarkMode: state.isDarkMode,
+        linkMode: state.linkMode,
+        viewMode: state.viewMode,
+      }),
     }
   )
 );

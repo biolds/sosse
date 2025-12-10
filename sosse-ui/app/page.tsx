@@ -17,6 +17,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import SearchResults, { SearchResult } from "./components/SearchResults";
+import { useAppStore } from "./useAppStore";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
 const { Title, Text } = Typography;
@@ -30,12 +31,11 @@ interface SearchResponse {
 }
 
 export default function HomePage() {
+  const { linkMode, toggleLinkMode, viewMode, setViewMode } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
-  const [viewMode, setViewMode] = useState<"list" | "card">("list");
-  const [linkMode, setLinkMode] = useState<"source" | "archive">("source");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
@@ -134,9 +134,7 @@ export default function HomePage() {
             <div style={{ display: "flex", gap: "12px" }}>
               <Button
                 icon={linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}
-                onClick={() =>
-                  setLinkMode(linkMode === "source" ? "archive" : "source")
-                }
+                onClick={toggleLinkMode}
               >
                 {linkMode === "source" ? "Source" : "Archive"}
               </Button>

@@ -1,11 +1,9 @@
+import Link from "next/link";
 import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
-import {
-  LinkOutlined,
-  CalendarOutlined,
-  FileTextOutlined,
-} from "@ant-design/icons";
+import { CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
+import { ArchiveIcon, SourceIcon } from "./ArchiveIcons";
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 export interface SearchResult {
   id: number;
@@ -22,11 +20,13 @@ export interface SearchResult {
     missing: boolean;
   };
   headline?: string;
+  collection?: number;
 }
 
 interface SearchResultsProps {
   results: SearchResult[];
   viewMode: "list" | "card";
+  linkMode: "source" | "archive";
 }
 
 const formatDate = (dateString?: string) => {
@@ -37,16 +37,23 @@ const formatDate = (dateString?: string) => {
 export default function SearchResults({
   results,
   viewMode,
+  linkMode,
 }: SearchResultsProps) {
+  const getResultLink = (item: SearchResult) => {
+    if (linkMode === "archive") {
+      return `/archive/${item.url}`;
+    }
+    return item.url;
+  };
   if (viewMode === "card") {
     return (
       <Row gutter={[16, 16]}>
         {results.map((item) => (
           <Col key={item.id} xs={24} sm={12} lg={8}>
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={getResultLink(item)}
+              target={linkMode === "source" ? "_blank" : undefined}
+              rel={linkMode === "source" ? "noopener noreferrer" : undefined}
               style={{ textDecoration: "none", color: "inherit" }}
             >
               <Card
@@ -103,7 +110,12 @@ export default function SearchResults({
                         style={{ fontSize: "12px" }}
                         ellipsis
                       >
-                        <LinkOutlined /> {item.url}
+                        {linkMode === "source" ? (
+                          <SourceIcon />
+                        ) : (
+                          <ArchiveIcon />
+                        )}{" "}
+                        {item.url}
                       </Text>
 
                       <Space size="small" wrap>
@@ -143,7 +155,7 @@ export default function SearchResults({
                   }
                 />
               </Card>
-            </a>
+            </Link>
           </Col>
         ))}
       </Row>
@@ -156,10 +168,10 @@ export default function SearchResults({
       size="large"
       dataSource={results}
       renderItem={(item) => (
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href={getResultLink(item)}
+          target={linkMode === "source" ? "_blank" : undefined}
+          rel={linkMode === "source" ? "noopener noreferrer" : undefined}
           style={{ textDecoration: "none", color: "inherit" }}
         >
           <List.Item
@@ -192,7 +204,8 @@ export default function SearchResults({
 
               <Space size="small" wrap>
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  <LinkOutlined /> {item.url}
+                  {linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}{" "}
+                  {item.url}
                 </Text>
                 {item.crawl_last && (
                   <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -222,7 +235,7 @@ export default function SearchResults({
               )}
             </Space>
           </List.Item>
-        </a>
+        </Link>
       )}
     />
   );

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Input, Button, Typography, Spin, message, Segmented, Pagination } from "antd";
+import {
+  Input,
+  Button,
+  Typography,
+  Spin,
+  message,
+  Segmented,
+  Pagination,
+} from "antd";
 import {
   SearchOutlined,
   AppstoreOutlined,
@@ -9,6 +17,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import SearchResults, { SearchResult } from "./components/SearchResults";
+import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -26,12 +35,17 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const [linkMode, setLinkMode] = useState<"source" | "archive">("source");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(
-    typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10
+    typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
 
-  const handleSearch = async (value: string, page: number = 1, customPageSize?: number) => {
+  const handleSearch = async (
+    value: string,
+    page: number = 1,
+    customPageSize?: number,
+  ) => {
     if (!value.trim()) {
       message.warning("Please enter a search query");
       return;
@@ -52,7 +66,7 @@ export default function HomePage() {
           lang: "en",
           sort: "-rank",
           include_hidden: false,
-        }
+        },
       );
 
       setSearchResults(response.data.results);
@@ -117,23 +131,38 @@ export default function HomePage() {
               &quot;{searchQuery}&quot;
             </Text>
 
-            <Segmented
-              value={viewMode}
-              onChange={(value) => setViewMode(value as "list" | "card")}
-              options={[
-                {
-                  value: "list",
-                  icon: <UnorderedListOutlined />,
-                },
-                {
-                  value: "card",
-                  icon: <AppstoreOutlined />,
-                },
-              ]}
-            />
+            <div style={{ display: "flex", gap: "12px" }}>
+              <Button
+                icon={linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}
+                onClick={() =>
+                  setLinkMode(linkMode === "source" ? "archive" : "source")
+                }
+              >
+                {linkMode === "source" ? "Source" : "Archive"}
+              </Button>
+
+              <Segmented
+                value={viewMode}
+                onChange={(value) => setViewMode(value as "list" | "card")}
+                options={[
+                  {
+                    value: "list",
+                    icon: <UnorderedListOutlined />,
+                  },
+                  {
+                    value: "card",
+                    icon: <AppstoreOutlined />,
+                  },
+                ]}
+              />
+            </div>
           </div>
 
-          <SearchResults results={searchResults} viewMode={viewMode} />
+          <SearchResults
+            results={searchResults}
+            viewMode={viewMode}
+            linkMode={linkMode}
+          />
 
           {totalResults > pageSize && (
             <div style={{ marginTop: "40px", textAlign: "center" }}>

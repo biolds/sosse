@@ -60,9 +60,13 @@ class JWTAuthenticationTest(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         data = json.loads(response.content)
         self.assertIn("access", data)
-        self.assertIn("refresh", data)
+        self.assertNotIn("refresh", data)  # Refresh token is now in cookie
         self.assertTrue(len(data["access"]) > 0)
-        self.assertTrue(len(data["refresh"]) > 0)
+        # Check that refresh token cookie is set
+        self.assertIn("refresh_token", response.cookies)
+        cookie = response.cookies["refresh_token"]
+        self.assertTrue(cookie["httponly"])
+        self.assertEqual(cookie["samesite"], "Strict")
 
     def test_obtain_token_invalid_credentials(self):
         """Test token endpoint rejects invalid credentials."""
@@ -83,20 +87,18 @@ class JWTAuthenticationTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_refresh_token(self):
-        """Test refreshing access token with valid refresh token."""
+        """Test refreshing access token with valid refresh token from
+        cookie."""
         # First obtain a token pair
         response = self.client.post(
             "/api/token/",
             {"username": "testuser", "password": "testpass123"},
             content_type="application/json",
         )
-        data = json.loads(response.content)
-        refresh_token = data["refresh"]
-
+        # Refresh token is now in cookie, automatically sent by client
         # Now refresh the access token
         response = self.client.post(
             "/api/token/refresh/",
-            {"refresh": refresh_token},
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
@@ -106,9 +108,10 @@ class JWTAuthenticationTest(TestCase):
 
     def test_refresh_token_invalid(self):
         """Test refresh endpoint rejects invalid refresh token."""
+        # Set an invalid cookie
+        self.client.cookies["refresh_token"] = "invalid.token.here"
         response = self.client.post(
             "/api/token/refresh/",
-            {"refresh": "invalid.token.here"},
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 401)
@@ -257,3 +260,33 @@ class JWTAuthenticationTest(TestCase):
             HTTP_AUTHORIZATION=f"Bearer {token2}",
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_cookie_logout(self):
+        """Test logout endpoint deletes the refresh token cookie."""
+        # First obtain a token pair
+        response = self.client.post(
+            "/api/token/",
+            {"username": "testuser", "password": "testpass123"},
+            content_type="application/json",
+        )
+        self.assertIn("refresh_token", response.cookies)
+
+        # Now logout
+        response = self.client.post("/api/token/logout/")
+        self.assertEqual(response.status_code, 200)
+        # Check that cookie is deleted (max_age=0 or empty value)
+        self.assertIn("refresh_token", response.cookies)
+        cookie = response.cookies["refresh_token"]
+        self.assertEqual(cookie.value, "")
+
+    def test_cookie_secure_flag(self):
+        """Test that Secure flag matches SOSSE_SECURE_COOKIE setting."""
+        from django.conf import settings
+
+        response = self.client.post(
+            "/api/token/",
+            {"username": "testuser", "password": "testpass123"},
+            content_type="application/json",
+        )
+        cookie = response.cookies["refresh_token"]
+        self.assertEqual(cookie["secure"], settings.SOSSE_SECURE_COOKIE)

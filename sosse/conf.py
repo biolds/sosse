@@ -175,6 +175,12 @@ DEFAULTS: dict[str, dict[str, ConfOption]] = {
             default=1000,
             type=int,
         ),
+        "secure_cookie": ConfOption(
+            var="SOSSE_SECURE_COOKIE",
+            comment="Requires the session cookie to be sent only over secure HTTPS connections.",
+            default=True,
+            type=bool,
+        ),
         "atom_access_token": ConfOption(
             comment="When anonymous search are disabled a token can be used to access Atom feeds without authenticating.\nThe token can be passed to HTTP requests as an url parameter, for example ``?token=<Atom access token>``.\nSetting an empty string disables token access.",
             default="",

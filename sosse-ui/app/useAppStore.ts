@@ -10,11 +10,12 @@ interface AppState {
   viewMode: "list" | "card";
   setViewMode: (mode: "list" | "card") => void;
   accessToken: string | null;
-  refreshToken: string | null;
   username: string | null;
+  isInitialized: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
+  initializeAuth: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>()(
@@ -32,19 +33,54 @@ export const useAppStore = create<AppState>()(
       setViewMode: (mode) => set({ viewMode: mode }),
 
       accessToken: null,
-      refreshToken: null,
       username: null,
+      isInitialized: false,
+
+      initializeAuth: async () => {
+        try {
+          const response = await axios.post('/api/token/refresh/', {}, {
+            withCredentials: true
+          });
+
+          if (response.data.access) {
+            // Fetch user profile to get username
+            try {
+              const profileResponse = await axios.get('/api/profile/', {
+                headers: { Authorization: `Bearer ${response.data.access}` },
+                withCredentials: true
+              });
+
+              set({
+                accessToken: response.data.access,
+                username: profileResponse.data.username,
+                isInitialized: true
+              });
+            } catch {
+              // If profile fetch fails, just set token
+              set({
+                accessToken: response.data.access,
+                isInitialized: true
+              });
+            }
+          } else {
+            set({ isInitialized: true });
+          }
+        } catch {
+          set({ isInitialized: true });
+        }
+      },
 
       login: async (username: string, password: string) => {
         try {
           const response = await axios.post('/api/token/', {
             username,
             password
+          }, {
+            withCredentials: true
           });
 
           set({
             accessToken: response.data.access,
-            refreshToken: response.data.refresh,
             username: username
           });
 
@@ -55,21 +91,25 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await axios.post('/api/token/logout/', {}, {
+            withCredentials: true
+          });
+        } catch (error) {
+          console.error('Logout request failed:', error);
+        }
+
         set({
           accessToken: null,
-          refreshToken: null,
           username: null
         });
       },
 
       refreshAccessToken: async () => {
-        const { refreshToken } = get();
-        if (!refreshToken) return false;
-
         try {
-          const response = await axios.post('/api/token/refresh/', {
-            refresh: refreshToken
+          const response = await axios.post('/api/token/refresh/', {}, {
+            withCredentials: true
           });
 
           set({ accessToken: response.data.access });

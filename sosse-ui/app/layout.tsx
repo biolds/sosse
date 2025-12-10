@@ -5,7 +5,7 @@ import { Layout, Menu, Button, ConfigProvider, theme, App } from "antd";
 import Link from "next/link";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useAppStore } from "./useAppStore";
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { MoonOutlined, SunOutlined, UserOutlined, LogoutOutlined, LoginOutlined } from "@ant-design/icons";
 import AuthGuard from "./AuthGuard";
 import "../lib/axios";
 import "./globals.css";
@@ -17,7 +17,41 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isDarkMode, toggleDarkMode } = useAppStore();
+  const { isDarkMode, toggleDarkMode, username, logout } = useAppStore();
+
+  const handleLogout = async () => {
+    await logout();
+    // Force a full page reload to reset all state
+    window.location.href = "/";
+  };
+
+  const authMenuItem = username
+    ? {
+        key: "user-menu",
+        label: (
+          <span>
+            <UserOutlined /> {username}
+          </span>
+        ),
+        children: [
+          {
+            key: "logout",
+            label: (
+              <span onClick={handleLogout}>
+                <LogoutOutlined /> Logout
+              </span>
+            ),
+          },
+        ],
+      }
+    : {
+        key: "login",
+        label: (
+          <Link href="/login">
+            <LoginOutlined /> Login
+          </Link>
+        ),
+      };
 
   return (
     <html lang="en">
@@ -66,10 +100,7 @@ export default function RootLayout({
                           key: "admin",
                           label: <Link href="/admin/dashboard">Admin</Link>,
                         },
-                        {
-                          key: "login",
-                          label: <Link href="/login">Login</Link>,
-                        },
+                        authMenuItem,
                       ]}
                     />
                     <Button

@@ -30,6 +30,7 @@ from drf_spectacular.utils import (
 from rest_framework import mixins, routers, serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.validators import ValidationError
@@ -565,6 +566,43 @@ router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
 router.register("mime_plugin", MimePluginViewSet)
 router.register("webhook", WebhookViewSet, basename="webhook")
 router.register("collection", CollectionViewSet)
+
+
+class UserProfileSerializer(serializers.Serializer):
+    """Serializer for user profile."""
+
+    username = serializers.CharField()
+    is_authenticated = serializers.BooleanField(default=True)
+    is_staff = serializers.BooleanField()
+    is_superuser = serializers.BooleanField()
+
+
+class ProfileViewSet(viewsets.ViewSet):
+    """ViewSet for current user profile."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Get current user profile",
+        description="Returns the username and authentication status of the currently authenticated user.",
+        responses={
+            200: UserProfileSerializer(),
+        },
+    )
+    def list(self, request):
+        """Return current user profile."""
+        serializer = UserProfileSerializer(
+            {
+                "username": request.user.username,
+                "is_authenticated": True,
+                "is_staff": request.user.is_staff,
+                "is_superuser": request.user.is_superuser,
+            }
+        )
+        return Response(serializer.data)
+
+
+router.register("profile", ProfileViewSet, basename="profile")
 
 
 @extend_schema_serializer(

@@ -32,7 +32,6 @@ from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from se.about import AboutView
 from se.archive import ArchiveRedirectView
@@ -43,6 +42,11 @@ from se.download import DownloadView
 from se.favicon import FavIconView
 from se.history import HistoryView
 from se.html import HTMLExcludedView, HTMLView
+from se.jwt_views import (
+    CookieTokenLogoutView,
+    CookieTokenObtainPairView,
+    CookieTokenRefreshView,
+)
 from se.login import SELoginView
 from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
@@ -74,8 +78,9 @@ urlpatterns = [
     path("config.js", ConfigJsView.as_view(), name="config_js"),
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include(router.urls)),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
+    path("api/token/logout/", CookieTokenLogoutView.as_view(), name="token_logout"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     re_path(r"^favicon/(?P<favicon_id>[0-9]+)", FavIconView.as_view(), name="favicon"),

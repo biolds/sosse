@@ -3,6 +3,8 @@ import { useAppStore } from '@/app/useAppStore';
 
 let isRedirecting = false;
 
+axios.defaults.withCredentials = true;
+
 axios.interceptors.request.use((config) => {
   const { accessToken } = useAppStore.getState();
   if (accessToken && config.headers) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Input, Button, Typography, Spin, message, Segmented } from "antd";
+import { Input, Button, Typography, Spin, message, Segmented, Pagination } from "antd";
 import {
   SearchOutlined,
   AppstoreOutlined,
@@ -26,8 +26,12 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(
+    typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10
+  );
 
-  const handleSearch = async (value: string) => {
+  const handleSearch = async (value: string, page: number = 1, customPageSize?: number) => {
     if (!value.trim()) {
       message.warning("Please enter a search query");
       return;
@@ -35,14 +39,21 @@ export default function HomePage() {
 
     setLoading(true);
     setSearchQuery(value);
+    setCurrentPage(page);
+
+    const effectivePageSize = customPageSize || pageSize;
+    const offset = (page - 1) * effectivePageSize;
 
     try {
-      const response = await axios.post<SearchResponse>("/api/search/", {
-        query: value,
-        lang: "en",
-        sort: "-rank",
-        include_hidden: false,
-      });
+      const response = await axios.post<SearchResponse>(
+        `/api/search/?limit=${effectivePageSize}&offset=${offset}`,
+        {
+          query: value,
+          lang: "en",
+          sort: "-rank",
+          include_hidden: false,
+        }
+      );
 
       setSearchResults(response.data.results);
       setTotalResults(response.data.count);
@@ -53,6 +64,15 @@ export default function HomePage() {
       setTotalResults(0);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePageChange = (page: number, newPageSize: number) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+      handleSearch(searchQuery, 1, newPageSize);
+    } else {
+      handleSearch(searchQuery, page);
     }
   };
 
@@ -114,6 +134,20 @@ export default function HomePage() {
           </div>
 
           <SearchResults results={searchResults} viewMode={viewMode} />
+
+          {totalResults > pageSize && (
+            <div style={{ marginTop: "40px", textAlign: "center" }}>
+              <Pagination
+                current={currentPage}
+                total={totalResults}
+                pageSize={pageSize}
+                onChange={handlePageChange}
+                showSizeChanger
+                showTotal={(total) => `Total ${total} results`}
+                pageSizeOptions={[10, 20, 50, 100]}
+              />
+            </div>
+          )}
         </>
       )}
 

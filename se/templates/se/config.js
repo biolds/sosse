@@ -2,6 +2,7 @@ window.sosseConfig = {
     anonymousSearch: {{ anonymous_search }},
     onlineSearchRedirect: {{ online_search_redirect }},
     maxPageSize: {{ max_page_size }},
+    pageSize: {{ page_size }},
     csvExport: {{ csv_export }},
     crawlStatusAutorefresh: {{ crawl_status_autorefresh }},
     browsableHome: {{ browsable_home }},

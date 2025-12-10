@@ -27,6 +27,7 @@ class ConfigJsView(TemplateView):
             "anonymous_search": "true" if settings.SOSSE_ANONYMOUS_SEARCH else "false",
             "online_search_redirect": "true" if settings.SOSSE_ONLINE_SEARCH_REDIRECT else "false",
             "max_page_size": settings.SOSSE_MAX_PAGE_SIZE,
+            "page_size": settings.REST_FRAMEWORK.get("PAGE_SIZE", 10),
             "csv_export": "true" if settings.SOSSE_CSV_EXPORT else "false",
             "crawl_status_autorefresh": settings.SOSSE_CRAWL_STATUS_AUTOREFRESH,
             "browsable_home": "true" if settings.SOSSE_BROWSABLE_HOME else "false",

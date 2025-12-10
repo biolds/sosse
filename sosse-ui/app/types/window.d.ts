@@ -6,6 +6,7 @@ declare global {
       anonymousSearch: boolean;
       onlineSearchRedirect: boolean;
       maxPageSize: number;
+      pageSize: number;
       csvExport: boolean;
       crawlStatusAutorefresh: number;
       browsableHome: boolean;

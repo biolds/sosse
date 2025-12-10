@@ -39,97 +39,103 @@ export default function SearchResults({
       <Row gutter={[16, 16]}>
         {results.map((item) => (
           <Col key={item.id} xs={24} sm={12} lg={8}>
-            <Card
-              hoverable
-              cover={
-                item.preview ? (
-                  <img
-                    alt="preview"
-                    src={item.preview}
-                    style={{ height: "200px", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      height: "200px",
-                      backgroundColor: "#f0f0f0",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text type="secondary">No preview</Text>
-                  </div>
-                )
-              }
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: "none", color: "inherit" }}
             >
-              <Card.Meta
-                title={
-                  <Space size="small">
-                    {item.favicon && !item.favicon.missing && (
-                      <img
-                        src={`/favicon/${item.favicon.id}`}
-                        alt="icon"
-                        style={{ width: "16px", height: "16px" }}
-                      />
-                    )}
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: "16px" }}
+              <Card
+                hoverable
+                cover={
+                  item.preview ? (
+                    <img
+                      alt="preview"
+                      src={item.preview}
+                      style={{ height: "200px", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: "200px",
+                        backgroundColor: "#f0f0f0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      {item.title || "Untitled"}
-                    </a>
-                  </Space>
+                      <Text type="secondary">No preview</Text>
+                    </div>
+                  )
                 }
-                description={
-                  <Space
-                    direction="vertical"
-                    size="small"
-                    style={{ width: "100%" }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{ fontSize: "12px" }}
-                      ellipsis
-                    >
-                      <LinkOutlined /> {item.url}
-                    </Text>
-
-                    <Space size="small" wrap>
-                      {item.crawl_last && (
-                        <Text type="secondary" style={{ fontSize: "12px" }}>
-                          <CalendarOutlined /> {formatDate(item.crawl_last)}
-                        </Text>
+              >
+                <Card.Meta
+                  title={
+                    <Space size="small">
+                      {item.favicon && !item.favicon.missing && (
+                        <img
+                          src={`/favicon/${item.favicon.id}`}
+                          alt="icon"
+                          style={{ width: "16px", height: "16px" }}
+                        />
                       )}
-                      {item.score && (
-                        <Text type="secondary" style={{ fontSize: "12px" }}>
-                          Score: {item.score.toFixed(2)}
-                        </Text>
+                      <span style={{ fontSize: "16px" }}>
+                        {item.title || "Untitled"}
+                      </span>
+                    </Space>
+                  }
+                  description={
+                    <Space
+                      direction="vertical"
+                      size="small"
+                      style={{ width: "100%" }}
+                    >
+                      <Text
+                        type="secondary"
+                        style={{ fontSize: "12px" }}
+                        ellipsis
+                      >
+                        <LinkOutlined /> {item.url}
+                      </Text>
+
+                      <Space size="small" wrap>
+                        {item.crawl_last && (
+                          <Text type="secondary" style={{ fontSize: "12px" }}>
+                            <CalendarOutlined /> {formatDate(item.crawl_last)}
+                          </Text>
+                        )}
+                        {item.score && (
+                          <Text type="secondary" style={{ fontSize: "12px" }}>
+                            Score: {item.score.toFixed(2)}
+                          </Text>
+                        )}
+                      </Space>
+
+                      {item.headline && (
+                        <div
+                          style={{
+                            marginBottom: "8px",
+                            marginTop: "8px",
+                            fontSize: "13px",
+                          }}
+                          dangerouslySetInnerHTML={{ __html: item.headline }}
+                        />
+                      )}
+
+                      {item.tags && item.tags.length > 0 && (
+                        <Space size="small" wrap>
+                          {item.tags.map((tag) => (
+                            <Tag key={tag.id} style={{ fontSize: "11px" }}>
+                              {tag.name}
+                            </Tag>
+                          ))}
+                        </Space>
                       )}
                     </Space>
-
-                    {item.headline && (
-                      <div
-                        style={{ marginBottom: "8px", marginTop: "8px", fontSize: "13px" }}
-                        dangerouslySetInnerHTML={{ __html: item.headline }}
-                      />
-                    )}
-
-                    {item.tags && item.tags.length > 0 && (
-                      <Space size="small" wrap>
-                        {item.tags.map((tag) => (
-                          <Tag key={tag.id} style={{ fontSize: "11px" }}>
-                            {tag.name}
-                          </Tag>
-                        ))}
-                      </Space>
-                    )}
-                  </Space>
-                }
-              />
-            </Card>
+                  }
+                />
+              </Card>
+            </a>
           </Col>
         ))}
       </Row>
@@ -142,70 +148,73 @@ export default function SearchResults({
       size="large"
       dataSource={results}
       renderItem={(item) => (
-        <List.Item
-          key={item.id}
-          extra={
-            item.preview && (
-              <img
-                width={200}
-                alt="preview"
-                src={item.preview}
-                style={{ objectFit: "cover", borderRadius: "4px" }}
-              />
-            )
-          }
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: "none", color: "inherit" }}
         >
-          <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            <Space size="small">
-              {item.favicon && !item.favicon.missing && (
+          <List.Item
+            key={item.id}
+            extra={
+              item.preview && (
                 <img
-                  src={`/favicon/${item.favicon.id}`}
-                  alt="icon"
-                  style={{ width: "16px", height: "16px" }}
+                  width={200}
+                  alt="preview"
+                  src={item.preview}
+                  style={{ objectFit: "cover", borderRadius: "4px" }}
+                />
+              )
+            }
+            style={{ cursor: "pointer" }}
+          >
+            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+              <Space size="small">
+                {item.favicon && !item.favicon.missing && (
+                  <img
+                    src={`/favicon/${item.favicon.id}`}
+                    alt="icon"
+                    style={{ width: "16px", height: "16px" }}
+                  />
+                )}
+                <span style={{ fontSize: "18px", fontWeight: "500" }}>
+                  {item.title || "Untitled"}
+                </span>
+              </Space>
+
+              <Space size="small" wrap>
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  <LinkOutlined /> {item.url}
+                </Text>
+                {item.crawl_last && (
+                  <Text type="secondary" style={{ fontSize: "12px" }}>
+                    <CalendarOutlined /> {formatDate(item.crawl_last)}
+                  </Text>
+                )}
+                {item.score && (
+                  <Text type="secondary" style={{ fontSize: "12px" }}>
+                    Score: {item.score.toFixed(2)}
+                  </Text>
+                )}
+              </Space>
+
+              {item.headline && (
+                <div
+                  style={{ marginBottom: "8px" }}
+                  dangerouslySetInnerHTML={{ __html: item.headline }}
                 />
               )}
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: "18px", fontWeight: "500" }}
-              >
-                {item.title || "Untitled"}
-              </a>
-            </Space>
 
-            <Space size="small" wrap>
-              <Text type="secondary" style={{ fontSize: "12px" }}>
-                <LinkOutlined /> {item.url}
-              </Text>
-              {item.crawl_last && (
-                <Text type="secondary" style={{ fontSize: "12px" }}>
-                  <CalendarOutlined /> {formatDate(item.crawl_last)}
-                </Text>
-              )}
-              {item.score && (
-                <Text type="secondary" style={{ fontSize: "12px" }}>
-                  Score: {item.score.toFixed(2)}
-                </Text>
+              {item.tags && item.tags.length > 0 && (
+                <Space size="small" wrap>
+                  {item.tags.map((tag) => (
+                    <Tag key={tag.id}>{tag.name}</Tag>
+                  ))}
+                </Space>
               )}
             </Space>
-
-            {item.headline && (
-              <div
-                style={{ marginBottom: "8px" }}
-                dangerouslySetInnerHTML={{ __html: item.headline }}
-              />
-            )}
-
-            {item.tags && item.tags.length > 0 && (
-              <Space size="small" wrap>
-                {item.tags.map((tag) => (
-                  <Tag key={tag.id}>{tag.name}</Tag>
-                ))}
-              </Space>
-            )}
-          </Space>
-        </List.Item>
+          </List.Item>
+        </a>
       )}
     />
   );

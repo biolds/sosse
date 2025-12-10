@@ -156,6 +156,7 @@ export default function SearchResults({
         >
           <List.Item
             key={item.id}
+            className="search-result-item"
             extra={
               item.preview && (
                 <img
@@ -166,7 +167,6 @@ export default function SearchResults({
                 />
               )
             }
-            style={{ cursor: "pointer" }}
           >
             <Space direction="vertical" size="small" style={{ width: "100%" }}>
               <Space size="small">

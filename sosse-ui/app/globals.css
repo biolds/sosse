@@ -17,11 +17,6 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-
-  .search-highlight {
-    background-color: #1e3a5f;
-    color: #90caf9;
-  }
 }
 
 body {
@@ -31,9 +26,51 @@ body {
 }
 
 .search-highlight {
-  background-color: #e3f2fd;
-  color: #1565c0;
+  background-color: #e8f4fd;
+  color: #0d47a1;
   padding: 1px 3px;
   border-radius: 2px;
   font-weight: 500;
+}
+
+.search-result-item {
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.search-result-item:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ant-card-hoverable {
+  transition: all 0.2s ease;
+  transform: translateY(0);
+}
+
+.ant-card-hoverable:hover {
+  transition: all 0.2s ease;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode styles managed by Ant Design ConfigProvider */
+.dark-mode .search-highlight {
+  background-color: #1a2942;
+  color: #64b5f6;
+}
+
+.dark-mode .search-result-item:hover {
+  background-color: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .ant-card-hoverable:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px);
+  transition: all 0.2s ease;
 }

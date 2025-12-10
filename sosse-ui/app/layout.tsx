@@ -24,7 +24,7 @@ export default function RootLayout({
       <head>
         <script src="/config.js" async></script>
       </head>
-      <body style={{ margin: 0 }}>
+      <body style={{ margin: 0 }} className={isDarkMode ? "dark-mode" : ""}>
         <AntdRegistry>
           <ConfigProvider
             theme={{

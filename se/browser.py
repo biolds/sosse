@@ -59,6 +59,7 @@ class TooManyRedirects(SkipIndexing):
 
 class Browser:
     inited = False
+    THUMBNAIL_SIZE = (320, 200)
 
     @classmethod
     def init(cls):

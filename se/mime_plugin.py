@@ -25,6 +25,7 @@ from django.conf import settings
 from django.db import models
 from PIL import Image
 
+from .browser import Browser
 from .builtin import BuiltinModel
 from .utils import build_multiline_re, validate_multiline_re
 
@@ -163,7 +164,7 @@ class MimePlugin(BuiltinModel):
                                         with Image.open(preview_file) as img:
                                             # Remove alpha channel from the png
                                             img = img.convert("RGB")
-                                            img.thumbnail((160, 100))
+                                            img.thumbnail(Browser.THUMBNAIL_SIZE)
                                             thumb_jpg = os.path.join(
                                                 settings.SOSSE_THUMBNAILS_DIR, doc.image_name() + ".jpg"
                                             )

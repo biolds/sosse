@@ -457,7 +457,7 @@ class BrowserSelenium(Browser):
             cls.driver().get_screenshot_as_file(thumb_png)
             with Image.open(thumb_png) as img:
                 img = img.convert("RGB")  # Remove alpha channel from the png
-                img.thumbnail((160, 100))
+                img.thumbnail(cls.THUMBNAIL_SIZE)
                 img.save(thumb_jpg, "jpeg")
         finally:
             if os.path.exists(thumb_png):

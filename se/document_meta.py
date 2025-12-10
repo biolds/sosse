@@ -22,6 +22,7 @@ from linkpreview import Link, LinkPreview
 from magic import from_buffer as magic_from_buffer
 from PIL import Image, UnidentifiedImageError
 
+from .browser import Browser
 from .browser_request import BrowserRequest
 from .page import Page
 from .url import absolutize_url
@@ -87,7 +88,7 @@ class DocumentMeta:
             with Image.open(BytesIO(content)) as img:
                 # Remove alpha channel from the png
                 img = img.convert("RGB")
-                img.thumbnail((160, 100))
+                img.thumbnail(Browser.THUMBNAIL_SIZE)
                 img.save(thumb_jpg, "jpeg")
         except UnidentifiedImageError:
             return

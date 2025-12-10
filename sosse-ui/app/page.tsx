@@ -72,6 +72,7 @@ export default function HomePage() {
         size="large"
         onSearch={handleSearch}
         loading={loading}
+        autoFocus
       />
 
       {loading && (

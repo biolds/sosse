@@ -46,7 +46,7 @@ export default function LoginPage() {
             name="username"
             rules={[{ required: true, message: "Please enter your username" }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Username" size="large" />
+            <Input prefix={<UserOutlined />} placeholder="Username" size="large" autoFocus />
           </Form.Item>
           <Form.Item
             name="password"

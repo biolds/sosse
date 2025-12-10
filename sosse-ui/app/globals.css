@@ -74,3 +74,11 @@ body {
   transform: translateY(-3px);
   transition: all 0.2s ease;
 }
+
+.card-no-preview {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf0 100%);
+}
+
+.dark-mode .card-no-preview {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}

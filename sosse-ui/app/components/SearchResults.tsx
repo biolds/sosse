@@ -1,5 +1,9 @@
 import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
-import { LinkOutlined, CalendarOutlined } from "@ant-design/icons";
+import {
+  LinkOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+} from "@ant-design/icons";
 
 const { Text, Paragraph } = Typography;
 
@@ -56,15 +60,19 @@ export default function SearchResults({
                     />
                   ) : (
                     <div
+                      className="card-no-preview"
                       style={{
                         height: "200px",
-                        backgroundColor: "#f0f0f0",
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
+                        gap: "12px",
                       }}
                     >
-                      <Text type="secondary">No preview</Text>
+                      <FileTextOutlined
+                        style={{ fontSize: "48px", opacity: 0.3 }}
+                      />
                     </div>
                   )
                 }

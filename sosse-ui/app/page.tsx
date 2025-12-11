@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Input,
@@ -18,6 +18,10 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import SearchResults, { SearchResult } from "./components/SearchResults";
+import AdvancedSearch, {
+  AdvancedSearchParams,
+  AdvancedFilter,
+} from "./components/AdvancedSearch";
 import { useAppStore } from "./useAppStore";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
@@ -44,62 +48,114 @@ export default function HomePage() {
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
+  const [advancedParams, setAdvancedParams] = useState<AdvancedSearchParams>({
+    lang: "en",
+    include_hidden: false,
+    sort: "-rank",
+    adv_params: [],
+  });
+  const [collections, setCollections] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+
+  useEffect(() => {
+    axios
+      .get("/api/collection/")
+      .then((response) => {
+        setCollections(response.data.results || response.data || []);
+      })
+      .catch((error) => {
+        console.error("Failed to load collections:", error);
+      });
+  }, []);
+
+  const performSearch = useCallback(
+    async (
+      value: string,
+      page: number = 1,
+      customPageSize?: number,
+      customAdvancedParams?: AdvancedSearchParams,
+    ) => {
+      const queryTerm = value.trim();
+      const effectiveAdvParams = customAdvancedParams || advancedParams;
+      const hasAdvancedFilters =
+        effectiveAdvParams?.adv_params &&
+        effectiveAdvParams.adv_params.length > 0;
+
+      if (!queryTerm && !hasAdvancedFilters) {
+        return;
+      }
+
+      setLoading(true);
+      setSubmittedQuery(queryTerm);
+      setCurrentPage(page);
+
+      const effectivePageSize = customPageSize || pageSize;
+      const offset = (page - 1) * effectivePageSize;
+
+      try {
+        const requestBody: {
+          query: string;
+          lang: string;
+          sort: string;
+          include_hidden: boolean;
+          collection?: number;
+          adv_params?: AdvancedFilter[];
+        } = {
+          query: queryTerm,
+          lang: effectiveAdvParams.lang || "en",
+          sort: effectiveAdvParams.sort,
+          include_hidden: effectiveAdvParams.include_hidden,
+        };
+
+        if (effectiveAdvParams.collection) {
+          requestBody.collection = effectiveAdvParams.collection;
+        }
+
+        if (effectiveAdvParams.adv_params.length > 0) {
+          requestBody.adv_params = effectiveAdvParams.adv_params;
+        }
+
+        const response = await axios.post<SearchResponse>(
+          `/api/search/?limit=${effectivePageSize}&offset=${offset}`,
+          requestBody,
+        );
+
+        setSearchResults(response.data.results);
+        setTotalResults(response.data.count);
+      } catch (error) {
+        console.error("Search error:", error);
+        message.error("Failed to perform search. Please try again.");
+        setSearchResults([]);
+        setTotalResults(0);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [advancedParams, pageSize],
+  );
 
   useEffect(() => {
     const q = searchParams.get("q");
     if (q && q.trim()) {
       setInputValue(q);
-      performSearch(q);
+      performSearch(q, 1, undefined, advancedParams);
     }
-  }, [searchParams]);
-
-  const performSearch = async (
-    value: string,
-    page: number = 1,
-    customPageSize?: number,
-  ) => {
-    if (!value.trim()) {
-      return;
-    }
-
-    setLoading(true);
-    setSubmittedQuery(value);
-    setCurrentPage(page);
-
-    const effectivePageSize = customPageSize || pageSize;
-    const offset = (page - 1) * effectivePageSize;
-
-    try {
-      const response = await axios.post<SearchResponse>(
-        `/api/search/?limit=${effectivePageSize}&offset=${offset}`,
-        {
-          query: value,
-          lang: "en",
-          sort: "-rank",
-          include_hidden: false,
-        },
-      );
-
-      setSearchResults(response.data.results);
-      setTotalResults(response.data.count);
-    } catch (error) {
-      console.error("Search error:", error);
-      message.error("Failed to perform search. Please try again.");
-      setSearchResults([]);
-      setTotalResults(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [searchParams, advancedParams, performSearch]);
 
   const handleSearch = (value: string) => {
-    if (!value.trim()) {
-      message.warning("Please enter a search query");
+    const queryTerm = value.trim();
+    const hasAdvancedFilters = advancedParams.adv_params.length > 0;
+
+    if (!queryTerm && !hasAdvancedFilters) {
+      message.warning("Please enter a search query or add filters");
       return;
     }
 
     const params = new URLSearchParams();
-    params.set("q", value);
+    if (queryTerm) {
+      params.set("q", queryTerm);
+    }
     router.push(`/?${params.toString()}`);
   };
 
@@ -132,6 +188,12 @@ export default function HomePage() {
         onSearch={handleSearch}
         loading={loading}
         autoFocus
+      />
+
+      <AdvancedSearch
+        params={advancedParams}
+        onChange={setAdvancedParams}
+        collections={collections}
       />
 
       {loading && (

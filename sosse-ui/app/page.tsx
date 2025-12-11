@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Input,
   Button,
@@ -32,7 +33,10 @@ interface SearchResponse {
 
 export default function HomePage() {
   const { linkMode, toggleLinkMode, viewMode, setViewMode } = useAppStore();
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [inputValue, setInputValue] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
@@ -41,18 +45,25 @@ export default function HomePage() {
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
 
-  const handleSearch = async (
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q && q.trim()) {
+      setInputValue(q);
+      performSearch(q);
+    }
+  }, [searchParams]);
+
+  const performSearch = async (
     value: string,
     page: number = 1,
     customPageSize?: number,
   ) => {
     if (!value.trim()) {
-      message.warning("Please enter a search query");
       return;
     }
 
     setLoading(true);
-    setSearchQuery(value);
+    setSubmittedQuery(value);
     setCurrentPage(page);
 
     const effectivePageSize = customPageSize || pageSize;
@@ -81,12 +92,24 @@ export default function HomePage() {
     }
   };
 
+  const handleSearch = (value: string) => {
+    if (!value.trim()) {
+      message.warning("Please enter a search query");
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.set("q", value);
+    router.push(`/?${params.toString()}`);
+  };
+
   const handlePageChange = (page: number, newPageSize: number) => {
+    const q = searchParams.get("q") || "";
     if (newPageSize !== pageSize) {
       setPageSize(newPageSize);
-      handleSearch(searchQuery, 1, newPageSize);
+      performSearch(q, 1, newPageSize);
     } else {
-      handleSearch(searchQuery, page);
+      performSearch(q, page);
     }
   };
 
@@ -104,6 +127,8 @@ export default function HomePage() {
           </Button>
         }
         size="large"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         onSearch={handleSearch}
         loading={loading}
         autoFocus
@@ -128,7 +153,7 @@ export default function HomePage() {
           >
             <Text type="secondary">
               Found {totalResults} result{totalResults !== 1 ? "s" : ""} for
-              &quot;{searchQuery}&quot;
+              &quot;{submittedQuery}&quot;
             </Text>
 
             <div style={{ display: "flex", gap: "12px" }}>
@@ -178,10 +203,10 @@ export default function HomePage() {
         </>
       )}
 
-      {!loading && searchQuery && searchResults.length === 0 && (
+      {!loading && submittedQuery && searchResults.length === 0 && (
         <div style={{ textAlign: "center", marginTop: "60px" }}>
           <Text type="secondary">
-            No results found for &quot;{searchQuery}&quot;
+            No results found for &quot;{submittedQuery}&quot;
           </Text>
         </div>
       )}

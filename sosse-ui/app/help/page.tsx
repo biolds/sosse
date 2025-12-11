@@ -20,9 +20,10 @@ export default function HelpPage() {
       <Card style={{ marginBottom: "24px" }}>
         <Title level={3}>About Sosse</Title>
         <Paragraph>
-          Sosse is a software platform that lets users search, view, and manage archived web pages.
-          It provides both a public-facing search interface and an admin panel for managing crawls,
-          collections, tags, and analytics.
+          Sosse is a software platform that lets users search, view, and manage
+          archived web pages. It provides both a public-facing search interface
+          and an admin panel for managing crawls, collections, tags, and
+          analytics.
         </Paragraph>
       </Card>
       <Card title="Documentation & Resources">

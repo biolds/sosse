@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, Form, Input, Button, Select, InputNumber, Typography } from "antd";
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Select,
+  InputNumber,
+  Typography,
+} from "antd";
 
 const { Title } = Typography;
 const { TextArea } = Input;

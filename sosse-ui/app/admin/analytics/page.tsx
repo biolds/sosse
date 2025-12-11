@@ -45,13 +45,33 @@ export default function AnalyticsPage() {
         </Col>
       </Row>
       <Card title="Search Trends" style={{ marginBottom: "16px" }}>
-        <div style={{ height: "300px", display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f5" }}>
-          <Text type="secondary">Chart placeholder - Search volume over time</Text>
+        <div
+          style={{
+            height: "300px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#f5f5f5",
+          }}
+        >
+          <Text type="secondary">
+            Chart placeholder - Search volume over time
+          </Text>
         </div>
       </Card>
       <Card title="Top Queries">
-        <div style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f5" }}>
-          <Text type="secondary">Chart placeholder - Most popular search queries</Text>
+        <div
+          style={{
+            height: "200px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#f5f5f5",
+          }}
+        >
+          <Text type="secondary">
+            Chart placeholder - Most popular search queries
+          </Text>
         </div>
       </Card>
     </div>

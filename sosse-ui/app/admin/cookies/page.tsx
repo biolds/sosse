@@ -1,7 +1,12 @@
 "use client";
 
 import { Table, Button, Space, Typography, Input } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -35,23 +40,54 @@ export default function CookiesPage() {
       width: 150,
       render: () => (
         <Space>
-          <Button icon={<EditOutlined />} size="small">Edit</Button>
-          <Button icon={<DeleteOutlined />} size="small" danger>Delete</Button>
+          <Button icon={<EditOutlined />} size="small">
+            Edit
+          </Button>
+          <Button icon={<DeleteOutlined />} size="small" danger>
+            Delete
+          </Button>
         </Space>
       ),
     },
   ];
 
   const data = [
-    { key: "1", domain: "example.com", name: "session_id", value: "abc123xyz789", expires: "2024-12-31" },
-    { key: "2", domain: "test.com", name: "auth_token", value: "def456uvw012", expires: "2024-11-30" },
-    { key: "3", domain: "sample.org", name: "user_pref", value: "ghi789rst345", expires: "2025-01-15" },
+    {
+      key: "1",
+      domain: "example.com",
+      name: "session_id",
+      value: "abc123xyz789",
+      expires: "2024-12-31",
+    },
+    {
+      key: "2",
+      domain: "test.com",
+      name: "auth_token",
+      value: "def456uvw012",
+      expires: "2024-11-30",
+    },
+    {
+      key: "3",
+      domain: "sample.org",
+      name: "user_pref",
+      value: "ghi789rst345",
+      expires: "2025-01-15",
+    },
   ];
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <Title level={2} style={{ margin: 0 }}>Cookies</Title>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "16px",
+        }}
+      >
+        <Title level={2} style={{ margin: 0 }}>
+          Cookies
+        </Title>
         <Button type="primary" icon={<PlusOutlined />}>
           New Cookie
         </Button>

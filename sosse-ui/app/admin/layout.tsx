@@ -57,13 +57,21 @@ export default function AdminLayout({
         <div style={{ padding: "16px", fontSize: "18px", fontWeight: "bold" }}>
           Admin Panel
         </div>
-        <Menu mode="inline" defaultSelectedKeys={["dashboard"]} items={menuItems} />
+        <Menu
+          mode="inline"
+          defaultSelectedKeys={["dashboard"]}
+          items={menuItems}
+        />
       </Sider>
       <Layout>
-        <Header style={{ background: "#fff", padding: "0 24px", fontSize: "20px" }}>
+        <Header
+          style={{ background: "#fff", padding: "0 24px", fontSize: "20px" }}
+        >
           Administration
         </Header>
-        <Content style={{ margin: "24px", background: "#fff", padding: "24px" }}>
+        <Content
+          style={{ margin: "24px", background: "#fff", padding: "24px" }}
+        >
           {children}
         </Content>
       </Layout>

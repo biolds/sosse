@@ -1,8 +1,9 @@
-import { useAppStore } from '../useAppStore';
-import { useEffect, useState } from 'react';
+import { useAppStore } from "../useAppStore";
+import { useEffect, useState } from "react";
 
 export function useAuth() {
-  const { username, accessToken, isInitialized, initializeAuth } = useAppStore();
+  const { username, accessToken, isInitialized, initializeAuth } =
+    useAppStore();
   const [requiresAuth, setRequiresAuth] = useState<boolean | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -14,7 +15,7 @@ export function useAuth() {
       }
 
       // Then check config and mark as ready
-      if (typeof window !== 'undefined' && window.sosseConfig) {
+      if (typeof window !== "undefined" && window.sosseConfig) {
         setRequiresAuth(!window.sosseConfig.anonymousSearch);
       }
 
@@ -26,7 +27,7 @@ export function useAuth() {
 
     // Fallback timer in case config is slow to load
     const timer = setTimeout(() => {
-      if (typeof window !== 'undefined' && window.sosseConfig) {
+      if (typeof window !== "undefined" && window.sosseConfig) {
         setRequiresAuth(!window.sosseConfig.anonymousSearch);
       }
     }, 100);
@@ -38,6 +39,6 @@ export function useAuth() {
     isAuthenticated: !!accessToken,
     username,
     requiresAuth,
-    isReady: isReady && isInitialized
+    isReady: isReady && isInitialized,
   };
 }

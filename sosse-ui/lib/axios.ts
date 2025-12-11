@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { useAppStore } from '@/app/useAppStore';
+import axios from "axios";
+import { useAppStore } from "@/app/useAppStore";
 
 let isRedirecting = false;
 
@@ -19,9 +19,13 @@ axios.interceptors.response.use(
     const originalRequest = error.config;
 
     // Don't intercept 401 from login/refresh endpoints
-    const isAuthEndpoint = originalRequest.url?.includes('/api/token/');
+    const isAuthEndpoint = originalRequest.url?.includes("/api/token/");
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthEndpoint
+    ) {
       originalRequest._retry = true;
 
       const { refreshAccessToken, logout } = useAppStore.getState();
@@ -35,7 +39,7 @@ axios.interceptors.response.use(
         }
         return axios(originalRequest);
       } else {
-        if (!isRedirecting && typeof window !== 'undefined') {
+        if (!isRedirecting && typeof window !== "undefined") {
           isRedirecting = true;
           logout();
           const currentPath = window.location.pathname;
@@ -45,7 +49,7 @@ axios.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axios;

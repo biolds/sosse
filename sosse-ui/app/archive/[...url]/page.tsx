@@ -5,7 +5,11 @@ import { use } from "react";
 
 const { Title, Paragraph, Text } = Typography;
 
-export default function ArchivePage({ params }: { params: Promise<{ url: string }> }) {
+export default function ArchivePage({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
   const { url } = use(params);
   const decodedUrl = decodeURIComponent(url);
 
@@ -14,11 +18,13 @@ export default function ArchivePage({ params }: { params: Promise<{ url: string 
       key: "text",
       label: "Text",
       children: (
-        <div style={{ padding: "20px", background: "#f5f5f5", minHeight: "400px" }}>
+        <div
+          style={{ padding: "20px", background: "#f5f5f5", minHeight: "400px" }}
+        >
           <Paragraph>
-            This is the extracted text content from the archived page.
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            This is the extracted text content from the archived page. Lorem
+            ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua.
           </Paragraph>
           <Paragraph>
             Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
@@ -31,7 +37,9 @@ export default function ArchivePage({ params }: { params: Promise<{ url: string 
       key: "html",
       label: "HTML",
       children: (
-        <div style={{ padding: "20px", background: "#f5f5f5", minHeight: "400px" }}>
+        <div
+          style={{ padding: "20px", background: "#f5f5f5", minHeight: "400px" }}
+        >
           <pre style={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
             {`<!DOCTYPE html>
 <html>
@@ -51,8 +59,21 @@ export default function ArchivePage({ params }: { params: Promise<{ url: string 
       key: "screenshot",
       label: "Screenshot",
       children: (
-        <div style={{ padding: "20px", background: "#f5f5f5", minHeight: "400px", textAlign: "center" }}>
-          <div style={{ border: "2px dashed #d9d9d9", padding: "60px", borderRadius: "4px" }}>
+        <div
+          style={{
+            padding: "20px",
+            background: "#f5f5f5",
+            minHeight: "400px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              border: "2px dashed #d9d9d9",
+              padding: "60px",
+              borderRadius: "4px",
+            }}
+          >
             <Text type="secondary">Screenshot placeholder</Text>
             <br />
             <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -70,7 +91,9 @@ export default function ArchivePage({ params }: { params: Promise<{ url: string 
       <Card style={{ marginBottom: "24px" }}>
         <Descriptions title="Metadata" bordered column={2}>
           <Descriptions.Item label="URL">{decodedUrl}</Descriptions.Item>
-          <Descriptions.Item label="Archived Date">2024-01-15 14:32:10</Descriptions.Item>
+          <Descriptions.Item label="Archived Date">
+            2024-01-15 14:32:10
+          </Descriptions.Item>
           <Descriptions.Item label="Source">Web Crawler</Descriptions.Item>
           <Descriptions.Item label="Status Code">200</Descriptions.Item>
         </Descriptions>

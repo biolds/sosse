@@ -72,3 +72,4 @@ repos:
     rev: v3.7.4
     hooks:
       - id: prettier
+        files: "^sosse-ui/.*"

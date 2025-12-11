@@ -46,16 +46,31 @@ export default function LoginPage() {
             name="username"
             rules={[{ required: true, message: "Please enter your username" }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Username" size="large" autoFocus />
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="Username"
+              size="large"
+              autoFocus
+            />
           </Form.Item>
           <Form.Item
             name="password"
             rules={[{ required: true, message: "Please enter your password" }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Password"
+              size="large"
+            />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block size="large" loading={loading}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              size="large"
+              loading={loading}
+            >
               Log In
             </Button>
           </Form.Item>

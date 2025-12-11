@@ -5,7 +5,13 @@ import { Layout, Menu, Button, ConfigProvider, theme, App } from "antd";
 import Link from "next/link";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useAppStore } from "./useAppStore";
-import { MoonOutlined, SunOutlined, UserOutlined, LogoutOutlined, LoginOutlined } from "@ant-design/icons";
+import {
+  MoonOutlined,
+  SunOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  LoginOutlined,
+} from "@ant-design/icons";
 import AuthGuard from "./AuthGuard";
 import "../lib/axios";
 import "./globals.css";

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import axios from 'axios';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import axios from "axios";
 
 interface AppState {
   isDarkMode: boolean;
@@ -25,9 +25,10 @@ export const useAppStore = create<AppState>()(
       toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 
       linkMode: "source",
-      toggleLinkMode: () => set((state) => ({
-        linkMode: state.linkMode === "source" ? "archive" : "source"
-      })),
+      toggleLinkMode: () =>
+        set((state) => ({
+          linkMode: state.linkMode === "source" ? "archive" : "source",
+        })),
 
       viewMode: "list",
       setViewMode: (mode) => set({ viewMode: mode }),
@@ -38,28 +39,32 @@ export const useAppStore = create<AppState>()(
 
       initializeAuth: async () => {
         try {
-          const response = await axios.post('/api/token/refresh/', {}, {
-            withCredentials: true
-          });
+          const response = await axios.post(
+            "/api/token/refresh/",
+            {},
+            {
+              withCredentials: true,
+            },
+          );
 
           if (response.data.access) {
             // Fetch user profile to get username
             try {
-              const profileResponse = await axios.get('/api/profile/', {
+              const profileResponse = await axios.get("/api/profile/", {
                 headers: { Authorization: `Bearer ${response.data.access}` },
-                withCredentials: true
+                withCredentials: true,
               });
 
               set({
                 accessToken: response.data.access,
                 username: profileResponse.data.username,
-                isInitialized: true
+                isInitialized: true,
               });
             } catch {
               // If profile fetch fails, just set token
               set({
                 accessToken: response.data.access,
-                isInitialized: true
+                isInitialized: true,
               });
             }
           } else {
@@ -72,62 +77,74 @@ export const useAppStore = create<AppState>()(
 
       login: async (username: string, password: string) => {
         try {
-          const response = await axios.post('/api/token/', {
-            username,
-            password
-          }, {
-            withCredentials: true
-          });
+          const response = await axios.post(
+            "/api/token/",
+            {
+              username,
+              password,
+            },
+            {
+              withCredentials: true,
+            },
+          );
 
           set({
             accessToken: response.data.access,
-            username: username
+            username: username,
           });
 
           return true;
         } catch (error) {
-          console.error('Login failed:', error);
+          console.error("Login failed:", error);
           return false;
         }
       },
 
       logout: async () => {
         try {
-          await axios.post('/api/token/logout/', {}, {
-            withCredentials: true
-          });
+          await axios.post(
+            "/api/token/logout/",
+            {},
+            {
+              withCredentials: true,
+            },
+          );
         } catch (error) {
-          console.error('Logout request failed:', error);
+          console.error("Logout request failed:", error);
         }
 
         set({
           accessToken: null,
-          username: null
+          username: null,
         });
       },
 
       refreshAccessToken: async () => {
         try {
-          const response = await axios.post('/api/token/refresh/', {}, {
-            withCredentials: true
-          });
+          const response = await axios.post(
+            "/api/token/refresh/",
+            {},
+            {
+              withCredentials: true,
+            },
+          );
 
           set({ accessToken: response.data.access });
           return true;
         } catch (error) {
-          console.error('Token refresh failed:', error);
+          console.error("Token refresh failed:", error);
           get().logout();
           return false;
         }
       },
     }),
     {
-      name: 'sosse-app-storage',
+      name: "sosse-app-storage",
       partialize: (state) => ({
         isDarkMode: state.isDarkMode,
         linkMode: state.linkMode,
         viewMode: state.viewMode,
       }),
-    }
-  )
+    },
+  ),
 );

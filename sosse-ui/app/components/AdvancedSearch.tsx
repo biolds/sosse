@@ -10,7 +10,12 @@ import {
   Row,
   Col,
 } from "antd";
-import { PlusOutlined, MinusOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  MinusOutlined,
+  DownOutlined,
+  UpOutlined,
+} from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -150,7 +155,9 @@ export default function AdvancedSearch({
               <Form.Item label="Language" style={{ marginBottom: 0 }}>
                 <Select
                   value={params.lang || ""}
-                  onChange={(value) => onChange({ ...params, lang: value || undefined })}
+                  onChange={(value) =>
+                    onChange({ ...params, lang: value || undefined })
+                  }
                   style={{ width: "100%" }}
                   placement="bottomLeft"
                 >
@@ -167,7 +174,9 @@ export default function AdvancedSearch({
               <Form.Item label="Collection" style={{ marginBottom: 0 }}>
                 <Select
                   value={params.collection}
-                  onChange={(value) => onChange({ ...params, collection: value })}
+                  onChange={(value) =>
+                    onChange({ ...params, collection: value })
+                  }
                   style={{ width: "100%" }}
                   allowClear
                   placeholder="All collections"
@@ -269,7 +278,9 @@ export default function AdvancedSearch({
                 <Col flex="auto">
                   <Input
                     value={filter.term}
-                    onChange={(e) => updateFilter(index, "term", e.target.value)}
+                    onChange={(e) =>
+                      updateFilter(index, "term", e.target.value)
+                    }
                     placeholder="Value"
                     size="small"
                   />

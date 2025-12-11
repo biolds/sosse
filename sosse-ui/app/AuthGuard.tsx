@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Spin } from 'antd';
-import { useAuth } from './hooks/useAuth';
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Spin } from "antd";
+import { useAuth } from "./hooks/useAuth";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, requiresAuth, isReady } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const isLoginPage = pathname === '/login' || pathname === '/login/';
+  const isLoginPage = pathname === "/login" || pathname === "/login/";
 
   useEffect(() => {
     if (!isReady) return;

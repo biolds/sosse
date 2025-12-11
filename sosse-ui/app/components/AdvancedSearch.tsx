@@ -175,15 +175,14 @@ const FilterRow = memo(
 FilterRow.displayName = "FilterRow";
 
 const AdvancedSearch = ({
-  collections = [],
   expanded,
   setExpanded,
 }: {
-  collections?: Array<{ id: number; name: string }>;
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
 }) => {
-  const { searchFilters, updateSearchFilters, addFilter } = useAppStore();
+  const { searchFilters, updateSearchFilters, addFilter, collections } =
+    useAppStore();
 
   return (
     <div style={{ marginTop: "16px" }}>

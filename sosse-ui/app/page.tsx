@@ -33,8 +33,14 @@ interface SearchResponse {
 }
 
 const HomePage = () => {
-  const { linkMode, toggleLinkMode, viewMode, setViewMode, searchFilters } =
-    useAppStore();
+  const {
+    linkMode,
+    toggleLinkMode,
+    viewMode,
+    setViewMode,
+    searchFilters,
+    loadCollections,
+  } = useAppStore();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
@@ -46,21 +52,11 @@ const HomePage = () => {
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
-  const [collections, setCollections] = useState<
-    Array<{ id: number; name: string }>
-  >([]);
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
 
   useEffect(() => {
-    axios
-      .get("/api/collection/")
-      .then((response) => {
-        setCollections(response.data.results || response.data || []);
-      })
-      .catch((error) => {
-        console.error("Failed to load collections:", error);
-      });
-  }, []);
+    loadCollections();
+  }, [loadCollections]);
 
   const performSearch = async (
     value: string,
@@ -180,7 +176,6 @@ const HomePage = () => {
       />
 
       <AdvancedSearch
-        collections={collections}
         expanded={advancedExpanded}
         setExpanded={setAdvancedExpanded}
       />

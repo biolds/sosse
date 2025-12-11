@@ -42,6 +42,9 @@ interface AppState {
     field: keyof AdvancedFilter,
     value: string | boolean,
   ) => void;
+  collections: Array<{ id: number; name: string }>;
+  setCollections: (collections: Array<{ id: number; name: string }>) => void;
+  loadCollections: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>()(
@@ -108,6 +111,17 @@ export const useAppStore = create<AppState>()(
             ),
           },
         })),
+
+      collections: [],
+      setCollections: (collections) => set({ collections }),
+      loadCollections: async () => {
+        try {
+          const response = await axios.get("/api/collection/");
+          set({ collections: response.data.results || response.data || [] });
+        } catch (error) {
+          console.error("Failed to load collections:", error);
+        }
+      },
 
       accessToken: null,
       username: null,

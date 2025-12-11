@@ -34,9 +34,7 @@ interface AppState {
   refreshAccessToken: () => Promise<boolean>;
   initializeAuth: () => Promise<void>;
   searchFilters: SearchFilters;
-  updateSearchFilters: (
-    filters: SearchFilters | ((prev: SearchFilters) => SearchFilters),
-  ) => void;
+  updateSearchFilters: (filters: SearchFilters) => void;
   addFilter: () => void;
   removeFilter: (index: number) => void;
   updateFilter: (
@@ -69,12 +67,9 @@ export const useAppStore = create<AppState>()(
       },
 
       updateSearchFilters: (filters) =>
-        set((state) => ({
-          searchFilters:
-            typeof filters === "function"
-              ? filters(state.searchFilters)
-              : filters,
-        })),
+        set({
+          filters,
+        }),
 
       addFilter: () =>
         set((state) => ({

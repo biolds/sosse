@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Input,
@@ -54,6 +54,12 @@ export default function HomePage() {
     sort: "-rank",
     adv_params: [],
   });
+  const advancedParamsRef = useRef(advancedParams);
+
+  useEffect(() => {
+    advancedParamsRef.current = advancedParams;
+  }, [advancedParams]);
+
   const [collections, setCollections] = useState<
     Array<{ id: number; name: string }>
   >([]);
@@ -77,7 +83,8 @@ export default function HomePage() {
       customAdvancedParams?: AdvancedSearchParams,
     ) => {
       const queryTerm = value.trim();
-      const effectiveAdvParams = customAdvancedParams || advancedParams;
+      const effectiveAdvParams =
+        customAdvancedParams || advancedParamsRef.current;
       const hasAdvancedFilters =
         effectiveAdvParams?.adv_params &&
         effectiveAdvParams.adv_params.length > 0;
@@ -132,16 +139,16 @@ export default function HomePage() {
         setLoading(false);
       }
     },
-    [advancedParams, pageSize],
+    [pageSize],
   );
 
   useEffect(() => {
     const q = searchParams.get("q");
     if (q && q.trim()) {
       setInputValue(q);
-      performSearch(q, 1, undefined, advancedParams);
+      performSearch(q, 1, undefined, advancedParamsRef.current);
     }
-  }, [searchParams, advancedParams, performSearch]);
+  }, [searchParams, performSearch]);
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
@@ -151,6 +158,8 @@ export default function HomePage() {
       message.warning("Please enter a search query or add filters");
       return;
     }
+
+    performSearch(queryTerm, 1, undefined, advancedParams);
 
     const params = new URLSearchParams();
     if (queryTerm) {

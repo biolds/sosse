@@ -9,12 +9,16 @@ import {
   Form,
   Row,
   Col,
+  Card,
+  Segmented,
 } from "antd";
 import {
   PlusOutlined,
   MinusOutlined,
   DownOutlined,
-  UpOutlined,
+  FilterOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 
 const { Option } = Select;
@@ -128,27 +132,55 @@ export default function AdvancedSearch({
   };
 
   return (
-    <div>
-      <div style={{ textAlign: "center", marginTop: "10px" }}>
+    <div style={{ marginTop: "16px" }}>
+      <div style={{ display: "flex", justifyContent: "center" }}>
         <Button
-          type="link"
-          size="small"
+          type={expanded ? "primary" : "default"}
+          ghost={expanded}
+          size="middle"
           onClick={() => setExpanded(!expanded)}
-          icon={expanded ? <UpOutlined /> : <DownOutlined />}
+          icon={<FilterOutlined />}
+          style={{
+            borderRadius: "20px",
+            paddingLeft: "20px",
+            paddingRight: "20px",
+            boxShadow: expanded
+              ? "0 2px 8px rgba(22, 119, 255, 0.2)"
+              : "0 2px 4px rgba(0, 0, 0, 0.1)",
+            transition: "all 0.3s ease",
+          }}
         >
-          {expanded ? "Hide advanced search" : "Show advanced search"}
+          Filters & Options
+          <DownOutlined
+            style={{
+              marginLeft: "8px",
+              fontSize: "12px",
+              transition: "transform 0.3s ease",
+              display: "inline-block",
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          />
         </Button>
       </div>
 
-      {expanded && (
-        <div
+      <div
+        style={{
+          maxHeight: expanded ? "2000px" : "0",
+          opacity: expanded ? 1 : 0,
+          overflow: "hidden",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          transform: expanded ? "translateY(0)" : "translateY(-10px)",
+        }}
+      >
+        <Card
           style={{
             marginTop: "20px",
-            padding: "20px",
-            border: "1px solid #d9d9d9",
-            borderRadius: "8px",
-            backgroundColor: "#fafafa",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+            border: "1px solid #e8e8e8",
+            background: "linear-gradient(to bottom, #ffffff, #fafafa)",
           }}
+          bodyStyle={{ padding: "24px" }}
         >
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
@@ -159,7 +191,6 @@ export default function AdvancedSearch({
                     onChange({ ...params, lang: value || undefined })
                   }
                   style={{ width: "100%" }}
-                  placement="bottomLeft"
                 >
                   {LANGUAGES.map((lang) => (
                     <Option key={lang.value} value={lang.value}>
@@ -180,7 +211,6 @@ export default function AdvancedSearch({
                   style={{ width: "100%" }}
                   allowClear
                   placeholder="All collections"
-                  placement="bottomLeft"
                 >
                   {collections.map((col) => (
                     <Option key={col.id} value={col.id}>
@@ -197,7 +227,6 @@ export default function AdvancedSearch({
                   value={params.sort}
                   onChange={(value) => onChange({ ...params, sort: value })}
                   style={{ width: "100%" }}
-                  placement="bottomLeft"
                 >
                   {SORT_OPTIONS.map((opt) => (
                     <Option key={opt.value} value={opt.value}>
@@ -222,93 +251,139 @@ export default function AdvancedSearch({
             </Col>
           </Row>
 
-          <Divider orientation="left">Custom Filters</Divider>
+          <Divider
+            orientation="left"
+            style={{ marginTop: "24px", marginBottom: "20px" }}
+          >
+            <Space>
+              <FilterOutlined style={{ color: "#1677ff" }} />
+              <span style={{ fontWeight: 500 }}>Custom Filters</span>
+            </Space>
+          </Divider>
 
-          <Space direction="vertical" style={{ width: "100%" }}>
+          <Space direction="vertical" style={{ width: "100%" }} size="middle">
             {params.adv_params.map((filter, index) => (
-              <Row key={index} gutter={8} align="middle" wrap={false}>
-                <Col flex="none">
-                  <Button
-                    size="small"
-                    icon={<MinusOutlined />}
-                    onClick={() => removeFilter(index)}
-                    danger
-                  />
-                </Col>
-                <Col flex="100px">
-                  <Select
-                    value={filter.type}
-                    onChange={(value) => updateFilter(index, "type", value)}
-                    style={{ width: "100%" }}
-                    size="small"
-                    placement="bottomLeft"
-                  >
-                    <Option value="inc">Keep</Option>
-                    <Option value="exc">Exclude</Option>
-                  </Select>
-                </Col>
-                <Col flex="150px">
-                  <Select
-                    value={filter.field}
-                    onChange={(value) => updateFilter(index, "field", value)}
-                    style={{ width: "100%" }}
-                    size="small"
-                    placement="bottomLeft"
-                  >
-                    {FILTER_FIELDS.map((field) => (
-                      <Option key={field.value} value={field.value}>
-                        {field.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Col>
-                <Col flex="130px">
-                  <Select
-                    value={filter.operator}
-                    onChange={(value) => updateFilter(index, "operator", value)}
-                    style={{ width: "100%" }}
-                    size="small"
-                    placement="bottomLeft"
-                  >
-                    <Option value="contain">Containing</Option>
-                    <Option value="equal">Equal to</Option>
-                    <Option value="regexp">Matching Regex</Option>
-                  </Select>
-                </Col>
-                <Col flex="auto">
-                  <Input
-                    value={filter.term}
-                    onChange={(e) =>
-                      updateFilter(index, "term", e.target.value)
-                    }
-                    placeholder="Value"
-                    size="small"
-                  />
-                </Col>
-                <Col flex="none">
-                  <Checkbox
-                    checked={filter.case_sensitive}
-                    onChange={(e) =>
-                      updateFilter(index, "case_sensitive", e.target.checked)
-                    }
-                  >
-                    Case sensitive
-                  </Checkbox>
-                </Col>
-              </Row>
+              <div
+                key={index}
+                style={{
+                  padding: "12px",
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  border: "1px solid #e8e8e8",
+                  boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+                }}
+              >
+                <Row gutter={8} align="middle" wrap>
+                  <Col flex="none">
+                    <Button
+                      size="small"
+                      icon={<MinusOutlined />}
+                      onClick={() => removeFilter(index)}
+                      danger
+                      shape="circle"
+                      style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
+                    />
+                  </Col>
+                  <Col flex="110px">
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        updateFilter(
+                          index,
+                          "type",
+                          filter.type === "inc" ? "exc" : "inc",
+                        )
+                      }
+                      icon={
+                        filter.type === "inc" ? (
+                          <CheckCircleOutlined />
+                        ) : (
+                          <CloseCircleOutlined />
+                        )
+                      }
+                      type={filter.type === "inc" ? "primary" : "default"}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {filter.type === "inc" ? "Keep" : "Exclude"}
+                    </Button>
+                  </Col>
+                  <Col flex="150px">
+                    <Select
+                      value={filter.field}
+                      onChange={(value) => updateFilter(index, "field", value)}
+                      style={{ width: "100%" }}
+                      size="small"
+                      variant="filled"
+                    >
+                      {FILTER_FIELDS.map((field) => (
+                        <Option key={field.value} value={field.value}>
+                          {field.label}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Col>
+                  <Col flex="130px">
+                    <Select
+                      value={filter.operator}
+                      onChange={(value) =>
+                        updateFilter(index, "operator", value)
+                      }
+                      style={{ width: "100%" }}
+                      size="small"
+                      variant="filled"
+                    >
+                      <Option value="contain">Containing</Option>
+                      <Option value="equal">Equal to</Option>
+                      <Option value="regexp">Matching Regex</Option>
+                    </Select>
+                  </Col>
+                  <Col flex="auto">
+                    <Input
+                      value={filter.term}
+                      onChange={(e) =>
+                        updateFilter(index, "term", e.target.value)
+                      }
+                      placeholder="Value"
+                      size="small"
+                      variant="filled"
+                    />
+                  </Col>
+                  <Col flex="none">
+                    <Checkbox
+                      checked={filter.case_sensitive}
+                      onChange={(e) =>
+                        updateFilter(index, "case_sensitive", e.target.checked)
+                      }
+                    >
+                      Case sensitive
+                    </Checkbox>
+                  </Col>
+                </Row>
+              </div>
             ))}
 
             <Button
               type="dashed"
               onClick={addFilter}
               icon={<PlusOutlined />}
-              style={{ width: "100%" }}
+              style={{
+                width: "100%",
+                borderRadius: "8px",
+                height: "40px",
+                borderStyle: "dashed",
+                borderWidth: "2px",
+              }}
             >
               Add filter
             </Button>
           </Space>
-        </div>
-      )}
+        </Card>
+      </div>
     </div>
   );
 }

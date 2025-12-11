@@ -60,7 +60,7 @@ repos:
       - id: yesqa
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.0.0-alpha.1
+    rev: v9.39.1
     hooks:
       - id: eslint
         files: sosse-ui/.*\.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx

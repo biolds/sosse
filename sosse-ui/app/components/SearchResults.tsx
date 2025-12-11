@@ -1,4 +1,5 @@
 import Link from "next/link";
+import React from "react";
 import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
 import { CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
 import { ArchiveIcon, SourceIcon } from "./ArchiveIcons";
@@ -34,11 +35,7 @@ const formatDate = (dateString?: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
-export default function SearchResults({
-  results,
-  viewMode,
-  linkMode,
-}: SearchResultsProps) {
+const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
   const getResultLink = (item: SearchResult) => {
     if (linkMode === "archive") {
       return `/archive/${item.url}`;
@@ -239,4 +236,6 @@ export default function SearchResults({
       )}
     />
   );
-}
+};
+
+export default React.memo(SearchResults);

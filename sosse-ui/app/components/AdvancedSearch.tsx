@@ -68,21 +68,8 @@ const LANGUAGES = [
 ];
 
 const FilterRow = memo(
-  ({
-    filter,
-    index,
-    onUpdate,
-    onRemove,
-  }: {
-    filter: AdvancedFilter;
-    index: number;
-    onUpdate: (
-      index: number,
-      field: keyof AdvancedFilter,
-      value: string | boolean,
-    ) => void;
-    onRemove: (index: number) => void;
-  }) => {
+  ({ filter, index }: { filter: AdvancedFilter; index: number }) => {
+    const { removeFilter, updateFilter } = useAppStore();
     return (
       <div
         style={{
@@ -98,7 +85,7 @@ const FilterRow = memo(
             <Button
               size="small"
               icon={<MinusOutlined />}
-              onClick={() => onRemove(index)}
+              onClick={() => removeFilter(index)}
               danger
               shape="circle"
               style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
@@ -108,7 +95,11 @@ const FilterRow = memo(
             <Button
               size="small"
               onClick={() =>
-                onUpdate(index, "type", filter.type === "inc" ? "exc" : "inc")
+                updateFilter(
+                  index,
+                  "type",
+                  filter.type === "inc" ? "exc" : "inc",
+                )
               }
               icon={
                 filter.type === "inc" ? (
@@ -131,7 +122,7 @@ const FilterRow = memo(
           <Col flex="150px">
             <Select
               value={filter.field}
-              onChange={(value) => onUpdate(index, "field", value)}
+              onChange={(value) => updateFilter(index, "field", value)}
               style={{ width: "100%" }}
               size="small"
               variant="filled"
@@ -146,7 +137,7 @@ const FilterRow = memo(
           <Col flex="130px">
             <Select
               value={filter.operator}
-              onChange={(value) => onUpdate(index, "operator", value)}
+              onChange={(value) => updateFilter(index, "operator", value)}
               style={{ width: "100%" }}
               size="small"
               variant="filled"
@@ -159,7 +150,7 @@ const FilterRow = memo(
           <Col flex="auto">
             <Input
               value={filter.term}
-              onChange={(e) => onUpdate(index, "term", e.target.value)}
+              onChange={(e) => updateFilter(index, "term", e.target.value)}
               placeholder="Value"
               size="small"
               variant="filled"
@@ -169,7 +160,7 @@ const FilterRow = memo(
             <Checkbox
               checked={filter.case_sensitive}
               onChange={(e) =>
-                onUpdate(index, "case_sensitive", e.target.checked)
+                updateFilter(index, "case_sensitive", e.target.checked)
               }
             >
               Case sensitive
@@ -183,7 +174,7 @@ const FilterRow = memo(
 
 FilterRow.displayName = "FilterRow";
 
-export default function AdvancedSearch({
+const AdvancedSearch = ({
   collections = [],
   expanded,
   setExpanded,
@@ -191,14 +182,8 @@ export default function AdvancedSearch({
   collections?: Array<{ id: number; name: string }>;
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
-}) {
-  const {
-    searchFilters,
-    updateSearchFilters,
-    addFilter,
-    removeFilter,
-    updateFilter,
-  } = useAppStore();
+}) => {
+  const { searchFilters, updateSearchFilters, addFilter } = useAppStore();
 
   return (
     <div style={{ marginTop: "16px" }}>
@@ -340,13 +325,7 @@ export default function AdvancedSearch({
 
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
             {searchFilters.adv_params.map((filter, index) => (
-              <FilterRow
-                key={filter.id || index}
-                filter={filter}
-                index={index}
-                onUpdate={updateFilter}
-                onRemove={removeFilter}
-              />
+              <FilterRow key={filter.id} filter={filter} index={index} />
             ))}
 
             <Button
@@ -368,4 +347,6 @@ export default function AdvancedSearch({
       </div>
     </div>
   );
-}
+};
+
+export default memo(AdvancedSearch);

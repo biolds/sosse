@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Input,
@@ -32,7 +32,7 @@ interface SearchResponse {
   results: SearchResult[];
 }
 
-export default function HomePage() {
+const HomePage = () => {
   const { linkMode, toggleLinkMode, viewMode, setViewMode, searchFilters } =
     useAppStore();
   const searchParams = useSearchParams();
@@ -62,64 +62,65 @@ export default function HomePage() {
       });
   }, []);
 
-  const performSearch = useCallback(
-    async (value: string, page: number = 1, customPageSize?: number) => {
-      const queryTerm = value.trim();
-      const hasAdvancedFilters =
-        searchFilters.adv_params && searchFilters.adv_params.length > 0;
+  const performSearch = async (
+    value: string,
+    page: number = 1,
+    customPageSize?: number,
+  ) => {
+    const queryTerm = value.trim();
+    const hasAdvancedFilters =
+      searchFilters.adv_params && searchFilters.adv_params.length > 0;
 
-      if (!queryTerm && !hasAdvancedFilters) {
-        return;
+    if (!queryTerm && !hasAdvancedFilters) {
+      return;
+    }
+
+    setLoading(true);
+    setSubmittedQuery(queryTerm);
+    setCurrentPage(page);
+
+    const effectivePageSize = customPageSize || pageSize;
+    const offset = (page - 1) * effectivePageSize;
+
+    try {
+      const requestBody: {
+        query: string;
+        lang: string;
+        sort: string;
+        include_hidden: boolean;
+        collection?: number;
+        adv_params?: typeof searchFilters.adv_params;
+      } = {
+        query: queryTerm,
+        lang: searchFilters.lang || "en",
+        sort: searchFilters.sort,
+        include_hidden: searchFilters.include_hidden,
+      };
+
+      if (searchFilters.collection) {
+        requestBody.collection = searchFilters.collection;
       }
 
-      setLoading(true);
-      setSubmittedQuery(queryTerm);
-      setCurrentPage(page);
-
-      const effectivePageSize = customPageSize || pageSize;
-      const offset = (page - 1) * effectivePageSize;
-
-      try {
-        const requestBody: {
-          query: string;
-          lang: string;
-          sort: string;
-          include_hidden: boolean;
-          collection?: number;
-          adv_params?: typeof searchFilters.adv_params;
-        } = {
-          query: queryTerm,
-          lang: searchFilters.lang || "en",
-          sort: searchFilters.sort,
-          include_hidden: searchFilters.include_hidden,
-        };
-
-        if (searchFilters.collection) {
-          requestBody.collection = searchFilters.collection;
-        }
-
-        if (searchFilters.adv_params.length > 0) {
-          requestBody.adv_params = searchFilters.adv_params;
-        }
-
-        const response = await axios.post<SearchResponse>(
-          `/api/search/?limit=${effectivePageSize}&offset=${offset}`,
-          requestBody,
-        );
-
-        setSearchResults(response.data.results);
-        setTotalResults(response.data.count);
-      } catch (error) {
-        console.error("Search error:", error);
-        message.error("Failed to perform search. Please try again.");
-        setSearchResults([]);
-        setTotalResults(0);
-      } finally {
-        setLoading(false);
+      if (searchFilters.adv_params.length > 0) {
+        requestBody.adv_params = searchFilters.adv_params;
       }
-    },
-    [pageSize, searchFilters],
-  );
+
+      const response = await axios.post<SearchResponse>(
+        `/api/search/?limit=${effectivePageSize}&offset=${offset}`,
+        requestBody,
+      );
+
+      setSearchResults(response.data.results);
+      setTotalResults(response.data.count);
+    } catch (error) {
+      console.error("Search error:", error);
+      message.error("Failed to perform search. Please try again.");
+      setSearchResults([]);
+      setTotalResults(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -127,7 +128,7 @@ export default function HomePage() {
       setInputValue(q);
       performSearch(q);
     }
-  }, [searchParams, performSearch]);
+  }, [searchParams]);
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
@@ -262,4 +263,6 @@ export default function HomePage() {
       )}
     </div>
   );
-}
+};
+
+export default React.memo(HomePage);

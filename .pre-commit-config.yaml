@@ -67,3 +67,8 @@ repos:
         types: [file]
         args:
           - --config=sosse-ui/eslint.config.mjs
+
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: main
+    hooks:
+      - id: prettier

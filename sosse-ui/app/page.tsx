@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Input,
@@ -18,10 +18,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import SearchResults, { SearchResult } from "./components/SearchResults";
-import AdvancedSearch, {
-  AdvancedSearchParams,
-  AdvancedFilter,
-} from "./components/AdvancedSearch";
+import AdvancedSearch from "./components/AdvancedSearch";
 import { useAppStore } from "./useAppStore";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
@@ -36,7 +33,8 @@ interface SearchResponse {
 }
 
 export default function HomePage() {
-  const { linkMode, toggleLinkMode, viewMode, setViewMode } = useAppStore();
+  const { linkMode, toggleLinkMode, viewMode, setViewMode, searchFilters } =
+    useAppStore();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
@@ -48,21 +46,10 @@ export default function HomePage() {
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
-  const [advancedParams, setAdvancedParams] = useState<AdvancedSearchParams>({
-    lang: "en",
-    include_hidden: false,
-    sort: "-rank",
-    adv_params: [],
-  });
-  const advancedParamsRef = useRef(advancedParams);
-
-  useEffect(() => {
-    advancedParamsRef.current = advancedParams;
-  }, [advancedParams]);
-
   const [collections, setCollections] = useState<
     Array<{ id: number; name: string }>
   >([]);
+  const [advancedExpanded, setAdvancedExpanded] = useState(false);
 
   useEffect(() => {
     axios
@@ -76,18 +63,10 @@ export default function HomePage() {
   }, []);
 
   const performSearch = useCallback(
-    async (
-      value: string,
-      page: number = 1,
-      customPageSize?: number,
-      customAdvancedParams?: AdvancedSearchParams,
-    ) => {
+    async (value: string, page: number = 1, customPageSize?: number) => {
       const queryTerm = value.trim();
-      const effectiveAdvParams =
-        customAdvancedParams || advancedParamsRef.current;
       const hasAdvancedFilters =
-        effectiveAdvParams?.adv_params &&
-        effectiveAdvParams.adv_params.length > 0;
+        searchFilters.adv_params && searchFilters.adv_params.length > 0;
 
       if (!queryTerm && !hasAdvancedFilters) {
         return;
@@ -107,20 +86,20 @@ export default function HomePage() {
           sort: string;
           include_hidden: boolean;
           collection?: number;
-          adv_params?: AdvancedFilter[];
+          adv_params?: typeof searchFilters.adv_params;
         } = {
           query: queryTerm,
-          lang: effectiveAdvParams.lang || "en",
-          sort: effectiveAdvParams.sort,
-          include_hidden: effectiveAdvParams.include_hidden,
+          lang: searchFilters.lang || "en",
+          sort: searchFilters.sort,
+          include_hidden: searchFilters.include_hidden,
         };
 
-        if (effectiveAdvParams.collection) {
-          requestBody.collection = effectiveAdvParams.collection;
+        if (searchFilters.collection) {
+          requestBody.collection = searchFilters.collection;
         }
 
-        if (effectiveAdvParams.adv_params.length > 0) {
-          requestBody.adv_params = effectiveAdvParams.adv_params;
+        if (searchFilters.adv_params.length > 0) {
+          requestBody.adv_params = searchFilters.adv_params;
         }
 
         const response = await axios.post<SearchResponse>(
@@ -139,27 +118,27 @@ export default function HomePage() {
         setLoading(false);
       }
     },
-    [pageSize],
+    [pageSize, searchFilters],
   );
 
   useEffect(() => {
     const q = searchParams.get("q");
     if (q && q.trim()) {
       setInputValue(q);
-      performSearch(q, 1, undefined, advancedParamsRef.current);
+      performSearch(q);
     }
   }, [searchParams, performSearch]);
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
-    const hasAdvancedFilters = advancedParams.adv_params.length > 0;
+    const hasAdvancedFilters = searchFilters.adv_params.length > 0;
 
     if (!queryTerm && !hasAdvancedFilters) {
       message.warning("Please enter a search query or add filters");
       return;
     }
 
-    performSearch(queryTerm, 1, undefined, advancedParams);
+    performSearch(queryTerm);
 
     const params = new URLSearchParams();
     if (queryTerm) {
@@ -200,9 +179,9 @@ export default function HomePage() {
       />
 
       <AdvancedSearch
-        params={advancedParams}
-        onChange={setAdvancedParams}
         collections={collections}
+        expanded={advancedExpanded}
+        setExpanded={setAdvancedExpanded}
       />
 
       {loading && (

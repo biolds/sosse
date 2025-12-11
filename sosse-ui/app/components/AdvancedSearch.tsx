@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo } from "react";
 import {
   Button,
   Select,
@@ -10,7 +10,6 @@ import {
   Row,
   Col,
   Card,
-  Segmented,
 } from "antd";
 import {
   PlusOutlined,
@@ -20,30 +19,9 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
 } from "@ant-design/icons";
+import { useAppStore, type AdvancedFilter } from "../useAppStore";
 
 const { Option } = Select;
-
-export interface AdvancedFilter {
-  type: "inc" | "exc";
-  field: string;
-  operator: "contain" | "equal" | "regexp";
-  term: string;
-  case_sensitive: boolean;
-}
-
-export interface AdvancedSearchParams {
-  lang?: string;
-  collection?: number;
-  include_hidden: boolean;
-  sort: string;
-  adv_params: AdvancedFilter[];
-}
-
-interface AdvancedSearchProps {
-  params: AdvancedSearchParams;
-  onChange: (params: AdvancedSearchParams) => void;
-  collections?: Array<{ id: number; name: string }>;
-}
 
 const FILTER_FIELDS = [
   { value: "doc", label: "Document" },
@@ -89,47 +67,138 @@ const LANGUAGES = [
   { value: "ar", label: "🇸🇦 Arabic" },
 ];
 
+const FilterRow = memo(
+  ({
+    filter,
+    index,
+    onUpdate,
+    onRemove,
+  }: {
+    filter: AdvancedFilter;
+    index: number;
+    onUpdate: (
+      index: number,
+      field: keyof AdvancedFilter,
+      value: string | boolean,
+    ) => void;
+    onRemove: (index: number) => void;
+  }) => {
+    return (
+      <div
+        style={{
+          padding: "12px",
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          border: "1px solid #e8e8e8",
+          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+        }}
+      >
+        <Row gutter={8} align="middle" wrap>
+          <Col flex="none">
+            <Button
+              size="small"
+              icon={<MinusOutlined />}
+              onClick={() => onRemove(index)}
+              danger
+              shape="circle"
+              style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
+            />
+          </Col>
+          <Col flex="110px">
+            <Button
+              size="small"
+              onClick={() =>
+                onUpdate(index, "type", filter.type === "inc" ? "exc" : "inc")
+              }
+              icon={
+                filter.type === "inc" ? (
+                  <CheckCircleOutlined />
+                ) : (
+                  <CloseCircleOutlined />
+                )
+              }
+              type={filter.type === "inc" ? "primary" : "default"}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {filter.type === "inc" ? "Keep" : "Exclude"}
+            </Button>
+          </Col>
+          <Col flex="150px">
+            <Select
+              value={filter.field}
+              onChange={(value) => onUpdate(index, "field", value)}
+              style={{ width: "100%" }}
+              size="small"
+              variant="filled"
+            >
+              {FILTER_FIELDS.map((field) => (
+                <Option key={field.value} value={field.value}>
+                  {field.label}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col flex="130px">
+            <Select
+              value={filter.operator}
+              onChange={(value) => onUpdate(index, "operator", value)}
+              style={{ width: "100%" }}
+              size="small"
+              variant="filled"
+            >
+              <Option value="contain">Containing</Option>
+              <Option value="equal">Equal to</Option>
+              <Option value="regexp">Matching Regex</Option>
+            </Select>
+          </Col>
+          <Col flex="auto">
+            <Input
+              value={filter.term}
+              onChange={(e) => onUpdate(index, "term", e.target.value)}
+              placeholder="Value"
+              size="small"
+              variant="filled"
+            />
+          </Col>
+          <Col flex="none">
+            <Checkbox
+              checked={filter.case_sensitive}
+              onChange={(e) =>
+                onUpdate(index, "case_sensitive", e.target.checked)
+              }
+            >
+              Case sensitive
+            </Checkbox>
+          </Col>
+        </Row>
+      </div>
+    );
+  },
+);
+
+FilterRow.displayName = "FilterRow";
+
 export default function AdvancedSearch({
-  params,
-  onChange,
   collections = [],
-}: AdvancedSearchProps) {
-  const [expanded, setExpanded] = useState(false);
-
-  const addFilter = () => {
-    const newFilter: AdvancedFilter = {
-      type: "inc",
-      field: "doc",
-      operator: "contain",
-      term: "",
-      case_sensitive: false,
-    };
-    onChange({
-      ...params,
-      adv_params: [...params.adv_params, newFilter],
-    });
-  };
-
-  const removeFilter = (index: number) => {
-    const newFilters = params.adv_params.filter((_, i) => i !== index);
-    onChange({
-      ...params,
-      adv_params: newFilters,
-    });
-  };
-
-  const updateFilter = (
-    index: number,
-    field: keyof AdvancedFilter,
-    value: string | boolean,
-  ) => {
-    const newFilters = [...params.adv_params];
-    newFilters[index] = { ...newFilters[index], [field]: value };
-    onChange({
-      ...params,
-      adv_params: newFilters,
-    });
-  };
+  expanded,
+  setExpanded,
+}: {
+  collections?: Array<{ id: number; name: string }>;
+  expanded: boolean;
+  setExpanded: (expanded: boolean) => void;
+}) {
+  const {
+    searchFilters,
+    updateSearchFilters,
+    addFilter,
+    removeFilter,
+    updateFilter,
+  } = useAppStore();
 
   return (
     <div style={{ marginTop: "16px" }}>
@@ -186,9 +255,12 @@ export default function AdvancedSearch({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Language" style={{ marginBottom: 0 }}>
                 <Select
-                  value={params.lang || ""}
+                  value={searchFilters.lang || ""}
                   onChange={(value) =>
-                    onChange({ ...params, lang: value || undefined })
+                    updateSearchFilters({
+                      ...searchFilters,
+                      lang: value || undefined,
+                    })
                   }
                   style={{ width: "100%" }}
                 >
@@ -204,9 +276,9 @@ export default function AdvancedSearch({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Collection" style={{ marginBottom: 0 }}>
                 <Select
-                  value={params.collection}
+                  value={searchFilters.collection}
                   onChange={(value) =>
-                    onChange({ ...params, collection: value })
+                    updateSearchFilters({ ...searchFilters, collection: value })
                   }
                   style={{ width: "100%" }}
                   allowClear
@@ -224,8 +296,10 @@ export default function AdvancedSearch({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Sort" style={{ marginBottom: 0 }}>
                 <Select
-                  value={params.sort}
-                  onChange={(value) => onChange({ ...params, sort: value })}
+                  value={searchFilters.sort}
+                  onChange={(value) =>
+                    updateSearchFilters({ ...searchFilters, sort: value })
+                  }
                   style={{ width: "100%" }}
                 >
                   {SORT_OPTIONS.map((opt) => (
@@ -240,9 +314,12 @@ export default function AdvancedSearch({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label=" " style={{ marginBottom: 0 }}>
                 <Checkbox
-                  checked={params.include_hidden}
+                  checked={searchFilters.include_hidden}
                   onChange={(e) =>
-                    onChange({ ...params, include_hidden: e.target.checked })
+                    updateSearchFilters({
+                      ...searchFilters,
+                      include_hidden: e.target.checked,
+                    })
                   }
                 >
                   Include hidden documents
@@ -262,109 +339,14 @@ export default function AdvancedSearch({
           </Divider>
 
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            {params.adv_params.map((filter, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: "12px",
-                  backgroundColor: "#fff",
-                  borderRadius: "8px",
-                  border: "1px solid #e8e8e8",
-                  boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
-                }}
-              >
-                <Row gutter={8} align="middle" wrap>
-                  <Col flex="none">
-                    <Button
-                      size="small"
-                      icon={<MinusOutlined />}
-                      onClick={() => removeFilter(index)}
-                      danger
-                      shape="circle"
-                      style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-                    />
-                  </Col>
-                  <Col flex="110px">
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        updateFilter(
-                          index,
-                          "type",
-                          filter.type === "inc" ? "exc" : "inc",
-                        )
-                      }
-                      icon={
-                        filter.type === "inc" ? (
-                          <CheckCircleOutlined />
-                        ) : (
-                          <CloseCircleOutlined />
-                        )
-                      }
-                      type={filter.type === "inc" ? "primary" : "default"}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {filter.type === "inc" ? "Keep" : "Exclude"}
-                    </Button>
-                  </Col>
-                  <Col flex="150px">
-                    <Select
-                      value={filter.field}
-                      onChange={(value) => updateFilter(index, "field", value)}
-                      style={{ width: "100%" }}
-                      size="small"
-                      variant="filled"
-                    >
-                      {FILTER_FIELDS.map((field) => (
-                        <Option key={field.value} value={field.value}>
-                          {field.label}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Col>
-                  <Col flex="130px">
-                    <Select
-                      value={filter.operator}
-                      onChange={(value) =>
-                        updateFilter(index, "operator", value)
-                      }
-                      style={{ width: "100%" }}
-                      size="small"
-                      variant="filled"
-                    >
-                      <Option value="contain">Containing</Option>
-                      <Option value="equal">Equal to</Option>
-                      <Option value="regexp">Matching Regex</Option>
-                    </Select>
-                  </Col>
-                  <Col flex="auto">
-                    <Input
-                      value={filter.term}
-                      onChange={(e) =>
-                        updateFilter(index, "term", e.target.value)
-                      }
-                      placeholder="Value"
-                      size="small"
-                      variant="filled"
-                    />
-                  </Col>
-                  <Col flex="none">
-                    <Checkbox
-                      checked={filter.case_sensitive}
-                      onChange={(e) =>
-                        updateFilter(index, "case_sensitive", e.target.checked)
-                      }
-                    >
-                      Case sensitive
-                    </Checkbox>
-                  </Col>
-                </Row>
-              </div>
+            {searchFilters.adv_params.map((filter, index) => (
+              <FilterRow
+                key={filter.id || index}
+                filter={filter}
+                index={index}
+                onUpdate={updateFilter}
+                onRemove={removeFilter}
+              />
             ))}
 
             <Button

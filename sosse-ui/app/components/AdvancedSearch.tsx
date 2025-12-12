@@ -1,6 +1,12 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import {
+  memo,
+  useCallback,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import {
   Button,
   Select,
@@ -79,6 +85,7 @@ const FilterRow = memo(
     index,
     onRemove,
     onUpdate,
+    error,
   }: {
     filter: AdvancedFilter;
     index: number;
@@ -88,6 +95,7 @@ const FilterRow = memo(
       field: keyof AdvancedFilter,
       value: string | boolean,
     ) => void;
+    error?: string;
   }) => {
     return (
       <div
@@ -99,7 +107,7 @@ const FilterRow = memo(
           boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
         }}
       >
-        <Row gutter={8} align="middle" wrap>
+        <Row gutter={8} wrap>
           <Col flex="none">
             <Button
               size="small"
@@ -163,14 +171,21 @@ const FilterRow = memo(
             </Select>
           </Col>
           <Col flex="auto">
-            <Input
-              value={filter.term}
-              onChange={(e) => onUpdate(index, "term", e.target.value)}
-              placeholder="Value"
-              size="small"
-              variant="filled"
-              allowClear
-            />
+            <Form.Item
+              validateStatus={error ? "error" : ""}
+              help={error}
+              style={{ marginBottom: 0, alignItems: "flex-start" }}
+            >
+              <Input
+                value={filter.term}
+                onChange={(e) => onUpdate(index, "term", e.target.value)}
+                placeholder="Value"
+                size="small"
+                variant="filled"
+                allowClear
+                status={error ? "error" : ""}
+              />
+            </Form.Item>
           </Col>
           <Col flex="none">
             <Checkbox
@@ -190,18 +205,21 @@ const FilterRow = memo(
 
 FilterRow.displayName = "FilterRow";
 
-const AdvancedSearch = ({
-  expanded,
-  setExpanded,
-  draftFilters,
-  setDraftFilters,
-}: {
-  expanded: boolean;
-  setExpanded: (expanded: boolean) => void;
-  draftFilters: SearchFilters;
-  setDraftFilters: (filters: SearchFilters) => void;
-}) => {
+export interface AdvancedSearchRef {
+  validateFilters: () => boolean;
+}
+
+const AdvancedSearch = forwardRef<
+  AdvancedSearchRef,
+  {
+    expanded: boolean;
+    setExpanded: (expanded: boolean) => void;
+    draftFilters: SearchFilters;
+    setDraftFilters: (filters: SearchFilters) => void;
+  }
+>(({ expanded, setExpanded, draftFilters, setDraftFilters }, ref) => {
   const { collections } = useAppStore();
+  const [filterErrors, setFilterErrors] = useState<Record<number, string>>({});
 
   const addFilter = useCallback(() => {
     setDraftFilters({
@@ -238,9 +256,32 @@ const AdvancedSearch = ({
           i === index ? { ...filter, [field]: value } : filter,
         ),
       });
+
+      if (field === "term" && value) {
+        setFilterErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[index];
+          return newErrors;
+        });
+      }
     },
     [draftFilters, setDraftFilters],
   );
+
+  const validateFilters = useCallback(() => {
+    const errors: Record<number, string> = {};
+    draftFilters.adv_params.forEach((filter, index) => {
+      if (!filter.term || filter.term.trim() === "") {
+        errors[index] = "This field is required";
+      }
+    });
+    setFilterErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [draftFilters.adv_params]);
+
+  useImperativeHandle(ref, () => ({
+    validateFilters,
+  }));
 
   return (
     <div style={{ marginTop: "16px" }}>
@@ -388,6 +429,7 @@ const AdvancedSearch = ({
                 index={index}
                 onRemove={removeFilter}
                 onUpdate={updateFilter}
+                error={filterErrors[index]}
               />
             ))}
 
@@ -410,6 +452,8 @@ const AdvancedSearch = ({
       </div>
     </div>
   );
-};
+});
+
+AdvancedSearch.displayName = "AdvancedSearch";
 
 export default memo(AdvancedSearch);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Input,
@@ -18,7 +18,9 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import SearchResults, { SearchResult } from "./components/SearchResults";
-import AdvancedSearch from "./components/AdvancedSearch";
+import AdvancedSearch, {
+  type AdvancedSearchRef,
+} from "./components/AdvancedSearch";
 import { useAppStore } from "./useAppStore";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
@@ -55,6 +57,7 @@ const HomePage = () => {
   );
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
   const [draftFilters, setDraftFilters] = useState(searchFilters);
+  const advancedSearchRef = useRef<AdvancedSearchRef>(null);
 
   useEffect(() => {
     loadCollections();
@@ -133,11 +136,20 @@ const HomePage = () => {
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
-    const hasAdvancedFilters = draftFilters.adv_params.length > 0;
+    const hasAdvancedFilters =
+      advancedExpanded && draftFilters.adv_params.length > 0;
 
     if (!queryTerm && !hasAdvancedFilters) {
       message.warning("Please enter a search query or add filters");
       return;
+    }
+
+    if (hasAdvancedFilters && advancedSearchRef.current) {
+      const isValid = advancedSearchRef.current.validateFilters();
+      if (!isValid) {
+        message.error("Please fill in all required filter fields");
+        return;
+      }
     }
 
     updateSearchFilters(draftFilters);
@@ -181,6 +193,7 @@ const HomePage = () => {
       />
 
       <AdvancedSearch
+        ref={advancedSearchRef}
         expanded={advancedExpanded}
         setExpanded={setAdvancedExpanded}
         draftFilters={draftFilters}

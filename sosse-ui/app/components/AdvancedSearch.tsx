@@ -169,6 +169,7 @@ const FilterRow = memo(
               placeholder="Value"
               size="small"
               variant="filled"
+              allowClear
             />
           </Col>
           <Col flex="none">

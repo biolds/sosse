@@ -64,10 +64,11 @@ const HomePage = () => {
     value: string,
     page: number = 1,
     customPageSize?: number,
+    filters = searchFilters,
   ) => {
     const queryTerm = value.trim();
     const hasAdvancedFilters =
-      searchFilters.adv_params && searchFilters.adv_params.length > 0;
+      advancedExpanded && filters.adv_params && filters.adv_params.length > 0;
 
     if (!queryTerm && !hasAdvancedFilters) {
       return;
@@ -87,20 +88,22 @@ const HomePage = () => {
         sort: string;
         include_hidden: boolean;
         collection?: number;
-        adv_params?: typeof searchFilters.adv_params;
+        adv_params?: typeof filters.adv_params;
       } = {
         query: queryTerm,
-        lang: searchFilters.lang || "en",
-        sort: searchFilters.sort,
-        include_hidden: searchFilters.include_hidden,
+        lang: filters.lang || "en",
+        sort: filters.sort,
+        include_hidden: filters.include_hidden,
       };
 
-      if (searchFilters.collection) {
-        requestBody.collection = searchFilters.collection;
-      }
+      if (advancedExpanded) {
+        if (filters.collection) {
+          requestBody.collection = filters.collection;
+        }
 
-      if (searchFilters.adv_params.length > 0) {
-        requestBody.adv_params = searchFilters.adv_params;
+        if (filters.adv_params.length > 0) {
+          requestBody.adv_params = filters.adv_params;
+        }
       }
 
       const response = await axios.post<SearchResponse>(
@@ -138,7 +141,7 @@ const HomePage = () => {
     }
 
     updateSearchFilters(draftFilters);
-    performSearch(queryTerm);
+    performSearch(queryTerm, 1, undefined, draftFilters);
 
     if (searchParams.get("q") !== queryTerm) {
       const params = new URLSearchParams();
@@ -161,10 +164,6 @@ const HomePage = () => {
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", paddingTop: "40px" }}>
-      <Title level={1} style={{ textAlign: "center", marginBottom: "40px" }}>
-        Search Archived Pages
-      </Title>
-
       <Search
         placeholder="Enter search query..."
         enterButton={
@@ -178,6 +177,7 @@ const HomePage = () => {
         onSearch={handleSearch}
         loading={loading}
         autoFocus
+        allowClear
       />
 
       <AdvancedSearch

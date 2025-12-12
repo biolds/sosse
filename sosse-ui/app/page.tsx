@@ -198,6 +198,7 @@ const HomePage = () => {
         setExpanded={setAdvancedExpanded}
         draftFilters={draftFilters}
         setDraftFilters={setDraftFilters}
+        onSearch={() => handleSearch(inputValue)}
       />
 
       {loading && (

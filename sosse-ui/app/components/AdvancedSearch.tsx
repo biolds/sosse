@@ -86,6 +86,7 @@ const FilterRow = memo(
     onRemove,
     onUpdate,
     error,
+    onSearch,
   }: {
     filter: AdvancedFilter;
     index: number;
@@ -96,6 +97,7 @@ const FilterRow = memo(
       value: string | boolean,
     ) => void;
     error?: string;
+    onSearch?: () => void;
   }) => {
     return (
       <div
@@ -179,6 +181,11 @@ const FilterRow = memo(
               <Input
                 value={filter.term}
                 onChange={(e) => onUpdate(index, "term", e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && onSearch) {
+                    onSearch();
+                  }
+                }}
                 placeholder="Value"
                 size="small"
                 variant="filled"
@@ -216,8 +223,9 @@ const AdvancedSearch = forwardRef<
     setExpanded: (expanded: boolean) => void;
     draftFilters: SearchFilters;
     setDraftFilters: (filters: SearchFilters) => void;
+    onSearch?: () => void;
   }
->(({ expanded, setExpanded, draftFilters, setDraftFilters }, ref) => {
+>(({ expanded, setExpanded, draftFilters, setDraftFilters, onSearch }, ref) => {
   const { collections } = useAppStore();
   const [filterErrors, setFilterErrors] = useState<Record<number, string>>({});
 
@@ -430,6 +438,7 @@ const AdvancedSearch = forwardRef<
                 onRemove={removeFilter}
                 onUpdate={updateFilter}
                 error={filterErrors[index]}
+                onSearch={onSearch}
               />
             ))}
 

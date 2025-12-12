@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import React, {
   memo,
   useCallback,
   useState,
@@ -18,6 +18,7 @@ import {
   Row,
   Col,
   Card,
+  theme,
 } from "antd";
 import {
   PlusOutlined,
@@ -100,113 +101,125 @@ const FilterRow = memo(
     error?: string;
     onSearch?: () => void;
   }) => {
+    const { token } = theme.useToken();
+    const [isRemoving, setIsRemoving] = React.useState(false);
+
+    const handleRemove = () => {
+      setIsRemoving(true);
+      setTimeout(() => {
+        onRemove(index);
+      }, 300);
+    };
+
     return (
-      <div
-        style={{
-          padding: "12px",
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          border: "1px solid #e8e8e8",
-          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
-        }}
-      >
-        <Row gutter={8} wrap>
-          <Col flex="none">
-            <Button
-              size="small"
-              icon={<MinusOutlined />}
-              onClick={() => onRemove(index)}
-              danger
-              shape="circle"
-              style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-            />
-          </Col>
-          <Col flex="110px">
-            <Button
-              size="small"
-              onClick={() =>
-                onUpdate(index, "type", filter.type === "inc" ? "exc" : "inc")
-              }
-              icon={
-                filter.type === "inc" ? (
-                  <CheckCircleOutlined />
-                ) : (
-                  <CloseCircleOutlined />
-                )
-              }
-              type={filter.type === "inc" ? "primary" : "default"}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {filter.type === "inc" ? "Keep" : "Exclude"}
-            </Button>
-          </Col>
-          <Col flex="150px">
-            <Select
-              value={filter.field}
-              onChange={(value) => onUpdate(index, "field", value)}
-              style={{ width: "100%" }}
-              size="small"
-              variant="filled"
-            >
-              {FILTER_FIELDS.map((field) => (
-                <Option key={field.value} value={field.value}>
-                  {field.label}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col flex="130px">
-            <Select
-              value={filter.operator}
-              onChange={(value) => onUpdate(index, "operator", value)}
-              style={{ width: "100%" }}
-              size="small"
-              variant="filled"
-            >
-              <Option value="contain">Containing</Option>
-              <Option value="equal">Equal to</Option>
-              <Option value="regexp">Matching Regex</Option>
-            </Select>
-          </Col>
-          <Col flex="auto">
-            <Form.Item
-              validateStatus={error ? "error" : ""}
-              help={error}
-              style={{ marginBottom: 0 }}
-              className="advanced-filter-term"
-            >
-              <Input
-                value={filter.term}
-                onChange={(e) => onUpdate(index, "term", e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && onSearch) {
-                    onSearch();
-                  }
+      <div className={`filter-row-wrapper ${isRemoving ? "removing" : ""}`}>
+        <div
+          style={{
+            padding: "12px",
+            backgroundColor: token.colorBgContainer,
+            borderRadius: "8px",
+            border: `1px solid ${token.colorBorder}`,
+            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+          }}
+        >
+          <Row gutter={8} wrap>
+            <Col flex="none">
+              <Button
+                size="small"
+                icon={<MinusOutlined />}
+                onClick={handleRemove}
+                danger
+                shape="circle"
+                style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
+              />
+            </Col>
+            <Col flex="110px">
+              <Button
+                size="small"
+                onClick={() =>
+                  onUpdate(index, "type", filter.type === "inc" ? "exc" : "inc")
+                }
+                icon={
+                  filter.type === "inc" ? (
+                    <CheckCircleOutlined />
+                  ) : (
+                    <CloseCircleOutlined />
+                  )
+                }
+                type={filter.type === "inc" ? "primary" : "default"}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-                placeholder="Value"
+              >
+                {filter.type === "inc" ? "Keep" : "Exclude"}
+              </Button>
+            </Col>
+            <Col flex="150px">
+              <Select
+                value={filter.field}
+                onChange={(value) => onUpdate(index, "field", value)}
+                style={{ width: "100%" }}
                 size="small"
                 variant="filled"
-                allowClear
-                status={error ? "error" : ""}
-              />
-            </Form.Item>
-          </Col>
-          <Col flex="none">
-            <Checkbox
-              checked={filter.case_sensitive}
-              onChange={(e) =>
-                onUpdate(index, "case_sensitive", e.target.checked)
-              }
-            >
-              Case sensitive
-            </Checkbox>
-          </Col>
-        </Row>
+              >
+                {FILTER_FIELDS.map((field) => (
+                  <Option key={field.value} value={field.value}>
+                    {field.label}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
+            <Col flex="130px">
+              <Select
+                value={filter.operator}
+                onChange={(value) => onUpdate(index, "operator", value)}
+                style={{ width: "100%" }}
+                size="small"
+                variant="filled"
+              >
+                <Option value="contain">Containing</Option>
+                <Option value="equal">Equal to</Option>
+                <Option value="regexp">Matching Regex</Option>
+              </Select>
+            </Col>
+            <Col flex="auto">
+              <Form.Item
+                validateStatus={error ? "error" : ""}
+                help={error}
+                style={{ marginBottom: 0 }}
+                className="advanced-filter-term"
+              >
+                <Input
+                  value={filter.term}
+                  onChange={(e) => onUpdate(index, "term", e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && onSearch) {
+                      onSearch();
+                    }
+                  }}
+                  placeholder="Value"
+                  size="small"
+                  variant="filled"
+                  allowClear
+                  status={error ? "error" : ""}
+                />
+              </Form.Item>
+            </Col>
+            <Col flex="none">
+              <Checkbox
+                checked={filter.case_sensitive}
+                onChange={(e) =>
+                  onUpdate(index, "case_sensitive", e.target.checked)
+                }
+              >
+                Case sensitive
+              </Checkbox>
+            </Col>
+          </Row>
+        </div>
       </div>
     );
   },
@@ -229,6 +242,7 @@ const AdvancedSearch = forwardRef<
   }
 >(({ expanded, setExpanded, draftFilters, setDraftFilters, onSearch }, ref) => {
   const { collections } = useAppStore();
+  const { token } = theme.useToken();
   const [filterErrors, setFilterErrors] = useState<Record<number, string>>({});
 
   const addFilter = useCallback(() => {
@@ -339,8 +353,8 @@ const AdvancedSearch = forwardRef<
             marginTop: "20px",
             borderRadius: "12px",
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-            border: "1px solid #e8e8e8",
-            background: "linear-gradient(to bottom, #ffffff, #fafafa)",
+            border: `1px solid ${token.colorBorder}`,
+            background: token.colorBgContainer,
           }}
           styles={{ body: { padding: "24px" } }}
         >
@@ -426,23 +440,27 @@ const AdvancedSearch = forwardRef<
             style={{ marginTop: "24px", marginBottom: "20px" }}
           >
             <Space>
-              <FilterOutlined style={{ color: "#1677ff" }} />
+              <FilterOutlined style={{ color: token.colorPrimary }} />
               <span style={{ fontWeight: 500 }}>Custom Filters</span>
             </Space>
           </Divider>
 
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            {draftFilters.adv_params.map((filter, index) => (
-              <FilterRow
-                key={filter.id}
-                filter={filter}
-                index={index}
-                onRemove={removeFilter}
-                onUpdate={updateFilter}
-                error={filterErrors[index]}
-                onSearch={onSearch}
-              />
-            ))}
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              {draftFilters.adv_params.map((filter, index) => (
+                <FilterRow
+                  key={filter.id}
+                  filter={filter}
+                  index={index}
+                  onRemove={removeFilter}
+                  onUpdate={updateFilter}
+                  error={filterErrors[index]}
+                  onSearch={onSearch}
+                />
+              ))}
+            </div>
 
             <Button
               type="dashed"
@@ -454,6 +472,7 @@ const AdvancedSearch = forwardRef<
                 height: "40px",
                 borderStyle: "dashed",
                 borderWidth: "2px",
+                transition: "transform 300ms ease-out",
               }}
             >
               Add filter

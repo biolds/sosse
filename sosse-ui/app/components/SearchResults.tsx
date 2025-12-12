@@ -40,9 +40,9 @@ const formatDate = (dateString?: string) => {
 const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
   if (viewMode === "card") {
     return (
-      <Row gutter={[16, 16]}>
+      <Row gutter={[12, 12]}>
         {results.map((item) => (
-          <Col key={item.id} xs={24} sm={12} lg={8}>
+          <Col key={item.id} xs={24} sm={12} lg={6} xxl={4}>
             <SearchResultLink href={item.url}>
               <Card
                 hoverable

@@ -32,6 +32,7 @@ import {
   type AdvancedFilter,
   type SearchFilters,
 } from "../useAppStore";
+import "./AdvancedSearch.css";
 
 const { Option } = Select;
 
@@ -176,7 +177,8 @@ const FilterRow = memo(
             <Form.Item
               validateStatus={error ? "error" : ""}
               help={error}
-              style={{ marginBottom: 0, alignItems: "flex-start" }}
+              style={{ marginBottom: 0 }}
+              className="advanced-filter-term"
             >
               <Input
                 value={filter.term}
@@ -340,7 +342,7 @@ const AdvancedSearch = forwardRef<
             border: "1px solid #e8e8e8",
             background: "linear-gradient(to bottom, #ffffff, #fafafa)",
           }}
-          bodyStyle={{ padding: "24px" }}
+          styles={{ body: { padding: "24px" } }}
         >
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>

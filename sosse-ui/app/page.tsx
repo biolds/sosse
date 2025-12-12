@@ -140,11 +140,13 @@ const HomePage = () => {
     updateSearchFilters(draftFilters);
     performSearch(queryTerm);
 
-    const params = new URLSearchParams();
-    if (queryTerm) {
-      params.set("q", queryTerm);
+    if (searchParams.get("q") !== queryTerm) {
+      const params = new URLSearchParams();
+      if (queryTerm) {
+        params.set("q", queryTerm);
+      }
+      router.push(`/?${params.toString()}`);
     }
-    router.push(`/?${params.toString()}`);
   };
 
   const handlePageChange = (page: number, newPageSize: number) => {

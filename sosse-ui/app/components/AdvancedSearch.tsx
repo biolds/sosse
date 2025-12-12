@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import {
   Button,
   Select,
@@ -19,7 +19,11 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
 } from "@ant-design/icons";
-import { useAppStore, type AdvancedFilter } from "../useAppStore";
+import {
+  useAppStore,
+  type AdvancedFilter,
+  type SearchFilters,
+} from "../useAppStore";
 
 const { Option } = Select;
 
@@ -68,8 +72,21 @@ const LANGUAGES = [
 ];
 
 const FilterRow = memo(
-  ({ filter, index }: { filter: AdvancedFilter; index: number }) => {
-    const { removeFilter, updateFilter } = useAppStore();
+  ({
+    filter,
+    index,
+    onRemove,
+    onUpdate,
+  }: {
+    filter: AdvancedFilter;
+    index: number;
+    onRemove: (index: number) => void;
+    onUpdate: (
+      index: number,
+      field: keyof AdvancedFilter,
+      value: string | boolean,
+    ) => void;
+  }) => {
     return (
       <div
         style={{
@@ -85,7 +102,7 @@ const FilterRow = memo(
             <Button
               size="small"
               icon={<MinusOutlined />}
-              onClick={() => removeFilter(index)}
+              onClick={() => onRemove(index)}
               danger
               shape="circle"
               style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
@@ -95,11 +112,7 @@ const FilterRow = memo(
             <Button
               size="small"
               onClick={() =>
-                updateFilter(
-                  index,
-                  "type",
-                  filter.type === "inc" ? "exc" : "inc",
-                )
+                onUpdate(index, "type", filter.type === "inc" ? "exc" : "inc")
               }
               icon={
                 filter.type === "inc" ? (
@@ -122,7 +135,7 @@ const FilterRow = memo(
           <Col flex="150px">
             <Select
               value={filter.field}
-              onChange={(value) => updateFilter(index, "field", value)}
+              onChange={(value) => onUpdate(index, "field", value)}
               style={{ width: "100%" }}
               size="small"
               variant="filled"
@@ -137,7 +150,7 @@ const FilterRow = memo(
           <Col flex="130px">
             <Select
               value={filter.operator}
-              onChange={(value) => updateFilter(index, "operator", value)}
+              onChange={(value) => onUpdate(index, "operator", value)}
               style={{ width: "100%" }}
               size="small"
               variant="filled"
@@ -150,7 +163,7 @@ const FilterRow = memo(
           <Col flex="auto">
             <Input
               value={filter.term}
-              onChange={(e) => updateFilter(index, "term", e.target.value)}
+              onChange={(e) => onUpdate(index, "term", e.target.value)}
               placeholder="Value"
               size="small"
               variant="filled"
@@ -160,7 +173,7 @@ const FilterRow = memo(
             <Checkbox
               checked={filter.case_sensitive}
               onChange={(e) =>
-                updateFilter(index, "case_sensitive", e.target.checked)
+                onUpdate(index, "case_sensitive", e.target.checked)
               }
             >
               Case sensitive
@@ -177,12 +190,54 @@ FilterRow.displayName = "FilterRow";
 const AdvancedSearch = ({
   expanded,
   setExpanded,
+  draftFilters,
+  setDraftFilters,
 }: {
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
+  draftFilters: SearchFilters;
+  setDraftFilters: (filters: SearchFilters) => void;
 }) => {
-  const { searchFilters, updateSearchFilters, addFilter, collections } =
-    useAppStore();
+  const { collections } = useAppStore();
+
+  const addFilter = useCallback(() => {
+    setDraftFilters({
+      ...draftFilters,
+      adv_params: [
+        ...draftFilters.adv_params,
+        {
+          id: `filter-${Date.now()}-${Math.random()}`,
+          type: "inc",
+          field: "doc",
+          operator: "contain",
+          term: "",
+          case_sensitive: false,
+        },
+      ],
+    });
+  }, [draftFilters, setDraftFilters]);
+
+  const removeFilter = useCallback(
+    (index: number) => {
+      setDraftFilters({
+        ...draftFilters,
+        adv_params: draftFilters.adv_params.filter((_, i) => i !== index),
+      });
+    },
+    [draftFilters, setDraftFilters],
+  );
+
+  const updateFilter = useCallback(
+    (index: number, field: keyof AdvancedFilter, value: string | boolean) => {
+      setDraftFilters({
+        ...draftFilters,
+        adv_params: draftFilters.adv_params.map((filter, i) =>
+          i === index ? { ...filter, [field]: value } : filter,
+        ),
+      });
+    },
+    [draftFilters, setDraftFilters],
+  );
 
   return (
     <div style={{ marginTop: "16px" }}>
@@ -239,10 +294,10 @@ const AdvancedSearch = ({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Language" style={{ marginBottom: 0 }}>
                 <Select
-                  value={searchFilters.lang || ""}
+                  value={draftFilters.lang || ""}
                   onChange={(value) =>
-                    updateSearchFilters({
-                      ...searchFilters,
+                    setDraftFilters({
+                      ...draftFilters,
                       lang: value || undefined,
                     })
                   }
@@ -260,9 +315,9 @@ const AdvancedSearch = ({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Collection" style={{ marginBottom: 0 }}>
                 <Select
-                  value={searchFilters.collection}
+                  value={draftFilters.collection}
                   onChange={(value) =>
-                    updateSearchFilters({ ...searchFilters, collection: value })
+                    setDraftFilters({ ...draftFilters, collection: value })
                   }
                   style={{ width: "100%" }}
                   allowClear
@@ -280,9 +335,9 @@ const AdvancedSearch = ({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Sort" style={{ marginBottom: 0 }}>
                 <Select
-                  value={searchFilters.sort}
+                  value={draftFilters.sort}
                   onChange={(value) =>
-                    updateSearchFilters({ ...searchFilters, sort: value })
+                    setDraftFilters({ ...draftFilters, sort: value })
                   }
                   style={{ width: "100%" }}
                 >
@@ -298,10 +353,10 @@ const AdvancedSearch = ({
             <Col xs={24} sm={12} md={6}>
               <Form.Item label=" " style={{ marginBottom: 0 }}>
                 <Checkbox
-                  checked={searchFilters.include_hidden}
+                  checked={draftFilters.include_hidden}
                   onChange={(e) =>
-                    updateSearchFilters({
-                      ...searchFilters,
+                    setDraftFilters({
+                      ...draftFilters,
                       include_hidden: e.target.checked,
                     })
                   }
@@ -323,8 +378,14 @@ const AdvancedSearch = ({
           </Divider>
 
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            {searchFilters.adv_params.map((filter, index) => (
-              <FilterRow key={filter.id} filter={filter} index={index} />
+            {draftFilters.adv_params.map((filter, index) => (
+              <FilterRow
+                key={filter.id}
+                filter={filter}
+                index={index}
+                onRemove={removeFilter}
+                onUpdate={updateFilter}
+              />
             ))}
 
             <Button

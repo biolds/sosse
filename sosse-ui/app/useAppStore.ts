@@ -35,13 +35,6 @@ interface AppState {
   initializeAuth: () => Promise<void>;
   searchFilters: SearchFilters;
   updateSearchFilters: (filters: SearchFilters) => void;
-  addFilter: () => void;
-  removeFilter: (index: number) => void;
-  updateFilter: (
-    index: number,
-    field: keyof AdvancedFilter,
-    value: string | boolean,
-  ) => void;
   collections: Array<{ id: number; name: string }>;
   setCollections: (collections: Array<{ id: number; name: string }>) => void;
   loadCollections: () => Promise<void>;
@@ -71,46 +64,8 @@ export const useAppStore = create<AppState>()(
 
       updateSearchFilters: (filters) =>
         set({
-          filters,
+          searchFilters: filters,
         }),
-
-      addFilter: () =>
-        set((state) => ({
-          searchFilters: {
-            ...state.searchFilters,
-            adv_params: [
-              ...state.searchFilters.adv_params,
-              {
-                id: `filter-${Date.now()}-${Math.random()}`,
-                type: "inc",
-                field: "doc",
-                operator: "contain",
-                term: "",
-                case_sensitive: false,
-              },
-            ],
-          },
-        })),
-
-      removeFilter: (index) =>
-        set((state) => ({
-          searchFilters: {
-            ...state.searchFilters,
-            adv_params: state.searchFilters.adv_params.filter(
-              (_, i) => i !== index,
-            ),
-          },
-        })),
-
-      updateFilter: (index, field, value) =>
-        set((state) => ({
-          searchFilters: {
-            ...state.searchFilters,
-            adv_params: state.searchFilters.adv_params.map((filter, i) =>
-              i === index ? { ...filter, [field]: value } : filter,
-            ),
-          },
-        })),
 
       collections: [],
       setCollections: (collections) => set({ collections }),

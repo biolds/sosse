@@ -39,6 +39,7 @@ const HomePage = () => {
     viewMode,
     setViewMode,
     searchFilters,
+    updateSearchFilters,
     loadCollections,
   } = useAppStore();
   const searchParams = useSearchParams();
@@ -53,6 +54,7 @@ const HomePage = () => {
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
+  const [draftFilters, setDraftFilters] = useState(searchFilters);
 
   useEffect(() => {
     loadCollections();
@@ -128,13 +130,14 @@ const HomePage = () => {
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
-    const hasAdvancedFilters = searchFilters.adv_params.length > 0;
+    const hasAdvancedFilters = draftFilters.adv_params.length > 0;
 
     if (!queryTerm && !hasAdvancedFilters) {
       message.warning("Please enter a search query or add filters");
       return;
     }
 
+    updateSearchFilters(draftFilters);
     performSearch(queryTerm);
 
     const params = new URLSearchParams();
@@ -178,6 +181,8 @@ const HomePage = () => {
       <AdvancedSearch
         expanded={advancedExpanded}
         setExpanded={setAdvancedExpanded}
+        draftFilters={draftFilters}
+        setDraftFilters={setDraftFilters}
       />
 
       {loading && (

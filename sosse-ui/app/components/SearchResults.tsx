@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
 import { CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
@@ -48,10 +49,13 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                 hoverable
                 cover={
                   item.preview ? (
-                    <img
+                    <Image
                       alt="preview"
                       src={item.preview}
-                      style={{ height: "200px", objectFit: "cover" }}
+                      width={200}
+                      height={120}
+                      objectFit="cover"
+                      unoptimized
                     />
                   ) : (
                     <div
@@ -76,10 +80,12 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                   title={
                     <Space size="small">
                       {item.favicon && !item.favicon.missing && (
-                        <img
+                        <Image
                           src={`/favicon/${item.favicon.id}`}
                           alt="icon"
-                          style={{ width: "16px", height: "16px" }}
+                          width={16}
+                          height={16}
+                          unoptimized
                         />
                       )}
                       <span style={{ fontSize: "16px" }}>
@@ -157,11 +163,14 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
             className="search-result-item"
             extra={
               item.preview && (
-                <img
+                <Image
+                  height={120}
                   width={200}
                   alt="preview"
                   src={item.preview}
-                  style={{ objectFit: "cover", borderRadius: "4px" }}
+                  objectFit="cover"
+                  style={{ borderRadius: "4px" }}
+                  unoptimized
                 />
               )
             }
@@ -169,10 +178,12 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
             <Space direction="vertical" size="small" style={{ width: "100%" }}>
               <Space size="small">
                 {item.favicon && !item.favicon.missing && (
-                  <img
+                  <Image
                     src={`/favicon/${item.favicon.id}`}
                     alt="icon"
-                    style={{ width: "16px", height: "16px" }}
+                    width={16}
+                    height={16}
+                    unoptimized
                   />
                 )}
                 <span style={{ fontSize: "18px", fontWeight: "500" }}>

@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
+  App,
   Input,
   Button,
   Typography,
   Spin,
-  message,
   Segmented,
   Pagination,
 } from "antd";
@@ -44,6 +44,7 @@ const HomePage = () => {
     updateSearchFilters,
     loadCollections,
   } = useAppStore();
+  const { message } = App.useApp();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
@@ -132,6 +133,7 @@ const HomePage = () => {
       setInputValue(q);
       performSearch(q);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleSearch = (value: string) => {

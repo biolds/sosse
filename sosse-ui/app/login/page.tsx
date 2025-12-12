@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Form, Input, Button, Card, Typography, message } from "antd";
+import { App, Form, Input, Button, Card, Typography } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAppStore } from "../useAppStore";
+import { useAppStore } from "@/app/hooks/useAppStore";
 
 const { Title } = Typography;
 
 export default function LoginPage() {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();

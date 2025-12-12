@@ -5,6 +5,7 @@ import React from "react";
 import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
 import { CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
 import { ArchiveIcon, SourceIcon } from "./ArchiveIcons";
+import "./SearchResults.css";
 
 const { Text } = Typography;
 
@@ -109,11 +110,13 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
                         style={{ fontSize: "12px" }}
                         ellipsis
                       >
-                        {linkMode === "source" ? (
-                          <SourceIcon />
-                        ) : (
-                          <ArchiveIcon />
-                        )}{" "}
+                        <span className="icon-bounce" key={linkMode}>
+                          {linkMode === "source" ? (
+                            <SourceIcon />
+                          ) : (
+                            <ArchiveIcon />
+                          )}
+                        </span>{" "}
                         {item.url}
                       </Text>
 
@@ -203,7 +206,9 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
 
               <Space size="small" wrap>
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}{" "}
+                  <span className="icon-bounce" key={linkMode}>
+                    {linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}
+                  </span>{" "}
                   {item.url}
                 </Text>
                 {item.crawl_last && (

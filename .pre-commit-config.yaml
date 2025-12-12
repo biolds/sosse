@@ -67,6 +67,7 @@ repos:
         types: [file]
         args:
           - --config=sosse-ui/eslint.config.mjs
+          - --max-warnings=0
 
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.7.4

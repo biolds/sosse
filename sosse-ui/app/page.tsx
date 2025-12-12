@@ -24,7 +24,7 @@ import AdvancedSearch, {
 import { useAppStore } from "./useAppStore";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Search } = Input;
 
 interface SearchResponse {
@@ -248,11 +248,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          <SearchResults
-            results={searchResults}
-            viewMode={viewMode}
-            linkMode={linkMode}
-          />
+          <SearchResults results={searchResults} viewMode={viewMode} />
 
           {totalResults > pageSize && (
             <div style={{ marginTop: "40px", textAlign: "center" }}>

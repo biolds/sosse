@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import React from "react";
 import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
 import { CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
-import { ArchiveIcon, SourceIcon } from "./ArchiveIcons";
+import { AnimatedLinkModeIcon } from "./ArchiveIcons";
+import SearchResultLink from "./SearchResultLink";
 import "./SearchResults.css";
 
 const { Text } = Typography;
@@ -30,7 +30,6 @@ export interface SearchResult {
 interface SearchResultsProps {
   results: SearchResult[];
   viewMode: "list" | "card";
-  linkMode: "source" | "archive";
 }
 
 const formatDate = (dateString?: string) => {
@@ -38,24 +37,13 @@ const formatDate = (dateString?: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
-const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
-  const getResultLink = (item: SearchResult) => {
-    if (linkMode === "archive") {
-      return `/archive/${item.url}`;
-    }
-    return item.url;
-  };
+const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
   if (viewMode === "card") {
     return (
       <Row gutter={[16, 16]}>
         {results.map((item) => (
           <Col key={item.id} xs={24} sm={12} lg={8}>
-            <Link
-              href={getResultLink(item)}
-              target={linkMode === "source" ? "_blank" : undefined}
-              rel={linkMode === "source" ? "noopener noreferrer" : undefined}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
+            <SearchResultLink href={item.url}>
               <Card
                 hoverable
                 cover={
@@ -110,14 +98,7 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
                         style={{ fontSize: "12px" }}
                         ellipsis
                       >
-                        <span className="icon-bounce" key={linkMode}>
-                          {linkMode === "source" ? (
-                            <SourceIcon />
-                          ) : (
-                            <ArchiveIcon />
-                          )}
-                        </span>{" "}
-                        {item.url}
+                        <AnimatedLinkModeIcon /> {item.url}
                       </Text>
 
                       <Space size="small" wrap>
@@ -157,7 +138,7 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
                   }
                 />
               </Card>
-            </Link>
+            </SearchResultLink>
           </Col>
         ))}
       </Row>
@@ -170,12 +151,7 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
       size="large"
       dataSource={results}
       renderItem={(item) => (
-        <Link
-          href={getResultLink(item)}
-          target={linkMode === "source" ? "_blank" : undefined}
-          rel={linkMode === "source" ? "noopener noreferrer" : undefined}
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
+        <SearchResultLink href={item.url}>
           <List.Item
             key={item.id}
             className="search-result-item"
@@ -206,10 +182,7 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
 
               <Space size="small" wrap>
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  <span className="icon-bounce" key={linkMode}>
-                    {linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}
-                  </span>{" "}
-                  {item.url}
+                  <AnimatedLinkModeIcon /> {item.url}
                 </Text>
                 {item.crawl_last && (
                   <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -239,7 +212,7 @@ const SearchResults = ({ results, viewMode, linkMode }: SearchResultsProps) => {
               )}
             </Space>
           </List.Item>
-        </Link>
+        </SearchResultLink>
       )}
     />
   );

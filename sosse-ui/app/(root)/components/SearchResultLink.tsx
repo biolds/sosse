@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useAppStore } from "../useAppStore";
+import { useAppStore } from "@/app/hooks/useAppStore";
 
 const SearchResultLink = ({
   href,

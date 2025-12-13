@@ -1,4 +1,4 @@
-import { useAppStore } from "../useAppStore";
+import { useAppStore } from "./useAppStore";
 import { useEffect, useState } from "react";
 
 export function useAuth() {

@@ -32,7 +32,7 @@ import {
   useAppStore,
   type AdvancedFilter,
   type SearchFilters,
-} from "../useAppStore";
+} from "@/app/hooks/useAppStore";
 import "./AdvancedSearch.css";
 
 const { Option } = Select;

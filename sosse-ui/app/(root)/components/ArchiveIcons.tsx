@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppStore } from "../useAppStore";
+import { useAppStore } from "@/app/hooks/useAppStore";
 import { LinkOutlined, AuditOutlined } from "@ant-design/icons";
 
 export const ArchiveIcon = () => {

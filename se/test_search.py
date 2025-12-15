@@ -224,7 +224,7 @@ class SearchTest(TransactionTestCase):
         docs = add_headlines(docs, query)
         self.assertEqual(docs.count(), 1)
         self.assertEqual(docs[0], self.page)
-        self.assertEqual(docs[0].headline, 'Page1, World <span class="res-highlight">Téléphone</span>')
+        self.assertEqual(docs[0].headline, 'Page1, World <span class="search-highlight">Téléphone</span>')
 
     def test_030_hidden(self):
         self.root.hidden = True

@@ -94,7 +94,7 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include(router.urls)),
     path("api/document/", document_list, name="document-list"),
-    re_path("api/document/(?P<path>.*)", document_detail, name="document-detail"),
+    re_path("api/document/(?P<pk>.*)", document_detail, name="document-detail"),
     path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     path("api/token/logout/", CookieTokenLogoutView.as_view(), name="token_logout"),

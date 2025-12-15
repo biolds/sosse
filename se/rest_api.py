@@ -263,15 +263,15 @@ class FavIconSerializer(serializers.ModelSerializer):
         fields = ("id", "missing")
 
 
-class LightDocumentSerializer(serializers.ModelSerializer):
+class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        exclude = ("content",)
+        fields = "__all__"
         read_only_fields = (
             "url",
+            "normalized_content",
             "normalized_url",
             "normalized_title",
-            "normalized_content",
             "content_hash",
             "favicon",
             "robotstxt_rejected",
@@ -303,6 +303,7 @@ class LightDocumentSerializer(serializers.ModelSerializer):
     favicon = FavIconSerializer(read_only=True)
     tags_str = serializers.SerializerMethodField()
     preview = serializers.SerializerMethodField()
+    snapshot_url = serializers.SerializerMethodField()
 
     def get_tags_str(self, obj):
         if obj.id:
@@ -317,6 +318,14 @@ class LightDocumentSerializer(serializers.ModelSerializer):
         elif obj.screenshot_count:
             return f"{settings.SOSSE_SCREENSHOTS_URL}{obj.image_name()}_0.{obj.screenshot_format}"
         elif obj.mimetype and obj.mimetype.startswith("image/") and obj.has_html_snapshot:
+            asset = HTMLAsset.objects.filter(url=obj.url).first()
+            if asset:
+                return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
+        return None
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_snapshot_url(self, obj):
+        if obj.has_html_snapshot:
             asset = HTMLAsset.objects.filter(url=obj.url).first()
             if asset:
                 return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
@@ -344,39 +353,21 @@ class LightDocumentSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class DocumentSerializer(LightDocumentSerializer):
-    snapshot_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Document
-        fields = "__all__"
-        read_only_fields = LightDocumentSerializer.Meta.read_only_fields + ("snapshot_url", "content")
-
-    @extend_schema_field(OpenApiTypes.STR)
-    def get_snapshot_url(self, obj):
-        if obj.has_html_snapshot:
-            asset = HTMLAsset.objects.filter(url=obj.url).first()
-            if asset:
-                return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
-        return None
-
-
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.w_content()
     serializer_class = DocumentSerializer
     permission_classes = [DjangoModelPermissionsRW]
     lookup_field = "pk"
 
-    def retrieve(self, request, *args, **kwargs):
-        url = request.META["REQUEST_URI"].split("/", 3)[-1]
+    def get_object(self):
+        url = self.request.META["REQUEST_URI"].split("/", 3)[-1]
         if re.match(r"[0-9]+/?$", url):
             url = url.rstrip("/")
             instance = Document.objects.w_content().filter(pk=url).first()
         else:
-            url = request.META["REQUEST_URI"].split("/", 3)[-1]
+            url = self.request.META["REQUEST_URI"].split("/", 3)[-1]
             instance = Document.objects.w_content().filter(url=url).first()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return instance
 
     def create(self, request, *args, **kwargs):
         raise MethodNotAllowed("POST")
@@ -464,15 +455,24 @@ class SearchQuery(serializers.Serializer):
         return data
 
 
-class SearchResult(LightDocumentSerializer):
-    url = serializers.CharField(help_text="Document URL")
-    title = serializers.CharField(help_text="Document Title")
+class SearchResult(DocumentSerializer):
     score = serializers.SerializerMethodField(
         allow_null=True, help_text="Score of the document for provided search terms"
     )
     headline = serializers.SerializerMethodField(
         allow_null=True, help_text="Highlighted excerpt of the document content"
     )
+
+    class Meta:
+        model = Document
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret.pop("content")
+        ret.pop("normalized_content")
+        ret.pop("vector")
+        return ret
 
     @extend_schema_field(OpenApiTypes.FLOAT)
     def get_score(self, obj):

@@ -17,12 +17,13 @@ import json
 from datetime import timedelta
 
 from django.contrib.auth.models import Permission, User
-from django.test import Client, TestCase
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .collection import Collection
 from .document import Document
+from .test_client import Client
 
 
 class JWTAuthenticationTest(TestCase):

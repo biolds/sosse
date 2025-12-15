@@ -18,7 +18,7 @@ from collections import namedtuple
 from unittest import mock
 
 from django.contrib.auth.models import User
-from django.test import Client, TransactionTestCase
+from django.test import TransactionTestCase
 from django.utils import timezone
 
 from .collection import Collection
@@ -26,12 +26,12 @@ from .document import Document
 from .mime_plugin import MimePlugin
 from .models import CrawlerStats
 from .tag import Tag
+from .test_client import Client
 from .webhook import Webhook
 
 now = timezone.now()
 now_str = now.isoformat().replace("+00:00", "Z")
-SERIALIZED_DOC1 = {
-    "content": "Content",
+SERIALIZED_DOC1_BASE = {
     "content_hash": None,
     "crawl_dt": None,
     "crawl_first": now_str,
@@ -50,9 +50,9 @@ SERIALIZED_DOC1 = {
     "mime_plugins_result": "",
     "mimetype": "text/html",
     "modified_date": None,
-    "normalized_content": "content",
     "normalized_title": "title",
     "normalized_url": "http test",
+    "preview": None,
     "redirect_url": None,
     "retries": 0,
     "robotstxt_rejected": False,
@@ -60,36 +60,35 @@ SERIALIZED_DOC1 = {
     "screenshot_format": "",
     "screenshot_size": "",
     "show_on_homepage": False,
+    "snapshot_url": None,
     "tags": [],
     "tags_str": "",
     "title": "Title",
     "too_many_redirects": False,
     "url": "http://127.0.0.1/test",
-    "vector": "'content':4C 'http':2A 'test':3A 'title':1A",
     "vector_lang": "simple",
     "webhooks_result": {},
     "worker_no": None,
 }
-SERIALIZED_DOC2 = SERIALIZED_DOC1 | {
+SERIALIZED_DOC1 = SERIALIZED_DOC1_BASE | {
+    "content": "Content",
+    "normalized_content": "content",
+    "vector": "'content':4C 'http':2A 'test':3A 'title':1A",
+}
+SERIALIZED_DOC2_BASE = SERIALIZED_DOC1_BASE | {
     "url": "http://127.0.0.1/test2",
     "normalized_url": "http test2",
     "title": "Title2",
     "normalized_title": "title2",
-    "content": "Other Content2",
-    "normalized_content": "other content2",
     "mimetype": "image/png",
     "tags": ["Sub Tag"],
     "tags_str": "Sub Tag",
-    "vector": "'content2':5C 'http':2A 'other':4C 'test2':3A 'title2':1A",
 }
-SERIALIZED_DOC3 = SERIALIZED_DOC1 | {
+SERIALIZED_DOC3_BASE = SERIALIZED_DOC1_BASE | {
     "url": "http://example.com/test3",
     "normalized_url": "http example com test3",
     "title": "Title3",
     "normalized_title": "title3",
-    "content": "Content3",
-    "normalized_content": "content3",
-    "vector": "'com':4A 'content3':6C 'example':3A 'http':2A 'test3':5A 'title3':1A",
 }
 
 
@@ -306,11 +305,13 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC1
+                    SERIALIZED_DOC1_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.12158542,
+                        "headline": '<span class="search-highlight">Content</span>',
+                        "snapshot_url": None,
                     }
                 ],
             },
@@ -338,11 +339,12 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC2
+                    SERIALIZED_DOC2_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 1.0,
+                        "headline": "Other Content2",
                     }
                 ],
             },
@@ -361,17 +363,19 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC1
+                    SERIALIZED_DOC1_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.6079271,
+                        "headline": "Content",
                     },
-                    SERIALIZED_DOC3
+                    SERIALIZED_DOC3_BASE
                     | {
                         "collection": self.collection2.id,
                         "id": self.doc3.id,
                         "score": 0.6079271,
+                        "headline": "Content3",
                     },
                 ],
             },
@@ -390,24 +394,27 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC1
+                    SERIALIZED_DOC1_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc1.id,
                         "score": 0.6079271,
+                        "headline": "Content",
                     },
-                    SERIALIZED_DOC2
+                    SERIALIZED_DOC2_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 0.6079271,
                         "hidden": True,
+                        "headline": "Other Content2",
                     },
-                    SERIALIZED_DOC3
+                    SERIALIZED_DOC3_BASE
                     | {
                         "collection": self.collection2.id,
                         "id": self.doc3.id,
                         "score": 0.6079271,
+                        "headline": "Content3",
                     },
                 ],
             },
@@ -427,11 +434,12 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC2
+                    SERIALIZED_DOC2_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 1.0,
+                        "headline": "Other Content2",
                     },
                 ],
             },
@@ -451,11 +459,12 @@ class APIQueryTest(RestAPITest, TransactionTestCase):
                 "next": None,
                 "previous": None,
                 "results": [
-                    SERIALIZED_DOC2
+                    SERIALIZED_DOC2_BASE
                     | {
                         "collection": self.collection.id,
                         "id": self.doc2.id,
                         "score": 1.0,
+                        "headline": "Other Content2",
                     },
                 ],
             },

@@ -80,9 +80,6 @@ class CsvView(View):
             for doc in results[: settings.SOSSE_CSV_EXPORT_SIZE]:
                 doc = SearchResult(instance=doc)
                 doc = deepcopy(doc.data)
-                doc.pop("content")
-                doc.pop("normalized_content")
-                doc.pop("vector")
                 doc.pop("vector_lang")
 
                 # If all subelements of metadata are not structured, flatten it

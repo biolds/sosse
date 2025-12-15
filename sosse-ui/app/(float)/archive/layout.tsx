@@ -30,7 +30,7 @@ export default function ArchiveLayout({
                 : theme.defaultAlgorithm,
             }}
           >
-            <App>
+            <App style={{ height: "100vh" }}>
               <AuthGuard>{children}</AuthGuard>
             </App>
           </ConfigProvider>

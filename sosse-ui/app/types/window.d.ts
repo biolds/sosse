@@ -3,6 +3,7 @@ export {};
 declare global {
   interface Window {
     sosseConfig?: {
+      snapshotUrl: string;
       anonymousSearch: boolean;
       onlineSearchRedirect: boolean;
       maxPageSize: number;

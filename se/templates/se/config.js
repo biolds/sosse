@@ -1,4 +1,5 @@
 window.sosseConfig = {
+    snapshotUrl: {{ snapshot_url }},
     anonymousSearch: {{ anonymous_search }},
     onlineSearchRedirect: {{ online_search_redirect }},
     maxPageSize: {{ max_page_size }},

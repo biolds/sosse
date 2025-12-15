@@ -24,6 +24,7 @@ class ConfigJsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context |= {
+            "snapshot_url": settings.SOSSE_HTML_SNAPSHOT_URL,
             "anonymous_search": "true" if settings.SOSSE_ANONYMOUS_SEARCH else "false",
             "online_search_redirect": "true" if settings.SOSSE_ONLINE_SEARCH_REDIRECT else "false",
             "max_page_size": settings.SOSSE_MAX_PAGE_SIZE,

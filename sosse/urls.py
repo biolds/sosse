@@ -52,7 +52,7 @@ from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
 from se.profile import ProfileView
 from se.resources import ResourcesView
-from se.rest_api import router
+from se.rest_api import DocumentViewSet, router
 from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView
@@ -61,6 +61,21 @@ from se.tags_list import TagsListView
 from se.words import WordsView
 from se.www import WWWView
 
+document_list = DocumentViewSet.as_view(
+    {
+        "get": "list",
+        "post": "create",
+    }
+)
+
+document_detail = DocumentViewSet.as_view(
+    {
+        "get": "retrieve",
+        "put": "update",
+        "patch": "partial_update",
+        "delete": "destroy",
+    }
+)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", SearchView.as_view(), name="search"),
@@ -78,6 +93,8 @@ urlpatterns = [
     path("config.js", ConfigJsView.as_view(), name="config_js"),
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include(router.urls)),
+    path("api/document/", document_list, name="document-list"),
+    re_path("api/document/(?P<path>.*)", document_detail, name="document-detail"),
     path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     path("api/token/logout/", CookieTokenLogoutView.as_view(), name="token_logout"),

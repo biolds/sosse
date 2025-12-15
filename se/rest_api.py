@@ -15,6 +15,7 @@
 
 import logging
 import os
+import re
 
 from django.conf import settings
 from django.db import connection, models
@@ -262,10 +263,10 @@ class FavIconSerializer(serializers.ModelSerializer):
         fields = ("id", "missing")
 
 
-class DocumentSerializer(serializers.ModelSerializer):
+class LightDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = "__all__"
+        exclude = ("content",)
         read_only_fields = (
             "url",
             "normalized_url",
@@ -343,10 +344,39 @@ class DocumentSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class DocumentSerializer(LightDocumentSerializer):
+    snapshot_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Document
+        fields = "__all__"
+        read_only_fields = LightDocumentSerializer.Meta.read_only_fields + ("snapshot_url", "content")
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_snapshot_url(self, obj):
+        if obj.has_html_snapshot:
+            asset = HTMLAsset.objects.filter(url=obj.url).first()
+            if asset:
+                return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
+        return None
+
+
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.w_content()
     serializer_class = DocumentSerializer
     permission_classes = [DjangoModelPermissionsRW]
+    lookup_field = "pk"
+
+    def retrieve(self, request, *args, **kwargs):
+        url = request.META["REQUEST_URI"].split("/", 3)[-1]
+        if re.match(r"[0-9]+/?$", url):
+            url = url.rstrip("/")
+            instance = Document.objects.w_content().filter(pk=url).first()
+        else:
+            url = request.META["REQUEST_URI"].split("/", 3)[-1]
+            instance = Document.objects.w_content().filter(url=url).first()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise MethodNotAllowed("POST")
@@ -434,7 +464,7 @@ class SearchQuery(serializers.Serializer):
         return data
 
 
-class SearchResult(DocumentSerializer):
+class SearchResult(LightDocumentSerializer):
     url = serializers.CharField(help_text="Document URL")
     title = serializers.CharField(help_text="Document Title")
     score = serializers.SerializerMethodField(
@@ -555,19 +585,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
     permission_classes = [DjangoModelPermissionsRW]
 
 
-router = routers.DefaultRouter()
-router.register("document", DocumentViewSet)
-router.register("tag", TagViewSet)
-router.register("search", SearchViewSet, basename="search")
-router.register("stats", CrawlerStatsViewSet)
-router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
-router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
-router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
-router.register("mime_plugin", MimePluginViewSet)
-router.register("webhook", WebhookViewSet, basename="webhook")
-router.register("collection", CollectionViewSet)
-
-
 class UserProfileSerializer(serializers.Serializer):
     """Serializer for user profile."""
 
@@ -600,9 +617,6 @@ class ProfileViewSet(viewsets.ViewSet):
             }
         )
         return Response(serializer.data)
-
-
-router.register("profile", ProfileViewSet, basename="profile")
 
 
 @extend_schema_serializer(
@@ -698,4 +712,15 @@ class AddToQueueViewSet(viewsets.ViewSet):
         )
 
 
+router = routers.DefaultRouter()
+router.register("tag", TagViewSet)
+router.register("search", SearchViewSet, basename="search")
+router.register("stats", CrawlerStatsViewSet)
+router.register("hdd_stats", HddStatsViewSet, basename="hdd_stats")
+router.register("lang_stats", LangStatsViewSet, basename="lang_stats")
+router.register("mime_stats", MimeStatsViewSet, basename="mime_stats")
+router.register("mime_plugin", MimePluginViewSet)
+router.register("webhook", WebhookViewSet, basename="webhook")
+router.register("collection", CollectionViewSet)
 router.register("queue", AddToQueueViewSet, basename="queue")
+router.register("profile", ProfileViewSet, basename="profile")

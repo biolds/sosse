@@ -198,7 +198,7 @@ class Webhook(models.Model):
 
     @classmethod
     def trigger(cls, webhooks, doc):
-        from .rest_api import DocumentSerializer
+        from .rest.document import DocumentSerializer
 
         # During crawling `doc` is not yet saved, its content is not yet in the database
         # so we have to check if the webhook should be triggered on the current document
@@ -292,7 +292,7 @@ class Webhook(models.Model):
 
     @classmethod
     def _render_template(cls, doc, body_template, validator=False):
-        from .rest_api import DocumentSerializer
+        from .rest.document import DocumentSerializer
 
         try:
             body_template = json.loads(body_template, strict=False)

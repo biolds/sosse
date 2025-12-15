@@ -510,7 +510,7 @@ class Document(models.Model):
         self._index_log("done", stats, verbose)
 
         if page.script_result:
-            from .rest_api import DocumentSerializer
+            from .rest.document import DocumentSerializer
 
             serializer = DocumentSerializer(self, data=page.script_result, partial=True)
             serializer.user_doc_update("Javascript")

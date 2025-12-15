@@ -52,7 +52,8 @@ from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
 from se.profile import ProfileView
 from se.resources import ResourcesView
-from se.rest_api import DocumentViewSet, router
+from se.rest.document import DocumentViewSet
+from se.rest.router import router
 from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView

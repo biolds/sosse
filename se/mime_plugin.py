@@ -100,7 +100,7 @@ class MimePlugin(BuiltinModel):
 
     @classmethod
     def run_for_document(cls, doc, page):
-        from .rest_api import DocumentSerializer
+        from .rest.document import DocumentSerializer
 
         crawl_logger.debug(f"Running mime handlers for {doc.url}")
 

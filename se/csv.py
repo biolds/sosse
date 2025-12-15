@@ -24,7 +24,7 @@ from django.http import HttpResponse
 from django.views.generic import View
 
 from .models import SearchEngine
-from .rest_api import SearchResult
+from .rest.search import SearchResult
 from .search import get_documents_from_request
 from .search_form import SearchForm
 

@@ -3,13 +3,13 @@
     transform: translateY(0);
   }
   20% {
-    transform: translateY(-20px);
+    transform: translateY(-10px);
   }
   40% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
   60% {
     transform: translateY(0);

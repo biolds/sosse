@@ -80,17 +80,26 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                 <Card.Meta
                   title={
                     <Space size="small">
-                      {item.favicon && !item.favicon.missing && (
-                        <Image
-                          src={`/favicon/${item.favicon.id}`}
-                          alt="icon"
-                          width={16}
-                          height={16}
-                          unoptimized
-                          loading="lazy"
-                        />
-                      )}
-                      <span style={{ fontSize: "16px" }}>
+                      <span
+                        style={{
+                          fontSize: "16px",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        {item.favicon && !item.favicon.missing && (
+                          <Image
+                            src={`/favicon/${item.favicon.id}`}
+                            alt="icon"
+                            width={16}
+                            height={16}
+                            style={{
+                              display: "inline-block",
+                              marginRight: "4px",
+                            }}
+                            unoptimized
+                          />
+                        )}
                         {item.title || "Untitled"}
                       </span>
                     </Space>

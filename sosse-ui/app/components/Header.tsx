@@ -14,7 +14,11 @@ import { useAppStore } from "@/app/hooks/useAppStore";
 
 const { Header } = Layout;
 
-const SosseHeader = () => {
+type SosseHeaderProps = {
+  style?: React.CSSProperties;
+};
+
+const SosseHeader: React.FC<SosseHeaderProps> = ({ style }) => {
   const { isDarkMode, toggleDarkMode, username, logout } = useAppStore();
   const handleLogout = async () => {
     await logout();
@@ -51,7 +55,7 @@ const SosseHeader = () => {
       };
 
   return (
-    <Header style={{ display: "flex", alignItems: "center" }}>
+    <Header style={{ ...style, display: "flex", alignItems: "center" }}>
       <div
         style={{
           color: "white",

@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Button, Card, Layout, Spin, Typography } from "antd";
+import { Button, Card, Layout, Spin } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
 import Header from "@/app/components/Header";
 import type { Document } from "@/app/types/document";
-
-const { Title } = Typography;
 
 const { Content } = Layout;
 
@@ -95,10 +94,33 @@ export default function ArchivePage() {
             pointerEvents: isFloatHeaderFolded ? "none" : "auto",
           }}
         >
-          <Layout>
-            <Header />
+          <Layout style={{ borderRadius: "8px" }}>
+            <Header style={{ borderRadius: "8px 8px 0 0" }} />
             <Content style={{ padding: "24px" }}>
-              <Title level={2}>{url}</Title>
+              <span
+                style={{
+                  fontSize: "24px",
+                  fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                {sosseDocument &&
+                  sosseDocument.favicon &&
+                  !sosseDocument.favicon.missing && (
+                    <Image
+                      src={`/favicon/${sosseDocument.favicon.id}`}
+                      alt="icon"
+                      width={16}
+                      height={16}
+                      style={{
+                        marginRight: "8px",
+                      }}
+                      unoptimized
+                    />
+                  )}
+                {url}
+              </span>
             </Content>
           </Layout>
         </Card>

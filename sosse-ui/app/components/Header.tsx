@@ -60,18 +60,13 @@ const SosseHeader = () => {
           fontWeight: "bold",
         }}
       >
-        Sosse
+        <Link href="/">Sosse</Link>
       </div>
       <Menu
         theme="dark"
         mode="horizontal"
         style={{ flex: 1, minWidth: 0 }}
         items={[
-          { key: "home", label: <Link href="/">Search</Link> },
-          {
-            key: "archive",
-            label: <Link href="/archive/http://saved.page.com">Archive</Link>,
-          },
           { key: "help", label: <Link href="/help">Help</Link> },
           {
             key: "admin",

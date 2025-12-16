@@ -38,6 +38,8 @@ interface AppState {
   collections: Array<{ id: number; name: string }>;
   setCollections: (collections: Array<{ id: number; name: string }>) => void;
   loadCollections: () => Promise<void>;
+  isFloatHeaderFolded: boolean;
+  toggleFloatHeader: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -182,6 +184,10 @@ export const useAppStore = create<AppState>()(
           return false;
         }
       },
+
+      isFloatHeaderFolded: true,
+      toggleFloatHeader: () =>
+        set((state) => ({ isFloatHeaderFolded: !state.isFloatHeaderFolded })),
     }),
     {
       name: "sosse-app-storage",

@@ -115,7 +115,12 @@ const HomePage = () => {
         requestBody,
       );
 
-      setSearchResults(response.data.results);
+      setSearchResults(
+        response.data.results.map((result) => ({
+          ...result,
+          url: result.url.replaceAll("//", "/"),
+        })),
+      );
       setTotalResults(response.data.count);
     } catch (error) {
       console.error("Search error:", error);

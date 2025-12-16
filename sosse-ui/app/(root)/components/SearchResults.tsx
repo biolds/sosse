@@ -54,8 +54,9 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                       src={item.preview}
                       width={200}
                       height={120}
-                      objectFit="cover"
                       unoptimized
+                      style={{ objectFit: "cover" }}
+                      loading="lazy"
                     />
                   ) : (
                     <div
@@ -86,6 +87,7 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                           width={16}
                           height={16}
                           unoptimized
+                          loading="lazy"
                         />
                       )}
                       <span style={{ fontSize: "16px" }}>
@@ -168,8 +170,8 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                   width={200}
                   alt="preview"
                   src={item.preview}
-                  objectFit="cover"
-                  style={{ borderRadius: "4px" }}
+                  style={{ borderRadius: "4px", objectFit: "cover" }}
+                  loading="lazy"
                   unoptimized
                 />
               )
@@ -183,6 +185,7 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                     alt="icon"
                     width={16}
                     height={16}
+                    loading="lazy"
                     unoptimized
                   />
                 )}

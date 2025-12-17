@@ -1,6 +1,5 @@
 "use client";
 
-import "@ant-design/v5-patch-for-react-19";
 import { Layout, ConfigProvider, theme, App } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useAppStore } from "@/app/hooks/useAppStore";

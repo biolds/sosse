@@ -436,7 +436,7 @@ const AdvancedSearch = forwardRef<
           </Row>
 
           <Divider
-            orientation="left"
+            titlePlacement="left"
             style={{ marginTop: "24px", marginBottom: "20px" }}
           >
             <Space>
@@ -445,7 +445,7 @@ const AdvancedSearch = forwardRef<
             </Space>
           </Divider>
 
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+          <Space orientation="vertical" style={{ width: "100%" }} size="middle">
             <div
               style={{ display: "flex", flexDirection: "column", gap: "12px" }}
             >

@@ -106,7 +106,7 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                   }
                   description={
                     <Space
-                      direction="vertical"
+                      orientation="vertical"
                       size="small"
                       style={{ width: "100%" }}
                     >
@@ -186,7 +186,11 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
               )
             }
           >
-            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+            <Space
+              orientation="vertical"
+              size="small"
+              style={{ width: "100%" }}
+            >
               <Space size="small">
                 {item.favicon && !item.favicon.missing && (
                   <Image

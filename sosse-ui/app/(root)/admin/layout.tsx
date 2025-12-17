@@ -4,7 +4,6 @@ import { Layout, Menu } from "antd";
 import Link from "next/link";
 import {
   DashboardOutlined,
-  CloudDownloadOutlined,
   BarChartOutlined,
   FolderOutlined,
   TagsOutlined,
@@ -23,11 +22,6 @@ export default function AdminLayout({
       key: "dashboard",
       icon: <DashboardOutlined />,
       label: <Link href="/admin/dashboard">Dashboard</Link>,
-    },
-    {
-      key: "crawl",
-      icon: <CloudDownloadOutlined />,
-      label: <Link href="/admin/crawl">Crawl New URL</Link>,
     },
     {
       key: "analytics",

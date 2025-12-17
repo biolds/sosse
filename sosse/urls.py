@@ -52,6 +52,7 @@ from se.online import OnlineCheckView
 from se.opensearch import OpensearchView
 from se.profile import ProfileView
 from se.resources import ResourcesView
+from se.rest.crawl_queue import CrawlQueueViewSet
 from se.rest.document import DocumentViewSet
 from se.rest.router import router
 from se.screenshot import ScreenshotFullView, ScreenshotView
@@ -94,6 +95,7 @@ urlpatterns = [
     path("config.js", ConfigJsView.as_view(), name="config_js"),
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include(router.urls)),
+    path("api/crawl_queue/", CrawlQueueViewSet.as_view(), name="crawl_queue"),
     path("api/document/", document_list, name="document-list"),
     re_path("api/document/(?P<pk>.*)", document_detail, name="document-detail"),
     path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),

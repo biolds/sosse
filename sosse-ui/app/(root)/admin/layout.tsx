@@ -11,7 +11,7 @@ import {
   AppstoreOutlined,
 } from "@ant-design/icons";
 
-const { Header, Sider, Content } = Layout;
+const { Sider, Content } = Layout;
 
 export default function AdminLayout({
   children,
@@ -64,16 +64,7 @@ export default function AdminLayout({
         />
       </Sider>
       <Layout>
-        <Header
-          style={{ background: "#fff", padding: "0 24px", fontSize: "20px" }}
-        >
-          Administration
-        </Header>
-        <Content
-          style={{ margin: "24px", background: "#fff", padding: "24px" }}
-        >
-          {children}
-        </Content>
+        <Content style={{ margin: "24px" }}>{children}</Content>
       </Layout>
     </Layout>
   );

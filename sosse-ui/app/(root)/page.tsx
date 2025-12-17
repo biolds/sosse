@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   App,
-  Input,
   Button,
+  Input,
+  Layout,
   Typography,
   Spin,
   Segmented,
@@ -26,6 +27,7 @@ import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
 
 const { Text } = Typography;
 const { Search } = Input;
+const { Content } = Layout;
 
 interface SearchResponse {
   count: number;
@@ -182,105 +184,111 @@ const HomePage = () => {
   };
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", paddingTop: "40px" }}>
-      <Search
-        placeholder="Enter search query..."
-        enterButton={
-          <Button type="primary" icon={<SearchOutlined />}>
-            Search
-          </Button>
-        }
-        size="large"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onSearch={handleSearch}
-        loading={loading}
-        autoFocus
-        allowClear
-      />
+    <Content style={{ padding: "4px" }}>
+      <div
+        style={{ maxWidth: "1200px", margin: "0px auto", paddingTop: "40px" }}
+      >
+        <Search
+          placeholder="Enter search query..."
+          enterButton={
+            <Button type="primary" icon={<SearchOutlined />}>
+              Search
+            </Button>
+          }
+          size="large"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onSearch={handleSearch}
+          loading={loading}
+          autoFocus
+          allowClear
+        />
 
-      <AdvancedSearch
-        ref={advancedSearchRef}
-        expanded={advancedExpanded}
-        setExpanded={setAdvancedExpanded}
-        draftFilters={draftFilters}
-        setDraftFilters={setDraftFilters}
-        onSearch={() => handleSearch(inputValue)}
-      />
+        <AdvancedSearch
+          ref={advancedSearchRef}
+          expanded={advancedExpanded}
+          setExpanded={setAdvancedExpanded}
+          draftFilters={draftFilters}
+          setDraftFilters={setDraftFilters}
+          onSearch={() => handleSearch(inputValue)}
+        />
 
-      {loading && (
-        <div style={{ textAlign: "center", marginTop: "60px" }}>
-          <Spin size="large" />
-        </div>
-      )}
-
-      {!loading && searchResults.length > 0 && (
-        <>
-          <div
-            style={{
-              marginTop: "20px",
-              marginBottom: "20px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text type="secondary">
-              Found {totalResults} result{totalResults !== 1 ? "s" : ""} for
-              &quot;{submittedQuery}&quot;
-            </Text>
-
-            <div style={{ display: "flex", gap: "12px" }}>
-              <Button
-                icon={linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />}
-                onClick={toggleLinkMode}
-              >
-                {linkMode === "source" ? "Source" : "Archive"}
-              </Button>
-
-              <Segmented
-                value={viewMode}
-                onChange={(value) => setViewMode(value as "list" | "card")}
-                options={[
-                  {
-                    value: "list",
-                    icon: <UnorderedListOutlined />,
-                  },
-                  {
-                    value: "card",
-                    icon: <AppstoreOutlined />,
-                  },
-                ]}
-              />
-            </div>
+        {loading && (
+          <div style={{ textAlign: "center", marginTop: "60px" }}>
+            <Spin size="large" />
           </div>
+        )}
 
-          <SearchResults results={searchResults} viewMode={viewMode} />
+        {!loading && searchResults.length > 0 && (
+          <>
+            <div
+              style={{
+                marginTop: "20px",
+                marginBottom: "20px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text type="secondary">
+                Found {totalResults} result{totalResults !== 1 ? "s" : ""} for
+                &quot;{submittedQuery}&quot;
+              </Text>
 
-          {totalResults > pageSize && (
-            <div style={{ marginTop: "40px", textAlign: "center" }}>
-              <Pagination
-                current={currentPage}
-                total={totalResults}
-                pageSize={pageSize}
-                onChange={handlePageChange}
-                showSizeChanger
-                showTotal={(total) => `Total ${total} results`}
-                pageSizeOptions={[10, 20, 50, 100]}
-              />
+              <div style={{ display: "flex", gap: "12px" }}>
+                <Button
+                  icon={
+                    linkMode === "source" ? <SourceIcon /> : <ArchiveIcon />
+                  }
+                  onClick={toggleLinkMode}
+                >
+                  {linkMode === "source" ? "Source" : "Archive"}
+                </Button>
+
+                <Segmented
+                  value={viewMode}
+                  onChange={(value) => setViewMode(value as "list" | "card")}
+                  options={[
+                    {
+                      value: "list",
+                      icon: <UnorderedListOutlined />,
+                    },
+                    {
+                      value: "card",
+                      icon: <AppstoreOutlined />,
+                    },
+                  ]}
+                />
+              </div>
             </div>
-          )}
-        </>
-      )}
 
-      {!loading && submittedQuery && searchResults.length === 0 && (
-        <div style={{ textAlign: "center", marginTop: "60px" }}>
-          <Text type="secondary">
-            No results found for &quot;{submittedQuery}&quot;
-          </Text>
-        </div>
-      )}
-    </div>
+            <SearchResults results={searchResults} viewMode={viewMode} />
+
+            {totalResults > pageSize && (
+              <div style={{ marginTop: "40px", textAlign: "center" }}>
+                <Pagination
+                  current={currentPage}
+                  total={totalResults}
+                  pageSize={pageSize}
+                  onChange={handlePageChange}
+                  showSizeChanger
+                  showTotal={(total) => `Total ${total} results`}
+                  pageSizeOptions={[10, 20, 50, 100]}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {!loading && submittedQuery && searchResults.length === 0 && (
+          <div style={{ textAlign: "center", marginTop: "60px" }}>
+            <Text type="secondary">
+              No results found for &quot;{submittedQuery}&quot;
+            </Text>
+          </div>
+        )}
+      </div>
+    </Content>
   );
 };
 

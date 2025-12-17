@@ -10,8 +10,6 @@ import Footer from "@/app/components/Footer";
 import "@/lib/axios";
 import "@/app/globals.css";
 
-const { Content } = Layout;
-
 export default function RootLayout({
   children,
 }: {
@@ -38,7 +36,7 @@ export default function RootLayout({
               <AuthGuard>
                 <Layout style={{ minHeight: "100vh" }}>
                   <Header />
-                  <Content style={{ padding: "24px" }}>{children}</Content>
+                  {children}
                   <Footer />
                 </Layout>
               </AuthGuard>

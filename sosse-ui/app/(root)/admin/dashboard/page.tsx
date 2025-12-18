@@ -327,6 +327,7 @@ export default function DashboardPage() {
           dataSource={queueData?.queue || []}
           rowKey="id"
           pagination={false}
+          size="small"
           rowClassName={(record) => {
             if (record.worker_no !== null) return "ant-table-row-running";
             if (

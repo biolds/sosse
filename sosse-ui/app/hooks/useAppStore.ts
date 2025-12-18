@@ -40,6 +40,8 @@ interface AppState {
   loadCollections: () => Promise<void>;
   isFloatHeaderFolded: boolean;
   toggleFloatHeader: () => void;
+  crawlQueueRefreshInterval: number;
+  setCrawlQueueRefreshInterval: (interval: number) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -188,6 +190,10 @@ export const useAppStore = create<AppState>()(
       isFloatHeaderFolded: true,
       toggleFloatHeader: () =>
         set((state) => ({ isFloatHeaderFolded: !state.isFloatHeaderFolded })),
+
+      crawlQueueRefreshInterval: 5000,
+      setCrawlQueueRefreshInterval: (interval) =>
+        set({ crawlQueueRefreshInterval: interval }),
     }),
     {
       name: "sosse-app-storage",
@@ -195,6 +201,7 @@ export const useAppStore = create<AppState>()(
         isDarkMode: state.isDarkMode,
         linkMode: state.linkMode,
         viewMode: state.viewMode,
+        crawlQueueRefreshInterval: state.crawlQueueRefreshInterval,
       }),
     },
   ),

@@ -30,6 +30,8 @@ class CrawlQueueDocumentSerializer(serializers.ModelSerializer):
     crawl_last_human = serializers.SerializerMethodField()
     title = serializers.CharField(read_only=True)
     favicon_url = serializers.SerializerMethodField()
+    is_pending = serializers.SerializerMethodField()
+    in_history = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
@@ -44,6 +46,8 @@ class CrawlQueueDocumentSerializer(serializers.ModelSerializer):
             "crawl_last_human",
             "retries",
             "worker_no",
+            "is_pending",
+            "in_history",
         ]
 
     def get_crawl_next_human(self, obj):
@@ -60,6 +64,12 @@ class CrawlQueueDocumentSerializer(serializers.ModelSerializer):
         if obj.favicon and not obj.favicon.missing:
             return f"/favicon/{obj.favicon.id}"
         return None
+
+    def get_is_pending(self, obj):
+        return getattr(obj, "pending", False)
+
+    def get_in_history(self, obj):
+        return getattr(obj, "in_history", False)
 
 
 class CrawlQueueActionSerializer(serializers.Serializer):

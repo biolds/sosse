@@ -7,7 +7,7 @@ import {
   BarChartOutlined,
   FolderOutlined,
   TagsOutlined,
-  AppstoreOutlined,
+  CoffeeOutlined,
 } from "@ant-design/icons";
 
 const { Sider, Content } = Layout;
@@ -40,7 +40,7 @@ export default function AdminLayout({
     },
     {
       key: "cookies",
-      icon: <AppstoreOutlined />,
+      icon: <CoffeeOutlined />,
       label: <Link href="/admin/cookies">Cookies</Link>,
     },
   ];

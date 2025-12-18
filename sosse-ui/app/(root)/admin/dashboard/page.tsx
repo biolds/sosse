@@ -14,6 +14,7 @@ import {
   Spin,
   Tag,
   Space,
+  Select,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -26,8 +27,10 @@ import {
   PlayCircleOutlined,
   CheckCircleOutlined,
   SyncOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
+import { useAppStore } from "@/app/hooks/useAppStore";
 
 const { Title, Text } = Typography;
 
@@ -42,6 +45,8 @@ interface CrawlQueueDocument {
   crawl_last_human: string | null;
   retries: number;
   worker_no: number | null;
+  is_pending: boolean;
+  in_history: boolean;
 }
 
 interface CrawlQueueData {
@@ -57,12 +62,14 @@ interface CrawlQueueData {
 export default function DashboardPage() {
   const [queueData, setQueueData] = useState<CrawlQueueData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { crawlQueueRefreshInterval, setCrawlQueueRefreshInterval } =
+    useAppStore();
 
   useEffect(() => {
     fetchCrawlQueue();
-    const interval = setInterval(fetchCrawlQueue, 30000);
+    const interval = setInterval(fetchCrawlQueue, crawlQueueRefreshInterval);
     return () => clearInterval(interval);
-  }, []);
+  }, [crawlQueueRefreshInterval]);
 
   const fetchCrawlQueue = async () => {
     try {
@@ -124,51 +131,45 @@ export default function DashboardPage() {
       dataIndex: "url",
       key: "url",
       ellipsis: true,
-      render: (url: string, record) => (
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div
-            style={{
-              width: "16px",
-              height: "16px",
-              flexShrink: 0,
-            }}
-          >
-            {record.favicon_url && (
-              <Image
-                src={record.favicon_url}
-                alt="icon"
-                style={{ width: "16px", height: "16px" }}
-                width={16}
-                height={16}
-                unoptimized
-              />
-            )}
+      render: (url: string, record) => {
+        const linkUrl = `/archive/${record.url}`;
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                width: "16px",
+                height: "16px",
+                flexShrink: 0,
+              }}
+            >
+              {record.favicon_url && (
+                <Image
+                  src={record.favicon_url}
+                  alt="icon"
+                  style={{ width: "16px", height: "16px" }}
+                  width={16}
+                  height={16}
+                  unoptimized
+                />
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {record.title ? (
+                <>
+                  <Link href={linkUrl} style={{ display: "block" }}>
+                    {record.title}
+                  </Link>
+                  <Text type="secondary" ellipsis style={{ fontSize: "12px" }}>
+                    {url}
+                  </Text>
+                </>
+              ) : (
+                <Link href={linkUrl}>{url}</Link>
+              )}
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {record.title ? (
-              <>
-                <Link
-                  href={`/admin/se/document/${record.id}/change/`}
-                  target="_blank"
-                  style={{ display: "block" }}
-                >
-                  {record.title}
-                </Link>
-                <Text type="secondary" ellipsis style={{ fontSize: "12px" }}>
-                  {url}
-                </Text>
-              </>
-            ) : (
-              <Link
-                href={`/admin/se/document/${record.id}/change/`}
-                target="_blank"
-              >
-                {url}
-              </Link>
-            )}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: "Status",
@@ -198,7 +199,11 @@ export default function DashboardPage() {
           return <Text type="warning">Pending</Text>;
         }
         return (
-          <Text type="secondary" title={record.crawl_next || ""}>
+          <Text
+            type="secondary"
+            title={record.crawl_next || ""}
+            style={{ opacity: record.in_history ? 0.4 : 1.0 }}
+          >
             {record.crawl_next_human || "Never"}
           </Text>
         );
@@ -209,7 +214,11 @@ export default function DashboardPage() {
       key: "crawl_last",
       width: 150,
       render: (_, record) => (
-        <Text type="secondary" title={record.crawl_last || ""}>
+        <Text
+          type="secondary"
+          title={record.crawl_last || ""}
+          style={{ opacity: record.is_pending ? 0.4 : 1.0 }}
+        >
           {record.crawl_last_human || "Never"}
         </Text>
       ),
@@ -295,7 +304,23 @@ export default function DashboardPage() {
           </Card>
         </Col>
       </Row>
-      <Card title="Crawl Queue" styles={{ body: { padding: 0 } }}>
+      <Card
+        title="Crawl Queue"
+        styles={{ body: { padding: 0 } }}
+        extra={
+          <Select
+            value={crawlQueueRefreshInterval}
+            onChange={setCrawlQueueRefreshInterval}
+            style={{ width: 70 }}
+            suffixIcon={<ReloadOutlined />}
+            options={[
+              { value: 5000, label: "5s" },
+              { value: 10000, label: "10s" },
+              { value: 20000, label: "20s" },
+            ]}
+          />
+        }
+      >
         <Table
           columns={columns}
           dataSource={queueData?.queue || []}

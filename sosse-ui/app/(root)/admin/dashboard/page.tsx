@@ -31,6 +31,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
+import archiveLink from "@/app/utils/archiveLink";
 
 const { Title, Text } = Typography;
 
@@ -132,7 +133,7 @@ export default function DashboardPage() {
       key: "url",
       ellipsis: true,
       render: (url: string, record) => {
-        const linkUrl = `/archive/${record.url}`;
+        const linkUrl = `/archive/${archiveLink(record.url)}`;
         return (
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div

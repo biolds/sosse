@@ -7,6 +7,7 @@ import { Button, Card, Layout, Spin } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
+import archiveLink from "@/app/utils/archiveLink";
 import Header from "@/app/components/Header";
 import type { Document } from "@/app/types/document";
 
@@ -58,8 +59,10 @@ export default function ArchivePage() {
     const links = iframe[0].contentWindow.document.getElementsByTagName("a");
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
+      const href = link.getAttribute("href") || "";
+      link.href = "/archive/" + archiveLink(href.replace("/html/", ""));
       link.onclick = function () {
-        router.push(link.getAttribute("href").replace("/html/", "/archive/"));
+        router.push(link.href);
       };
     }
   };

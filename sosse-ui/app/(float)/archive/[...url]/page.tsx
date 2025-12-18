@@ -119,8 +119,9 @@ export default function ArchivePage() {
                       unoptimized
                     />
                   )}
-                {url}
+                {sosseDocument && sosseDocument.title}
               </span>
+              {url}
             </Content>
           </Layout>
         </Card>

@@ -22,9 +22,14 @@ from .permissions import DjangoModelPermissionsRW
 
 
 class TagSerializer(serializers.ModelSerializer):
+    color = serializers.SerializerMethodField()
+
     class Meta:
         model = Tag
         fields = "__all__"
+
+    def get_color(self, obj):
+        return obj.get_color()
 
 
 class TagViewSet(viewsets.ModelViewSet):

@@ -60,7 +60,7 @@ export const useAppStore = create<AppState>()(
       setViewMode: (mode) => set({ viewMode: mode }),
 
       searchFilters: {
-        lang: "en",
+        lang: "",
         include_hidden: false,
         sort: "-rank",
         adv_params: [],

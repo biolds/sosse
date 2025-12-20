@@ -58,8 +58,6 @@ const HomePage = () => {
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
-  const [advancedExpanded, setAdvancedExpanded] = useState(false);
-  const [draftFilters, setDraftFilters] = useState(searchFilters);
   const advancedSearchRef = useRef<AdvancedSearchRef>(null);
 
   useEffect(() => {
@@ -74,7 +72,7 @@ const HomePage = () => {
   ) => {
     const queryTerm = value.trim();
     const hasAdvancedFilters =
-      advancedExpanded && filters.adv_params && filters.adv_params.length > 0;
+      filters.adv_params && filters.adv_params.length > 0;
 
     if (!queryTerm && !hasAdvancedFilters) {
       return;
@@ -102,14 +100,12 @@ const HomePage = () => {
         include_hidden: filters.include_hidden,
       };
 
-      if (advancedExpanded) {
-        if (filters.collection) {
-          requestBody.collection = filters.collection;
-        }
+      if (filters.collection) {
+        requestBody.collection = filters.collection;
+      }
 
-        if (filters.adv_params.length > 0) {
-          requestBody.adv_params = filters.adv_params;
-        }
+      if (filters.adv_params.length > 0) {
+        requestBody.adv_params = filters.adv_params;
       }
 
       const response = await axios.post<SearchResponse>(
@@ -145,8 +141,7 @@ const HomePage = () => {
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
-    const hasAdvancedFilters =
-      advancedExpanded && draftFilters.adv_params.length > 0;
+    const hasAdvancedFilters = searchFilters.adv_params.length > 0;
 
     if (!queryTerm && !hasAdvancedFilters) {
       message.warning("Please enter a search query or add filters");
@@ -161,17 +156,32 @@ const HomePage = () => {
       }
     }
 
-    updateSearchFilters(draftFilters);
-    performSearch(queryTerm, 1, undefined, draftFilters);
+    performSearch(queryTerm, 1, undefined, searchFilters);
 
-    if (searchParams.get("q") !== queryTerm) {
+    if (queryTerm) {
       const params = new URLSearchParams();
-      if (queryTerm) {
-        params.set("q", queryTerm);
-      }
+      params.set("q", queryTerm);
       router.push(`/?${params.toString()}`);
+    } else if (hasAdvancedFilters && searchParams.get("q")) {
+      router.push("/");
     }
   };
+
+  useEffect(() => {
+    if (submittedQuery || searchFilters.adv_params.length > 0) {
+      const hasAdvancedFilters = searchFilters.adv_params.length > 0;
+
+      if (hasAdvancedFilters && advancedSearchRef.current) {
+        const isValid = advancedSearchRef.current.validateFilters();
+        if (!isValid) {
+          return;
+        }
+      }
+
+      performSearch(submittedQuery || inputValue, 1, undefined, searchFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFilters]);
 
   const handlePageChange = (page: number, newPageSize: number) => {
     const q = searchParams.get("q") || "";
@@ -206,11 +216,8 @@ const HomePage = () => {
 
         <AdvancedSearch
           ref={advancedSearchRef}
-          expanded={advancedExpanded}
-          setExpanded={setAdvancedExpanded}
-          draftFilters={draftFilters}
-          setDraftFilters={setDraftFilters}
-          onSearch={() => handleSearch(inputValue)}
+          filters={searchFilters}
+          setFilters={updateSearchFilters}
         />
 
         {loading && (

@@ -7,225 +7,17 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import {
-  Button,
-  Select,
-  Input,
-  Checkbox,
-  Space,
-  Divider,
-  Form,
-  Row,
-  Col,
-  Card,
-  theme,
-} from "antd";
-import {
-  PlusOutlined,
-  MinusOutlined,
-  DownOutlined,
-  FilterOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-} from "@ant-design/icons";
+import { Button, theme } from "antd";
+import { PlusOutlined, DownOutlined, SettingOutlined } from "@ant-design/icons";
 import {
   useAppStore,
   type AdvancedFilter,
   type SearchFilters,
 } from "@/app/hooks/useAppStore";
+import FilterBadge from "./FilterBadge";
+import FilterModal from "./FilterModal";
+import MoreOptionsPanel from "./MoreOptionsPanel";
 import "./AdvancedSearch.css";
-
-const { Option } = Select;
-
-const FILTER_FIELDS = [
-  { value: "doc", label: "Document" },
-  { value: "content", label: "Content" },
-  { value: "title", label: "Title" },
-  { value: "url", label: "URL" },
-  { value: "mimetype", label: "Mimetype" },
-  { value: "lto_url", label: "Links to url" },
-  { value: "lto_txt", label: "Links to text" },
-  { value: "lby_url", label: "Linked by url" },
-  { value: "lby_txt", label: "Linked by text" },
-  { value: "tag", label: "Tag" },
-];
-
-const SORT_OPTIONS = [
-  { value: "-rank", label: "Most relevant first" },
-  { value: "rank", label: "Most relevant last" },
-  { value: "modified_date", label: "Last modified ascending" },
-  { value: "-modified_date", label: "Last modified descending" },
-  { value: "crawl_first", label: "First crawled ascending" },
-  { value: "-crawl_first", label: "First crawled descending" },
-  { value: "crawl_last", label: "Last crawled ascending" },
-  { value: "-crawl_last", label: "Last crawled descending" },
-  { value: "title", label: "Title ascending" },
-  { value: "-title", label: "Title descending" },
-  { value: "url", label: "URL ascending" },
-  { value: "-url", label: "URL descending" },
-];
-
-const LANGUAGES = [
-  { value: "", label: "Any" },
-  { value: "en", label: "🇬🇧 English" },
-  { value: "fr", label: "🇫🇷 French" },
-  { value: "es", label: "🇪🇸 Spanish" },
-  { value: "de", label: "🇩🇪 German" },
-  { value: "it", label: "🇮🇹 Italian" },
-  { value: "pt", label: "🇵🇹 Portuguese" },
-  { value: "nl", label: "🇳🇱 Dutch" },
-  { value: "pl", label: "🇵🇱 Polish" },
-  { value: "ru", label: "🇷🇺 Russian" },
-  { value: "ja", label: "🇯🇵 Japanese" },
-  { value: "zh", label: "🇨🇳 Chinese" },
-  { value: "ar", label: "🇸🇦 Arabic" },
-];
-
-const FilterRow = memo(
-  ({
-    filter,
-    index,
-    onRemove,
-    onUpdate,
-    error,
-    onSearch,
-  }: {
-    filter: AdvancedFilter;
-    index: number;
-    onRemove: (index: number) => void;
-    onUpdate: (
-      index: number,
-      field: keyof AdvancedFilter,
-      value: string | boolean,
-    ) => void;
-    error?: string;
-    onSearch?: () => void;
-  }) => {
-    const { token } = theme.useToken();
-    const [isRemoving, setIsRemoving] = React.useState(false);
-
-    const handleRemove = () => {
-      setIsRemoving(true);
-      setTimeout(() => {
-        onRemove(index);
-      }, 300);
-    };
-
-    return (
-      <div className={`filter-row-wrapper ${isRemoving ? "removing" : ""}`}>
-        <div
-          style={{
-            padding: "12px",
-            backgroundColor: token.colorBgContainer,
-            borderRadius: "8px",
-            border: `1px solid ${token.colorBorder}`,
-            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
-          }}
-        >
-          <Row gutter={8} wrap>
-            <Col flex="none">
-              <Button
-                size="small"
-                icon={<MinusOutlined />}
-                onClick={handleRemove}
-                danger
-                shape="circle"
-                style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-              />
-            </Col>
-            <Col flex="110px">
-              <Button
-                size="small"
-                onClick={() =>
-                  onUpdate(index, "type", filter.type === "inc" ? "exc" : "inc")
-                }
-                icon={
-                  filter.type === "inc" ? (
-                    <CheckCircleOutlined />
-                  ) : (
-                    <CloseCircleOutlined />
-                  )
-                }
-                type={filter.type === "inc" ? "primary" : "default"}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {filter.type === "inc" ? "Keep" : "Exclude"}
-              </Button>
-            </Col>
-            <Col flex="150px">
-              <Select
-                value={filter.field}
-                onChange={(value) => onUpdate(index, "field", value)}
-                style={{ width: "100%" }}
-                size="small"
-                variant="filled"
-              >
-                {FILTER_FIELDS.map((field) => (
-                  <Option key={field.value} value={field.value}>
-                    {field.label}
-                  </Option>
-                ))}
-              </Select>
-            </Col>
-            <Col flex="130px">
-              <Select
-                value={filter.operator}
-                onChange={(value) => onUpdate(index, "operator", value)}
-                style={{ width: "100%" }}
-                size="small"
-                variant="filled"
-              >
-                <Option value="contain">Containing</Option>
-                <Option value="equal">Equal to</Option>
-                <Option value="regexp">Matching Regex</Option>
-              </Select>
-            </Col>
-            <Col flex="auto">
-              <Form.Item
-                validateStatus={error ? "error" : ""}
-                help={error}
-                style={{ marginBottom: 0 }}
-                className="advanced-filter-term"
-              >
-                <Input
-                  value={filter.term}
-                  onChange={(e) => onUpdate(index, "term", e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && onSearch) {
-                      onSearch();
-                    }
-                  }}
-                  placeholder="Value"
-                  size="small"
-                  variant="filled"
-                  allowClear
-                  status={error ? "error" : ""}
-                />
-              </Form.Item>
-            </Col>
-            <Col flex="none">
-              <Checkbox
-                checked={filter.case_sensitive}
-                onChange={(e) =>
-                  onUpdate(index, "case_sensitive", e.target.checked)
-                }
-              >
-                Case sensitive
-              </Checkbox>
-            </Col>
-          </Row>
-        </div>
-      </div>
-    );
-  },
-);
-
-FilterRow.displayName = "FilterRow";
 
 export interface AdvancedSearchRef {
   validateFilters: () => boolean;
@@ -234,74 +26,65 @@ export interface AdvancedSearchRef {
 const AdvancedSearch = forwardRef<
   AdvancedSearchRef,
   {
-    expanded: boolean;
-    setExpanded: (expanded: boolean) => void;
-    draftFilters: SearchFilters;
-    setDraftFilters: (filters: SearchFilters) => void;
-    onSearch?: () => void;
+    filters: SearchFilters;
+    setFilters: (filters: SearchFilters) => void;
   }
->(({ expanded, setExpanded, draftFilters, setDraftFilters, onSearch }, ref) => {
+>(({ filters, setFilters }, ref) => {
   const { collections } = useAppStore();
   const { token } = theme.useToken();
-  const [filterErrors, setFilterErrors] = useState<Record<number, string>>({});
-
-  const addFilter = useCallback(() => {
-    setDraftFilters({
-      ...draftFilters,
-      adv_params: [
-        ...draftFilters.adv_params,
-        {
-          id: `filter-${Date.now()}-${Math.random()}`,
-          type: "inc",
-          field: "doc",
-          operator: "contain",
-          term: "",
-          case_sensitive: false,
-        },
-      ],
-    });
-  }, [draftFilters, setDraftFilters]);
-
-  const removeFilter = useCallback(
-    (index: number) => {
-      setDraftFilters({
-        ...draftFilters,
-        adv_params: draftFilters.adv_params.filter((_, i) => i !== index),
-      });
-    },
-    [draftFilters, setDraftFilters],
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingFilterIndex, setEditingFilterIndex] = useState<number | null>(
+    null,
   );
+  const [moreOptionsExpanded, setMoreOptionsExpanded] = useState(false);
 
-  const updateFilter = useCallback(
-    (index: number, field: keyof AdvancedFilter, value: string | boolean) => {
-      setDraftFilters({
-        ...draftFilters,
-        adv_params: draftFilters.adv_params.map((filter, i) =>
-          i === index ? { ...filter, [field]: value } : filter,
-        ),
-      });
+  const openAddModal = useCallback(() => {
+    setEditingFilterIndex(null);
+    setModalVisible(true);
+  }, []);
 
-      if (field === "term" && value) {
-        setFilterErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[index];
-          return newErrors;
+  const openEditModal = useCallback((index: number) => {
+    setEditingFilterIndex(index);
+    setModalVisible(true);
+  }, []);
+
+  const handleModalSubmit = useCallback(
+    (filter: AdvancedFilter) => {
+      if (editingFilterIndex !== null) {
+        setFilters({
+          ...filters,
+          adv_params: filters.adv_params.map((f, i) =>
+            i === editingFilterIndex ? filter : f,
+          ),
+        });
+      } else {
+        setFilters({
+          ...filters,
+          adv_params: [...filters.adv_params, filter],
         });
       }
+      setModalVisible(false);
+      setEditingFilterIndex(null);
     },
-    [draftFilters, setDraftFilters],
+    [filters, setFilters, editingFilterIndex],
+  );
+
+  const handleDeleteFilter = useCallback(
+    (index: number) => {
+      setFilters({
+        ...filters,
+        adv_params: filters.adv_params.filter((_, i) => i !== index),
+      });
+    },
+    [filters, setFilters],
   );
 
   const validateFilters = useCallback(() => {
-    const errors: Record<number, string> = {};
-    draftFilters.adv_params.forEach((filter, index) => {
-      if (!filter.term || filter.term.trim() === "") {
-        errors[index] = "This field is required";
-      }
-    });
-    setFilterErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [draftFilters.adv_params]);
+    const hasEmptyFilters = filters.adv_params.some(
+      (filter) => !filter.term || filter.term.trim() === "",
+    );
+    return !hasEmptyFilters;
+  }, [filters.adv_params]);
 
   useImperativeHandle(ref, () => ({
     validateFilters,
@@ -309,31 +92,85 @@ const AdvancedSearch = forwardRef<
 
   return (
     <div style={{ marginTop: "16px" }}>
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "8px",
+          alignItems: "center",
+          marginBottom: "16px",
+        }}
+      >
+        {filters.adv_params.length > 0 && (
+          <>
+            <span
+              style={{
+                fontSize: "13px",
+                fontWeight: 500,
+                color: token.colorTextSecondary,
+                marginRight: "4px",
+              }}
+            >
+              Active Filters:
+            </span>
+            {filters.adv_params.map((filter, index) => (
+              <FilterBadge
+                key={filter.id}
+                filter={filter}
+                onEdit={() => openEditModal(index)}
+                onRemove={() => handleDeleteFilter(index)}
+              />
+            ))}
+            <Button
+              type="text"
+              size="small"
+              danger
+              onClick={() => setFilters({ ...filters, adv_params: [] })}
+              style={{
+                fontSize: "12px",
+                height: "24px",
+                padding: "0 8px",
+                opacity: 0.6,
+              }}
+            >
+              Clear all
+            </Button>
+          </>
+        )}
         <Button
-          type={expanded ? "primary" : "default"}
-          ghost={expanded}
-          size="middle"
-          onClick={() => setExpanded(!expanded)}
-          icon={<FilterOutlined />}
+          type="dashed"
+          size="small"
+          icon={<PlusOutlined />}
+          onClick={openAddModal}
           style={{
-            borderRadius: "20px",
-            paddingLeft: "20px",
-            paddingRight: "20px",
-            boxShadow: expanded
-              ? "0 2px 8px rgba(22, 119, 255, 0.2)"
-              : "0 2px 4px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
+            borderRadius: "16px",
+            height: "28px",
+            fontSize: "13px",
           }}
         >
-          Filters & Options
+          Add Filter
+        </Button>
+        <Button
+          type="text"
+          size="small"
+          icon={<SettingOutlined />}
+          onClick={() => setMoreOptionsExpanded(!moreOptionsExpanded)}
+          style={{
+            borderRadius: "16px",
+            height: "28px",
+            fontSize: "13px",
+          }}
+        >
+          More Options
           <DownOutlined
             style={{
-              marginLeft: "8px",
-              fontSize: "12px",
+              marginLeft: "4px",
+              fontSize: "10px",
               transition: "transform 0.3s ease",
               display: "inline-block",
-              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transform: moreOptionsExpanded
+                ? "rotate(180deg)"
+                : "rotate(0deg)",
             }}
           />
         </Button>
@@ -341,145 +178,34 @@ const AdvancedSearch = forwardRef<
 
       <div
         style={{
-          maxHeight: expanded ? "2000px" : "0",
-          opacity: expanded ? 1 : 0,
+          maxHeight: moreOptionsExpanded ? "500px" : "0",
+          opacity: moreOptionsExpanded ? 1 : 0,
           overflow: "hidden",
-          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          transform: expanded ? "translateY(0)" : "translateY(-10px)",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          marginBottom: moreOptionsExpanded ? "16px" : "0",
         }}
       >
-        <Card
-          style={{
-            marginTop: "20px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-            border: `1px solid ${token.colorBorder}`,
-            background: token.colorBgContainer,
-          }}
-          styles={{ body: { padding: "24px" } }}
-        >
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={6}>
-              <Form.Item label="Language" style={{ marginBottom: 0 }}>
-                <Select
-                  value={draftFilters.lang || ""}
-                  onChange={(value) =>
-                    setDraftFilters({
-                      ...draftFilters,
-                      lang: value || undefined,
-                    })
-                  }
-                  style={{ width: "100%" }}
-                >
-                  {LANGUAGES.map((lang) => (
-                    <Option key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12} md={6}>
-              <Form.Item label="Collection" style={{ marginBottom: 0 }}>
-                <Select
-                  value={draftFilters.collection}
-                  onChange={(value) =>
-                    setDraftFilters({ ...draftFilters, collection: value })
-                  }
-                  style={{ width: "100%" }}
-                  allowClear
-                  placeholder="All collections"
-                >
-                  {collections.map((col) => (
-                    <Option key={col.id} value={col.id}>
-                      {col.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12} md={6}>
-              <Form.Item label="Sort" style={{ marginBottom: 0 }}>
-                <Select
-                  value={draftFilters.sort}
-                  onChange={(value) =>
-                    setDraftFilters({ ...draftFilters, sort: value })
-                  }
-                  style={{ width: "100%" }}
-                >
-                  {SORT_OPTIONS.map((opt) => (
-                    <Option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12} md={6}>
-              <Form.Item label=" " style={{ marginBottom: 0 }}>
-                <Checkbox
-                  checked={draftFilters.include_hidden}
-                  onChange={(e) =>
-                    setDraftFilters({
-                      ...draftFilters,
-                      include_hidden: e.target.checked,
-                    })
-                  }
-                >
-                  Include hidden documents
-                </Checkbox>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider
-            titlePlacement="left"
-            style={{ marginTop: "24px", marginBottom: "20px" }}
-          >
-            <Space>
-              <FilterOutlined style={{ color: token.colorPrimary }} />
-              <span style={{ fontWeight: 500 }}>Custom Filters</span>
-            </Space>
-          </Divider>
-
-          <Space orientation="vertical" style={{ width: "100%" }} size="middle">
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              {draftFilters.adv_params.map((filter, index) => (
-                <FilterRow
-                  key={filter.id}
-                  filter={filter}
-                  index={index}
-                  onRemove={removeFilter}
-                  onUpdate={updateFilter}
-                  error={filterErrors[index]}
-                  onSearch={onSearch}
-                />
-              ))}
-            </div>
-
-            <Button
-              type="dashed"
-              onClick={addFilter}
-              icon={<PlusOutlined />}
-              style={{
-                width: "100%",
-                borderRadius: "8px",
-                height: "40px",
-                borderStyle: "dashed",
-                borderWidth: "2px",
-                transition: "transform 300ms ease-out",
-              }}
-            >
-              Add filter
-            </Button>
-          </Space>
-        </Card>
+        <MoreOptionsPanel
+          filters={filters}
+          setFilters={setFilters}
+          collections={collections}
+        />
       </div>
+
+      <FilterModal
+        visible={modalVisible}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingFilterIndex(null);
+        }}
+        onSubmit={handleModalSubmit}
+        initialFilter={
+          editingFilterIndex !== null
+            ? filters.adv_params[editingFilterIndex]
+            : undefined
+        }
+        isEditing={editingFilterIndex !== null}
+      />
     </div>
   );
 });

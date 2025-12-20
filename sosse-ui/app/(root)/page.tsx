@@ -18,7 +18,7 @@ import {
   UnorderedListOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import { useAppStore } from "@/app/hooks/useAppStore";
+import { useAppStore, type AdvancedFilter } from "@/app/hooks/useAppStore";
 import SearchResults, { SearchResult } from "./components/SearchResults";
 import AdvancedSearch, {
   type AdvancedSearchRef,
@@ -132,12 +132,78 @@ const HomePage = () => {
 
   useEffect(() => {
     const q = searchParams.get("q");
+    const doc_lang = searchParams.get("doc_lang");
+    const collection = searchParams.get("collection");
+    const sort = searchParams.get("s");
+    const include_hidden = searchParams.get("i") === "on";
+
+    // Load filters from URL
+    const filters: AdvancedFilter[] = [];
+    const filterNumbers = new Set<string>();
+
+    // Find all filter numbers in URL params
+    searchParams.forEach((value, key) => {
+      const match = key.match(/^(ft|ff|fo|fv|fc)(\d+)$/);
+      if (match) {
+        filterNumbers.add(match[2]);
+      }
+    });
+
+    // Build filter objects
+    Array.from(filterNumbers)
+      .sort()
+      .forEach((num) => {
+        const type = searchParams.get(`ft${num}`);
+        const field = searchParams.get(`ff${num}`);
+        const operator = searchParams.get(`fo${num}`);
+        const term = searchParams.get(`fv${num}`);
+        const case_sensitive = searchParams.get(`fc${num}`) === "on";
+
+        if (type && field && operator && term) {
+          filters.push({
+            id: `filter-${Date.now()}-${num}`,
+            type: type as "inc" | "exc",
+            field,
+            operator: operator as "contain" | "equal" | "regexp",
+            term,
+            case_sensitive,
+          });
+        }
+      });
+
+    // Update filters if found in URL
+    if (
+      filters.length > 0 ||
+      doc_lang ||
+      collection ||
+      sort ||
+      include_hidden
+    ) {
+      const newFilters = { ...searchFilters };
+      if (filters.length > 0) {
+        newFilters.adv_params = filters;
+      }
+      if (doc_lang !== null) {
+        newFilters.lang = doc_lang;
+      }
+      if (collection) {
+        newFilters.collection = parseInt(collection, 10);
+      }
+      if (sort) {
+        newFilters.sort = sort;
+      }
+      if (include_hidden) {
+        newFilters.include_hidden = true;
+      }
+      updateSearchFilters(newFilters);
+    }
+
     if (q && q.trim()) {
       setInputValue(q);
       performSearch(q);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
@@ -158,13 +224,36 @@ const HomePage = () => {
 
     performSearch(queryTerm, 1, undefined, searchFilters);
 
+    // Build URL with filters
+    const params = new URLSearchParams();
     if (queryTerm) {
-      const params = new URLSearchParams();
       params.set("q", queryTerm);
-      router.push(`/?${params.toString()}`);
-    } else if (hasAdvancedFilters && searchParams.get("q")) {
-      router.push("/");
     }
+    if (searchFilters.lang) {
+      params.set("doc_lang", searchFilters.lang);
+    }
+    if (searchFilters.collection) {
+      params.set("collection", searchFilters.collection.toString());
+    }
+    if (searchFilters.sort && searchFilters.sort !== "-rank") {
+      params.set("s", searchFilters.sort);
+    }
+    if (searchFilters.include_hidden) {
+      params.set("i", "on");
+    }
+    searchFilters.adv_params.forEach((filter, index) => {
+      const num = index.toString();
+      params.set(`ft${num}`, filter.type);
+      params.set(`ff${num}`, filter.field);
+      params.set(`fo${num}`, filter.operator);
+      params.set(`fv${num}`, filter.term);
+      if (filter.case_sensitive) {
+        params.set(`fc${num}`, "on");
+      }
+    });
+
+    const url = params.toString() ? `/?${params.toString()}` : "/";
+    router.push(url);
   };
 
   useEffect(() => {
@@ -179,6 +268,38 @@ const HomePage = () => {
       }
 
       performSearch(submittedQuery || inputValue, 1, undefined, searchFilters);
+
+      // Update URL with current filters
+      const params = new URLSearchParams();
+      const query = submittedQuery || inputValue;
+      if (query) {
+        params.set("q", query);
+      }
+      if (searchFilters.lang) {
+        params.set("doc_lang", searchFilters.lang);
+      }
+      if (searchFilters.collection) {
+        params.set("collection", searchFilters.collection.toString());
+      }
+      if (searchFilters.sort && searchFilters.sort !== "-rank") {
+        params.set("s", searchFilters.sort);
+      }
+      if (searchFilters.include_hidden) {
+        params.set("i", "on");
+      }
+      searchFilters.adv_params.forEach((filter, index) => {
+        const num = index.toString();
+        params.set(`ft${num}`, filter.type);
+        params.set(`ff${num}`, filter.field);
+        params.set(`fo${num}`, filter.operator);
+        params.set(`fv${num}`, filter.term);
+        if (filter.case_sensitive) {
+          params.set(`fc${num}`, "on");
+        }
+      });
+
+      const url = params.toString() ? `/?${params.toString()}` : "/";
+      router.push(url);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFilters]);

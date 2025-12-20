@@ -49,15 +49,33 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                 hoverable
                 cover={
                   item.preview ? (
-                    <Image
-                      alt="preview"
-                      src={item.preview}
-                      width={200}
-                      height={120}
-                      unoptimized
-                      style={{ objectFit: "cover" }}
-                      loading="lazy"
-                    />
+                    <div
+                      style={{
+                        height: "200px",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "var(--card-bg)",
+                      }}
+                    >
+                      <Image
+                        alt="preview"
+                        src={item.preview}
+                        width={0}
+                        height={0}
+                        sizes="100vw"
+                        unoptimized
+                        style={{
+                          width: "auto",
+                          height: "auto",
+                          maxHeight: "200px",
+                          maxWidth: "100%",
+                          objectFit: "contain",
+                        }}
+                        loading="lazy"
+                      />
+                    </div>
                   ) : (
                     <div
                       className="card-no-preview"
@@ -174,15 +192,33 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
             className="search-result-item"
             extra={
               item.preview && (
-                <Image
-                  height={120}
-                  width={200}
-                  alt="preview"
-                  src={item.preview}
-                  style={{ borderRadius: "4px", objectFit: "cover" }}
-                  loading="lazy"
-                  unoptimized
-                />
+                <div
+                  style={{
+                    maxHeight: "100px",
+                    maxWidth: "200px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Image
+                    width={0}
+                    height={0}
+                    sizes="200px"
+                    alt="preview"
+                    src={item.preview}
+                    style={{
+                      borderRadius: "4px",
+                      width: "auto",
+                      height: "auto",
+                      maxHeight: "100px",
+                      maxWidth: "200px",
+                      objectFit: "contain",
+                    }}
+                    loading="lazy"
+                    unoptimized
+                  />
+                </div>
               )
             }
           >

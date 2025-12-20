@@ -40,10 +40,6 @@ else
     [Install]
     WantedBy=multi-user.target
 EOF
-
-    systemctl daemon-reload
-    systemctl enable django-test.service
-    systemctl restart django-test.service
   else
     echo "Service already exist" >&2
   fi
@@ -52,3 +48,7 @@ fi
 cd "$CURRENT_DIR"
 mkdir -p "$SERVER_DIR/httpbin/bin/static/"
 rsync -avz "$SOSSE_TEST_DIR/pages" "$SERVER_DIR/httpbin/bin/static/"
+
+systemctl daemon-reload
+systemctl enable django-test.service
+systemctl restart django-test.service

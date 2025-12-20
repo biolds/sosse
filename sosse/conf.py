@@ -668,6 +668,44 @@ class Conf:
         return settings
 
     @classmethod
+    def default(cls):
+        settings: dict[str, Any] = {}
+
+        for _, default_conf in DEFAULTS.items():
+            for key, val in default_conf.items():
+                # Set defaults
+                default_var_name = f"SOSSE_{key.upper()}"
+                var_name = val.var or default_var_name
+                settings[var_name] = val.default
+
+        settings.update(
+            {
+                "HASHING_ALGO": hashlib.md5,
+                "DATABASES": {
+                    "default": {
+                        "ENGINE": "django.db.backends.postgresql",
+                        "NAME": settings.pop("SOSSE_DB_NAME"),
+                        "USER": settings.pop("SOSSE_DB_USER"),
+                        "PASSWORD": settings.pop("SOSSE_DB_PASS"),
+                        "HOST": settings.pop("SOSSE_DB_HOST"),
+                        "PORT": str(settings.pop("SOSSE_DB_PORT")),
+                    }
+                },
+                "ALLOWED_HOSTS": [settings.pop("SOSSE_ALLOWED_HOST")],
+                "DATA_UPLOAD_MAX_MEMORY_SIZE": settings.pop("SOSSE_DATA_UPLOAD_MAX_MEMORY_SIZE"),
+                "DATA_UPLOAD_MAX_NUMBER_FIELDS": settings.pop("SOSSE_DATA_UPLOAD_MAX_NUMBER_FIELDS"),
+                "SOSSE_CRAWLER_COUNT": 1,
+                "LOGGING": LOGGING,
+            }
+        )
+
+        settings |= {
+            "SOSSE_THUMBNAILS_DIR": settings["SOSSE_SCREENSHOTS_DIR"] + "thumb/",
+            "SOSSE_THUMBNAILS_URL": settings["SOSSE_SCREENSHOTS_URL"] + "thumb/",
+        }
+        return settings
+
+    @classmethod
     def generate_default(cls):
         s = ""
         for section_no, (section, variables) in enumerate(DEFAULTS.items()):

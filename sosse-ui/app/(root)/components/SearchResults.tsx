@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import React from "react";
-import { List, Typography, Space, Tag, Card, Row, Col } from "antd";
+import { List, Typography, Space, Card, Row, Col } from "antd";
 import { CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
+import type { Tag } from "@/app/types/tag";
+import TagComponent from "@/app/components/tag";
 import { AnimatedLinkModeIcon } from "./ArchiveIcons";
 import SearchResultLink from "./SearchResultLink";
 import "./SearchResults.css";
@@ -18,7 +20,7 @@ export interface SearchResult {
   score?: number;
   crawl_last?: string;
   lang_iso_639_1?: string;
-  tags?: Array<{ id: number; name: string }>;
+  tag_list?: Tag[];
   preview?: string;
   favicon?: {
     id: number;
@@ -160,12 +162,10 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                         />
                       )}
 
-                      {item.tags && item.tags.length > 0 && (
+                      {item.tag_list && item.tag_list.length > 0 && (
                         <Space size="small" wrap>
-                          {item.tags.map((tag) => (
-                            <Tag key={tag.id} style={{ fontSize: "11px" }}>
-                              {tag.name}
-                            </Tag>
+                          {item.tag_list.map((tag) => (
+                            <TagComponent key={tag.id} tag={tag} />
                           ))}
                         </Space>
                       )}
@@ -266,10 +266,10 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                 />
               )}
 
-              {item.tags && item.tags.length > 0 && (
+              {item.tag_list && item.tag_list.length > 0 && (
                 <Space size="small" wrap>
-                  {item.tags.map((tag) => (
-                    <Tag key={tag.id}>{tag.name}</Tag>
+                  {item.tag_list.map((tag) => (
+                    <TagComponent key={tag.id} tag={tag} />
                   ))}
                 </Space>
               )}

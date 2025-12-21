@@ -76,6 +76,7 @@ class SearchTest(RestAPITest, TransactionTestCase):
                         "id": self.doc2.id,
                         "score": 1.0,
                         "headline": "Other Content2",
+                        "tag_list": [SERIALIZED_DOC2_BASE["tag_list"][0] | {"id": self.subtag.id}],
                     }
                 ],
             },
@@ -139,6 +140,7 @@ class SearchTest(RestAPITest, TransactionTestCase):
                         "score": 0.6079271,
                         "hidden": True,
                         "headline": "Other Content2",
+                        "tag_list": [SERIALIZED_DOC2_BASE["tag_list"][0] | {"id": self.subtag.id}],
                     },
                     SERIALIZED_DOC3_BASE
                     | {
@@ -171,6 +173,7 @@ class SearchTest(RestAPITest, TransactionTestCase):
                         "id": self.doc2.id,
                         "score": 1.0,
                         "headline": "Other Content2",
+                        "tag_list": [SERIALIZED_DOC2_BASE["tag_list"][0] | {"id": self.subtag.id}],
                     },
                 ],
             },
@@ -196,6 +199,7 @@ class SearchTest(RestAPITest, TransactionTestCase):
                         "id": self.doc2.id,
                         "score": 1.0,
                         "headline": "Other Content2",
+                        "tag_list": [SERIALIZED_DOC2_BASE["tag_list"][0] | {"id": self.subtag.id}],
                     },
                 ],
             },

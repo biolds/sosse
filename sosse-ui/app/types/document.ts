@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Sosse.
 // If not, see <https://www.gnu.org/licenses/>.
 
+import type { Tag } from "./tag";
+
 export interface FavIcon {
   id: number;
   missing: boolean;
@@ -57,6 +59,7 @@ export interface Document {
   metadata: Record<string, unknown>;
   mime_plugins_result: string;
   tags: string[];
+  tag_list: Tag[];
   tags_str: string;
   preview: string | null;
   snapshot_url: string | null;

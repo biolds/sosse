@@ -58,6 +58,7 @@ SERIALIZED_DOC1_BASE = {
     "snapshot_url": None,
     "tags": [],
     "tags_str": "",
+    "tag_list": [],
     "title": "Title",
     "too_many_redirects": False,
     "url": "http://127.0.0.1/test",
@@ -78,6 +79,7 @@ SERIALIZED_DOC2_BASE = SERIALIZED_DOC1_BASE | {
     "mimetype": "image/png",
     "tags": ["Sub Tag"],
     "tags_str": "Sub Tag",
+    "tag_list": [{"name": "Sub Tag", "color": "#e57272"}],
 }
 SERIALIZED_DOC3_BASE = SERIALIZED_DOC1_BASE | {
     "url": "http://example.com/test3",

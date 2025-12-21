@@ -26,7 +26,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = "__all__"
+        fields = ("id", "name", "color")
 
     def get_color(self, obj):
         return obj.get_color()

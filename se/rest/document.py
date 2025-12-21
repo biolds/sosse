@@ -30,6 +30,7 @@ from ..favicon import FavIcon
 from ..html_asset import HTMLAsset
 from ..tag import Tag
 from .permissions import DjangoModelPermissionsRW
+from .tag import TagSerializer
 
 
 class TagSlugRelatedField(serializers.SlugRelatedField):
@@ -84,6 +85,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         slug_field="name",
     )
 
+    tag_list = TagSerializer(source="tags", many=True, read_only=True)
     favicon = FavIconSerializer(read_only=True)
     tags_str = serializers.SerializerMethodField()
     preview = serializers.SerializerMethodField()

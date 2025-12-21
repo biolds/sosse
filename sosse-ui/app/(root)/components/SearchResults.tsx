@@ -49,6 +49,7 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
             <SearchResultLink href={item.url}>
               <Card
                 hoverable
+                style={{ height: "100%" }}
                 cover={
                   item.preview ? (
                     <div

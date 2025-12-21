@@ -25,7 +25,12 @@ const SearchResultLink = ({
       href={getResultLink(href)}
       target={linkMode === "source" ? "_blank" : undefined}
       rel={linkMode === "source" ? "noopener noreferrer" : undefined}
-      style={{ textDecoration: "none", color: "inherit" }}
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+        width: "100%",
+        height: "100%",
+      }}
     >
       {children}
     </Link>

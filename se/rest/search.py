@@ -13,7 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import logging
+
 from django.conf import settings
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db import models
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiTypes,
@@ -25,10 +29,13 @@ from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import api_settings
 
 from ..collection import Collection
-from ..document import Document
-from ..search import add_headlines, get_documents
-from ..search_form import FILTER_FIELDS, SORT, SearchForm
+from ..document import Document, remove_accent
+from ..search import add_headlines
+from ..search_form import FILTER_FIELDS, SORT
+from ..tag import Tag
 from .document import DocumentSerializer
+
+logger = logging.getLogger("web")
 
 
 class SearchAdvancedQuery(serializers.Serializer):
@@ -81,7 +88,7 @@ class SearchAdvancedQuery(serializers.Serializer):
         ),
     ]
 )
-class SearchQuery(serializers.Serializer):
+class SearchQuerySerializer(serializers.Serializer):
     query = serializers.CharField(default="", allow_blank=True, help_text="Search terms")
     lang = serializers.ChoiceField(
         default="en",
@@ -116,6 +123,50 @@ class SearchQuery(serializers.Serializer):
             except Collection.DoesNotExist:
                 raise serializers.ValidationError({"collection": f"Collection with id {collection_id} does not exist."})
 
+        # Normalize and validate language (from SearchForm.clean)
+        lang_iso = data.get("lang", "en")
+        pg_lang = settings.SOSSE_LANGDETECT_TO_POSTGRES.get(lang_iso, {}).get("name")
+
+        if pg_lang not in Document.get_supported_langs():
+            pg_lang = settings.SOSSE_FAIL_OVER_LANG
+
+        data["lang"] = pg_lang
+
+        # Strip search query if configured (from SearchForm.clean)
+        if settings.SOSSE_SEARCH_STRIP:
+            q = data["query"]
+            if q.startswith(settings.SOSSE_SEARCH_STRIP):
+                q = q[len(settings.SOSSE_SEARCH_STRIP) :]
+            if q.endswith(settings.SOSSE_SEARCH_STRIP):
+                q = q[: -len(settings.SOSSE_SEARCH_STRIP)]
+            data["query"] = q
+
+        # Calculate order_by based on query and sort (from SearchForm.clean)
+        q = data["query"]
+        sort = data["sort"]
+
+        if q:
+            order_by = ("-rank", "title")
+        else:
+            order_by = ("title",)
+
+        _order = sort
+        if _order.startswith("-"):
+            _order = _order[1:]
+
+        if _order == "rank":
+            if q:
+                order_by = (sort, "title")
+        elif _order in ("crawl_first", "crawl_last", "modified_date"):
+            order_by = (sort, "title")
+        elif _order in ("title", "url"):
+            if q:
+                order_by = (sort, "-rank")
+            else:
+                order_by = (sort,)
+
+        data["order_by"] = order_by
+
         return data
 
 
@@ -149,32 +200,154 @@ class SearchResult(DocumentSerializer):
 
 class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
-        request=SearchQuery,
+        request=SearchQuerySerializer,
         description="Search queries",
         responses={
             200: SearchResult(many=True),
         },
     )
     def create(self, request, *args, **kwargs):
-        query = SearchQuery(data=request.data)
-        query.is_valid(raise_exception=True)
-        f = SearchForm(
-            data={
-                "q": query.validated_data["query"],
-                "l": query.validated_data["lang"],
-                "s": query.validated_data["sort"],
-                "i": "on" if query.validated_data["include_hidden"] else "",
-                "collection": query.validated_data.get("collection", ""),
-            }
-        )
-        f.is_valid()
-        _, documents, search_query = get_documents(request, query.validated_data["adv_params"], f, False)
+        query_serializer = SearchQuerySerializer(data=request.data)
+        query_serializer.is_valid(raise_exception=True)
+        validated_data = query_serializer.validated_data
+
+        # Get documents based on query parameters
+        documents, search_query = self._get_documents(request, validated_data)
 
         # Apply show_on_homepage filter if requested
-        if query.validated_data.get("show_on_homepage"):
+        if validated_data.get("show_on_homepage"):
             documents = documents.filter(show_on_homepage=True)
 
         page = self.paginate_queryset(documents)
         add_headlines(page, search_query)
         serializer = SearchResult(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    def _get_documents(self, request, validated_data):
+        """Get documents based on search parameters (adapted from
+        se.search.get_documents)"""
+        REQUIRED_KEYS = ("ft", "ff", "fo", "fv")
+
+        results = Document.objects.w_content().annotate(rank=models.Value(1.0))
+
+        # Handle full-text search query
+        q = validated_data.get("query", "")
+        q = remove_accent(q)
+        search_query = None
+        if q:
+            lang = validated_data["lang"]
+
+            search_query = SearchQuery(q, config=lang, search_type="websearch")
+            all_results = (
+                Document.objects.w_content()
+                .filter(vector=search_query)
+                .annotate(
+                    rank=SearchRank(models.F("vector"), search_query),
+                )
+            )
+            results = all_results.exclude(rank__lte=0.01)
+
+            if results.count() == 0:
+                results = all_results
+
+        # Handle hidden documents
+        include_hidden = validated_data.get("include_hidden", False)
+        if not request.user.has_perm("se.document_change") or not include_hidden:
+            results = results.exclude(hidden=True)
+
+        # Apply global filters
+        if settings.SOSSE_EXCLUDE_NOT_INDEXED:
+            results = results.exclude(crawl_last__isnull=True)
+        if settings.SOSSE_EXCLUDE_REDIRECT:
+            results = results.filter(redirect_url__isnull=True)
+
+        # Handle advanced filters
+        params = validated_data.get("adv_params", [])
+        for f in params:
+            cont = True
+            for k in REQUIRED_KEYS:
+                if not f.get(k):
+                    break
+            else:
+                cont = False
+            if cont:
+                continue
+
+            ftype = f["ft"]
+            field = f["ff"]
+            operator = f["fo"]
+            value = f["fv"]
+            case = f.get("fc", False) and True
+
+            if operator == "contain" and case:
+                param = "__contains"
+            elif operator == "contain" and not case:
+                param = "__icontains"
+            elif operator == "regexp" and case:
+                param = "__regex"
+            elif operator == "regexp" and not case:
+                param = "__iregex"
+            elif operator == "equal" and case:
+                param = "__exact"
+            elif operator == "equal" and not case:
+                param = "__iexact"
+            else:
+                raise Exception(f"Unknown operation {operator}")
+
+            if field not in list(dict(FILTER_FIELDS).keys()):
+                fields = list(dict(FILTER_FIELDS).keys())
+                raise Exception(f"Invalid FILTER_FIELDS {field} / {fields}")
+
+            if field == "doc":
+                content_param = {"content" + param: value}
+                title_param = {"title" + param: value}
+                url_param = {"url" + param: value}
+                qf = models.Q(**content_param) | models.Q(**title_param) | models.Q(**url_param)
+            elif field in ("lto_url", "lto_txt", "lby_url", "lby_txt"):
+                field, rel_field = field.split("_")
+                subfield = "doc_to" if field == "lto" else "doc_from"
+                field = "links_to" if field == "lto" else "linked_from"
+                if rel_field == "url":
+                    key1 = f"{field}__{subfield}__url{param}"
+                    key2 = f"{field}__extern_url{param}"
+                    qf = models.Q(**{key1: value}) | models.Q(**{key2: value})
+                else:
+                    key = f"{field}__text{param}"
+                    qf = models.Q(**{key: value})
+            elif field == "tag":
+                key = f"name{param}"
+                _tags = Tag.objects.filter(**{key: value})
+                tags = set()
+                for tag in _tags:
+                    tags |= set(Tag.get_tree(tag))
+                qf = models.Q(tags__in=tags)
+            else:
+                qparams = {field + param: value}
+                qf = models.Q(**qparams)
+
+            if ftype == "exc":
+                qf = ~qf
+            elif ftype == "inc":
+                pass
+            else:
+                raise Exception(f"Query type {operator} not supported")
+
+            logger.debug(f"filter {ftype} {qf}")
+            results = results.filter(qf)
+
+        # Handle collection filter
+        collection_id = validated_data.get("collection")
+        if collection_id:
+            collection = Collection.objects.get(id=collection_id)
+            results = results.filter(collection=collection)
+
+        # Handle sorting (order_by is calculated in serializer validation)
+        order_by = validated_data["order_by"]
+
+        # Ensure a deterministic order by adding a secondary sort on "id"
+        if getattr(settings, "TEST_MODE", False):
+            order_by = list(order_by) + ["id"]
+
+        results = results.order_by(*order_by).distinct()
+
+        return results, search_query

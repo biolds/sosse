@@ -3,8 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Button, Card, Layout, Spin } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { Button, Card, Layout, Spin, Space, Typography, Divider } from "antd";
+import {
+  DownOutlined,
+  FileTextOutlined,
+  GlobalOutlined,
+  CameraOutlined,
+  SettingOutlined,
+  ExportOutlined,
+  ArrowRightOutlined,
+  ArrowLeftOutlined,
+  FolderOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
 import archiveLink from "@/app/utils/archiveLink";
@@ -12,6 +22,7 @@ import Header from "@/app/components/Header";
 import type { Document } from "@/app/types/document";
 
 const { Content } = Layout;
+const { Text, Link } = Typography;
 
 export default function ArchivePage() {
   const pathname = usePathname();
@@ -106,32 +117,146 @@ export default function ArchivePage() {
         >
           <Layout style={{ borderRadius: "8px" }}>
             <Header style={{ borderRadius: "8px 8px 0 0" }} />
-            <Content style={{ padding: "24px" }}>
-              <span
-                style={{
-                  fontSize: "24px",
-                  fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                {sosseDocument &&
-                  sosseDocument.favicon &&
-                  !sosseDocument.favicon.missing && (
-                    <Image
-                      src={`/favicon/${sosseDocument.favicon.id}`}
-                      alt="icon"
-                      width={16}
-                      height={16}
+            <Content style={{ padding: "16px 20px" }}>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  {/* Title and URL */}
+                  <div style={{ marginBottom: "12px" }}>
+                    <div
                       style={{
-                        marginRight: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      {sosseDocument &&
+                        sosseDocument.favicon &&
+                        !sosseDocument.favicon.missing && (
+                          <Image
+                            src={`/favicon/${sosseDocument.favicon.id}`}
+                            alt="icon"
+                            width={16}
+                            height={16}
+                            style={{ marginRight: "8px", flexShrink: 0 }}
+                            unoptimized
+                          />
+                        )}
+                      <Text
+                        strong
+                        style={{
+                          fontSize: "20px",
+                          lineHeight: "24px",
+                        }}
+                      >
+                        {sosseDocument && sosseDocument.title}
+                      </Text>
+                    </div>
+                    <Text type="secondary" style={{ fontSize: "13px" }}>
+                      {url}
+                    </Text>
+                  </div>
+
+                  {/* Collection */}
+                  {sosseDocument && (
+                    <div style={{ marginBottom: "12px" }}>
+                      <Space size={4} align="center">
+                        <FolderOutlined style={{ fontSize: "12px" }} />
+                        <Text style={{ fontSize: "13px" }}>
+                          Collection: {sosseDocument.collection}
+                        </Text>
+                      </Space>
+                    </div>
+                  )}
+
+                  <Divider style={{ margin: "12px 0" }} />
+
+                  {/* View Mode Buttons */}
+                  <div style={{ marginBottom: "12px" }}>
+                    <Space size={6} wrap>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<GlobalOutlined />}
+                        style={{ fontSize: "12px", height: "28px" }}
+                      >
+                        Web
+                      </Button>
+                      <Button
+                        size="small"
+                        icon={<FileTextOutlined />}
+                        style={{ fontSize: "12px", height: "28px" }}
+                      >
+                        Text
+                      </Button>
+                      <Button
+                        size="small"
+                        icon={<CameraOutlined />}
+                        style={{ fontSize: "12px", height: "28px" }}
+                      >
+                        Screenshot
+                      </Button>
+                      <Button
+                        size="small"
+                        icon={<SettingOutlined />}
+                        style={{ fontSize: "12px", height: "28px" }}
+                      >
+                        Admin
+                      </Button>
+                    </Space>
+                  </div>
+
+                  {/* Quick Links */}
+                  <Space
+                    size={12}
+                    wrap
+                    style={{ fontSize: "12px", lineHeight: "20px" }}
+                  >
+                    <Link href="#" style={{ fontSize: "12px" }}>
+                      <ExportOutlined style={{ marginRight: "4px" }} />
+                      Source page
+                    </Link>
+                    <Link href="#" style={{ fontSize: "12px" }}>
+                      <ArrowLeftOutlined style={{ marginRight: "4px" }} />
+                      Linked by
+                    </Link>
+                    <Link href="#" style={{ fontSize: "12px" }}>
+                      <ArrowRightOutlined style={{ marginRight: "4px" }} />
+                      Links to
+                    </Link>
+                  </Space>
+                </div>
+
+                {/* Preview Thumbnail */}
+                {sosseDocument && sosseDocument.preview && (
+                  <div
+                    style={{
+                      maxHeight: "120px",
+                      maxWidth: "180px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Image
+                      width={0}
+                      height={0}
+                      sizes="180px"
+                      alt="preview"
+                      src={sosseDocument.preview}
+                      style={{
+                        borderRadius: "4px",
+                        width: "auto",
+                        height: "auto",
+                        maxHeight: "120px",
+                        maxWidth: "180px",
+                        objectFit: "contain",
                       }}
                       unoptimized
                     />
-                  )}
-                {sosseDocument && sosseDocument.title}
-              </span>
-              {url}
+                  </div>
+                )}
+              </div>
             </Content>
           </Layout>
         </Card>

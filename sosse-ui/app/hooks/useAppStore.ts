@@ -19,6 +19,8 @@ export interface SearchFilters {
   adv_params: AdvancedFilter[];
 }
 
+export type SearchTab = "home" | "search" | "images" | "audio" | "video";
+
 interface AppState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -27,6 +29,8 @@ interface AppState {
   viewMode: "list" | "card";
   setViewMode: (mode: "list" | "card") => void;
   homeViewMode: "card";
+  activeTab: SearchTab;
+  setActiveTab: (tab: SearchTab) => void;
   accessToken: string | null;
   username: string | null;
   isInitialized: boolean;
@@ -61,6 +65,9 @@ export const useAppStore = create<AppState>()(
       setViewMode: (mode) => set({ viewMode: mode }),
 
       homeViewMode: "card",
+
+      activeTab: "home",
+      setActiveTab: (tab) => set({ activeTab: tab }),
 
       searchFilters: {
         lang: "",

@@ -8,6 +8,7 @@ import type { Tag } from "@/app/types/tag";
 import TagComponent from "@/app/components/tag";
 import { AnimatedLinkModeIcon } from "./ArchiveIcons";
 import SearchResultLink from "./SearchResultLink";
+import { useAppStore } from "@/app/hooks/useAppStore";
 import "./SearchResults.css";
 
 const { Text } = Typography;
@@ -41,6 +42,9 @@ const formatDate = (dateString?: string) => {
 };
 
 const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
+  const { activeTab } = useAppStore();
+  const isHomeTab = activeTab === "home";
+
   if (viewMode === "card") {
     return (
       <Row gutter={[12, 12]} style={{ margin: "0px 6px" }}>
@@ -137,28 +141,41 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                         <AnimatedLinkModeIcon /> {item.url}
                       </Text>
 
-                      <Space size="small" wrap>
-                        {item.crawl_last && (
-                          <Text type="secondary" style={{ fontSize: "12px" }}>
-                            <CalendarOutlined /> {formatDate(item.crawl_last)}
-                          </Text>
-                        )}
-                        {item.score && (
-                          <Text type="secondary" style={{ fontSize: "12px" }}>
-                            Score: {item.score.toFixed(2)}
-                          </Text>
-                        )}
-                      </Space>
+                      {!isHomeTab && (
+                        <>
+                          <Space size="small" wrap>
+                            {item.crawl_last && (
+                              <Text
+                                type="secondary"
+                                style={{ fontSize: "12px" }}
+                              >
+                                <CalendarOutlined />{" "}
+                                {formatDate(item.crawl_last)}
+                              </Text>
+                            )}
+                            {item.score && (
+                              <Text
+                                type="secondary"
+                                style={{ fontSize: "12px" }}
+                              >
+                                Score: {item.score.toFixed(2)}
+                              </Text>
+                            )}
+                          </Space>
 
-                      {item.headline && (
-                        <div
-                          style={{
-                            marginBottom: "8px",
-                            marginTop: "8px",
-                            fontSize: "13px",
-                          }}
-                          dangerouslySetInnerHTML={{ __html: item.headline }}
-                        />
+                          {item.headline && (
+                            <div
+                              style={{
+                                marginBottom: "8px",
+                                marginTop: "8px",
+                                fontSize: "13px",
+                              }}
+                              dangerouslySetInnerHTML={{
+                                __html: item.headline,
+                              }}
+                            />
+                          )}
+                        </>
                       )}
 
                       {item.tag_list && item.tag_list.length > 0 && (
@@ -246,19 +263,23 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                 <Text type="secondary" style={{ fontSize: "12px" }}>
                   <AnimatedLinkModeIcon /> {item.url}
                 </Text>
-                {item.crawl_last && (
-                  <Text type="secondary" style={{ fontSize: "12px" }}>
-                    <CalendarOutlined /> {formatDate(item.crawl_last)}
-                  </Text>
-                )}
-                {item.score && (
-                  <Text type="secondary" style={{ fontSize: "12px" }}>
-                    Score: {item.score.toFixed(2)}
-                  </Text>
+                {!isHomeTab && (
+                  <>
+                    {item.crawl_last && (
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        <CalendarOutlined /> {formatDate(item.crawl_last)}
+                      </Text>
+                    )}
+                    {item.score && (
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        Score: {item.score.toFixed(2)}
+                      </Text>
+                    )}
+                  </>
                 )}
               </Space>
 
-              {item.headline && (
+              {!isHomeTab && item.headline && (
                 <div
                   style={{ marginBottom: "8px" }}
                   dangerouslySetInnerHTML={{ __html: item.headline }}

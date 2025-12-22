@@ -1,5 +1,4 @@
-import type { AdvancedFilter } from "@/app/hooks/useAppStore";
-import type { SearchTab } from "../components/SearchTabs";
+import type { AdvancedFilter, SearchTab } from "@/app/hooks/useAppStore";
 
 export const getMimetypeFilter = (tab: SearchTab): AdvancedFilter | null => {
   switch (tab) {

@@ -18,13 +18,17 @@ import {
   UnorderedListOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import { useAppStore, type AdvancedFilter } from "@/app/hooks/useAppStore";
+import {
+  useAppStore,
+  type AdvancedFilter,
+  type SearchTab,
+} from "@/app/hooks/useAppStore";
 import SearchResults, { SearchResult } from "./components/SearchResults";
 import AdvancedSearch, {
   type AdvancedSearchRef,
 } from "./components/AdvancedSearch";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
-import SearchTabs, { type SearchTab } from "./components/SearchTabs";
+import SearchTabs from "./components/SearchTabs";
 import { getTabFilters, getActiveTab } from "./utils/searchTabUtils";
 
 const { Text } = Typography;
@@ -45,6 +49,8 @@ const HomePage = () => {
     viewMode,
     setViewMode,
     homeViewMode,
+    activeTab,
+    setActiveTab,
     searchFilters,
     updateSearchFilters,
     loadCollections,
@@ -61,9 +67,9 @@ const HomePage = () => {
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
-  const [activeTab, setActiveTab] = useState<SearchTab>("home");
   const [tabViewMode, setTabViewMode] = useState<"list" | "card">("card");
   const advancedSearchRef = useRef<AdvancedSearchRef>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     loadCollections();
@@ -150,6 +156,8 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    if (isInitialized) return;
+
     const q = searchParams.get("q");
     const doc_lang = searchParams.get("doc_lang");
     const collection = searchParams.get("collection");
@@ -190,7 +198,30 @@ const HomePage = () => {
         }
       });
 
-    // Update filters if found in URL
+    const hasSearchQuery = (q && q.trim() !== "") || filters.length > 0;
+    const newTab = getActiveTab(hasSearchQuery, "search");
+
+    // Set tab immediately before any render
+    setActiveTab(newTab);
+
+    // Update filters first
+    const newFilters = { ...searchFilters };
+    if (filters.length > 0) {
+      newFilters.adv_params = filters;
+    }
+    if (doc_lang !== null) {
+      newFilters.lang = doc_lang;
+    }
+    if (collection) {
+      newFilters.collection = parseInt(collection, 10);
+    }
+    if (sort) {
+      newFilters.sort = sort;
+    }
+    if (include_hidden) {
+      newFilters.include_hidden = true;
+    }
+
     if (
       filters.length > 0 ||
       doc_lang ||
@@ -198,42 +229,18 @@ const HomePage = () => {
       sort ||
       include_hidden
     ) {
-      const newFilters = { ...searchFilters };
-      if (filters.length > 0) {
-        newFilters.adv_params = filters;
-      }
-      if (doc_lang !== null) {
-        newFilters.lang = doc_lang;
-      }
-      if (collection) {
-        newFilters.collection = parseInt(collection, 10);
-      }
-      if (sort) {
-        newFilters.sort = sort;
-      }
-      if (include_hidden) {
-        newFilters.include_hidden = true;
-      }
       updateSearchFilters(newFilters);
     }
 
-    const hasSearchQuery = (q && q.trim() !== "") || filters.length > 0;
     if (hasSearchQuery) {
       setInputValue(q || "");
-      const newTab = getActiveTab(hasSearchQuery, "search");
-      setActiveTab(newTab);
-      performSearch(
-        q,
-        1,
-        undefined,
-        { ...searchFilters, adv_params: filters },
-        newTab,
-      );
+      performSearch(q, 1, undefined, newFilters, newTab);
     } else {
       // Load homepage content
-      setActiveTab("home");
-      performSearch("", 1, undefined, searchFilters, "home");
+      performSearch("", 1, undefined, newFilters, newTab);
     }
+
+    setIsInitialized(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -286,6 +293,8 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    if (!isInitialized) return; // Skip during initialization
+
     const hasSearchQuery =
       submittedQuery.trim() !== "" || searchFilters.adv_params.length > 0;
 
@@ -293,6 +302,7 @@ const HomePage = () => {
       // Auto-switch to Home tab when search query/filters are cleared
       setActiveTab("home");
       performSearch("", 1, undefined, searchFilters, "home");
+      router.push("/"); // Clear URL params
       return;
     }
 
@@ -443,7 +453,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {!loading && searchResults.length > 0 && (
+        {!loading && isInitialized && searchResults.length > 0 && (
           <>
             <div
               style={{
@@ -491,7 +501,11 @@ const HomePage = () => {
               </div>
             </div>
 
-            <SearchResults results={searchResults} viewMode={currentViewMode} />
+            <SearchResults
+              results={searchResults}
+              viewMode={currentViewMode}
+              isHomeTab={activeTab === "home"}
+            />
 
             {totalResults > pageSize && (
               <div style={{ marginTop: "40px", textAlign: "center" }}>
@@ -509,7 +523,7 @@ const HomePage = () => {
           </>
         )}
 
-        {!loading && searchResults.length === 0 && (
+        {!loading && isInitialized && searchResults.length === 0 && (
           <div style={{ textAlign: "center", marginTop: "60px" }}>
             <Text type="secondary">
               {activeTab === "home"

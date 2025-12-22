@@ -9,8 +9,7 @@ import {
   CustomerServiceOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
-
-export type SearchTab = "home" | "search" | "images" | "audio" | "video";
+import type { SearchTab } from "@/app/hooks/useAppStore";
 
 interface SearchTabsProps {
   activeTab: SearchTab;

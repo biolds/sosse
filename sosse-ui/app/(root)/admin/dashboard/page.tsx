@@ -133,7 +133,7 @@ export default function DashboardPage() {
       key: "url",
       ellipsis: true,
       render: (url: string, record) => {
-        const linkUrl = `/archive/${archiveLink(record.url)}`;
+        const linkUrl = `/html/${archiveLink(record.url)}`;
         return (
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div

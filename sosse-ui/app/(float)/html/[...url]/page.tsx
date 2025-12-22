@@ -26,7 +26,7 @@ const { Text, Link } = Typography;
 
 export default function ArchivePage() {
   const pathname = usePathname();
-  const pathUrl = decodeURIComponent(pathname.replace("/archive/", ""));
+  const pathUrl = decodeURIComponent(pathname.replace("/html/", ""));
   const url =
     pathUrl.startsWith("http:") || pathUrl.startsWith("https:")
       ? `${pathUrl.replace(/(http:|https:)/, "$1/")}`
@@ -71,7 +71,7 @@ export default function ArchivePage() {
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
       const href = link.getAttribute("href") || "";
-      link.href = "/archive/" + archiveLink(href.replace("/html/", ""));
+      link.href = "/html/" + archiveLink(href.replace("/html/", ""));
       link.onclick = function () {
         router.push(link.href);
       };
@@ -81,7 +81,7 @@ export default function ArchivePage() {
     for (let i = 0; i < iframes.length; i++) {
       const innerIframe = iframes[i];
       const src = innerIframe.getAttribute("src") || "";
-      innerIframe.src = "/archive/" + archiveLink(src.replace("/html/", ""));
+      innerIframe.src = "/html/" + archiveLink(src.replace("/html/", ""));
     }
   };
   return (

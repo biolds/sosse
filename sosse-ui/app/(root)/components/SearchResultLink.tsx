@@ -15,7 +15,7 @@ const SearchResultLink = ({
 
   const getResultLink = (url: string) => {
     if (linkMode === "archive") {
-      return `/archive/${url}`;
+      return `/html/${url}`;
     }
     return url;
   };

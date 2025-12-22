@@ -26,6 +26,7 @@ interface AppState {
   toggleLinkMode: () => void;
   viewMode: "list" | "card";
   setViewMode: (mode: "list" | "card") => void;
+  homeViewMode: "card";
   accessToken: string | null;
   username: string | null;
   isInitialized: boolean;
@@ -58,6 +59,8 @@ export const useAppStore = create<AppState>()(
 
       viewMode: "list",
       setViewMode: (mode) => set({ viewMode: mode }),
+
+      homeViewMode: "card",
 
       searchFilters: {
         lang: "",

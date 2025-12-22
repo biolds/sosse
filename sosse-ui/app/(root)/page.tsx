@@ -24,6 +24,8 @@ import AdvancedSearch, {
   type AdvancedSearchRef,
 } from "./components/AdvancedSearch";
 import { ArchiveIcon, SourceIcon } from "./components/ArchiveIcons";
+import SearchTabs, { type SearchTab } from "./components/SearchTabs";
+import { getTabFilters, getActiveTab } from "./utils/searchTabUtils";
 
 const { Text } = Typography;
 const { Search } = Input;
@@ -42,6 +44,7 @@ const HomePage = () => {
     toggleLinkMode,
     viewMode,
     setViewMode,
+    homeViewMode,
     searchFilters,
     updateSearchFilters,
     loadCollections,
@@ -58,6 +61,8 @@ const HomePage = () => {
   const [pageSize, setPageSize] = useState(
     typeof window !== "undefined" ? window.sosseConfig?.pageSize || 10 : 10,
   );
+  const [activeTab, setActiveTab] = useState<SearchTab>("home");
+  const [tabViewMode, setTabViewMode] = useState<"list" | "card">("card");
   const advancedSearchRef = useRef<AdvancedSearchRef>(null);
 
   useEffect(() => {
@@ -65,16 +70,18 @@ const HomePage = () => {
   }, [loadCollections]);
 
   const performSearch = async (
-    value: string,
+    value: string | null,
     page: number = 1,
     customPageSize?: number,
     filters = searchFilters,
+    tab: SearchTab = activeTab,
   ) => {
-    const queryTerm = value.trim();
+    const queryTerm = (value && value.trim()) || "";
     const hasAdvancedFilters =
       filters.adv_params && filters.adv_params.length > 0;
 
-    if (!queryTerm && !hasAdvancedFilters) {
+    // For home tab, allow search without query
+    if (tab !== "home" && !queryTerm && !hasAdvancedFilters) {
       return;
     }
 
@@ -86,26 +93,38 @@ const HomePage = () => {
     const offset = (page - 1) * effectivePageSize;
 
     try {
+      // Apply tab-specific filters
+      const tabFilters = getTabFilters(tab, filters.adv_params);
+
       const requestBody: {
         query: string;
-        lang: string;
+        lang?: string;
         sort: string;
         include_hidden: boolean;
         collection?: number;
-        adv_params?: typeof filters.adv_params;
+        adv_params?: AdvancedFilter[];
+        show_on_homepage?: boolean;
       } = {
         query: queryTerm,
-        lang: filters.lang || "en",
         sort: filters.sort,
         include_hidden: filters.include_hidden,
       };
+
+      if (filters.lang) {
+        requestBody.lang = filters.lang;
+      }
 
       if (filters.collection) {
         requestBody.collection = filters.collection;
       }
 
-      if (filters.adv_params.length > 0) {
-        requestBody.adv_params = filters.adv_params;
+      if (tabFilters.length > 0) {
+        requestBody.adv_params = tabFilters;
+      }
+
+      // For home tab, add show_on_homepage filter
+      if (tab === "home") {
+        requestBody.show_on_homepage = true;
       }
 
       const response = await axios.post<SearchResponse>(
@@ -198,9 +217,22 @@ const HomePage = () => {
       updateSearchFilters(newFilters);
     }
 
-    if (q && q.trim()) {
-      setInputValue(q);
-      performSearch(q);
+    const hasSearchQuery = (q && q.trim() !== "") || filters.length > 0;
+    if (hasSearchQuery) {
+      setInputValue(q || "");
+      const newTab = getActiveTab(hasSearchQuery, "search");
+      setActiveTab(newTab);
+      performSearch(
+        q,
+        1,
+        undefined,
+        { ...searchFilters, adv_params: filters },
+        newTab,
+      );
+    } else {
+      // Load homepage content
+      setActiveTab("home");
+      performSearch("", 1, undefined, searchFilters, "home");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -208,11 +240,6 @@ const HomePage = () => {
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
     const hasAdvancedFilters = searchFilters.adv_params.length > 0;
-
-    if (!queryTerm && !hasAdvancedFilters) {
-      message.warning("Please enter a search query or add filters");
-      return;
-    }
 
     if (hasAdvancedFilters && advancedSearchRef.current) {
       const isValid = advancedSearchRef.current.validateFilters();
@@ -222,7 +249,9 @@ const HomePage = () => {
       }
     }
 
-    performSearch(queryTerm, 1, undefined, searchFilters);
+    const newTab = "search";
+    setActiveTab(newTab);
+    performSearch(queryTerm, 1, undefined, searchFilters, newTab);
 
     // Build URL with filters
     const params = new URLSearchParams();
@@ -257,50 +286,69 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    if (submittedQuery || searchFilters.adv_params.length > 0) {
-      const hasAdvancedFilters = searchFilters.adv_params.length > 0;
+    const hasSearchQuery =
+      submittedQuery.trim() !== "" || searchFilters.adv_params.length > 0;
 
-      if (hasAdvancedFilters && advancedSearchRef.current) {
-        const isValid = advancedSearchRef.current.validateFilters();
-        if (!isValid) {
-          return;
-        }
-      }
-
-      performSearch(submittedQuery || inputValue, 1, undefined, searchFilters);
-
-      // Update URL with current filters
-      const params = new URLSearchParams();
-      const query = submittedQuery || inputValue;
-      if (query) {
-        params.set("q", query);
-      }
-      if (searchFilters.lang) {
-        params.set("doc_lang", searchFilters.lang);
-      }
-      if (searchFilters.collection) {
-        params.set("collection", searchFilters.collection.toString());
-      }
-      if (searchFilters.sort && searchFilters.sort !== "-rank") {
-        params.set("s", searchFilters.sort);
-      }
-      if (searchFilters.include_hidden) {
-        params.set("i", "on");
-      }
-      searchFilters.adv_params.forEach((filter, index) => {
-        const num = index.toString();
-        params.set(`ft${num}`, filter.type);
-        params.set(`ff${num}`, filter.field);
-        params.set(`fo${num}`, filter.operator);
-        params.set(`fv${num}`, filter.term);
-        if (filter.case_sensitive) {
-          params.set(`fc${num}`, "on");
-        }
-      });
-
-      const url = params.toString() ? `/?${params.toString()}` : "/";
-      router.push(url);
+    if (!hasSearchQuery && activeTab !== "home") {
+      // Auto-switch to Home tab when search query/filters are cleared
+      setActiveTab("home");
+      performSearch("", 1, undefined, searchFilters, "home");
+      return;
     }
+
+    const hasAdvancedFilters = searchFilters.adv_params.length > 0;
+
+    if (hasAdvancedFilters && advancedSearchRef.current) {
+      const isValid = advancedSearchRef.current.validateFilters();
+      if (!isValid) {
+        return;
+      }
+    }
+
+    const newTab = getActiveTab(
+      submittedQuery.trim() !== "" || hasAdvancedFilters,
+      activeTab,
+    );
+    setActiveTab(newTab);
+    performSearch(
+      submittedQuery || inputValue,
+      1,
+      undefined,
+      searchFilters,
+      newTab,
+    );
+
+    // Update URL with current filters
+    const params = new URLSearchParams();
+    const query = submittedQuery || inputValue;
+    if (query) {
+      params.set("q", query);
+    }
+    if (searchFilters.lang) {
+      params.set("doc_lang", searchFilters.lang);
+    }
+    if (searchFilters.collection) {
+      params.set("collection", searchFilters.collection.toString());
+    }
+    if (searchFilters.sort && searchFilters.sort !== "-rank") {
+      params.set("s", searchFilters.sort);
+    }
+    if (searchFilters.include_hidden) {
+      params.set("i", "on");
+    }
+    searchFilters.adv_params.forEach((filter, index) => {
+      const num = index.toString();
+      params.set(`ft${num}`, filter.type);
+      params.set(`ff${num}`, filter.field);
+      params.set(`fo${num}`, filter.operator);
+      params.set(`fv${num}`, filter.term);
+      if (filter.case_sensitive) {
+        params.set(`fc${num}`, "on");
+      }
+    });
+
+    const url = params.toString() ? `/?${params.toString()}` : "/";
+    router.push(url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFilters]);
 
@@ -308,11 +356,52 @@ const HomePage = () => {
     const q = searchParams.get("q") || "";
     if (newPageSize !== pageSize) {
       setPageSize(newPageSize);
-      performSearch(q, 1, newPageSize);
+      performSearch(q, 1, newPageSize, searchFilters, activeTab);
     } else {
-      performSearch(q, page);
+      performSearch(q, page, undefined, searchFilters, activeTab);
     }
   };
+
+  const handleTabChange = (tab: SearchTab) => {
+    setActiveTab(tab);
+
+    // Switch view mode based on tab
+    if (tab === "home") {
+      setTabViewMode(homeViewMode);
+    } else {
+      setTabViewMode(viewMode);
+    }
+
+    // Perform search with new tab filters
+    const query = submittedQuery || inputValue;
+    performSearch(query, 1, undefined, searchFilters, tab);
+  };
+
+  const handleViewModeChange = (mode: "list" | "card") => {
+    if (activeTab === "home") {
+      setTabViewMode(mode);
+    } else {
+      setViewMode(mode);
+      setTabViewMode(mode);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setInputValue("");
+    setSubmittedQuery("");
+    if (searchFilters.adv_params.length === 0) {
+      // No filters, switch to home
+      setActiveTab("home");
+      performSearch("", 1, undefined, searchFilters, "home");
+      router.push("/");
+    }
+  };
+
+  const hasSearchQuery =
+    (submittedQuery && submittedQuery.trim() !== "") ||
+    searchFilters.adv_params.length > 0;
+
+  const currentViewMode = activeTab === "home" ? tabViewMode : viewMode;
 
   return (
     <Content style={{ padding: "4px" }}>
@@ -330,6 +419,7 @@ const HomePage = () => {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onSearch={handleSearch}
+          onClear={handleClearSearch}
           loading={loading}
           autoFocus
           allowClear
@@ -339,6 +429,12 @@ const HomePage = () => {
           ref={advancedSearchRef}
           filters={searchFilters}
           setFilters={updateSearchFilters}
+        />
+
+        <SearchTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          hasSearchQuery={hasSearchQuery}
         />
 
         {loading && (
@@ -359,8 +455,11 @@ const HomePage = () => {
               }}
             >
               <Text type="secondary">
-                Found {totalResults} result{totalResults !== 1 ? "s" : ""} for
-                &quot;{submittedQuery}&quot;
+                {activeTab !== "home" &&
+                  `
+                  Found ${totalResults} result${totalResults !== 1 ? "s" : ""}
+                  ${submittedQuery && ' for "' + submittedQuery + '"'}
+              `}
               </Text>
 
               <div style={{ display: "flex", gap: "12px" }}>
@@ -374,8 +473,10 @@ const HomePage = () => {
                 </Button>
 
                 <Segmented
-                  value={viewMode}
-                  onChange={(value) => setViewMode(value as "list" | "card")}
+                  value={currentViewMode}
+                  onChange={(value) =>
+                    handleViewModeChange(value as "list" | "card")
+                  }
                   options={[
                     {
                       value: "list",
@@ -390,7 +491,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <SearchResults results={searchResults} viewMode={viewMode} />
+            <SearchResults results={searchResults} viewMode={currentViewMode} />
 
             {totalResults > pageSize && (
               <div style={{ marginTop: "40px", textAlign: "center" }}>
@@ -408,10 +509,12 @@ const HomePage = () => {
           </>
         )}
 
-        {!loading && submittedQuery && searchResults.length === 0 && (
+        {!loading && searchResults.length === 0 && (
           <div style={{ textAlign: "center", marginTop: "60px" }}>
             <Text type="secondary">
-              No results found for &quot;{submittedQuery}&quot;
+              {activeTab === "home"
+                ? "No featured documents available"
+                : `No results found for "${submittedQuery}"`}
             </Text>
           </div>
         )}

@@ -223,8 +223,7 @@ def get_documents(request, params, form, stats_call):
 
         results = results.order_by(*order_by).distinct()
 
-    if not has_query and not tags:
-        results = Document.objects.none()
+    # if not has_query and not tags:
 
     return has_query, results, query
 

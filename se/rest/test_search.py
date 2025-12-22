@@ -53,7 +53,7 @@ class SearchTest(RestAPITest, TransactionTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             json.loads(response.content),
-            {"non_field_errors": ['At least "query" or "adv_params" field must be provided.']},
+            {"non_field_errors": ['At least "query", "adv_params" or "show_on_homepage" field must be provided.']},
         )
 
     def test_search_title(self):

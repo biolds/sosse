@@ -95,12 +95,18 @@ class SearchQuery(serializers.Serializer):
     )
     collection = serializers.IntegerField(required=False, help_text="Filter by collection ID")
     adv_params = SearchAdvancedQuery(many=True, default=[], help_text="Advanced search parameters")
+    show_on_homepage = serializers.BooleanField(
+        default=False,
+        help_text="Filter documents shown on homepage",
+    )
 
     def validate(self, data):
         data = super().validate(data)
-        if not data.get("adv_params") and not data.get("query"):
+        if not data.get("adv_params") and not data.get("query") and not data.get("show_on_homepage"):
             raise serializers.ValidationError(
-                {api_settings.NON_FIELD_ERRORS_KEY: 'At least "query" or "adv_params" field must be provided.'}
+                {
+                    api_settings.NON_FIELD_ERRORS_KEY: 'At least "query", "adv_params" or "show_on_homepage" field must be provided.'
+                }
             )
 
         collection_id = data.get("collection")
@@ -163,6 +169,11 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         )
         f.is_valid()
         _, documents, search_query = get_documents(request, query.validated_data["adv_params"], f, False)
+
+        # Apply show_on_homepage filter if requested
+        if query.validated_data.get("show_on_homepage"):
+            documents = documents.filter(show_on_homepage=True)
+
         page = self.paginate_queryset(documents)
         add_headlines(page, search_query)
         serializer = SearchResult(page, many=True)

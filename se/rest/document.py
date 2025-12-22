@@ -61,6 +61,8 @@ class DocumentSerializer(serializers.ModelSerializer):
             "favicon",
             "robotstxt_rejected",
             "has_html_snapshot",
+            "has_screenshot",
+            "has_text",
             "redirect_url",
             "too_many_redirects",
             "screenshot_count",
@@ -84,12 +86,13 @@ class DocumentSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         slug_field="name",
     )
-
     tag_list = TagSerializer(source="tags", many=True, read_only=True)
     favicon = FavIconSerializer(read_only=True)
     tags_str = serializers.SerializerMethodField()
     preview = serializers.SerializerMethodField()
     snapshot_url = serializers.SerializerMethodField()
+    has_screenshot = serializers.SerializerMethodField()
+    has_text = serializers.SerializerMethodField()
 
     def get_tags_str(self, obj):
         if obj.id:
@@ -116,6 +119,14 @@ class DocumentSerializer(serializers.ModelSerializer):
             if asset:
                 return settings.SOSSE_HTML_SNAPSHOT_URL + asset.filename
         return None
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_has_screenshot(self, obj):
+        return obj.screenshot_count > 0
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_has_text(self, obj):
+        return bool(obj.content)
 
     def user_doc_update(self, ctx_msg):
         try:

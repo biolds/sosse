@@ -38,6 +38,8 @@ SERIALIZED_DOC1_BASE = {
     "favicon": None,
     "has_html_snapshot": False,
     "has_thumbnail": False,
+    "has_text": True,
+    "has_screenshot": False,
     "hidden": False,
     "lang_iso_639_1": "en",
     "manual_crawl": False,

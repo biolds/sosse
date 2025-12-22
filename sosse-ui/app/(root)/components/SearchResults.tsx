@@ -43,7 +43,7 @@ const formatDate = (dateString?: string) => {
 const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
   if (viewMode === "card") {
     return (
-      <Row gutter={[12, 12]}>
+      <Row gutter={[12, 12]} style={{ margin: "0px 6px" }}>
         {results.map((item) => (
           <Col key={item.id} xs={24} sm={12} lg={6} xxl={4}>
             <SearchResultLink href={item.url}>
@@ -70,11 +70,9 @@ const SearchResults = ({ results, viewMode }: SearchResultsProps) => {
                         sizes="100vw"
                         unoptimized
                         style={{
-                          width: "auto",
-                          height: "auto",
-                          maxHeight: "200px",
-                          maxWidth: "100%",
-                          objectFit: "contain",
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
                         }}
                         loading="lazy"
                       />

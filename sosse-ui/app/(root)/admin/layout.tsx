@@ -3,6 +3,7 @@
 import { Layout, Menu } from "antd";
 import Link from "next/link";
 import {
+  ApiOutlined,
   DashboardOutlined,
   BarChartOutlined,
   FolderOutlined,
@@ -42,6 +43,11 @@ export default function AdminLayout({
       key: "cookies",
       icon: <CoffeeOutlined />,
       label: <Link href="/admin/cookies">Cookies</Link>,
+    },
+    {
+      key: "rest",
+      icon: <ApiOutlined />,
+      label: <Link href="/swagger/">Rest API</Link>,
     },
   ];
 

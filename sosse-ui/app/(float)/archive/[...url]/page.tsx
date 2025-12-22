@@ -65,6 +65,13 @@ export default function ArchivePage() {
         router.push(link.href);
       };
     }
+    const iframes =
+      iframe[0].contentWindow.document.getElementsByTagName("iframe");
+    for (let i = 0; i < iframes.length; i++) {
+      const innerIframe = iframes[i];
+      const src = innerIframe.getAttribute("src") || "";
+      innerIframe.src = "/archive/" + archiveLink(src.replace("/html/", ""));
+    }
   };
   return (
     <>

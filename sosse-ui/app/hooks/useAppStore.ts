@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
+import type { Document } from "@/app/types/document";
 
 export interface AdvancedFilter {
   id?: string;
@@ -47,6 +48,8 @@ interface AppState {
   toggleFloatHeader: () => void;
   crawlQueueRefreshInterval: number;
   setCrawlQueueRefreshInterval: (interval: number) => void;
+  sosseDocument: Document | null;
+  setSosseDocument: (document: Document | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -204,6 +207,9 @@ export const useAppStore = create<AppState>()(
       crawlQueueRefreshInterval: 5000,
       setCrawlQueueRefreshInterval: (interval) =>
         set({ crawlQueueRefreshInterval: interval }),
+
+      sosseDocument: null,
+      setSosseDocument: (document) => set({ sosseDocument: document }),
     }),
     {
       name: "sosse-app-storage",

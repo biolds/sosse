@@ -6,6 +6,7 @@ import { useAppStore } from "@/app/hooks/useAppStore";
 import AuthGuard from "@/app/AuthGuard";
 import "@/lib/axios";
 import "@/app/globals.css";
+import FloatLayout from "./components/FloatLayout";
 
 export default function ArchiveLayout({
   children,
@@ -30,7 +31,9 @@ export default function ArchiveLayout({
             }}
           >
             <App style={{ height: "100vh" }}>
-              <AuthGuard>{children}</AuthGuard>
+              <AuthGuard>
+                <FloatLayout>{children}</FloatLayout>
+              </AuthGuard>
             </App>
           </ConfigProvider>
         </AntdRegistry>

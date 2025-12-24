@@ -33,6 +33,7 @@ export default function ScreenshotPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -133,57 +134,75 @@ export default function ScreenshotPage() {
     : Date.now() / 1000;
 
   return (
-    <div
-      ref={containerRef}
-      id="screenshots"
-      style={{ marginTop: 5, position: "relative" }}
-    >
-      <style jsx>{`
-        #screenshots img {
-          margin-top: -5px;
-          display: block;
-        }
-        .img_link {
-          position: absolute;
-          margin-top: -4px;
-        }
-        .img_link:hover {
-          box-shadow: 0px 0px 4px 4px #91baff;
-          margin: -4px 0px 0px -2px;
-          padding: 0px 8px 4px 0px;
-        }
-        .img_link[data-available="false"]:hover {
-          box-shadow: 0px 0px 4px 4px #ff9191;
-        }
-      `}</style>
+    <div style={{ position: "relative", minHeight: "100vh" }}>
+      {imageLoading && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
+      <div
+        ref={containerRef}
+        id="screenshots"
+        style={{ marginTop: 5, position: "relative" }}
+      >
+        <style jsx>{`
+          #screenshots img {
+            margin-top: -5px;
+            display: block;
+          }
+          .img_link {
+            position: absolute;
+            margin-top: -4px;
+          }
+          .img_link:hover {
+            box-shadow: 0px 0px 4px 4px #91baff;
+            margin: -4px 0px 0px -2px;
+            padding: 0px 8px 4px 0px;
+          }
+          .img_link[data-available="false"]:hover {
+            box-shadow: 0px 0px 4px 4px #ff9191;
+          }
+        `}</style>
 
-      {screenshotData.links.map((link) => {
-        if (!link.screen_pos) return null;
+        {screenshotData.links.map((link) => {
+          if (!link.screen_pos) return null;
 
-        return (
-          <a
-            key={link.id}
-            className="img_link"
-            href={"/screenshot/" + archiveLink(link.url)}
-            title={link.title || link.url}
-            data-loc={link.screen_pos}
-            data-available={link.available}
-            style={{ left: 0, top: 0, width: 0, height: 0 }}
+          return (
+            <a
+              key={link.id}
+              className="img_link"
+              href={"/screenshot/" + archiveLink(link.url)}
+              title={link.title || link.url}
+              data-loc={link.screen_pos}
+              data-available={link.available}
+              style={{ left: 0, top: 0, width: 0, height: 0 }}
+            />
+          );
+        })}
+
+        {Array.from({ length: screenshotCount }, (_, i) => (
+          <Image
+            key={i}
+            src={`${screenshotData.screenshot}_${i}.${screenshotFormat}?cachetime=${crawlLast}`}
+            alt={`Screenshot ${i + 1}`}
+            width={0}
+            height={0}
+            loading="lazy"
+            unoptimized
+            onLoad={() => {
+              if (i === 0) setImageLoading(false);
+            }}
           />
-        );
-      })}
-
-      {Array.from({ length: screenshotCount }, (_, i) => (
-        <Image
-          key={i}
-          src={`${screenshotData.screenshot}_${i}.${screenshotFormat}?cachetime=${crawlLast}`}
-          alt={`Screenshot ${i + 1}`}
-          width={0}
-          height={0}
-          loading="lazy"
-          unoptimized
-        />
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

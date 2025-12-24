@@ -17,18 +17,22 @@ import re
 
 from django.conf import settings
 from rest_framework import serializers, viewsets
-from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
 
 from ..document import Document
-from ..models import Link
 from .permissions import DjangoModelPermissionsRW
 
 
-class LinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Link
-        fields = ("id", "text", "pos", "link_no", "extern_url", "screen_pos", "in_nav")
+class LinkSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    text = serializers.CharField(allow_null=True)
+    pos = serializers.IntegerField()
+    link_no = serializers.IntegerField()
+    screen_pos = serializers.CharField(allow_null=True)
+    in_nav = serializers.BooleanField()
+    url = serializers.CharField()
+    title = serializers.CharField(allow_null=True)
+    available = serializers.BooleanField()
 
 
 class ScreenshotSerializer(serializers.Serializer):
@@ -61,31 +65,41 @@ class ScreenshotViewSet(viewsets.ViewSet):
             return Response({"error": "No screenshot available"}, status=404)
 
         # Get links with screen position
-        links = list(doc.links_to.filter(screen_pos__isnull=False).order_by("link_no"))
-        for link in links:
+        links_data = []
+        for link in doc.links_to.filter(screen_pos__isnull=False).order_by("link_no"):
             if link.doc_to:
-                continue
-            link.extern_url = request.build_absolute_uri("/html/" + link.extern_url)
+                links_data.append(
+                    {
+                        "id": link.id,
+                        "text": link.text,
+                        "pos": link.pos,
+                        "link_no": link.link_no,
+                        "screen_pos": link.screen_pos,
+                        "in_nav": link.in_nav,
+                        "url": link.doc_to.url,
+                        "title": link.doc_to.title,
+                        "available": True,
+                    }
+                )
+            else:
+                links_data.append(
+                    {
+                        "id": link.id,
+                        "text": link.text,
+                        "pos": link.pos,
+                        "link_no": link.link_no,
+                        "screen_pos": link.screen_pos,
+                        "in_nav": link.in_nav,
+                        "url": link.extern_url,
+                        "title": link.extern_url,
+                        "available": False,
+                    }
+                )
 
         data = {
             "screenshot": settings.SOSSE_SCREENSHOTS_URL + "/" + doc.image_name(),
-            "links": links,
+            "links": links_data,
         }
 
         serializer = ScreenshotSerializer(data)
         return Response(serializer.data)
-
-    def list(self, request):
-        raise MethodNotAllowed("GET")
-
-    def create(self, request):
-        raise MethodNotAllowed("POST")
-
-    def update(self, request, pk=None):
-        raise MethodNotAllowed("PUT")
-
-    def partial_update(self, request, pk=None):
-        raise MethodNotAllowed("PATCH")
-
-    def destroy(self, request, pk=None):
-        raise MethodNotAllowed("DELETE")

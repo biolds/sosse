@@ -38,6 +38,8 @@ export interface Document {
   favicon: FavIcon | null;
   robotstxt_rejected: boolean;
   has_html_snapshot: boolean;
+  has_screenshot: boolean;
+  has_text: boolean;
   redirect_url: string | null;
   too_many_redirects: boolean;
   screenshot_count: number;

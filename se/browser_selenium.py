@@ -465,7 +465,7 @@ class BrowserSelenium(Browser):
 
     @classmethod
     @retry
-    def take_screenshots(cls, collection, image_name):
+    def take_screenshots(cls, collection, image_name, links=None):
         from .collection import Collection
 
         if collection and collection.remove_nav_elements in (
@@ -497,6 +497,35 @@ class BrowserSelenium(Browser):
         while remainging_height > 0:
             missing_height = cls.scroll_to_page(top_offset)
             crawl_logger.debug(f"Scrolling to {top_offset} (missing {missing_height} / {remainging_height})")
+
+            # Extract link positions at current scroll position
+            if links:
+                for link in links:
+                    if not hasattr(link, "css_selector") or link.css_selector is None:
+                        continue
+                    if hasattr(link, "screen_pos") and link.screen_pos is not None:
+                        continue
+
+                    loc = cls.get_link_pos_abs(link.css_selector)
+                    if loc == {}:
+                        continue
+                    for attr in ("elemLeft", "elemTop", "elemRight", "elemBottom"):
+                        if not isinstance(loc[attr], (int, float)):
+                            break
+                    else:
+                        # Check if link is visible in current viewport
+                        link_top = int(loc["elemTop"])
+                        if link_top >= top_offset and link_top < top_offset + screen_height:
+                            link.screen_pos = ",".join(
+                                [
+                                    str(int(loc["elemLeft"])),
+                                    str(int(loc["elemTop"])),
+                                    str(int(loc["elemRight"] - loc["elemLeft"])),
+                                    str(int(loc["elemBottom"] - loc["elemTop"])),
+                                ]
+                            )
+                            link.save()
+
             screenshot_file = f"{base_name}_{img_no}.png"
             screenshot = cls.driver().get_screenshot_as_png()
 
@@ -553,17 +582,18 @@ class BrowserSelenium(Browser):
             if (el.children.length === 1 && el.children[0].tagName === 'IMG') {{
                 el = el.children[0];
             }}
-            const bodyRect = document.body.getBoundingClientRect();
             const elemRect = el.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
             const pageWidth = {cls.screen_size()[0]};
             if (elemRect.left >= pageWidth) {{
                 return {{}};
             }}
             return {{
-                elemLeft: elemRect.left,
-                elemTop: elemRect.top,
-                elemRight: Math.min(pageWidth, elemRect.right),
-                elemBottom: elemRect.bottom,
+                elemLeft: elemRect.left + scrollLeft,
+                elemTop: elemRect.top + scrollTop,
+                elemRight: Math.min(pageWidth, elemRect.right + scrollLeft),
+                elemBottom: elemRect.bottom + scrollTop,
             }}
         """
         )

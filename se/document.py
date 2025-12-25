@@ -547,7 +547,7 @@ class Document(models.Model):
             browser.remove_nav_elements()
 
         browser = self.collection.get_browser(url=self.url)
-        img_count = browser.take_screenshots(self.collection, self.image_name())
+        img_count = browser.take_screenshots(self.collection, self.image_name(), links)
         crawl_logger.debug(f"took {img_count} screenshots for {self.url} with {browser}")
         self.screenshot_count = img_count
         self.screenshot_format = self.collection.screenshot_format
@@ -556,25 +556,6 @@ class Document(models.Model):
 
         if self.collection.screenshot_format == Document.SCREENSHOT_JPG:
             self.convert_to_jpg()
-
-        browser.scroll_to_page(0)
-        for i, link in enumerate(links):
-            loc = browser.get_link_pos_abs(link.css_selector)
-            if loc == {}:
-                continue
-            for attr in ("elemLeft", "elemTop", "elemRight", "elemBottom"):
-                if not isinstance(loc[attr], (int, float)):
-                    break
-            else:
-                link.screen_pos = ",".join(
-                    [
-                        str(int(loc["elemLeft"])),
-                        str(int(loc["elemTop"])),
-                        str(int(loc["elemRight"] - loc["elemLeft"])),
-                        str(int(loc["elemBottom"] - loc["elemTop"])),
-                    ]
-                )
-                link.save()
 
     def set_error(self, err):
         self.error = err

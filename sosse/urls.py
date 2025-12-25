@@ -54,6 +54,7 @@ from se.profile import ProfileView
 from se.resources import ResourcesView
 from se.rest.crawl_queue import CrawlQueueViewSet
 from se.rest.document import DocumentViewSet
+from se.rest.link import LinkViewSet
 from se.rest.router import router
 from se.rest.screenshot import ScreenshotViewSet
 from se.screenshot import ScreenshotFullView, ScreenshotView
@@ -85,6 +86,13 @@ screenshot_detail = ScreenshotViewSet.as_view(
         "get": "retrieve",
     }
 )
+
+link_detail = LinkViewSet.as_view(
+    {
+        "get": "retrieve",
+    }
+)
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", SearchView.as_view(), name="search"),
@@ -106,6 +114,7 @@ urlpatterns = [
     path("api/document/", document_list, name="document-list"),
     re_path("api/document/(?P<pk>.*)", document_detail, name="document-detail"),
     re_path("api/screenshot/(?P<pk>.*)", screenshot_detail, name="screenshot-detail"),
+    re_path("api/link/(?P<pk>.*)", link_detail, name="link-detail"),
     path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     path("api/token/logout/", CookieTokenLogoutView.as_view(), name="token_logout"),

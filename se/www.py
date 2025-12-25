@@ -46,14 +46,13 @@ class WWWView(ArchiveMixin, TemplateView):
                         txt,
                         link.doc_to.get_absolute_url(),
                         link.text or "<no text link>",
-                        link.doc_to.url,
                     )
                 else:
                     content += format_html(
-                        '{} <a href="{}">🌍</a>',
+                        '{} <a href="{}">🌍 {}</a>',
                         txt,
-                        link.text or "<no text link>",
                         link.extern_url,
+                        link.text or "<no text link>",
                     )
                 link_no += 1
 

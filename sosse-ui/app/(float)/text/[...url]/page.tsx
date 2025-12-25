@@ -1,35 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAppStore } from "@/app/hooks/useAppStore";
-import { useArchiveUrl } from "@/app/hooks/useArchiveUrl";
-import axios from "axios";
-import type { Link } from "@/app/hooks/useAppStore";
 import { Spin } from "antd";
+import { useAppStore } from "@/app/hooks/useAppStore";
+import { useDocumentLinks } from "@/app/hooks/useDocumentLinks";
 import archiveLink from "@/app/utils/archiveLink";
 
 export default function TextPage() {
-  const url = useArchiveUrl();
   const sosseDocument = useAppStore((state) => state.sosseDocument);
-  const documentLinks = useAppStore((state) => state.documentLinks);
-  const setDocumentLinks = useAppStore((state) => state.setDocumentLinks);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get<Link[]>(`/api/link/${url}`);
-        setDocumentLinks(response.data);
-      } catch (err) {
-        console.error("Failed to load links:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLinks();
-  }, [url, setDocumentLinks]);
+  const { documentLinks, loading } = useDocumentLinks();
 
   if (loading || !sosseDocument) {
     return (

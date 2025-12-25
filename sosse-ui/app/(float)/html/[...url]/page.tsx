@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Spin } from "antd";
 import archiveLink from "@/app/utils/archiveLink";
 import { useAppStore } from "@/app/hooks/useAppStore";
+import { useFloat } from "../../components/FloatContext";
 
 export default function ArchivePage() {
   const sosseDocument = useAppStore((state) => state.sosseDocument);
   const router = useRouter();
-  const [iframeLoading, setIframeLoading] = useState(true);
+  const { setLoading } = useFloat();
+
+  useEffect(() => {
+    setLoading(true);
+  }, [setLoading]);
 
   const iframeLoaded = () => {
-    setIframeLoading(false);
+    setLoading(false);
     const iframe = document.getElementsByTagName("iframe");
     const links = iframe[0].contentWindow.document.getElementsByTagName("a");
     for (let i = 0; i < links.length; i++) {
@@ -37,26 +41,11 @@ export default function ArchivePage() {
   }
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      {iframeLoading && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 1000,
-          }}
-        >
-          <Spin size="large" />
-        </div>
-      )}
-      <iframe
-        src={sosseDocument.snapshot_url}
-        sandbox="allow-top-navigation allow-same-origin"
-        onLoad={iframeLoaded}
-        style={{ width: "100%", height: "100%", border: "none" }}
-      />
-    </div>
+    <iframe
+      src={sosseDocument.snapshot_url}
+      sandbox="allow-top-navigation allow-same-origin"
+      onLoad={iframeLoaded}
+      style={{ width: "100%", height: "100%", border: "none" }}
+    />
   );
 }

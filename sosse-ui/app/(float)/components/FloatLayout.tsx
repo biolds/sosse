@@ -20,15 +20,12 @@ import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
 import { useArchiveUrl } from "@/app/hooks/useArchiveUrl";
 import Header from "@/app/components/Header";
+import { FloatProvider, useFloat } from "./FloatContext";
 
 const { Content } = Layout;
 const { Text } = Typography;
 
-export default function FloatLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function FloatLayoutContent({ children }: { children: React.ReactNode }) {
   const url = useArchiveUrl();
   const pathname = usePathname();
   const archivePage = pathname.replace(/\/([^/]+)\/.*/, "$1");
@@ -38,6 +35,7 @@ export default function FloatLayout({
     isFloatHeaderFolded,
     toggleFloatHeader,
   } = useAppStore();
+  const { loading } = useFloat();
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState(0);
 
@@ -287,6 +285,11 @@ export default function FloatLayout({
             }}
           />
         </Button>
+        {loading && (
+          <div style={{ textAlign: "center", marginTop: "60px" }}>
+            <Spin size="large" />
+          </div>
+        )}
       </div>
       {sosseDocument == null ? (
         <div style={{ textAlign: "center", marginTop: "60px" }}>
@@ -296,5 +299,17 @@ export default function FloatLayout({
         children
       )}
     </>
+  );
+}
+
+export default function FloatLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <FloatProvider>
+      <FloatLayoutContent>{children}</FloatLayoutContent>
+    </FloatProvider>
   );
 }

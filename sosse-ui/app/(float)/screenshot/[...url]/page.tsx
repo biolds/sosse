@@ -1,60 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { Spin, Alert } from "antd";
-import axios from "axios";
+import { useEffect, useRef, useCallback } from "react";
+import { Alert } from "antd";
 import { useAppStore } from "@/app/hooks/useAppStore";
-import { useArchiveUrl } from "@/app/hooks/useArchiveUrl";
+import { useDocumentLinks } from "@/app/hooks/useDocumentLinks";
 import archiveLink from "@/app/utils/archiveLink";
-import type { Link } from "@/app/hooks/useAppStore";
+import { useFloat } from "../../components/FloatContext";
 
 export default function ScreenshotPage() {
-  const url = useArchiveUrl();
   const sosseDocument = useAppStore((state) => state.sosseDocument);
-  const documentLinks = useAppStore((state) => state.documentLinks);
-  const setDocumentLinks = useAppStore((state) => state.setDocumentLinks);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [imageLoading, setImageLoading] = useState(true);
+  const { documentLinks, loading: linksLoading, error } = useDocumentLinks();
+  const { setLoading } = useFloat();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await axios.get<Link[]>(`/api/link/${url}`);
-        const filteredLinks = response.data.filter(
-          (link) => link.screen_pos !== null,
-        );
-        setDocumentLinks(filteredLinks);
-
-        if (sosseDocument?.screenshot_size) {
-          const [width, height] = sosseDocument.screenshot_size
-            .split("x")
-            .map(Number);
-          setDimensions({ width, height });
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load screenshot",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLinks();
-  }, [url, sosseDocument, setDocumentLinks]);
+    setLoading(linksLoading || !sosseDocument);
+  }, [linksLoading, sosseDocument, setLoading]);
 
   const handleResize = useCallback(() => {
-    if (!containerRef.current || !dimensions.width) return;
+    if (!containerRef.current || !sosseDocument?.screenshot_size) return;
 
+    const [width] = sosseDocument.screenshot_size.split("x").map(Number);
     const windowWidth = window.innerWidth;
-    const ratio = windowWidth / dimensions.width;
+    const ratio = windowWidth / width;
 
     const linkElements = containerRef.current.querySelectorAll(".img_link");
     linkElements.forEach((link) => {
@@ -62,18 +31,18 @@ export default function ScreenshotPage() {
       const pos = htmlLink.dataset.loc;
       if (!pos) return;
 
-      const [left, top, width, height] = pos.split(",").map(Number);
+      const [left, top, linkWidth, linkHeight] = pos.split(",").map(Number);
       htmlLink.style.left = `${left * ratio}px`;
       htmlLink.style.top = `${top * ratio}px`;
-      htmlLink.style.width = `${width * ratio}px`;
-      htmlLink.style.height = `${height * ratio}px`;
+      htmlLink.style.width = `${linkWidth * ratio}px`;
+      htmlLink.style.height = `${linkHeight * ratio}px`;
     });
 
     const images = containerRef.current.querySelectorAll("img");
     images.forEach((img) => {
-      img.style.width = `${dimensions.width * ratio}px`;
+      img.style.width = `${width * ratio}px`;
     });
-  }, [dimensions.width]);
+  }, [sosseDocument]);
 
   useEffect(() => {
     window.addEventListener("resize", handleResize);
@@ -87,18 +56,10 @@ export default function ScreenshotPage() {
     };
   }, [documentLinks, handleResize]);
 
-  if (loading) {
-    return (
-      <div style={{ padding: 40, textAlign: "center" }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div style={{ padding: 40 }}>
-        <Alert title="Error" description={error} type="error" showIcon />
+        <Alert message="Error" description={error} type="error" showIcon />
       </div>
     );
   }
@@ -106,7 +67,7 @@ export default function ScreenshotPage() {
   if (!sosseDocument) {
     return (
       <div style={{ padding: 40 }}>
-        <Alert title="No screenshot available" type="info" showIcon />
+        <Alert message="No screenshot available" type="info" showIcon />
       </div>
     );
   }
@@ -115,28 +76,19 @@ export default function ScreenshotPage() {
   const screenshotFormat = sosseDocument.screenshot_format || "png";
   const crawlLast = sosseDocument.crawl_last
     ? new Date(sosseDocument.crawl_last).getTime() / 1000
-    : Date.now() / 1000;
+    : "";
   const screenshotsUrl =
     typeof window !== "undefined" && window.sosseConfig?.screenshotsUrl
       ? window.sosseConfig.screenshotsUrl
       : "/screenshots/";
   const screenshotUrl = `${screenshotsUrl}${sosseDocument.image_name}`;
 
+  const linksWithScreenPos = documentLinks.filter(
+    (link) => link.screen_pos !== null,
+  );
+
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {imageLoading && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 1000,
-          }}
-        >
-          <Spin size="large" />
-        </div>
-      )}
       <div
         ref={containerRef}
         id="screenshots"
@@ -161,7 +113,7 @@ export default function ScreenshotPage() {
           }
         `}</style>
 
-        {documentLinks.map((link) => (
+        {linksWithScreenPos.map((link) => (
           <a
             key={link.id}
             className="img_link"
@@ -183,7 +135,7 @@ export default function ScreenshotPage() {
             loading="lazy"
             unoptimized
             onLoad={() => {
-              if (i === 0) setImageLoading(false);
+              if (i === 0) setLoading(false);
             }}
           />
         ))}

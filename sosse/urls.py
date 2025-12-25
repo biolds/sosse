@@ -56,7 +56,6 @@ from se.rest.crawl_queue import CrawlQueueViewSet
 from se.rest.document import DocumentViewSet
 from se.rest.link import LinkViewSet
 from se.rest.router import router
-from se.rest.screenshot import ScreenshotViewSet
 from se.screenshot import ScreenshotFullView, ScreenshotView
 from se.search import SearchView
 from se.search_redirect import SearchRedirectView
@@ -78,12 +77,6 @@ document_detail = DocumentViewSet.as_view(
         "put": "update",
         "patch": "partial_update",
         "delete": "destroy",
-    }
-)
-
-screenshot_detail = ScreenshotViewSet.as_view(
-    {
-        "get": "retrieve",
     }
 )
 
@@ -113,7 +106,6 @@ urlpatterns = [
     path("api/crawl_queue/", CrawlQueueViewSet.as_view(), name="crawl_queue"),
     path("api/document/", document_list, name="document-list"),
     re_path("api/document/(?P<pk>.*)", document_detail, name="document-detail"),
-    re_path("api/screenshot/(?P<pk>.*)", screenshot_detail, name="screenshot-detail"),
     re_path("api/link/(?P<pk>.*)", link_detail, name="link-detail"),
     path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),

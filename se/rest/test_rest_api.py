@@ -42,6 +42,7 @@ SERIALIZED_DOC1_BASE = {
     "has_screenshot": False,
     "hidden": False,
     "lang_iso_639_1": "en",
+    "image_name": "f9/f906f470b3bd6f461df3d6cd76d6c748",
     "manual_crawl": False,
     "metadata": {},
     "mime_plugins_result": "",
@@ -82,12 +83,14 @@ SERIALIZED_DOC2_BASE = SERIALIZED_DOC1_BASE | {
     "tags": ["Sub Tag"],
     "tags_str": "Sub Tag",
     "tag_list": [{"name": "Sub Tag", "color": "#e57272"}],
+    "image_name": "c8/c8815edebfb8da0798bf1514892d8751",
 }
 SERIALIZED_DOC3_BASE = SERIALIZED_DOC1_BASE | {
     "url": "http://example.com/test3",
     "normalized_url": "http example com test3",
     "title": "Title3",
     "normalized_title": "title3",
+    "image_name": "81/81e89141002fea3674331c0656b7dec4",
 }
 
 

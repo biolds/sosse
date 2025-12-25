@@ -7,30 +7,13 @@ import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
 import { useArchiveUrl } from "@/app/hooks/useArchiveUrl";
 import archiveLink from "@/app/utils/archiveLink";
-
-interface Link {
-  id: number;
-  text: string | null;
-  pos: number;
-  link_no: number;
-  screen_pos: string | null;
-  in_nav: boolean;
-  url: string;
-  title: string | null;
-  available: boolean;
-}
-
-interface ScreenshotData {
-  screenshot: string;
-  links: Link[];
-}
+import type { Link } from "@/app/hooks/useAppStore";
 
 export default function ScreenshotPage() {
   const url = useArchiveUrl();
   const sosseDocument = useAppStore((state) => state.sosseDocument);
-  const [screenshotData, setScreenshotData] = useState<ScreenshotData | null>(
-    null,
-  );
+  const documentLinks = useAppStore((state) => state.documentLinks);
+  const setDocumentLinks = useAppStore((state) => state.setDocumentLinks);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
@@ -38,15 +21,16 @@ export default function ScreenshotPage() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    const fetchScreenshot = async () => {
+    const fetchLinks = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get<ScreenshotData>(
-          `/api/screenshot/${url}`,
+        const response = await axios.get<Link[]>(`/api/link/${url}`);
+        const filteredLinks = response.data.filter(
+          (link) => link.screen_pos !== null,
         );
-        setScreenshotData(response.data);
+        setDocumentLinks(filteredLinks);
 
         if (sosseDocument?.screenshot_size) {
           const [width, height] = sosseDocument.screenshot_size
@@ -63,8 +47,8 @@ export default function ScreenshotPage() {
       }
     };
 
-    fetchScreenshot();
-  }, [url, sosseDocument]);
+    fetchLinks();
+  }, [url, sosseDocument, setDocumentLinks]);
 
   const handleResize = useCallback(() => {
     if (!containerRef.current || !dimensions.width) return;
@@ -72,8 +56,8 @@ export default function ScreenshotPage() {
     const windowWidth = window.innerWidth;
     const ratio = windowWidth / dimensions.width;
 
-    const links = containerRef.current.querySelectorAll(".img_link");
-    links.forEach((link) => {
+    const linkElements = containerRef.current.querySelectorAll(".img_link");
+    linkElements.forEach((link) => {
       const htmlLink = link as HTMLElement;
       const pos = htmlLink.dataset.loc;
       if (!pos) return;
@@ -101,7 +85,7 @@ export default function ScreenshotPage() {
       window.removeEventListener("resize", handleResize);
       clearTimeout(timer);
     };
-  }, [screenshotData, handleResize]);
+  }, [documentLinks, handleResize]);
 
   if (loading) {
     return (
@@ -114,15 +98,15 @@ export default function ScreenshotPage() {
   if (error) {
     return (
       <div style={{ padding: 40 }}>
-        <Alert message="Error" description={error} type="error" showIcon />
+        <Alert title="Error" description={error} type="error" showIcon />
       </div>
     );
   }
 
-  if (!screenshotData || !sosseDocument) {
+  if (!sosseDocument) {
     return (
       <div style={{ padding: 40 }}>
-        <Alert message="No screenshot available" type="info" showIcon />
+        <Alert title="No screenshot available" type="info" showIcon />
       </div>
     );
   }
@@ -132,6 +116,11 @@ export default function ScreenshotPage() {
   const crawlLast = sosseDocument.crawl_last
     ? new Date(sosseDocument.crawl_last).getTime() / 1000
     : Date.now() / 1000;
+  const screenshotsUrl =
+    typeof window !== "undefined" && window.sosseConfig?.screenshotsUrl
+      ? window.sosseConfig.screenshotsUrl
+      : "/screenshots/";
+  const screenshotUrl = `${screenshotsUrl}${sosseDocument.image_name}`;
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
@@ -172,26 +161,22 @@ export default function ScreenshotPage() {
           }
         `}</style>
 
-        {screenshotData.links.map((link) => {
-          if (!link.screen_pos) return null;
-
-          return (
-            <a
-              key={link.id}
-              className="img_link"
-              href={"/screenshot/" + archiveLink(link.url)}
-              title={link.title || link.url}
-              data-loc={link.screen_pos}
-              data-available={link.available}
-              style={{ left: 0, top: 0, width: 0, height: 0 }}
-            />
-          );
-        })}
+        {documentLinks.map((link) => (
+          <a
+            key={link.id}
+            className="img_link"
+            href={"/screenshot/" + archiveLink(link.url)}
+            title={link.title || link.url}
+            data-loc={link.screen_pos}
+            data-available={link.available}
+            style={{ left: 0, top: 0, width: 0, height: 0 }}
+          />
+        ))}
 
         {Array.from({ length: screenshotCount }, (_, i) => (
           <Image
             key={i}
-            src={`${screenshotData.screenshot}_${i}.${screenshotFormat}?cachetime=${crawlLast}`}
+            src={`${screenshotUrl}_${i}.${screenshotFormat}?cachetime=${crawlLast}`}
             alt={`Screenshot ${i + 1}`}
             width={0}
             height={0}

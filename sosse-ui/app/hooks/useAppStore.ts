@@ -22,6 +22,18 @@ export interface SearchFilters {
 
 export type SearchTab = "home" | "search" | "images" | "audio" | "video";
 
+export interface Link {
+  id: number;
+  text: string | null;
+  pos: number;
+  link_no: number;
+  screen_pos: string | null;
+  in_nav: boolean;
+  url: string;
+  title: string | null;
+  available: boolean;
+}
+
 interface AppState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -50,6 +62,8 @@ interface AppState {
   setCrawlQueueRefreshInterval: (interval: number) => void;
   sosseDocument: Document | null;
   setSosseDocument: (document: Document | null) => void;
+  documentLinks: Link[];
+  setDocumentLinks: (links: Link[]) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -210,6 +224,9 @@ export const useAppStore = create<AppState>()(
 
       sosseDocument: null,
       setSosseDocument: (document) => set({ sosseDocument: document }),
+
+      documentLinks: [],
+      setDocumentLinks: (links) => set({ documentLinks: links }),
     }),
     {
       name: "sosse-app-storage",

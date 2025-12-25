@@ -30,6 +30,7 @@ export interface Document {
   content: string;
   normalized_content: string;
   content_hash: string | null;
+  image_name: string;
   lang_iso_639_1: string | null;
   vector_lang: string;
   mimetype: string | null;

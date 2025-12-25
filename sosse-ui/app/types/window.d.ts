@@ -3,6 +3,7 @@ export {};
 declare global {
   interface Window {
     sosseConfig?: {
+      screenshotsUrl?: string;
       snapshotUrl: string;
       anonymousSearch: boolean;
       onlineSearchRedirect: boolean;

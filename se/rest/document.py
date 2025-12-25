@@ -93,6 +93,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     snapshot_url = serializers.SerializerMethodField()
     has_screenshot = serializers.SerializerMethodField()
     has_text = serializers.SerializerMethodField()
+    image_name = serializers.SerializerMethodField()
 
     def get_tags_str(self, obj):
         if obj.id:
@@ -127,6 +128,10 @@ class DocumentSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_has_text(self, obj):
         return bool(obj.content)
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_image_name(self, obj):
+        return obj.image_name()
 
     def user_doc_update(self, ctx_msg):
         try:

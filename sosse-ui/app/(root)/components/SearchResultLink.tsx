@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAppStore } from "@/app/hooks/useAppStore";
+import archiveLink from "@/app/utils/archiveLink";
 
 const SearchResultLink = ({
   href,
@@ -13,18 +14,20 @@ const SearchResultLink = ({
 }) => {
   const { linkMode } = useAppStore();
 
-  const getResultLink = (url: string) => {
-    if (linkMode === "archive") {
-      return `/html/${url}`;
-    }
-    return url;
-  };
-
+  const linkHref = linkMode === "archive" ? "/html/" + archiveLink(href) : href;
   return (
     <Link
-      href={getResultLink(href)}
-      target={linkMode === "source" ? "_blank" : undefined}
-      rel={linkMode === "source" ? "noopener noreferrer" : undefined}
+      href={linkHref}
+      target={
+        linkMode === "source" && window.sosseConfig?.linksNewTab
+          ? "_blank"
+          : undefined
+      }
+      rel={
+        linkMode === "source" && window.sosseConfig?.linksNoReferrer
+          ? "noopener noreferrer"
+          : undefined
+      }
       style={{
         textDecoration: "none",
         color: "inherit",

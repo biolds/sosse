@@ -19,6 +19,8 @@ import {
 import axios from "axios";
 import { useAppStore } from "@/app/hooks/useAppStore";
 import { useArchiveUrl } from "@/app/hooks/useArchiveUrl";
+import archiveLink from "@/app/utils/archiveLink";
+import SourceLink from "@/app/utils/SourceLink";
 import Header from "@/app/components/Header";
 import { FloatProvider, useFloat } from "./FloatContext";
 
@@ -27,6 +29,7 @@ const { Text } = Typography;
 
 function FloatLayoutContent({ children }: { children: React.ReactNode }) {
   const url = useArchiveUrl();
+  const archiveUrl = archiveLink(url);
   const pathname = usePathname();
   const archivePage = pathname.replace(/\/([^/]+)\/.*/, "$1");
   const {
@@ -156,7 +159,7 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
                   {/* View Mode Buttons */}
                   <div style={{ marginBottom: "12px" }}>
                     <Space size={6} wrap>
-                      <Link href={`/html/${url}`}>
+                      <Link href={`/html/${archiveUrl}`}>
                         <Button
                           type={archivePage === "html" ? "primary" : "default"}
                           size="small"
@@ -166,7 +169,7 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
                           Web
                         </Button>
                       </Link>
-                      <Link href={`/text/${url}`}>
+                      <Link href={`/text/${archiveUrl}`}>
                         <Button
                           type={archivePage === "text" ? "primary" : "default"}
                           size="small"
@@ -176,7 +179,7 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
                           Text
                         </Button>
                       </Link>
-                      <Link href={`/screenshot/${url}`}>
+                      <Link href={`/screenshot/${archiveUrl}`}>
                         <Button
                           type={
                             archivePage === "screenshot" ? "primary" : "default"
@@ -188,7 +191,7 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
                           Screenshot
                         </Button>
                       </Link>
-                      <Link href={`/text/${url}`}>
+                      <Link href={`/text/${archiveUrl}`}>
                         <Button
                           type={
                             archivePage === "document" ? "primary" : "default"
@@ -209,10 +212,10 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
                     wrap
                     style={{ fontSize: "12px", lineHeight: "20px" }}
                   >
-                    <Link href="#" style={{ fontSize: "12px" }}>
+                    <SourceLink href={url} style={{ fontSize: "12px" }}>
                       <ExportOutlined style={{ marginRight: "4px" }} />
                       Source page
-                    </Link>
+                    </SourceLink>
                     <Link href="#" style={{ fontSize: "12px" }}>
                       <ArrowLeftOutlined style={{ marginRight: "4px" }} />
                       Linked by

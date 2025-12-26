@@ -216,11 +216,17 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
                       <ExportOutlined style={{ marginRight: "4px" }} />
                       Source page
                     </SourceLink>
-                    <Link href="#" style={{ fontSize: "12px" }}>
+                    <Link
+                      href={`/?ft0=inc&ff0=lto_url&fo0=equal&fv0=${encodeURIComponent(url)}`}
+                      style={{ fontSize: "12px" }}
+                    >
                       <ArrowLeftOutlined style={{ marginRight: "4px" }} />
                       Linked by
                     </Link>
-                    <Link href="#" style={{ fontSize: "12px" }}>
+                    <Link
+                      href={`/?ft0=inc&ff0=lby_url&fo0=equal&fv0=${encodeURIComponent(url)}`}
+                      style={{ fontSize: "12px" }}
+                    >
                       <ArrowRightOutlined style={{ marginRight: "4px" }} />
                       Links to
                     </Link>

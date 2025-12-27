@@ -1,13 +1,12 @@
 "use client";
 
-import { Layout, ConfigProvider, theme, App } from "antd";
+import { ConfigProvider, theme, App } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useAppStore } from "@/app/hooks/useAppStore";
 import AuthGuard from "@/app/AuthGuard";
-import Header from "@/app/components/Header";
-import Footer from "@/app/components/Footer";
 import "@/lib/axios";
 import "@/app/globals.css";
+import FloatLayout from "./components/FloatLayout";
 
 export default function RootLayout({
   children,
@@ -31,13 +30,9 @@ export default function RootLayout({
                 : theme.defaultAlgorithm,
             }}
           >
-            <App>
+            <App style={{ height: "100vh" }}>
               <AuthGuard>
-                <Layout style={{ minHeight: "100vh" }}>
-                  <Header />
-                  {children}
-                  <Footer />
-                </Layout>
+                <FloatLayout>{children}</FloatLayout>
               </AuthGuard>
             </App>
           </ConfigProvider>

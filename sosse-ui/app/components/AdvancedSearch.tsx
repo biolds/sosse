@@ -9,11 +9,8 @@ import React, {
 } from "react";
 import { Button, theme } from "antd";
 import { PlusOutlined, DownOutlined, SettingOutlined } from "@ant-design/icons";
-import {
-  useAppStore,
-  type AdvancedFilter,
-  type SearchFilters,
-} from "@/app/hooks/useAppStore";
+import { useAppStore } from "@/app/hooks/useAppStore";
+import type { AdvancedFilter, SearchFilters } from "@/app/types/search";
 import FilterBadge from "./FilterBadge";
 import FilterModal from "./FilterModal";
 import MoreOptionsPanel from "./MoreOptionsPanel";

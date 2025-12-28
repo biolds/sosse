@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { memo, useMemo, useCallback, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   App,
@@ -18,11 +18,8 @@ import {
   UnorderedListOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import {
-  useAppStore,
-  type AdvancedFilter,
-  type SearchTab,
-} from "@/app/hooks/useAppStore";
+import { useAppStore, type SearchTab } from "@/app/hooks/useAppStore";
+import type { AdvancedFilter, SearchFilters } from "@/app/types/search";
 import SearchResults, { SearchResult } from "./components/SearchResults";
 import AdvancedSearch, {
   type AdvancedSearchRef,
@@ -51,15 +48,12 @@ const HomePage = () => {
     homeViewMode,
     activeTab,
     setActiveTab,
-    searchFilters,
-    updateSearchFilters,
     loadCollections,
   } = useAppStore();
   const { message } = App.useApp();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
-  const [submittedQuery, setSubmittedQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
@@ -69,37 +63,115 @@ const HomePage = () => {
   );
   const [tabViewMode, setTabViewMode] = useState<"list" | "card">("card");
   const advancedSearchRef = useRef<AdvancedSearchRef>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     loadCollections();
   }, [loadCollections]);
 
+  const parseUrlToFilters = useCallback((): {
+    query: string;
+    filters: SearchFilters;
+  } => {
+    const q = searchParams.get("q") || "";
+    const doc_lang = searchParams.get("doc_lang") || "";
+    const collection = searchParams.get("collection");
+    const sort = searchParams.get("s") || "-rank";
+    const include_hidden = searchParams.get("i") === "on";
+
+    const advFilters: AdvancedFilter[] = [];
+    const filterNumbers = new Set<string>();
+
+    searchParams.forEach((value, key) => {
+      const match = key.match(/^(ft|ff|fo|fv|fc)(\d+)$/);
+      if (match) {
+        filterNumbers.add(match[2]);
+      }
+    });
+
+    Array.from(filterNumbers)
+      .sort()
+      .forEach((num) => {
+        const type = searchParams.get(`ft${num}`);
+        const field = searchParams.get(`ff${num}`);
+        const operator = searchParams.get(`fo${num}`);
+        const term = searchParams.get(`fv${num}`);
+        const case_sensitive = searchParams.get(`fc${num}`) === "on";
+
+        if (type && field && operator && term) {
+          advFilters.push({
+            id: `filter-${Date.now()}-${num}`,
+            type: type as "inc" | "exc",
+            field,
+            operator: operator as "contain" | "equal" | "regexp",
+            term,
+            case_sensitive,
+          });
+        }
+      });
+
+    return {
+      query: q,
+      filters: {
+        lang: doc_lang,
+        collection: collection ? parseInt(collection, 10) : undefined,
+        include_hidden,
+        sort,
+        adv_params: advFilters,
+      },
+    };
+  }, [searchParams]);
+
+  const buildUrl = (query: string, filters: SearchFilters): string => {
+    const params = new URLSearchParams();
+    if (query) {
+      params.set("q", query);
+    }
+    if (filters.lang) {
+      params.set("doc_lang", filters.lang);
+    }
+    if (filters.collection) {
+      params.set("collection", filters.collection.toString());
+    }
+    if (filters.sort && filters.sort !== "-rank") {
+      params.set("s", filters.sort);
+    }
+    if (filters.include_hidden) {
+      params.set("i", "on");
+    }
+    filters.adv_params.forEach((filter, index) => {
+      const num = index.toString();
+      params.set(`ft${num}`, filter.type);
+      params.set(`ff${num}`, filter.field);
+      params.set(`fo${num}`, filter.operator);
+      params.set(`fv${num}`, filter.term);
+      if (filter.case_sensitive) {
+        params.set(`fc${num}`, "on");
+      }
+    });
+
+    return params.toString() ? `/?${params.toString()}` : "/";
+  };
+
   const performSearch = async (
-    value: string | null,
+    query: string,
+    filters: SearchFilters,
+    tab: SearchTab,
     page: number = 1,
     customPageSize?: number,
-    filters = searchFilters,
-    tab: SearchTab = activeTab,
   ) => {
-    const queryTerm = (value && value.trim()) || "";
-    const hasAdvancedFilters =
-      filters.adv_params && filters.adv_params.length > 0;
+    const hasAdvancedFilters = filters.adv_params.length > 0;
 
-    // For home tab, allow search without query
-    if (tab !== "home" && !queryTerm && !hasAdvancedFilters) {
+    if (tab !== "home" && !query && !hasAdvancedFilters) {
       return;
     }
 
     setLoading(true);
-    setSubmittedQuery(queryTerm);
     setCurrentPage(page);
 
     const effectivePageSize = customPageSize || pageSize;
     const offset = (page - 1) * effectivePageSize;
 
     try {
-      // Apply tab-specific filters
       const tabFilters = getTabFilters(tab, filters.adv_params);
 
       const requestBody: {
@@ -111,7 +183,7 @@ const HomePage = () => {
         adv_params?: AdvancedFilter[];
         show_on_homepage?: boolean;
       } = {
-        query: queryTerm,
+        query,
         sort: filters.sort,
         include_hidden: filters.include_hidden,
       };
@@ -128,7 +200,6 @@ const HomePage = () => {
         requestBody.adv_params = tabFilters;
       }
 
-      // For home tab, add show_on_homepage filter
       if (tab === "home") {
         requestBody.show_on_homepage = true;
       }
@@ -150,100 +221,26 @@ const HomePage = () => {
     }
   };
 
+  const { query: currentQuery, filters: currentFilters } = useMemo(
+    () => parseUrlToFilters(),
+    [parseUrlToFilters],
+  );
+
   useEffect(() => {
-    if (isInitialized) return;
+    const hasSearchQuery =
+      currentQuery.trim() !== "" || currentFilters.adv_params.length > 0;
+    const tab = getActiveTab(hasSearchQuery, "search");
 
-    const q = searchParams.get("q");
-    const doc_lang = searchParams.get("doc_lang");
-    const collection = searchParams.get("collection");
-    const sort = searchParams.get("s");
-    const include_hidden = searchParams.get("i") === "on";
-
-    // Load filters from URL
-    const filters: AdvancedFilter[] = [];
-    const filterNumbers = new Set<string>();
-
-    // Find all filter numbers in URL params
-    searchParams.forEach((value, key) => {
-      const match = key.match(/^(ft|ff|fo|fv|fc)(\d+)$/);
-      if (match) {
-        filterNumbers.add(match[2]);
-      }
-    });
-
-    // Build filter objects
-    Array.from(filterNumbers)
-      .sort()
-      .forEach((num) => {
-        const type = searchParams.get(`ft${num}`);
-        const field = searchParams.get(`ff${num}`);
-        const operator = searchParams.get(`fo${num}`);
-        const term = searchParams.get(`fv${num}`);
-        const case_sensitive = searchParams.get(`fc${num}`) === "on";
-
-        if (type && field && operator && term) {
-          filters.push({
-            id: `filter-${Date.now()}-${num}`,
-            type: type as "inc" | "exc",
-            field,
-            operator: operator as "contain" | "equal" | "regexp",
-            term,
-            case_sensitive,
-          });
-        }
-      });
-
-    const hasSearchQuery = (q && q.trim() !== "") || filters.length > 0;
-    const newTab = getActiveTab(hasSearchQuery, "search");
-
-    // Set tab immediately before any render
-    setActiveTab(newTab);
-
-    // Update filters first
-    const newFilters = { ...searchFilters };
-    if (filters.length > 0) {
-      newFilters.adv_params = filters;
-    }
-    if (doc_lang !== null) {
-      newFilters.lang = doc_lang;
-    }
-    if (collection) {
-      newFilters.collection = parseInt(collection, 10);
-    }
-    if (sort) {
-      newFilters.sort = sort;
-    }
-    if (include_hidden) {
-      newFilters.include_hidden = true;
-    }
-
-    if (
-      filters.length > 0 ||
-      doc_lang ||
-      collection ||
-      sort ||
-      include_hidden
-    ) {
-      updateSearchFilters(newFilters);
-    }
-
-    if (hasSearchQuery) {
-      setInputValue(q || "");
-      performSearch(q, 1, undefined, newFilters, newTab);
-    } else {
-      // Load homepage content
-      performSearch("", 1, undefined, newFilters, newTab);
-    }
-
-    setIsInitialized(true);
+    setActiveTab(tab);
+    setInputValue(currentQuery);
+    performSearch(currentQuery, currentFilters, tab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   const handleSearch = (value: string) => {
     const queryTerm = value.trim();
-    const hasAdvancedFilters = searchFilters.adv_params.length > 0;
 
-    if (hasAdvancedFilters && advancedSearchRef.current) {
+    if (currentFilters.adv_params.length > 0 && advancedSearchRef.current) {
       const isValid = advancedSearchRef.current.validateFilters();
       if (!isValid) {
         message.error("Please fill in all required filter fields");
@@ -251,135 +248,33 @@ const HomePage = () => {
       }
     }
 
-    const newTab = "search";
-    setActiveTab(newTab);
-    performSearch(queryTerm, 1, undefined, searchFilters, newTab);
-
-    // Build URL with filters
-    const params = new URLSearchParams();
-    if (queryTerm) {
-      params.set("q", queryTerm);
-    }
-    if (searchFilters.lang) {
-      params.set("doc_lang", searchFilters.lang);
-    }
-    if (searchFilters.collection) {
-      params.set("collection", searchFilters.collection.toString());
-    }
-    if (searchFilters.sort && searchFilters.sort !== "-rank") {
-      params.set("s", searchFilters.sort);
-    }
-    if (searchFilters.include_hidden) {
-      params.set("i", "on");
-    }
-    searchFilters.adv_params.forEach((filter, index) => {
-      const num = index.toString();
-      params.set(`ft${num}`, filter.type);
-      params.set(`ff${num}`, filter.field);
-      params.set(`fo${num}`, filter.operator);
-      params.set(`fv${num}`, filter.term);
-      if (filter.case_sensitive) {
-        params.set(`fc${num}`, "on");
-      }
-    });
-
-    const url = params.toString() ? `/?${params.toString()}` : "/";
-    router.push(url);
+    setInputValue(queryTerm);
+    router.push(buildUrl(queryTerm, currentFilters));
   };
 
-  useEffect(() => {
-    if (!isInitialized) return; // Skip during initialization
-
-    const hasSearchQuery =
-      submittedQuery.trim() !== "" || searchFilters.adv_params.length > 0;
-
-    if (!hasSearchQuery && activeTab !== "home") {
-      // Auto-switch to Home tab when search query/filters are cleared
-      setActiveTab("home");
-      performSearch("", 1, undefined, searchFilters, "home");
-      router.push("/"); // Clear URL params
-      return;
-    }
-
-    const hasAdvancedFilters = searchFilters.adv_params.length > 0;
-
-    if (hasAdvancedFilters && advancedSearchRef.current) {
-      const isValid = advancedSearchRef.current.validateFilters();
-      if (!isValid) {
-        return;
-      }
-    }
-
-    const newTab = getActiveTab(
-      submittedQuery.trim() !== "" || hasAdvancedFilters,
-      activeTab,
-    );
-    setActiveTab(newTab);
-    performSearch(
-      submittedQuery || inputValue,
-      1,
-      undefined,
-      searchFilters,
-      newTab,
-    );
-
-    // Update URL with current filters
-    const params = new URLSearchParams();
-    const query = submittedQuery || inputValue;
-    if (query) {
-      params.set("q", query);
-    }
-    if (searchFilters.lang) {
-      params.set("doc_lang", searchFilters.lang);
-    }
-    if (searchFilters.collection) {
-      params.set("collection", searchFilters.collection.toString());
-    }
-    if (searchFilters.sort && searchFilters.sort !== "-rank") {
-      params.set("s", searchFilters.sort);
-    }
-    if (searchFilters.include_hidden) {
-      params.set("i", "on");
-    }
-    searchFilters.adv_params.forEach((filter, index) => {
-      const num = index.toString();
-      params.set(`ft${num}`, filter.type);
-      params.set(`ff${num}`, filter.field);
-      params.set(`fo${num}`, filter.operator);
-      params.set(`fv${num}`, filter.term);
-      if (filter.case_sensitive) {
-        params.set(`fc${num}`, "on");
-      }
-    });
-
-    const url = params.toString() ? `/?${params.toString()}` : "/";
-    router.push(url);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchFilters]);
+  const handleFiltersChange = (filters: SearchFilters) => {
+    router.push(buildUrl(currentQuery, filters));
+  };
 
   const handlePageChange = (page: number, newPageSize: number) => {
-    const q = searchParams.get("q") || "";
     if (newPageSize !== pageSize) {
       setPageSize(newPageSize);
-      performSearch(q, 1, newPageSize, searchFilters, activeTab);
+      performSearch(currentQuery, currentFilters, activeTab, 1, newPageSize);
     } else {
-      performSearch(q, page, undefined, searchFilters, activeTab);
+      performSearch(currentQuery, currentFilters, activeTab, page);
     }
   };
 
   const handleTabChange = (tab: SearchTab) => {
     setActiveTab(tab);
 
-    // Switch view mode based on tab
     if (tab === "home") {
       setTabViewMode(homeViewMode);
     } else {
       setTabViewMode(viewMode);
     }
 
-    // Perform search with new tab filters
-    const query = submittedQuery || inputValue;
-    performSearch(query, 1, undefined, searchFilters, tab);
+    performSearch(currentQuery, currentFilters, tab);
   };
 
   const handleViewModeChange = (mode: "list" | "card") => {
@@ -392,19 +287,11 @@ const HomePage = () => {
   };
 
   const handleClearSearch = () => {
-    setInputValue("");
-    setSubmittedQuery("");
-    if (searchFilters.adv_params.length === 0) {
-      // No filters, switch to home
-      setActiveTab("home");
-      performSearch("", 1, undefined, searchFilters, "home");
-      router.push("/");
-    }
+    router.push("/");
   };
 
   const hasSearchQuery =
-    (submittedQuery && submittedQuery.trim() !== "") ||
-    searchFilters.adv_params.length > 0;
+    currentQuery.trim() !== "" || currentFilters.adv_params.length > 0;
 
   const currentViewMode = activeTab === "home" ? tabViewMode : viewMode;
 
@@ -432,8 +319,8 @@ const HomePage = () => {
 
         <AdvancedSearch
           ref={advancedSearchRef}
-          filters={searchFilters}
-          setFilters={updateSearchFilters}
+          filters={currentFilters}
+          setFilters={handleFiltersChange}
         />
 
         <SearchTabs
@@ -448,7 +335,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {!loading && isInitialized && searchResults.length > 0 && (
+        {!loading && searchResults.length > 0 && (
           <>
             <div
               style={{
@@ -463,7 +350,7 @@ const HomePage = () => {
                 {activeTab !== "home" &&
                   `
                   Found ${totalResults} result${totalResults !== 1 ? "s" : ""}
-                  ${submittedQuery && ' for "' + submittedQuery + '"'}
+                  ${currentQuery && ' for "' + currentQuery + '"'}
               `}
               </Text>
 
@@ -518,12 +405,12 @@ const HomePage = () => {
           </>
         )}
 
-        {!loading && isInitialized && searchResults.length === 0 && (
+        {!loading && searchResults.length === 0 && (
           <div style={{ textAlign: "center", marginTop: "60px" }}>
             <Text type="secondary">
               {activeTab === "home"
                 ? "No featured documents available"
-                : `No results found for "${submittedQuery}"`}
+                : `No results found for "${currentQuery}"`}
             </Text>
           </div>
         )}
@@ -532,4 +419,4 @@ const HomePage = () => {
   );
 };
 
-export default React.memo(HomePage);
+export default memo(HomePage);

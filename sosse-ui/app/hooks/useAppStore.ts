@@ -3,23 +3,6 @@ import { persist } from "zustand/middleware";
 import axios from "axios";
 import type { Document } from "@/app/types/document";
 
-export interface AdvancedFilter {
-  id?: string;
-  type: "inc" | "exc";
-  field: string;
-  operator: "contain" | "equal" | "regexp";
-  term: string;
-  case_sensitive: boolean;
-}
-
-export interface SearchFilters {
-  lang: string;
-  collection?: number;
-  include_hidden: boolean;
-  sort: string;
-  adv_params: AdvancedFilter[];
-}
-
 export type SearchTab = "home" | "search" | "images" | "audio" | "video";
 
 export interface Link {
@@ -51,8 +34,6 @@ interface AppState {
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
   initializeAuth: () => Promise<void>;
-  searchFilters: SearchFilters;
-  updateSearchFilters: (filters: SearchFilters) => void;
   collections: Array<{ id: number; name: string }>;
   setCollections: (collections: Array<{ id: number; name: string }>) => void;
   loadCollections: () => Promise<void>;
@@ -85,18 +66,6 @@ export const useAppStore = create<AppState>()(
 
       activeTab: "home",
       setActiveTab: (tab) => set({ activeTab: tab }),
-
-      searchFilters: {
-        lang: "",
-        include_hidden: false,
-        sort: "-rank",
-        adv_params: [],
-      },
-
-      updateSearchFilters: (filters) =>
-        set({
-          searchFilters: filters,
-        }),
 
       collections: [],
       setCollections: (collections) => set({ collections }),

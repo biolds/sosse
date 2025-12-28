@@ -107,19 +107,22 @@ function FloatLayoutContent({ children }: { children: React.ReactNode }) {
             }}
           />
         </Button>
-        {loading && (
+      </div>
+      {sosseDocument === null ||
+        (loading && (
           <div style={{ textAlign: "center", marginTop: "60px" }}>
             <Spin size="large" />
           </div>
-        )}
+        ))}
+      <div
+        style={{
+          height: "100vh",
+          width: "100vw",
+          display: sosseDocument === null ? "none" : "block",
+        }}
+      >
+        {children}
       </div>
-      {sosseDocument == null ? (
-        <div style={{ textAlign: "center", marginTop: "60px" }}>
-          <Spin size="large" />
-        </div>
-      ) : (
-        children
-      )}
     </>
   ) : (
     <Layout style={{ minHeight: "100vh" }}>

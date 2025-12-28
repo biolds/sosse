@@ -15,8 +15,8 @@ export default function ScreenshotPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setLoading(linksLoading || !sosseDocument);
-  }, [linksLoading, sosseDocument, setLoading]);
+    setLoading(linksLoading);
+  }, [linksLoading, setLoading]);
 
   const handleResize = useCallback(() => {
     if (!containerRef.current || !sosseDocument?.screenshot_size) return;

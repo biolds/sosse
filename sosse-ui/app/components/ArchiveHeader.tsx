@@ -37,6 +37,7 @@ const ArchiveHeader: React.FC = () => {
       setSosseDocument(response.data || null);
     };
 
+    setSosseDocument(null);
     fetchDocument();
   }, [url, setSosseDocument]);
 

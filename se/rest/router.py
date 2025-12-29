@@ -17,6 +17,7 @@ from rest_framework import routers
 
 from .add_to_queue import AddToQueueViewSet
 from .collection import CollectionViewSet
+from .cookie import CookieViewSet
 from .crawler_stats import CrawlerStatsViewSet
 from .hdd_stats import HddStatsViewSet
 from .lang_stats import LangStatsViewSet
@@ -39,3 +40,4 @@ router.register("webhook", WebhookViewSet, basename="webhook")
 router.register("collection", CollectionViewSet)
 router.register("queue", AddToQueueViewSet, basename="queue")
 router.register("profile", ProfileViewSet, basename="profile")
+router.register("cookie", CookieViewSet)

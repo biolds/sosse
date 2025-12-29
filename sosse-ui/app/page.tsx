@@ -20,6 +20,7 @@ import {
 import axios from "axios";
 import { useAppStore, type SearchTab } from "@/app/hooks/useAppStore";
 import type { AdvancedFilter, SearchFilters } from "@/app/types/search";
+import type { PaginatedResponse } from "@/app/types/restResponse";
 import SearchResults, { SearchResult } from "./components/SearchResults";
 import AdvancedSearch, {
   type AdvancedSearchRef,
@@ -31,13 +32,6 @@ import { getTabFilters, getActiveTab } from "./utils/searchTabUtils";
 const { Text } = Typography;
 const { Search } = Input;
 const { Content } = Layout;
-
-interface SearchResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: SearchResult[];
-}
 
 const HomePage = () => {
   const {
@@ -204,7 +198,7 @@ const HomePage = () => {
         requestBody.show_on_homepage = true;
       }
 
-      const response = await axios.post<SearchResponse>(
+      const response = await axios.post<PaginatedResponse<SearchResult>>(
         `/api/search/?limit=${effectivePageSize}&offset=${offset}`,
         requestBody,
       );

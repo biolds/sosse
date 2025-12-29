@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Table, Button, Typography, Input, Spin, message } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
+import type { PaginatedResponse } from "@/app/types/restResponse";
 
 const { Title } = Typography;
 
@@ -21,13 +22,6 @@ interface Cookie {
   http_only: boolean;
 }
 
-interface CookieResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Cookie[];
-}
-
 export default function CookiesPage() {
   const [cookies, setCookies] = useState<Cookie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,9 +30,12 @@ export default function CookiesPage() {
     try {
       setLoading(true);
       const params = search ? { search } : {};
-      const response = await axios.get<CookieResponse>("/api/cookie/", {
-        params,
-      });
+      const response = await axios.get<PaginatedResponse<Cookie>>(
+        "/api/cookie/",
+        {
+          params,
+        },
+      );
       setCookies(response.data.results);
     } catch (error) {
       message.error("Failed to load cookies");

@@ -21,5 +21,9 @@ docker/local.mk
 se/static/swagger/
 se/static/se/node_modules/
 
-# genertated during VRT tests
+__pycache__
+node_modules
+
+
+# generated during VRT tests
 tests/robotframework/config.yaml

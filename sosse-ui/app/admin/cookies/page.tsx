@@ -1,21 +1,78 @@
 "use client";
 
-import { Table, Button, Space, Typography, Input } from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
+import { useState, useEffect } from "react";
+import { Table, Button, Typography, Input, Spin, message } from "antd";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import axios from "axios";
 
 const { Title } = Typography;
 
+interface Cookie {
+  id: number;
+  domain: string;
+  domain_cc: string | null;
+  inc_subdomain: boolean;
+  name: string;
+  value: string;
+  path: string;
+  expires: string | null;
+  secure: boolean;
+  same_site: string;
+  http_only: boolean;
+}
+
+interface CookieResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Cookie[];
+}
+
 export default function CookiesPage() {
+  const [cookies, setCookies] = useState<Cookie[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCookies = async (search?: string) => {
+    try {
+      setLoading(true);
+      const params = search ? { search } : {};
+      const response = await axios.get<CookieResponse>("/api/cookie/", {
+        params,
+      });
+      setCookies(response.data.results);
+    } catch (error) {
+      message.error("Failed to load cookies");
+      console.error("Error fetching cookies:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCookies();
+  }, []);
+
+  const handleSearch = (value: string) => {
+    fetchCookies(value);
+  };
+
   const columns = [
     {
       title: "Domain",
       dataIndex: "domain",
       key: "domain",
+    },
+    {
+      title: "Domain CC",
+      dataIndex: "domain_cc",
+      key: "domain_cc",
+      width: 120,
+    },
+    {
+      title: "Path",
+      dataIndex: "path",
+      key: "path",
+      width: 100,
     },
     {
       title: "Name",
@@ -33,45 +90,8 @@ export default function CookiesPage() {
       dataIndex: "expires",
       key: "expires",
       width: 150,
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 150,
-      render: () => (
-        <Space>
-          <Button icon={<EditOutlined />} size="small">
-            Edit
-          </Button>
-          <Button icon={<DeleteOutlined />} size="small" danger>
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
-  const data = [
-    {
-      key: "1",
-      domain: "example.com",
-      name: "session_id",
-      value: "abc123xyz789",
-      expires: "2024-12-31",
-    },
-    {
-      key: "2",
-      domain: "test.com",
-      name: "auth_token",
-      value: "def456uvw012",
-      expires: "2024-11-30",
-    },
-    {
-      key: "3",
-      domain: "sample.org",
-      name: "user_pref",
-      value: "ghi789rst345",
-      expires: "2025-01-15",
+      render: (expires: string | null) =>
+        expires ? new Date(expires).toLocaleString() : "-",
     },
   ];
 
@@ -92,12 +112,26 @@ export default function CookiesPage() {
           New Cookie
         </Button>
       </div>
-      <Input
-        placeholder="Search cookies..."
+      <Input.Search
+        placeholder="Search cookies by domain/path or enter URL (http://...)"
         prefix={<SearchOutlined />}
-        style={{ marginBottom: "16px", maxWidth: "400px" }}
+        style={{ marginBottom: "16px", maxWidth: "600px" }}
+        onSearch={handleSearch}
+        allowClear
+        enterButton
       />
-      <Table columns={columns} dataSource={data} />
+      <Spin spinning={loading}>
+        <Table
+          columns={columns}
+          dataSource={cookies}
+          rowKey="id"
+          pagination={{
+            pageSize: 50,
+            showSizeChanger: true,
+            showTotal: (total) => `Total ${total} cookies`,
+          }}
+        />
+      </Spin>
     </div>
   );
 }

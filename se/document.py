@@ -847,7 +847,7 @@ class Document(models.Model):
                     id__in=[d.id for d in queue],
                 )
                 .order_by(
-                    "-crawl_next",
+                    "crawl_next",
                     "-id",
                 )[: Document.DISPLAY_QUEUE_SIZE - len(queue)]
             )

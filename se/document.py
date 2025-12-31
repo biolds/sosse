@@ -418,7 +418,7 @@ class Document(models.Model):
             self.crawl_first = n
 
         if not re.match(self.collection.mimetype_regex, self.mimetype):
-            self._schedule_next(False, self.collection)
+            self._schedule_next(False)
 
             crawl_logger.debug(f"skipping {self.url} due to mimetype {self.mimetype}")
             return

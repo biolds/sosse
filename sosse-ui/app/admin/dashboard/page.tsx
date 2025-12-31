@@ -119,6 +119,13 @@ export default function DashboardPage() {
         icon: <ClockCircleOutlined />,
       };
     }
+    if (doc.crawl_next === null) {
+      return {
+        status: "Done",
+        color: "default",
+        icon: <CheckCircleOutlined />,
+      };
+    }
     return {
       status: "Scheduled",
       color: "default",

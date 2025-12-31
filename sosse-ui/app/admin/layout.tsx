@@ -54,9 +54,6 @@ export default function AdminLayout({
   return (
     <Layout style={{ minHeight: "calc(100vh - 134px)" }}>
       <Sider width={240} theme="light">
-        <div style={{ padding: "16px", fontSize: "18px", fontWeight: "bold" }}>
-          Admin Panel
-        </div>
         <Menu
           mode="inline"
           defaultSelectedKeys={["dashboard"]}

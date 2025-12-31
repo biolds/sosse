@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from ..cookie import Cookie
 from .permissions import DjangoModelPermissionsRW
@@ -52,7 +53,8 @@ class CookieViewSet(viewsets.ModelViewSet):
     queryset = Cookie.objects.order_by("domain", "domain_cc", "path", "name")
     serializer_class = CookieSerializer
     permission_classes = [DjangoModelPermissionsRW]
-    filter_backends = [CookieSearchFilter]
+    filter_backends = [CookieSearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = ["domain", "path"]
-    ordering_fields = ["domain", "domain_cc", "path", "name", "expires"]
+    filterset_fields = ["domain", "domain_cc", "path", "name", "expires", "value"]
+    ordering_fields = ["domain", "domain_cc", "path", "name", "expires", "value"]
     ordering = ["domain", "domain_cc", "path", "name"]

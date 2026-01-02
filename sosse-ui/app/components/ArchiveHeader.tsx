@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Button, Divider, Layout, Space, Typography } from "antd";
 import {
   FileTextOutlined,
-  GlobalOutlined,
+  Html5Outlined,
   CameraOutlined,
   SettingOutlined,
   ExportOutlined,
@@ -102,7 +102,7 @@ const ArchiveHeader: React.FC = () => {
                 <Button
                   type={archivePage === "html" ? "primary" : "default"}
                   size="small"
-                  icon={<GlobalOutlined />}
+                  icon={<Html5Outlined />}
                   style={{ fontSize: "12px", height: "28px" }}
                 >
                   Web

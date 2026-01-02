@@ -35,5 +35,6 @@ class ConfigJsView(TemplateView):
             "browsable_home": "true" if settings.SOSSE_BROWSABLE_HOME else "false",
             "links_no_referrer": "true" if settings.SOSSE_LINKS_NO_REFERRER else "false",
             "links_new_tab": "true" if settings.SOSSE_LINKS_NEW_TAB else "false",
+            "default_browser": settings.SOSSE_DEFAULT_BROWSER,
         }
         return context

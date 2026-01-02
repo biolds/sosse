@@ -109,7 +109,12 @@ class SearchQuerySerializer(serializers.Serializer):
 
     def validate(self, data):
         data = super().validate(data)
-        if not data.get("adv_params") and not data.get("query") and not data.get("show_on_homepage"):
+        if (
+            not data.get("adv_params")
+            and not data.get("query")
+            and not data.get("show_on_homepage")
+            and not data.get("collection")
+        ):
             raise serializers.ValidationError(
                 {
                     api_settings.NON_FIELD_ERRORS_KEY: 'At least "query", "adv_params" or "show_on_homepage" field must be provided.'

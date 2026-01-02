@@ -13,7 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from django.db.models import Count
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets
+from rest_framework.filters import OrderingFilter
 
 from ..collection import Collection
 from ..tag import Tag
@@ -24,6 +27,7 @@ from .permissions import DjangoModelPermissionsRW
 class CollectionSerializer(serializers.ModelSerializer):
     webhooks = serializers.PrimaryKeyRelatedField(many=True, queryset=Webhook.objects.all(), required=False)
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all(), required=False)
+    documents_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Collection
@@ -36,6 +40,11 @@ class CollectionSerializer(serializers.ModelSerializer):
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = [DjangoModelPermissionsRW]
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    ordering_fields = ["name", "documents_count"]
+    search_fields = ["name"]
+
+    def get_queryset(self):
+        return Collection.objects.annotate(documents_count=Count("document"))

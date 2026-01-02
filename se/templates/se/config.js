@@ -9,5 +9,6 @@ window.sosseConfig = {
     crawlStatusAutorefresh: {{ crawl_status_autorefresh }},
     browsableHome: {{ browsable_home }},
     linksNoReferrer: {{ links_no_referrer }},
-    linksNewTab: {{ links_new_tab }}
+    linksNewTab: {{ links_new_tab }},
+    defaultBrowser: {{ default_browser }}
 };

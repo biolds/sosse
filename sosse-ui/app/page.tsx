@@ -153,7 +153,8 @@ const HomePage = () => {
     page: number = 1,
     customPageSize?: number,
   ) => {
-    const hasAdvancedFilters = filters.adv_params.length > 0;
+    const hasAdvancedFilters =
+      filters.adv_params.length > 0 || filters.collection;
 
     if (tab !== "home" && !query && !hasAdvancedFilters) {
       return;
@@ -222,7 +223,9 @@ const HomePage = () => {
 
   useEffect(() => {
     const hasSearchQuery =
-      currentQuery.trim() !== "" || currentFilters.adv_params.length > 0;
+      currentQuery.trim() !== "" ||
+      currentFilters.adv_params.length > 0 ||
+      currentFilters.collection;
     const tab = getActiveTab(hasSearchQuery, "search");
 
     setActiveTab(tab);
@@ -285,7 +288,9 @@ const HomePage = () => {
   };
 
   const hasSearchQuery =
-    currentQuery.trim() !== "" || currentFilters.adv_params.length > 0;
+    currentQuery.trim() !== "" ||
+    currentFilters.adv_params.length > 0 ||
+    currentFilters.collection;
 
   const currentViewMode = activeTab === "home" ? tabViewMode : viewMode;
 

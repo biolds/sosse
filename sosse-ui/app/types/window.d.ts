@@ -14,6 +14,7 @@ declare global {
       browsableHome: boolean;
       linksNoReferrer: boolean;
       linksNewTab: boolean;
+      defaultBrowser: "chromium" | "firefox";
     };
   }
 }

@@ -18,6 +18,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from ..cookie import Cookie
+from .mixins import BulkActionMixin
 from .permissions import DjangoModelPermissionsRW
 
 
@@ -49,7 +50,7 @@ class CookieSearchFilter(SearchFilter):
         return super().filter_queryset(request, queryset, view)
 
 
-class CookieViewSet(viewsets.ModelViewSet):
+class CookieViewSet(BulkActionMixin, viewsets.ModelViewSet):
     queryset = Cookie.objects.order_by("domain", "domain_cc", "path", "name")
     serializer_class = CookieSerializer
     permission_classes = [DjangoModelPermissionsRW]

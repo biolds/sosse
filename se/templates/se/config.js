@@ -1,6 +1,6 @@
 window.sosseConfig = {
-    snapshotUrl: {{ snapshot_url }},
-    screenshotsUrl: {{ screenshots_url }},
+    snapshotUrl: "{{ snapshot_url }}",
+    screenshotsUrl: "{{ screenshots_url }}",
     anonymousSearch: {{ anonymous_search }},
     onlineSearchRedirect: {{ online_search_redirect }},
     maxPageSize: {{ max_page_size }},
@@ -10,5 +10,5 @@ window.sosseConfig = {
     browsableHome: {{ browsable_home }},
     linksNoReferrer: {{ links_no_referrer }},
     linksNewTab: {{ links_new_tab }},
-    defaultBrowser: {{ default_browser }}
+    defaultBrowser: "{{ default_browser }}"
 };

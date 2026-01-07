@@ -169,6 +169,8 @@ class Cookie(models.Model):
             expires = cookie.expires
             if expires:
                 expires = datetime.fromtimestamp(expires, pytz.utc)
+            else:
+                expires = None
 
             c = {
                 "domain": cookie.get_nonstandard_attr("Domain"),

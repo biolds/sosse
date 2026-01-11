@@ -64,28 +64,49 @@ export default function DomainsPage() {
     try {
       setLoading(true);
 
+      const params: Record<string, string | number> = {
+        ...(searchValue ? { search: searchValue } : {}),
+        ...(tableParams.pagination
+          ? {
+              offset:
+                ((tableParams.pagination?.current || 0) - 1) *
+                (tableParams.pagination?.pageSize || 10),
+              limit: tableParams.pagination?.pageSize || 10,
+            }
+          : {}),
+        ...(tableParams.sortField
+          ? {
+              ordering:
+                (tableParams.sortOrder === "ascend" ? "" : "-") +
+                tableParams.sortField,
+            }
+          : {}),
+      };
+
+      if (tableParams.filters?.browse_mode) {
+        const browseMode = Array.isArray(tableParams.filters.browse_mode)
+          ? tableParams.filters.browse_mode[0]
+          : tableParams.filters.browse_mode;
+        params.browse_mode = browseMode as string;
+      }
+
+      if (tableParams.filters?.robots_status) {
+        const robotsStatus = Array.isArray(tableParams.filters.robots_status)
+          ? tableParams.filters.robots_status[0]
+          : tableParams.filters.robots_status;
+        params.robots_status = robotsStatus as string;
+      }
+
+      if (tableParams.filters?.ignore_robots) {
+        const ignoreRobots = Array.isArray(tableParams.filters.ignore_robots)
+          ? tableParams.filters.ignore_robots[0]
+          : tableParams.filters.ignore_robots;
+        params.ignore_robots = ignoreRobots as string | number;
+      }
+
       const response = await axios.get<PaginatedResponse<Domain>>(
         "/api/domain/",
-        {
-          params: {
-            ...(searchValue ? { search: searchValue } : {}),
-            ...(tableParams.pagination
-              ? {
-                  offset:
-                    ((tableParams.pagination?.current || 0) - 1) *
-                    (tableParams.pagination?.pageSize || 10),
-                  limit: tableParams.pagination?.pageSize || 10,
-                }
-              : {}),
-            ...(tableParams.sortField
-              ? {
-                  ordering:
-                    (tableParams.sortOrder === "ascend" ? "" : "-") +
-                    tableParams.sortField,
-                }
-              : {}),
-          },
-        },
+        { params },
       );
       setDomains(response.data.results);
       setTotalCount(response.data.count);
@@ -99,6 +120,7 @@ export default function DomainsPage() {
     tableParams.pagination,
     tableParams.sortField,
     tableParams.sortOrder,
+    tableParams.filters,
   ]);
 
   useEffect(() => {
@@ -131,6 +153,13 @@ export default function DomainsPage() {
       width: 150,
       render: (browse_mode: string) =>
         browseModeLabels[browse_mode] || browse_mode,
+      filters: [
+        { text: "Detect", value: "detect" },
+        { text: "Chromium", value: "selenium" },
+        { text: "Firefox", value: "firefox" },
+        { text: "Python Requests", value: "requests" },
+      ],
+      filterMultiple: false,
     },
     {
       title: "Robots.txt Status",
@@ -151,6 +180,12 @@ export default function DomainsPage() {
           </Tag>
         );
       },
+      filters: [
+        { text: "Unknown", value: "unknown" },
+        { text: "Empty", value: "empty" },
+        { text: "Loaded", value: "loaded" },
+      ],
+      filterMultiple: false,
     },
     {
       title: "Ignore Robots",
@@ -159,6 +194,11 @@ export default function DomainsPage() {
       sorter: true,
       width: 120,
       render: (ignore_robots: boolean) => (ignore_robots ? "Yes" : "No"),
+      filters: [
+        { text: "Yes", value: true },
+        { text: "No", value: false },
+      ],
+      filterMultiple: false,
     },
   ];
 

@@ -19,6 +19,7 @@ from .add_to_queue import AddToQueueViewSet
 from .collection import CollectionViewSet
 from .cookie import CookieViewSet
 from .crawler_stats import CrawlerStatsViewSet
+from .domain import DomainViewSet
 from .hdd_stats import HddStatsViewSet
 from .lang_stats import LangStatsViewSet
 from .mime_plugin import MimePluginViewSet
@@ -41,3 +42,4 @@ router.register("collection", CollectionViewSet, basename="collection")
 router.register("queue", AddToQueueViewSet, basename="queue")
 router.register("profile", ProfileViewSet, basename="profile")
 router.register("cookie", CookieViewSet)
+router.register("domain", DomainViewSet)

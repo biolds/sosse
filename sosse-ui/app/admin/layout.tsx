@@ -9,6 +9,7 @@ import {
   FolderOutlined,
   TagsOutlined,
   CoffeeOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 
 const { Sider, Content } = Layout;
@@ -43,6 +44,11 @@ export default function AdminLayout({
       key: "cookies",
       icon: <CoffeeOutlined />,
       label: <Link href="/admin/cookies">Cookies</Link>,
+    },
+    {
+      key: "domains",
+      icon: <GlobalOutlined />,
+      label: <Link href="/admin/domains">Domains</Link>,
     },
     {
       key: "rest",

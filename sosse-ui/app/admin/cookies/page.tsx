@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
-import { Button, Typography, Input, Space } from "antd";
+import { Button, Typography, Space } from "antd";
 import type { TableProps } from "antd";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
 import type { PaginatedResponse } from "@/app/types/restResponse";
 import SelectTable, {
@@ -50,44 +50,46 @@ export default function CookiesPage() {
   }>({ visible: false, current: 0, total: 0, message: "" });
   const cancelActionRef = useRef(false);
 
-  const fetchCookies = useCallback(
-    async (search?: string) => {
-      try {
-        setLoading(true);
+  const fetchCookies = useCallback(async () => {
+    try {
+      setLoading(true);
 
-        const response = await axios.get<PaginatedResponse<Cookie>>(
-          "/api/cookie/",
-          {
-            params: {
-              ...(search ? { search } : {}),
-              ...(tableParams.pagination
-                ? {
-                    offset:
-                      ((tableParams.pagination?.current || 0) - 1) *
-                      (tableParams.pagination?.pageSize || 10),
-                    limit: tableParams.pagination?.pageSize || 10,
-                  }
-                : {}),
-              ...(tableParams.sortField
-                ? {
-                    ordering:
-                      (tableParams.sortOrder === "ascend" ? "" : "-") +
-                      tableParams.sortField,
-                  }
-                : {}),
-            },
+      const response = await axios.get<PaginatedResponse<Cookie>>(
+        "/api/cookie/",
+        {
+          params: {
+            ...(searchValue ? { search: searchValue } : {}),
+            ...(tableParams.pagination
+              ? {
+                  offset:
+                    ((tableParams.pagination?.current || 0) - 1) *
+                    (tableParams.pagination?.pageSize || 10),
+                  limit: tableParams.pagination?.pageSize || 10,
+                }
+              : {}),
+            ...(tableParams.sortField
+              ? {
+                  ordering:
+                    (tableParams.sortOrder === "ascend" ? "" : "-") +
+                    tableParams.sortField,
+                }
+              : {}),
           },
-        );
-        setCookies(response.data.results);
-        setTotalCount(response.data.count);
-      } catch (error) {
-        console.error("Error fetching cookies:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [tableParams.pagination, tableParams.sortField, tableParams.sortOrder],
-  );
+        },
+      );
+      setCookies(response.data.results);
+      setTotalCount(response.data.count);
+    } catch (error) {
+      console.error("Error fetching cookies:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    searchValue,
+    tableParams.pagination,
+    tableParams.sortField,
+    tableParams.sortOrder,
+  ]);
 
   useEffect(() => {
     fetchCookies();
@@ -95,7 +97,13 @@ export default function CookiesPage() {
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
-    fetchCookies(value);
+    setTableParams({
+      ...tableParams,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1,
+      },
+    });
   };
 
   const columns = [
@@ -174,7 +182,7 @@ export default function CookiesPage() {
   const handleActionComplete = () => {
     setSelectedRowKeys([]);
     setSelectAll(false);
-    fetchCookies(searchValue);
+    fetchCookies();
   };
 
   const handleProgress = (
@@ -237,14 +245,6 @@ export default function CookiesPage() {
           </Button>
         </Space>
       </div>
-      <Input.Search
-        placeholder="Search cookies by domain/path or enter URL (http://...)"
-        prefix={<SearchOutlined />}
-        style={{ marginBottom: "16px", maxWidth: "600px" }}
-        onSearch={handleSearch}
-        allowClear
-        enterButton
-      />
       <SelectTable
         columns={columns}
         dataSource={cookies}
@@ -256,6 +256,9 @@ export default function CookiesPage() {
         selectedRowKeys={selectedRowKeys}
         selectAll={selectAll}
         onSelectionChange={handleSelectionChange}
+        searchValue={searchValue}
+        onSearch={handleSearch}
+        searchPlaceholder="Search cookies by domain/path or enter URL (http://...)"
       />
     </div>
   );

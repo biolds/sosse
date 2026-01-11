@@ -1,9 +1,10 @@
 "use client";
 
-import { Button, Space, Alert, Table } from "antd";
+import { Button, Space, Alert, Table, Input } from "antd";
 import type { TableProps, TableRowSelection } from "antd";
 import type { GetProp } from "antd";
 import type { SorterResult } from "antd/es/table/interface";
+import { SearchOutlined } from "@ant-design/icons";
 
 type TablePaginationConfig = Exclude<
   GetProp<TableProps, "pagination">,
@@ -29,6 +30,9 @@ interface SelectTableProps<T> {
   selectedRowKeys: React.Key[];
   selectAll: boolean;
   onSelectionChange: (keys: React.Key[], selectAll: boolean) => void;
+  searchValue?: string;
+  onSearch?: (value: string) => void;
+  searchPlaceholder?: string;
 }
 
 export default function SelectTable<T extends { id: number }>({
@@ -43,6 +47,9 @@ export default function SelectTable<T extends { id: number }>({
   selectedRowKeys,
   selectAll,
   onSelectionChange,
+  searchValue = "",
+  onSearch,
+  searchPlaceholder = "Search...",
 }: SelectTableProps<T>) {
   const handleSelectAllPages = () => {
     onSelectionChange(selectedRowKeys, true);
@@ -57,6 +64,19 @@ export default function SelectTable<T extends { id: number }>({
 
   return (
     <>
+      {onSearch && (
+        <Input.Search
+          placeholder={searchPlaceholder}
+          prefix={<SearchOutlined />}
+          style={{ marginBottom: "16px", maxWidth: "600px" }}
+          onSearch={onSearch}
+          value={searchValue}
+          onChange={(e) => onSearch(e.target.value)}
+          allowClear
+          enterButton
+        />
+      )}
+
       {selectedRowKeys.length > 0 && !selectAll ? (
         <Alert
           title={

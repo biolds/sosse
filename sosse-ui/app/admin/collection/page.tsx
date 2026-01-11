@@ -2,90 +2,88 @@
 
 import Link from "next/link";
 import { useCallback, useState, useEffect } from "react";
-import { Table, Button, Typography, Input, message } from "antd";
-import type { GetProp, TableProps } from "antd";
-import type { SorterResult } from "antd/es/table/interface";
-import {
-  FileTextOutlined,
-  PlusOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
+import { Button, Typography, message } from "antd";
+import type { TableProps } from "antd";
+import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
 import type { PaginatedResponse } from "@/app/types/restResponse";
 import type { Collection } from "@/app/types/collection";
 import CollectionDescription from "./components/CollectionDescription";
+import SelectTable, {
+  type TableParams,
+} from "@/app/admin/components/SelectTable";
 
 const { Title } = Typography;
 
-type TablePaginationConfig = Exclude<
-  GetProp<TableProps, "pagination">,
-  boolean
->;
-
-interface TableParams {
-  pagination?: TablePaginationConfig;
-  sortField?: SorterResult<Collection>["field"];
-  sortOrder?: SorterResult<Collection>["order"];
-  filters?: Parameters<GetProp<TableProps, "onChange">>[1];
-}
-
 export default function CollectionsPage() {
-  const [cookies, setCollections] = useState<Collection[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableParams, setTableParams] = useState<TableParams>({
+  const [tableParams, setTableParams] = useState<TableParams<Collection>>({
     pagination: {
       current: 1,
       pageSize: 10,
     },
   });
   const [totalCount, setTotalCount] = useState(0);
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
 
-  const fetchCollections = useCallback(
-    async (search?: string) => {
-      try {
-        setLoading(true);
+  const fetchCollections = useCallback(async () => {
+    try {
+      setLoading(true);
 
-        const response = await axios.get<PaginatedResponse<Collection>>(
-          "/api/collection/",
-          {
-            params: {
-              ...(search ? { search } : {}),
-              ...(tableParams.pagination
-                ? {
-                    offset:
-                      ((tableParams.pagination?.current || 0) - 1) *
-                      (tableParams.pagination?.pageSize || 10),
-                    limit: tableParams.pagination?.pageSize || 10,
-                  }
-                : {}),
-              ...(tableParams.sortField
-                ? {
-                    ordering:
-                      (tableParams.sortOrder === "ascend" ? "" : "-") +
-                      tableParams.sortField,
-                  }
-                : {}),
-            },
+      const response = await axios.get<PaginatedResponse<Collection>>(
+        "/api/collection/",
+        {
+          params: {
+            ...(searchValue ? { search: searchValue } : {}),
+            ...(tableParams.pagination
+              ? {
+                  offset:
+                    ((tableParams.pagination?.current || 0) - 1) *
+                    (tableParams.pagination?.pageSize || 10),
+                  limit: tableParams.pagination?.pageSize || 10,
+                }
+              : {}),
+            ...(tableParams.sortField
+              ? {
+                  ordering:
+                    (tableParams.sortOrder === "ascend" ? "" : "-") +
+                    tableParams.sortField,
+                }
+              : {}),
           },
-        );
-        setCollections(response.data.results);
-        setTotalCount(response.data.count);
-      } catch (error) {
-        message.error("Failed to load cookies");
-        console.error("Error fetching cookies:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [tableParams.pagination, tableParams.sortField, tableParams.sortOrder],
-  );
+        },
+      );
+      setCollections(response.data.results);
+      setTotalCount(response.data.count);
+    } catch (error) {
+      message.error("Failed to load collections");
+      console.error("Error fetching collections:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    searchValue,
+    tableParams.pagination,
+    tableParams.sortField,
+    tableParams.sortOrder,
+  ]);
 
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
 
   const handleSearch = (value: string) => {
-    fetchCollections(value);
+    setSearchValue(value);
+    setTableParams({
+      ...tableParams,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1,
+      },
+    });
   };
 
   const columns = [
@@ -128,9 +126,20 @@ export default function CollectionsPage() {
       sortField: Array.isArray(sorter) ? undefined : sorter.field,
     });
 
-    if (pagination.pageSize !== tableParams.pagination?.pageSize) {
+    if (
+      pagination &&
+      pagination.pageSize !== tableParams.pagination?.pageSize
+    ) {
       setCollections([]);
     }
+  };
+
+  const handleSelectionChange = (
+    keys: React.Key[],
+    selectAllPages: boolean,
+  ) => {
+    setSelectedRowKeys(keys);
+    setSelectAll(selectAllPages);
   };
 
   return (
@@ -150,26 +159,20 @@ export default function CollectionsPage() {
           New Collection
         </Button>
       </div>
-      <Input.Search
-        placeholder="Search collections by name or enter URL (http://...)"
-        prefix={<SearchOutlined />}
-        style={{ marginBottom: "16px", maxWidth: "600px" }}
-        onSearch={handleSearch}
-        allowClear
-        enterButton
-      />
-      <Table
+      <SelectTable
         columns={columns}
-        dataSource={cookies}
-        rowKey="id"
-        pagination={{
-          ...tableParams.pagination,
-          total: totalCount,
-          showSizeChanger: true,
-          showTotal: (total) => `Total ${total} cookies`,
-        }}
+        dataSource={collections}
         loading={loading}
-        onChange={handleTableChange}
+        totalCount={totalCount}
+        tableParams={tableParams}
+        onTableChange={handleTableChange}
+        itemName="collection"
+        selectedRowKeys={selectedRowKeys}
+        selectAll={selectAll}
+        onSelectionChange={handleSelectionChange}
+        searchValue={searchValue}
+        onSearch={handleSearch}
+        searchPlaceholder="Search collections by name"
       />
     </div>
   );

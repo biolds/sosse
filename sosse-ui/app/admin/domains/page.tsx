@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
-import { Button, Typography, Input, Space, Tag } from "antd";
+import { Button, Typography, Space, Tag } from "antd";
 import type { TableProps } from "antd";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
 import type { PaginatedResponse } from "@/app/types/restResponse";
 import SelectTable, {
@@ -60,44 +60,46 @@ export default function DomainsPage() {
   }>({ visible: false, current: 0, total: 0, message: "" });
   const cancelActionRef = useRef(false);
 
-  const fetchDomains = useCallback(
-    async (search?: string) => {
-      try {
-        setLoading(true);
+  const fetchDomains = useCallback(async () => {
+    try {
+      setLoading(true);
 
-        const response = await axios.get<PaginatedResponse<Domain>>(
-          "/api/domain/",
-          {
-            params: {
-              ...(search ? { search } : {}),
-              ...(tableParams.pagination
-                ? {
-                    offset:
-                      ((tableParams.pagination?.current || 0) - 1) *
-                      (tableParams.pagination?.pageSize || 10),
-                    limit: tableParams.pagination?.pageSize || 10,
-                  }
-                : {}),
-              ...(tableParams.sortField
-                ? {
-                    ordering:
-                      (tableParams.sortOrder === "ascend" ? "" : "-") +
-                      tableParams.sortField,
-                  }
-                : {}),
-            },
+      const response = await axios.get<PaginatedResponse<Domain>>(
+        "/api/domain/",
+        {
+          params: {
+            ...(searchValue ? { search: searchValue } : {}),
+            ...(tableParams.pagination
+              ? {
+                  offset:
+                    ((tableParams.pagination?.current || 0) - 1) *
+                    (tableParams.pagination?.pageSize || 10),
+                  limit: tableParams.pagination?.pageSize || 10,
+                }
+              : {}),
+            ...(tableParams.sortField
+              ? {
+                  ordering:
+                    (tableParams.sortOrder === "ascend" ? "" : "-") +
+                    tableParams.sortField,
+                }
+              : {}),
           },
-        );
-        setDomains(response.data.results);
-        setTotalCount(response.data.count);
-      } catch (error) {
-        console.error("Error fetching domains:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [tableParams.pagination, tableParams.sortField, tableParams.sortOrder],
-  );
+        },
+      );
+      setDomains(response.data.results);
+      setTotalCount(response.data.count);
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    searchValue,
+    tableParams.pagination,
+    tableParams.sortField,
+    tableParams.sortOrder,
+  ]);
 
   useEffect(() => {
     fetchDomains();
@@ -105,7 +107,13 @@ export default function DomainsPage() {
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
-    fetchDomains(value);
+    setTableParams({
+      ...tableParams,
+      pagination: {
+        ...tableParams.pagination,
+        current: 1,
+      },
+    });
   };
 
   const columns = [
@@ -185,7 +193,7 @@ export default function DomainsPage() {
   const handleActionComplete = () => {
     setSelectedRowKeys([]);
     setSelectAll(false);
-    fetchDomains(searchValue);
+    fetchDomains();
   };
 
   const handleProgress = (
@@ -248,14 +256,6 @@ export default function DomainsPage() {
           </Button>
         </Space>
       </div>
-      <Input.Search
-        placeholder="Search domains by name"
-        prefix={<SearchOutlined />}
-        style={{ marginBottom: "16px", maxWidth: "600px" }}
-        onSearch={handleSearch}
-        allowClear
-        enterButton
-      />
       <SelectTable
         columns={columns}
         dataSource={domains}
@@ -267,6 +267,9 @@ export default function DomainsPage() {
         selectedRowKeys={selectedRowKeys}
         selectAll={selectAll}
         onSelectionChange={handleSelectionChange}
+        searchValue={searchValue}
+        onSearch={handleSearch}
+        searchPlaceholder="Search domains by name"
       />
     </div>
   );

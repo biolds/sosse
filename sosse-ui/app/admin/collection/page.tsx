@@ -4,11 +4,20 @@ import Link from "next/link";
 import { useCallback, useState, useEffect } from "react";
 import { Button, Typography, message } from "antd";
 import type { TableProps } from "antd";
-import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  FileTextOutlined,
+  PlusOutlined,
+  BranchesOutlined,
+  CalendarOutlined,
+  CameraOutlined,
+  GlobalOutlined,
+  Html5Outlined,
+  RetweetOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
 import type { PaginatedResponse } from "@/app/types/restResponse";
 import type { Collection } from "@/app/types/collection";
-import CollectionDescription from "./components/CollectionDescription";
+import { humanDatetime, parseDurationToSeconds } from "@/app/utils/strings";
 import SelectTable, {
   type TableParams,
 } from "@/app/admin/components/SelectTable";
@@ -86,6 +95,46 @@ export default function CollectionsPage() {
     });
   };
 
+  const getBrowserLabel = (collection: Collection) => {
+    if (collection.default_browse_mode === "detect") {
+      return `Chromium / Requests`;
+    } else if (collection.default_browse_mode === "selenium") {
+      return "Chromium";
+    } else if (collection.default_browse_mode === "firefox") {
+      return "Firefox";
+    } else {
+      return "Requests";
+    }
+  };
+
+  const getRecursionLabel = (collection: Collection) => {
+    if (collection.unlimited_regex_pg && collection.limited_regex_pg) {
+      return `Unlimited / Depth ${collection.recursion_depth}`;
+    } else if (collection.unlimited_regex_pg) {
+      return "Unlimited";
+    } else if (collection.limited_regex_pg) {
+      return `Depth ${collection.recursion_depth}`;
+    }
+    return "None";
+  };
+
+  const getRecurrenceLabel = (collection: Collection) => {
+    if (collection.recrawl_freq === "none") {
+      return "Once";
+    }
+    if (collection.recrawl_freq === "constant" && collection.recrawl_dt_min) {
+      return humanDatetime(parseDurationToSeconds(collection.recrawl_dt_min));
+    }
+    if (
+      collection.recrawl_freq === "adaptive" &&
+      collection.recrawl_dt_min &&
+      collection.recrawl_dt_max
+    ) {
+      return `${humanDatetime(parseDurationToSeconds(collection.recrawl_dt_min))} ~ ${humanDatetime(parseDurationToSeconds(collection.recrawl_dt_max))}`;
+    }
+    return "-";
+  };
+
   const columns = [
     {
       title: "Name",
@@ -97,6 +146,7 @@ export default function CollectionsPage() {
       title: "Documents",
       dataIndex: "documents_count",
       key: "documents_count",
+      width: 120,
       render: (count: number, collection: Collection) => (
         <Link href={`/?collection=${collection.id}`}>
           <FileTextOutlined style={{ marginRight: 4 }} />
@@ -106,11 +156,70 @@ export default function CollectionsPage() {
       sorter: true,
     },
     {
-      title: "Descritption",
-      key: "description",
+      title: "Recursion / Depth",
+      key: "recursion",
+      width: 180,
       render: (collection: Collection) => (
-        <CollectionDescription collection={collection} />
+        <>
+          <BranchesOutlined style={{ marginRight: 4 }} />
+          {getRecursionLabel(collection)}
+        </>
       ),
+    },
+    {
+      title: "Browser",
+      key: "browser",
+      width: 150,
+      render: (collection: Collection) => (
+        <>
+          <GlobalOutlined style={{ marginRight: 4 }} />
+          {getBrowserLabel(collection)}
+        </>
+      ),
+    },
+    {
+      title: "Recurrence",
+      key: "recurrence",
+      width: 150,
+      render: (collection: Collection) => (
+        <>
+          <CalendarOutlined style={{ marginRight: 4 }} />
+          {getRecurrenceLabel(collection)}
+        </>
+      ),
+    },
+    {
+      title: "Archive Type",
+      key: "archive",
+      width: 200,
+      render: (collection: Collection) => {
+        const items = [];
+        if (collection.snapshot_html) {
+          items.push(
+            <span key="html" style={{ marginRight: 8 }}>
+              <Html5Outlined style={{ marginRight: 4 }} />
+              HTML
+            </span>,
+          );
+        }
+        if (collection.take_screenshots) {
+          items.push(
+            <span key="screenshot" style={{ marginRight: 8 }}>
+              <CameraOutlined style={{ marginRight: 4 }} />
+              Screenshot
+            </span>,
+          );
+        }
+        if (collection.webhooks.length > 0) {
+          items.push(
+            <span key="webhook">
+              <RetweetOutlined style={{ marginRight: 4 }} />
+              Webhook{collection.webhooks.length > 1 ? "s" : ""}
+            </span>,
+          );
+        }
+        return items.length > 0 ? <>{items}</> : "-";
+      },
     },
   ];
 

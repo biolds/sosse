@@ -141,6 +141,9 @@ export default function CollectionsPage() {
       dataIndex: "name",
       key: "name",
       sorter: true,
+      render: (name: string, collection: Collection) => (
+        <Link href={`/admin/collection/${collection.id}`}>{name}</Link>
+      ),
     },
     {
       title: "Documents",
@@ -264,9 +267,11 @@ export default function CollectionsPage() {
         <Title level={2} style={{ margin: 0 }}>
           Collections
         </Title>
-        <Button type="primary" icon={<PlusOutlined />}>
-          New Collection
-        </Button>
+        <Link href="/admin/collection/new">
+          <Button type="primary" icon={<PlusOutlined />}>
+            New Collection
+          </Button>
+        </Link>
       </div>
       <SelectTable
         columns={columns}

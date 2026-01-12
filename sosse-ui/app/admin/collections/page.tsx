@@ -142,7 +142,7 @@ export default function CollectionsPage() {
       key: "name",
       sorter: true,
       render: (name: string, collection: Collection) => (
-        <Link href={`/admin/collection/${collection.id}`}>{name}</Link>
+        <Link href={`/admin/collections/${collection.id}`}>{name}</Link>
       ),
     },
     {
@@ -267,7 +267,7 @@ export default function CollectionsPage() {
         <Title level={2} style={{ margin: 0 }}>
           Collections
         </Title>
-        <Link href="/admin/collection/new">
+        <Link href="/admin/collections/new">
           <Button type="primary" icon={<PlusOutlined />}>
             New Collection
           </Button>

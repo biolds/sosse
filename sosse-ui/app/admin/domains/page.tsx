@@ -5,6 +5,7 @@ import { Button, Typography, Space, Tag } from "antd";
 import type { TableProps } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
+import Link from "next/link";
 import type { PaginatedResponse } from "@/app/types/restResponse";
 import SelectTable, {
   type TableParams,
@@ -144,6 +145,9 @@ export default function DomainsPage() {
       dataIndex: "domain",
       key: "domain",
       sorter: true,
+      render: (text: string, record: Domain) => (
+        <Link href={`/admin/domains/${record.id}`}>{text}</Link>
+      ),
     },
     {
       title: "Browse Mode",
@@ -291,9 +295,11 @@ export default function DomainsPage() {
             onProgress={handleProgress}
             onCancelAction={handleCancelAction}
           />
-          <Button type="primary" icon={<PlusOutlined />}>
-            New Domain
-          </Button>
+          <Link href="/admin/domains/new">
+            <Button type="primary" icon={<PlusOutlined />}>
+              New Domain
+            </Button>
+          </Link>
         </Space>
       </div>
       <SelectTable

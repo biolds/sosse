@@ -12,7 +12,6 @@ import {
   Typography,
   Space,
   Spin,
-  Modal,
 } from "antd";
 import {
   SaveOutlined,
@@ -56,7 +55,7 @@ export default function DomainForm({
   domainId,
   isNew = false,
 }: DomainFormProps) {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const router = useRouter();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -128,7 +127,7 @@ export default function DomainForm({
   const handleDelete = async () => {
     if (!domainId || isNew) return;
 
-    Modal.confirm({
+    modal.confirm({
       title: "Delete Domain",
       content:
         "Are you sure you want to delete this domain? This action cannot be undone.",
@@ -218,9 +217,7 @@ export default function DomainForm({
         <Form.Item
           label="Robots.txt Status"
           name="robots_status"
-          rules={[
-            { required: true, message: "Please select a robots.txt status" },
-          ]}
+          rules={[{ message: "Please select a robots.txt status" }]}
         >
           <Select options={robotsStatusOptions} disabled />
         </Form.Item>

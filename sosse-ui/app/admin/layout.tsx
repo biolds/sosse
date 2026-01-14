@@ -31,9 +31,9 @@ export default function AdminLayout({
       label: <Link href="/admin/analytics">Analytics</Link>,
     },
     {
-      key: "collection",
+      key: "collections",
       icon: <FolderOutlined />,
-      label: <Link href="/admin/collection">Collections</Link>,
+      label: <Link href="/admin/collections">Collections</Link>,
     },
     {
       key: "tags",

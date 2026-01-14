@@ -18,9 +18,9 @@ import {
 import {
   SaveOutlined,
   ArrowLeftOutlined,
+  BranchesOutlined,
   DeleteOutlined,
   SettingOutlined,
-  LinkOutlined,
   CameraOutlined,
   ReloadOutlined,
   LockOutlined,
@@ -37,6 +37,7 @@ interface CollectionFormData {
   excluded_regex?: string;
   recursion_depth: number;
   keep_params: boolean;
+  mimetype_regex: string;
   hide_documents?: boolean;
   snapshot_html: boolean;
   thumbnail_mode: string;
@@ -96,6 +97,7 @@ export default function CollectionForm({
   const { message, modal } = App.useApp();
   const router = useRouter();
   const [form] = Form.useForm();
+  const recursionDepth = Form.useWatch("recursion_depth", form);
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -227,7 +229,7 @@ export default function CollectionForm({
               key: "urls",
               label: (
                 <>
-                  <LinkOutlined /> URL Rules
+                  <BranchesOutlined /> Recursion
                 </>
               ),
               children: (
@@ -235,32 +237,56 @@ export default function CollectionForm({
                   <Form.Item
                     label="Unlimited depth URL regex"
                     name="unlimited_regex"
+                    help="Leave empty to disable unlimited depth crawling"
                   >
-                    <TextArea rows={4} />
+                    <TextArea
+                      rows={4}
+                      placeholder={`# Enter one regex per line
+^https://example.com/.*$`}
+                    />
                   </Form.Item>
-
                   <Form.Item
                     label="Limited depth URL regex"
                     name="limited_regex"
+                    help="Leave empty to disable limited depth crawling"
                   >
-                    <TextArea rows={4} />
+                    <TextArea
+                      rows={4}
+                      placeholder={`# Enter one regex per line
+^https://example.com/.*$`}
+                      disabled={recursionDepth === 0}
+                    />
                   </Form.Item>
-
-                  <Form.Item label="Excluded URL regex" name="excluded_regex">
-                    <TextArea rows={4} />
-                  </Form.Item>
-
                   <Form.Item
                     label="Limited recursion depth"
                     name="recursion_depth"
                   >
                     <InputNumber min={0} />
                   </Form.Item>
-
+                  <Form.Item
+                    label="Excluded URL regex"
+                    name="excluded_regex"
+                    help="Leave empty to not exclude any URLs"
+                  >
+                    <TextArea
+                      rows={4}
+                      placeholder={`# Enter one regex per line
+^https://example.com/.*$`}
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label="Document MIME type regex"
+                    name="mimetype_regex"
+                    help="Only index documents with MIME types matching this regex"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
                   <Form.Item
                     label="Index URL parameters"
                     name="keep_params"
                     valuePropName="checked"
+                    help="URL with different parameters will be treated as different pages (e.g., ?ref=twitter)"
                   >
                     <Switch />
                   </Form.Item>

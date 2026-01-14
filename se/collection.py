@@ -132,7 +132,7 @@ class Collection(models.Model):
         help_text="URL regular expressions to exclude from this collection. (one by line, lines starting with # are ignored)",
     )
     excluded_regex_pg = models.TextField(default="")
-    mimetype_regex = models.TextField(default=".*")
+    mimetype_regex = models.TextField(default=".*", blank=False, null=False)
     recursion_depth = models.PositiveIntegerField(
         default=1,
         verbose_name="Limited recursion depth",

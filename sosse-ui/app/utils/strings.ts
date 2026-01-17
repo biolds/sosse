@@ -88,3 +88,26 @@ export function humanFilesize(n: number): string {
   const [factor, unit] = getUnit(n);
   return `${(n / factor).toFixed(1)}${unit}B`;
 }
+
+export function humanDt(
+  d: Date | string | null | undefined,
+  short = false,
+): string {
+  if (!d) {
+    return "";
+  }
+
+  const date = typeof d === "string" ? new Date(d) : d;
+  const now = new Date();
+  const dtMs = date.getTime() - now.getTime();
+  const dtSeconds = Math.abs(Math.floor(dtMs / 1000));
+
+  if (dtMs < 0) {
+    const dtStr = humanDatetime(dtSeconds, short);
+    return dtStr + " ago";
+  } else if (dtMs > 0) {
+    const dtStr = humanDatetime(dtSeconds, short);
+    return "in " + dtStr;
+  }
+  return "now";
+}

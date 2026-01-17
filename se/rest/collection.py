@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from django.db.models import Count
+from django.db.models import Count, Max, Min, Q
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, viewsets
 from rest_framework.filters import OrderingFilter
 
@@ -39,6 +40,14 @@ class CollectionSerializer(serializers.ModelSerializer):
         )
 
 
+class CollectionDetailSerializer(CollectionSerializer):
+    robotstxt_rejected = serializers.IntegerField(read_only=True)
+    crawl_first = serializers.DateTimeField(read_only=True)
+    crawl_last = serializers.DateTimeField(read_only=True)
+    crawl_next = serializers.DateTimeField(read_only=True)
+    errors = serializers.IntegerField(read_only=True)
+
+
 class CollectionViewSet(viewsets.ModelViewSet):
     serializer_class = CollectionSerializer
     permission_classes = [DjangoModelPermissionsRW]
@@ -46,5 +55,25 @@ class CollectionViewSet(viewsets.ModelViewSet):
     ordering_fields = ["name", "documents_count"]
     search_fields = ["name"]
 
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return CollectionDetailSerializer
+        return CollectionSerializer
+
+    @extend_schema(responses=CollectionDetailSerializer)
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
     def get_queryset(self):
-        return Collection.objects.annotate(documents_count=Count("document"))
+        queryset = Collection.objects.annotate(documents_count=Count("document"))
+
+        if self.action == "retrieve":
+            queryset = queryset.annotate(
+                robotstxt_rejected=Count("document", filter=Q(document__robotstxt_rejected=True)),
+                crawl_first=Min("document__crawl_first"),
+                crawl_last=Max("document__crawl_last"),
+                crawl_next=Min("document__crawl_next"),
+                errors=Count("document", filter=~Q(document__error="")),
+            )
+
+        return queryset

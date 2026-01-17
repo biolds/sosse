@@ -13,4 +13,6 @@ export interface SearchFilters {
   include_hidden: boolean;
   sort: string;
   adv_params: AdvancedFilter[];
+  robotstxt_rejected?: "include" | "exclude" | "only";
+  has_error?: "include" | "exclude" | "only";
 }

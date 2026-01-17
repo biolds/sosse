@@ -103,6 +103,29 @@ const HomePage = () => {
         }
       });
 
+    const robotstxtParam = searchParams.get("robotstxt_rejected");
+    const hasErrorParam = searchParams.get("has_error");
+
+    // Validate and convert robotstxt_rejected
+    let robotstxtRejected: "include" | "exclude" | "only" = "exclude";
+    if (
+      robotstxtParam === "include" ||
+      robotstxtParam === "only" ||
+      robotstxtParam === "exclude"
+    ) {
+      robotstxtRejected = robotstxtParam;
+    }
+
+    // Validate and convert has_error
+    let hasError: "include" | "exclude" | "only" = "include";
+    if (
+      hasErrorParam === "include" ||
+      hasErrorParam === "only" ||
+      hasErrorParam === "exclude"
+    ) {
+      hasError = hasErrorParam;
+    }
+
     return {
       query: q,
       filters: {
@@ -111,6 +134,8 @@ const HomePage = () => {
         include_hidden,
         sort,
         adv_params: advFilters,
+        robotstxt_rejected: robotstxtRejected,
+        has_error: hasError,
       },
     };
   }, [searchParams]);
@@ -131,6 +156,15 @@ const HomePage = () => {
     }
     if (filters.include_hidden) {
       params.set("i", "on");
+    }
+    if (
+      filters.robotstxt_rejected &&
+      filters.robotstxt_rejected !== "exclude"
+    ) {
+      params.set("robotstxt_rejected", filters.robotstxt_rejected);
+    }
+    if (filters.has_error && filters.has_error !== "include") {
+      params.set("has_error", filters.has_error);
     }
     filters.adv_params.forEach((filter, index) => {
       const num = index.toString();
@@ -154,7 +188,11 @@ const HomePage = () => {
     customPageSize?: number,
   ) => {
     const hasAdvancedFilters =
-      filters.adv_params.length > 0 || filters.collection;
+      filters.adv_params.length > 0 ||
+      filters.collection ||
+      (filters.robotstxt_rejected &&
+        filters.robotstxt_rejected !== "exclude") ||
+      (filters.has_error && filters.has_error !== "include");
 
     if (tab !== "home" && !query && !hasAdvancedFilters) {
       return;
@@ -177,6 +215,8 @@ const HomePage = () => {
         collection?: number;
         adv_params?: AdvancedFilter[];
         show_on_homepage?: boolean;
+        robotstxt_rejected?: boolean;
+        has_error?: boolean;
       } = {
         query,
         sort: filters.sort,
@@ -189,6 +229,25 @@ const HomePage = () => {
 
       if (filters.collection) {
         requestBody.collection = filters.collection;
+      }
+
+      if (
+        filters.robotstxt_rejected &&
+        filters.robotstxt_rejected !== "include"
+      ) {
+        if (filters.robotstxt_rejected === "only") {
+          requestBody.robotstxt_rejected = true;
+        } else if (filters.robotstxt_rejected === "exclude") {
+          requestBody.robotstxt_rejected = false;
+        }
+      }
+
+      if (filters.has_error && filters.has_error !== "include") {
+        if (filters.has_error === "only") {
+          requestBody.has_error = true;
+        } else if (filters.has_error === "exclude") {
+          requestBody.has_error = false;
+        }
       }
 
       if (tabFilters.length > 0) {
@@ -225,7 +284,10 @@ const HomePage = () => {
     const hasSearchQuery =
       currentQuery.trim() !== "" ||
       currentFilters.adv_params.length > 0 ||
-      currentFilters.collection;
+      currentFilters.collection ||
+      (currentFilters.robotstxt_rejected &&
+        currentFilters.robotstxt_rejected !== "exclude") ||
+      (currentFilters.has_error && currentFilters.has_error !== "include");
     const tab = getActiveTab(hasSearchQuery, "search");
 
     setActiveTab(tab);
@@ -290,7 +352,10 @@ const HomePage = () => {
   const hasSearchQuery =
     currentQuery.trim() !== "" ||
     currentFilters.adv_params.length > 0 ||
-    currentFilters.collection;
+    currentFilters.collection ||
+    (currentFilters.robotstxt_rejected &&
+      currentFilters.robotstxt_rejected !== "exclude") ||
+    (currentFilters.has_error && currentFilters.has_error !== "include");
 
   const currentViewMode = activeTab === "home" ? tabViewMode : viewMode;
 

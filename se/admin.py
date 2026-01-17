@@ -475,6 +475,7 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
         "hidden",
         DocumentOrphanFilter,
         "crawl_last",
+        "robotstxt_rejected",
     )
     search_fields = ["url__regex", "title__regex"]
     ordering = ("-crawl_last",)

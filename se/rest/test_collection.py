@@ -16,8 +16,10 @@
 import json
 
 from django.test import TransactionTestCase
+from django.utils import timezone
 
 from ..collection import Collection
+from ..document import Document
 from .test_rest_api import RestAPITest
 
 
@@ -97,3 +99,48 @@ class CollectionTest(RestAPITest, TransactionTestCase):
         data = json.loads(response.content)
         self.assertEqual(data["tags"], [self.subtag.id])
         self.assertEqual(data["webhooks"], [self.test_webhook.id])
+
+    def test_collection_detail_statistics(self):
+        now = timezone.now()
+        crawl_first_time = now - timezone.timedelta(days=10)
+        crawl_last_time = now - timezone.timedelta(days=1)
+        crawl_next_time = now + timezone.timedelta(days=1)
+
+        Document.objects.wo_content().create(
+            url="http://127.0.0.1/robots_rejected",
+            normalized_url="http test robots",
+            title="Robots Rejected",
+            normalized_title="robots rejected",
+            content="Content",
+            normalized_content="content",
+            crawl_first=crawl_first_time,
+            crawl_last=crawl_last_time,
+            crawl_next=crawl_next_time,
+            robotstxt_rejected=True,
+            collection=self.collection,
+        )
+
+        Document.objects.wo_content().create(
+            url="http://127.0.0.1/with_error",
+            normalized_url="http test error",
+            title="With Error",
+            normalized_title="with error",
+            content="Content",
+            normalized_content="content",
+            crawl_first=crawl_first_time,
+            crawl_last=now,
+            crawl_next=now + timezone.timedelta(days=2),
+            error="Some error message",
+            collection=self.collection,
+        )
+
+        response = self.client.get(f"/api/collection/{self.collection.id}/")
+        self.assertEqual(response.status_code, 200, response.content)
+        data = json.loads(response.content)
+
+        self.assertEqual(data["documents_count"], 4)
+        self.assertEqual(data["robotstxt_rejected"], 1)
+        self.assertEqual(data["errors"], 1)
+        self.assertIsNotNone(data["crawl_first"])
+        self.assertIsNotNone(data["crawl_last"])
+        self.assertIsNotNone(data["crawl_next"])

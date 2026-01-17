@@ -134,6 +134,47 @@ const MoreOptionsPanel = memo(
               Include hidden documents
             </Checkbox>
           </Col>
+
+          <Col xs={24} sm={12}>
+            <Form.Item label="Robots.txt rejected" style={{ marginBottom: 0 }}>
+              <Select
+                value={filters.robotstxt_rejected || "exclude"}
+                onChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    robotstxt_rejected: value as "include" | "exclude" | "only",
+                  })
+                }
+                style={{ width: "100%" }}
+              >
+                <Option value="include">Include all</Option>
+                <Option value="only">Only rejected</Option>
+                <Option value="exclude">Exclude rejected</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Documents with errors"
+              style={{ marginBottom: 0 }}
+            >
+              <Select
+                value={filters.has_error || "include"}
+                onChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    has_error: value as "include" | "exclude" | "only",
+                  })
+                }
+                style={{ width: "100%" }}
+              >
+                <Option value="include">Include all</Option>
+                <Option value="only">Only with errors</Option>
+                <Option value="exclude">Exclude with errors</Option>
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
       </Card>
     );

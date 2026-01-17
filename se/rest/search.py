@@ -106,20 +106,30 @@ class SearchQuerySerializer(serializers.Serializer):
         default=False,
         help_text="Filter documents shown on homepage",
     )
+    robotstxt_rejected = serializers.BooleanField(
+        required=False,
+        help_text="Filter documents rejected by robots.txt",
+    )
+    has_error = serializers.BooleanField(
+        required=False,
+        help_text="Filter documents with errors",
+    )
 
     def validate(self, data):
         data = super().validate(data)
-        if (
-            not data.get("adv_params")
-            and not data.get("query")
-            and not data.get("show_on_homepage")
-            and not data.get("collection")
-        ):
-            raise serializers.ValidationError(
-                {
-                    api_settings.NON_FIELD_ERRORS_KEY: 'At least "query", "adv_params" or "show_on_homepage" field must be provided.'
-                }
-            )
+
+        # Check if user has write permission on documents (admin)
+        request = self.context["request"]
+        has_write_permission = request.user.has_perm("se.change_document")
+
+        # Non-admin users must provide query, adv_params or show_on_homepage
+        if not has_write_permission:
+            if not data.get("adv_params") and not data.get("query") and not data.get("show_on_homepage"):
+                raise serializers.ValidationError(
+                    {
+                        api_settings.NON_FIELD_ERRORS_KEY: 'At least "query", "adv_params" or "show_on_homepage" field must be provided.'
+                    }
+                )
 
         collection_id = data.get("collection")
         if collection_id:
@@ -212,7 +222,7 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         },
     )
     def create(self, request, *args, **kwargs):
-        query_serializer = SearchQuerySerializer(data=request.data)
+        query_serializer = SearchQuerySerializer(data=request.data, context={"request": request})
         query_serializer.is_valid(raise_exception=True)
         validated_data = query_serializer.validated_data
 
@@ -222,6 +232,17 @@ class SearchViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         # Apply show_on_homepage filter if requested
         if validated_data.get("show_on_homepage"):
             documents = documents.filter(show_on_homepage=True)
+
+        # Apply robotstxt_rejected filter if requested
+        if validated_data.get("robotstxt_rejected") is not None:
+            documents = documents.filter(robotstxt_rejected=validated_data["robotstxt_rejected"])
+
+        # Apply has_error filter if requested
+        if validated_data.get("has_error") is not None:
+            if validated_data["has_error"]:
+                documents = documents.exclude(error="")
+            else:
+                documents = documents.filter(error="")
 
         page = self.paginate_queryset(documents)
         add_headlines(page, search_query)

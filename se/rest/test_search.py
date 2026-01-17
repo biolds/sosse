@@ -49,12 +49,32 @@ class SearchTest(RestAPITest, TransactionTestCase):
         )
 
     def test_search_has_params(self):
+        # Admin user can search without parameters
+        response = self.client.post("/api/search/", {})
+        self.assertEqual(response.status_code, 200, response.content)
+
+    def test_search_has_params_non_admin(self):
+        # Create a non-admin user
+        from django.contrib.auth.models import User
+
+        non_admin = User.objects.create_user(username="user", password="pass")
+        non_admin.save()
+
+        # Logout admin and login as non-admin
+        self.client.logout()
+        self.client.login(username="user", password="pass")
+
+        # Non-admin user must provide search parameters
         response = self.client.post("/api/search/", {})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             json.loads(response.content),
             {"non_field_errors": ['At least "query", "adv_params" or "show_on_homepage" field must be provided.']},
         )
+
+        # Login back as admin for other tests
+        self.client.logout()
+        self.client.login(username="admin", password="admin")
 
     def test_search_title(self):
         response = self.client.post(

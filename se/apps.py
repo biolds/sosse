@@ -26,10 +26,12 @@ class SEConfig(AppConfig):
         from django.db import DatabaseError, transaction
 
         from .collection import Collection
+        from .models import BrowserConfig
 
         try:
             with transaction.atomic():
                 Collection.create_default()
+                BrowserConfig.create_defaults()
         except DatabaseError:
             pass
 

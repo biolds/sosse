@@ -18,6 +18,8 @@ from unittest import mock
 from django.test import TransactionTestCase
 
 from .browser_chromium import BrowserChromium
+from .browser_firefox import BrowserFirefox
+from .models import BrowserConfig
 from .test_mock import BrowserMock
 
 
@@ -53,3 +55,70 @@ class ChromiumTest(TransactionTestCase):
 
         content = BrowserChromium._escape_content_handler(self.IMG_CONTENT)
         self.assertEqual(content, b"Image content")
+
+
+class BrowserConfigTest(TransactionTestCase):
+    def tearDown(self):
+        BrowserChromium.inited = False
+        BrowserChromium._browser_config_key = None
+        BrowserFirefox.inited = False
+        BrowserFirefox._browser_config_key = None
+        super().tearDown()
+
+    def test_chromium_ignore_ssl_errors_sets_command_line_flag(self):
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_CHROMIUM,
+            defaults={"ignore_ssl_errors": True},
+        )
+
+        opts = BrowserChromium._configured_options()
+
+        self.assertIn("--ignore-certificate-errors", opts)
+
+    def test_firefox_ignore_ssl_errors_sets_selenium_capability(self):
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_FIREFOX,
+            defaults={"ignore_ssl_errors": True},
+        )
+        options = mock.Mock()
+
+        BrowserFirefox._configure_options_obj(options)
+
+        options.set_capability.assert_called_once_with("acceptInsecureCerts", True)
+
+    def test_browser_extra_options_are_appended(self):
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_CHROMIUM,
+            defaults={"extra_options": "--foo --bar=baz"},
+        )
+
+        opts = BrowserChromium._configured_options()
+
+        self.assertIn("--foo", opts)
+        self.assertIn("--bar=baz", opts)
+
+    def test_selenium_config_change_restarts_browser(self):
+        BrowserChromium.inited = True
+        BrowserChromium._browser_config_key = (False, "")
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_CHROMIUM,
+            defaults={"ignore_ssl_errors": True},
+        )
+
+        with mock.patch.object(BrowserChromium, "destroy") as destroy:
+            BrowserChromium._ensure_current_config()
+
+        destroy.assert_called_once()
+
+    def test_selenium_unchanged_config_keeps_browser(self):
+        BrowserChromium.inited = True
+        BrowserChromium._browser_config_key = (False, "")
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_CHROMIUM,
+            defaults={"ignore_ssl_errors": False, "extra_options": ""},
+        )
+
+        with mock.patch.object(BrowserChromium, "destroy") as destroy:
+            BrowserChromium._ensure_current_config()
+
+        destroy.assert_not_called()

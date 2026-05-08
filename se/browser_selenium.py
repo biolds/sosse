@@ -35,6 +35,7 @@ from .browser import (
     TooManyRedirects,
     retry,
 )
+from .browser_config import config_key
 from .browser_request import BrowserRequest
 from .cookie import Cookie
 from .page import NAV_ELEMENTS, Page
@@ -46,6 +47,7 @@ crawl_logger = logging.getLogger("crawler")
 class BrowserSelenium(Browser):
     _worker_no = 0
     _driver = None
+    _browser_config_key = None
     cookie_loaded = []
     COOKIE_LOADED_SIZE = 1024
     first_init = True
@@ -55,6 +57,46 @@ class BrowserSelenium(Browser):
     def driver(cls):
         cls.init()
         return cls._driver
+
+    @classmethod
+    def _current_config_key(cls):
+        return config_key(cls.name)
+
+    @classmethod
+    def _ensure_current_config(cls):
+        if not cls.inited:
+            return
+
+        browser_config_key = cls._current_config_key()
+        if cls._browser_config_key != browser_config_key:
+            crawl_logger.info(f"Browser {cls.__name__} configuration changed, restarting")
+            cls.destroy()
+
+    @classmethod
+    def _configured_options(cls, browser_config_key=None):
+        if browser_config_key is None:
+            browser_config_key = cls._current_config_key()
+        ignore_ssl_errors, extra_options = browser_config_key
+
+        opt_key = f"SOSSE_{cls.name.upper()}_OPTIONS"
+        opts = shlex.split(getattr(settings, opt_key))
+        opts += shlex.split(extra_options)
+        w, h = cls.screen_size()
+        opts.append(f"--window-size={w},{h}")
+        opts += cls._get_options()
+        if cls.name == "chromium" and ignore_ssl_errors:
+            opts.append("--ignore-certificate-errors")
+        return opts
+
+    @classmethod
+    def _configure_options_obj(cls, options, browser_config_key=None):
+        if browser_config_key is None:
+            browser_config_key = cls._current_config_key()
+        ignore_ssl_errors, _extra_options = browser_config_key
+
+        if ignore_ssl_errors:
+            options.set_capability("acceptInsecureCerts", True)
+        return options
 
     @classmethod
     def _init(cls):
@@ -77,14 +119,11 @@ class BrowserSelenium(Browser):
         config_dir = settings.SOSSE_BROWSER_CONFIG_DIR
         os.environ["XDG_CONFIG_HOME"] = config_dir
 
-        opt_key = f"SOSSE_{cls.name.upper()}_OPTIONS"
-        opts = shlex.split(getattr(settings, opt_key))
-        w, h = cls.screen_size()
-        opts.append(f"--window-size={w},{h}")
-        opts += cls._get_options()
+        browser_config_key = cls._current_config_key()
+        opts = cls._configured_options(browser_config_key)
 
         has_incognito = False
-        options = cls._get_options_obj()
+        options = cls._configure_options_obj(cls._get_options_obj(), browser_config_key)
         for opt in opts:
             if cls.first_init:
                 crawl_logger.info(f"Passing option {opt}")
@@ -98,6 +137,7 @@ class BrowserSelenium(Browser):
 
         cls.first_init = False
         cls._driver = cls._get_driver(options)
+        cls._browser_config_key = browser_config_key
         cls._driver.delete_all_cookies()
 
     @classmethod
@@ -113,6 +153,8 @@ class BrowserSelenium(Browser):
                 cls._driver.quit()
             except:  # noqa # nosec B110
                 pass
+            cls._driver = None
+        cls._browser_config_key = None
 
     @classmethod
     def _current_url(cls):
@@ -329,6 +371,7 @@ class BrowserSelenium(Browser):
     @classmethod
     @retry
     def get(cls, url, collection):
+        cls._ensure_current_config()
         current_url = cls.driver().current_url
         crawl_logger.debug(f"get on {url}, current {current_url}")
 

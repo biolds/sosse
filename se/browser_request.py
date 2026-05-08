@@ -22,6 +22,7 @@ from django.conf import settings
 from requests.adapters import HTTPAdapter
 
 from .browser import AuthElemFailed, Browser, PageTooBig, TooManyRedirects
+from .browser_config import ignore_ssl_errors
 from .browser_request_hack import _encode_invalid_chars
 from .cookie import Cookie
 from .domain import user_agent
@@ -51,6 +52,8 @@ def requests_params(_params):
         }
     if settings.SOSSE_REQUESTS_TIMEOUT:
         params["timeout"] = settings.SOSSE_REQUESTS_TIMEOUT
+    if ignore_ssl_errors("requests"):
+        params["verify"] = False
     return dict_merge(params, _params)
 
 
@@ -110,26 +113,15 @@ class BrowserRequest(Browser):
             }
         )
 
-    _session_cache = {}
-
-    @classmethod
-    def _get_session(cls, url):
-        """Get or create a cached session for the given hostname."""
-        hostname = requests.utils.urlparse(url).hostname
-        if hostname not in cls._session_cache:
-            session = requests.Session()
-            adapter = HTTPAdapter(max_retries=0)
-            session.mount("http://", adapter)
-            session.mount("https://", adapter)
-            cls._session_cache[hostname] = session
-        return cls._session_cache[hostname]
-
     @classmethod
     def _requests_query(cls, method, url, max_file_size, **kwargs):
         jar = cls._get_cookies(url)
         crawl_logger.debug(f"from the jar: {jar}")
 
-        session = cls._get_session(url)
+        session = requests.Session()
+        adapter = HTTPAdapter(max_retries=0)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
         session.cookies = jar
 
         func = getattr(session, method)
@@ -142,27 +134,31 @@ class BrowserRequest(Browser):
             if parsed_url.hostname != referer_parsed.hostname:
                 kwargs["headers"].pop("Referer")
 
-        r = func(url, **kwargs)
-        Cookie.set_from_jar(url, session.cookies)
+        r = None
+        try:
+            r = func(url, **kwargs)
+            Cookie.set_from_jar(url, session.cookies)
 
-        content_length = int(r.headers.get("content-length", 0))
-        if content_length / 1024 > max_file_size:
-            r.close()
-            raise PageTooBig(content_length, max_file_size)
+            content_length = int(r.headers.get("content-length", 0))
+            if content_length / 1024 > max_file_size:
+                raise PageTooBig(content_length, max_file_size)
 
-        content = b""
-        for chunk in r.iter_content(chunk_size=1024 * 1024):
-            content += chunk
-            if len(content) / 1024 >= max_file_size:
-                break
-        r.close()
+            content = b""
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                content += chunk
+                if len(content) / 1024 >= max_file_size:
+                    break
 
-        if len(content) / 1024 > max_file_size:
-            raise PageTooBig(len(content), max_file_size)
+            if len(content) / 1024 > max_file_size:
+                raise PageTooBig(len(content), max_file_size)
 
-        r._content = content
-        crawl_logger.debug(f"after request jar: {session.cookies}")
-        return r
+            r._content = content
+            crawl_logger.debug(f"after request jar: {session.cookies}")
+            return r
+        finally:
+            if r is not None:
+                r.close()
+            session.close()
 
     @classmethod
     def get(

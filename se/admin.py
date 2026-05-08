@@ -43,7 +43,7 @@ from .document import Document
 from .domain import Domain
 from .html_asset import HTMLAsset
 from .mime_plugin import MimePlugin
-from .models import AuthField, ExcludedUrl, Link, SearchEngine, WorkerStats
+from .models import AuthField, BrowserConfig, ExcludedUrl, Link, SearchEngine, WorkerStats
 from .tag import Tag
 from .tag_field import TagField
 from .utils import mimetype_icon, reverse_no_escape
@@ -55,6 +55,7 @@ class SEAdminSite(admin.AdminSite):
     index_title = "Administration"
 
     MODEL_ICONS = {
+        "BrowserConfig": "🛠",
         "Cookie": "🍪 ",
         "Collection": "⚡",
         "Tag": "⭐",
@@ -82,6 +83,7 @@ class SEAdminSite(admin.AdminSite):
                     "MimePlugin",
                     "ExcludedUrl",
                     "SearchEngine",
+                    "BrowserConfig",
                     "HTMLAsset",
                 ),
             ),
@@ -888,6 +890,17 @@ class DocumentAdmin(InlineActionModelAdmin, ActiveTagMixin):
 
 class InlineAuthField(admin.TabularInline):
     model = AuthField
+
+
+@admin.register(BrowserConfig)
+class BrowserConfigAdmin(admin.ModelAdmin):
+    list_display = ("browser", "ignore_ssl_errors", "has_extra_options")
+    list_filter = ("ignore_ssl_errors",)
+    fields = ("browser", "ignore_ssl_errors", "extra_options")
+
+    @admin.display(boolean=True, description="Extra options")
+    def has_extra_options(self, obj):
+        return bool(obj.extra_options.strip())
 
 
 class CollectionForm(CharFieldForm):

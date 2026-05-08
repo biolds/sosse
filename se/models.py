@@ -30,7 +30,6 @@ from django.http import QueryDict
 from django.urls import reverse
 from django.utils.timezone import now
 
-from .browser_request import BrowserRequest
 from .builtin import BuiltinModel
 from .crawl_policy_backup import AuthFieldBackup, CrawlPolicyBackup  # noqa: F401
 from .document import Document
@@ -38,6 +37,41 @@ from .online import online_status
 from .url import absolutize_url, url_remove_fragment, url_remove_query_string
 
 crawl_logger = logging.getLogger("crawler")
+
+
+class BrowserConfig(models.Model):
+    BROWSER_REQUESTS = "requests"
+    BROWSER_CHROMIUM = "chromium"
+    BROWSER_FIREFOX = "firefox"
+    BROWSER = (
+        (BROWSER_REQUESTS, "Python Requests"),
+        (BROWSER_CHROMIUM, "Chromium"),
+        (BROWSER_FIREFOX, "Firefox"),
+    )
+
+    browser = models.CharField(max_length=10, choices=BROWSER, unique=True)
+    ignore_ssl_errors = models.BooleanField(
+        default=False,
+        verbose_name="Ignore SSL certificate errors",
+        help_text="Disable SSL certificate validation for this browser. This allows crawling pages with expired or otherwise invalid certificates.",
+    )
+    extra_options = models.TextField(
+        blank=True,
+        default="",
+        help_text="Additional command-line options appended to Chromium or Firefox. Ignored by Python Requests.",
+    )
+
+    class Meta:
+        verbose_name = "Browser configuration"
+        verbose_name_plural = "Browser configurations"
+
+    def __str__(self):
+        return self.get_browser_display()
+
+    @classmethod
+    def create_defaults(cls):
+        for browser, _label in cls.BROWSER:
+            cls.objects.get_or_create(browser=browser)
 
 
 class Link(models.Model):
@@ -408,6 +442,8 @@ class FavIcon(models.Model):
                 favicon.content = data
                 favicon.missing = False
             else:
+                from .browser_request import BrowserRequest
+
                 page = BrowserRequest.get(url, doc.collection, check_status=True)
                 from magic import from_buffer as magic_from_buffer
 

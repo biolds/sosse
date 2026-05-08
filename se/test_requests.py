@@ -13,18 +13,106 @@
 # You should have received a copy of the GNU Affero General Public License along with Sosse.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from unittest import mock
+
 import requests
 from django.conf import settings
 from django.test import TransactionTestCase
 
+from .browser import PageTooBig
 from .browser_request import BrowserRequest
+from .models import BrowserConfig
 
 
 class RequestsTest(TransactionTestCase):
+    def tearDown(self):
+        BrowserRequest._destroy()
+        super().tearDown()
+
     def _get(self, s, url):
         params = BrowserRequest._requests_params()
         params["allow_redirects"] = True
         return s.get(url, **params)
+
+    def test_05_request_success_closes_response_and_session(self):
+        response = mock.Mock(headers={}, status_code=200, url="https://example.com/")
+        response.iter_content.return_value = [b"ok"]
+        session = mock.Mock()
+        session.get.return_value = response
+
+        with mock.patch("se.browser_request.requests.Session", return_value=session):
+            result = BrowserRequest._requests_query("get", "https://example.com/", settings.SOSSE_MAX_FILE_SIZE)
+
+        self.assertEqual(result._content, b"ok")
+        response.close.assert_called_once()
+        session.close.assert_called_once()
+
+    def test_06_request_exception_closes_session(self):
+        session = mock.Mock()
+        session.get.side_effect = requests.exceptions.SSLError("certificate has expired")
+
+        with mock.patch("se.browser_request.requests.Session", return_value=session):
+            with self.assertRaises(requests.exceptions.SSLError):
+                BrowserRequest._requests_query("get", "https://example.com/", settings.SOSSE_MAX_FILE_SIZE)
+
+        session.close.assert_called_once()
+
+    def test_07_ignore_ssl_errors_disables_certificate_validation(self):
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_REQUESTS,
+            defaults={"ignore_ssl_errors": True},
+        )
+        response = mock.Mock(
+            headers={},
+            status_code=200,
+            url="https://example.com/",
+        )
+        response.iter_content.return_value = [b"ok"]
+        session = mock.Mock()
+        session.get.return_value = response
+
+        with mock.patch("se.browser_request.requests.Session", return_value=session):
+            BrowserRequest._requests_query("get", "https://example.com/", settings.SOSSE_MAX_FILE_SIZE)
+
+        self.assertIs(session.get.call_args.kwargs["verify"], False)
+
+    def test_08_ssl_validation_enabled_by_default(self):
+        BrowserConfig.objects.update_or_create(
+            browser=BrowserConfig.BROWSER_REQUESTS,
+            defaults={"ignore_ssl_errors": False},
+        )
+        params = BrowserRequest._requests_params()
+
+        self.assertNotIn("verify", params)
+
+    def test_09_stream_error_closes_response_and_session(self):
+        response = mock.Mock(headers={}, status_code=200, url="https://example.com/")
+        response.iter_content.side_effect = requests.exceptions.ChunkedEncodingError()
+        session = mock.Mock()
+        session.get.return_value = response
+
+        with mock.patch("se.browser_request.requests.Session", return_value=session):
+            with self.assertRaises(requests.exceptions.ChunkedEncodingError):
+                BrowserRequest._requests_query("get", "https://example.com/", settings.SOSSE_MAX_FILE_SIZE)
+
+        response.close.assert_called_once()
+        session.close.assert_called_once()
+
+    def test_09b_content_length_too_big_closes_response_and_session(self):
+        response = mock.Mock(
+            headers={"content-length": str((settings.SOSSE_MAX_FILE_SIZE + 1) * 1024)},
+            status_code=200,
+            url="https://example.com/",
+        )
+        session = mock.Mock()
+        session.get.return_value = response
+
+        with mock.patch("se.browser_request.requests.Session", return_value=session):
+            with self.assertRaises(PageTooBig):
+                BrowserRequest._requests_query("get", "https://example.com/", settings.SOSSE_MAX_FILE_SIZE)
+
+        response.close.assert_called_once()
+        session.close.assert_called_once()
 
     def test_10_cookie_set(self):
         s = requests.Session()
